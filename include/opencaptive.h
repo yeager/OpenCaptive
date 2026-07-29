@@ -6,7 +6,7 @@
 #include <stddef.h>
 
 #define OPENCAPTIVE_VERSION_MAJOR 1
-#define OPENCAPTIVE_VERSION_MINOR 0
+#define OPENCAPTIVE_VERSION_MINOR 1
 #define OPENCAPTIVE_VERSION_PATCH 0
 
 // Original Captive resolution: 320x200 (DOS/Atari ST), 320x256 (Amiga)
