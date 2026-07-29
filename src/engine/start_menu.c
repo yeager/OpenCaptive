@@ -253,5 +253,5 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
                        "UP-DOWN: SELECT  ENTER: START  ESC: QUIT",
                        0xFF555555, 1);
     draw_border(pixels, width, height, 5, 5, width - 10, height - 10, 0xFF444488, 1);
-    draw_text(pixels, width, height, 10, height - 12, "V0.1.0", 0xFF333333, 1);
+    draw_text(pixels, width, height, 10, height - 12, "V1.0.0", 0xFF333333, 1);
 }
