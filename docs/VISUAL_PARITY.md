@@ -45,3 +45,13 @@ I standardläget lämnas den dynamiska rektangeln `(32,55,144,112)` orörd tills
 originalrenderingen är återställd; den fylls alltså inte med syntetisk grafik.
 Det experimentella F10-läget kan fortfarande rita en förbättrad approximation,
 men räknas inte som visuell paritet.
+
+## Captive-panelblad
+
+Fed7-E från den verifierade Amiga-ADF:en avkodas via RNC1-old till fem
+bitplan och omvandlas till 64 000 palettindex. Den indexbufferten har
+SHA-256 `d2efa8a9cbbbaa45e49c82465765836ba173676645e810fda5cd23ef85bd3431`
+och är exakt identisk med det motsvarande hashidentifierade DOS-panelbladet:
+64 000 av 64 000 pixlar stämmer. Det bevisar att panelkällorna är originaldata
+på båda plattformarna. Det bevisar inte ännu den dynamiska cell- och
+panelkompositionen i spelvyn.
