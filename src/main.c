@@ -35,6 +35,26 @@
 
 static uint32_t framebuffer[LIBERATION_SCREEN_WIDTH * LIBERATION_SCREEN_HEIGHT];
 
+static bool write_frame_ppm(const char *path, const uint32_t *pixels,
+                            int width, int height) {
+    FILE *file = fopen(path, "wb");
+    if (!file) return false;
+    bool ok = fprintf(file, "P6\n%d %d\n255\n", width, height) > 0;
+    for (int y = 0; ok && y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            uint32_t pixel = pixels[y * width + x];
+            uint8_t rgb[3] = {(uint8_t)(pixel >> 16),
+                              (uint8_t)(pixel >> 8), (uint8_t)pixel};
+            if (fwrite(rgb, 1, sizeof(rgb), file) != sizeof(rgb)) {
+                ok = false;
+                break;
+            }
+        }
+    }
+    if (fclose(file) != 0) ok = false;
+    return ok;
+}
+
 static bool parse_int_option(const char *text, int minimum, int maximum, int *value) {
     if (!text || !value) return false;
     char *end = NULL;
@@ -638,6 +658,7 @@ int main(int argc, char *argv[]) {
     GameType requested_game = GAME_CAPTIVE;
     bool start_directly = false;
     const char *verify_data = NULL;
+    const char *capture_frame_path = NULL;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
@@ -665,6 +686,7 @@ int main(int argc, char *argv[]) {
                 "  --contrast <n>        Contrast 0-100 (default 50)\n"
                 "  --game <name>         Start game directly: captive, liberation\n\n"
                 "  --verify-data <name>  Verify data by SHA-256: captive, liberation, all\n\n"
+                "  --capture-frame <ppm> Save one unscaled native game frame, then exit\n\n"
                 "Game data:\n"
                 "  Place original Captive game files (or ZIP archives containing them)\n"
                 "  in the data directory. Default location:\n"
@@ -753,6 +775,8 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "Unknown data set: %s (expected captive, liberation or all)\n", verify_data);
                 return 2;
             }
+        } else if (strcmp(argv[i], "--capture-frame") == 0 && i + 1 < argc) {
+            capture_frame_path = argv[++i];
         } else {
             fprintf(stderr, "Unknown option: %s\n", argv[i]);
             return 2;
@@ -1220,7 +1244,17 @@ int main(int argc, char *argv[]) {
         }
 
         if (runtime_popup.open && gs.mode == STATE_GAME)
-            popup_render(&gs, framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+            popup_render(&gs, framebuffer, frame_width, frame_height);
+
+        if (capture_frame_path) {
+            if (!write_frame_ppm(capture_frame_path, framebuffer, frame_width, frame_height)) {
+                fprintf(stderr, "Could not write frame capture: %s\n", capture_frame_path);
+                running = false;
+            } else {
+                printf("Wrote native frame capture: %s\n", capture_frame_path);
+                running = false;
+            }
+        }
 
         music_update(&music_sys);
         sound_mix(&sound_sys);
