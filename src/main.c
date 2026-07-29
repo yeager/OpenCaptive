@@ -21,6 +21,7 @@
 #include "enhanced_render.h"
 #include "data_vfs.h"
 #include "sha256.h"
+#include "liberation_data.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
@@ -66,6 +67,16 @@ static bool validate_data_path(const DataVFS *vfs) {
     return true;
 }
 
+static void show_missing_liberation_data_dialog(const char *data_path) {
+    char msg[768];
+    snprintf(msg, sizeof(msg),
+        "Verified Liberation: Captive II CD32 data was not found in:\n  %s\n\n"
+        "OpenCaptive only accepts a known original data track and verifies it with SHA-256.",
+        data_path);
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+        "OpenCaptive - Liberation data not found", msg, NULL);
+}
+
 static void show_missing_data_dialog(const char *data_path) {
     char msg[1024];
     snprintf(msg, sizeof(msg),
@@ -103,6 +114,7 @@ static DroidUIState droid_ui;
 static TerminalState terminal;
 static SfxSystem sfx;
 static LibState lib_state;
+static LiberationData liberation_data;
 static EnhancedRenderer enhanced;
 
 static const uint8_t simple_font[][5] = {
@@ -595,11 +607,15 @@ int main(int argc, char *argv[]) {
             music_play(&music_sys, MUSIC_BASE);
         }
     } else if (start_directly && requested_game == GAME_LIBERATION) {
-        gs.game_type = GAME_LIBERATION;
-        lib_init(&lib_state, 42);
-        game_state_new_mission(&gs, 1);
-        spawn_level_content(&gs);
-        music_play(&music_sys, MUSIC_BASE);
+        if (!liberation_data_open(&liberation_data, &vfs)) {
+            show_missing_liberation_data_dialog(config.data_path);
+        } else {
+            gs.game_type = GAME_LIBERATION;
+            lib_init(&lib_state, 42);
+            game_state_new_mission(&gs, 1);
+            spawn_level_content(&gs);
+            music_play(&music_sys, MUSIC_BASE);
+        }
     }
 
     bool running = true;
@@ -650,6 +666,11 @@ int main(int argc, char *argv[]) {
                             }
                             break;
                         case MENU_RESULT_START_LIBERATION:
+                            liberation_data_close(&liberation_data);
+                            if (!liberation_data_open(&liberation_data, &vfs)) {
+                                show_missing_liberation_data_dialog(config.data_path);
+                                break;
+                            }
                             gs.game_type = GAME_LIBERATION;
                             lib_init(&lib_state, 42);
                             game_state_new_mission(&gs, 1);
@@ -918,6 +939,7 @@ int main(int argc, char *argv[]) {
     }
 
     vfs_free(&vfs);
+    liberation_data_close(&liberation_data);
     music_shutdown(&music_sys);
     sound_shutdown(&sound_sys);
     if (intro_loaded) anm_free(&intro_anim);

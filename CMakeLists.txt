@@ -34,6 +34,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/texture_atlas.c
     src/data/adf_reader.c
     src/data/iso9660_reader.c
+    src/data/liberation_data.c
     src/data/st_disk_reader.c
     src/audio/sound.c
     src/audio/sfx.c
