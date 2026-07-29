@@ -102,6 +102,11 @@ add_executable(test_liberation tests/test_liberation.c src/engine/liberation.c)
 target_include_directories(test_liberation PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME liberation COMMAND test_liberation)
 
+add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c)
+target_include_directories(test_start_menu PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_start_menu PRIVATE SDL3::SDL3)
+add_test(NAME start_menu COMMAND test_start_menu)
+
 add_executable(test_game_state tests/test_game_state.c
     src/engine/engine.c src/engine/map_gen.c src/engine/combat.c)
 target_include_directories(test_game_state PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -125,7 +130,7 @@ endfunction()
 
 foreach(test_target IN ITEMS
         test_pl5_decoder test_anm_decoder test_map_gen test_data_vfs
-        test_sha256 test_iso9660_reader test_liberation test_game_state test_save_load)
+        test_sha256 test_iso9660_reader test_liberation test_start_menu test_game_state test_save_load)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
 
