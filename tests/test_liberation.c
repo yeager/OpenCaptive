@@ -5,7 +5,7 @@
 static const char save_path[] = "opencaptive-liberation-test-save.bin";
 
 int main(void) {
-    LibState first, second;
+    static LibState first, second;
     lib_init(&first, 42);
     lib_init(&second, 42);
 
@@ -41,7 +41,7 @@ int main(void) {
     first.player_cy = 8;
     first.mission_complete = true;
     assert(lib_save_game(&first, save_path));
-    LibState loaded = {0};
+    static LibState loaded;
     assert(lib_load_game(&loaded, save_path));
     assert(loaded.player_cx == 7 && loaded.player_cy == 8);
     assert(loaded.mission_complete && loaded.mode == LIB_MODE_CITY);

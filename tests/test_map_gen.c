@@ -77,11 +77,11 @@ static void test_architect_prng_regression(void) {
      * same base; this digest-like sample catches accidental LCG substitutions. */
     DungeonLevel base;
     map_generate(&base, 179, 0);
-    unsigned long checksum = 0;
+    uint64_t checksum = 0;
     for (int y = 0; y < MAP_HEIGHT; y++)
         for (int x = 0; x < MAP_WIDTH; x++)
             checksum = checksum * 131u + base.cells[y][x].type;
-    assert(checksum == 9531787337675192601ul);
+    assert(checksum == UINT64_C(9531787337675192601));
 }
 
 static void test_architect_base_layout(void) {

@@ -67,4 +67,6 @@ jobs:
           cmake -S . -B build -DCMAKE_PREFIX_PATH="${{ github.workspace }}/SDL3-install;${{ github.workspace }}/zlib-install"
           cmake --build build --config Release
       - name: Test
-        run: ctest --test-dir build -C Release -j4 --output-on-failure
+        run: |
+          $env:PATH = "${{ github.workspace }}/SDL3-install/bin;${{ github.workspace }}/zlib-install/bin;$env:PATH"
+          ctest --test-dir build -C Release -j4 --output-on-failure

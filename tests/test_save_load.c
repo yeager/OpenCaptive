@@ -6,9 +6,9 @@
 static const char save_path[] = "opencaptive-test-save.bin";
 
 static void test_round_trip(void) {
-    GameState saved, loaded;
-    CreatureList saved_creatures = {0}, loaded_creatures = {0};
-    PuzzleList saved_puzzles = {0}, loaded_puzzles = {0};
+    static GameState saved, loaded;
+    static CreatureList saved_creatures, loaded_creatures;
+    static PuzzleList saved_puzzles, loaded_puzzles;
     game_state_init(&saved, GAME_CAPTIVE, 1);
     saved.base_id = 3;
     game_state_new_mission(&saved, 17);
@@ -51,9 +51,9 @@ static void test_round_trip(void) {
 }
 
 static void test_corrupt_save_preserves_state(void) {
-    GameState before, target;
-    CreatureList creatures = {0}, target_creatures = {0};
-    PuzzleList puzzles = {0}, target_puzzles = {0};
+    static GameState before, target;
+    static CreatureList creatures, target_creatures;
+    static PuzzleList puzzles, target_puzzles;
     game_state_init(&before, GAME_CAPTIVE, 1);
     before.base_id = 3;
     game_state_new_mission(&before, 17);

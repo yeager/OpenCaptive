@@ -24,7 +24,7 @@ static void move_to_stair(GameState *gs, CellType stair) {
 }
 
 static void test_combat_respects_closed_doors(void) {
-    GameState gs;
+    static GameState gs;
     CreatureList creatures = {0};
     game_state_init(&gs, GAME_CAPTIVE, 1);
     gs.base_id = 3;
@@ -58,7 +58,7 @@ static void test_combat_respects_closed_doors(void) {
 }
 
 static void test_campaign_progression(void) {
-    GameState gs;
+    static GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
     gs.base_id = 3;
     game_state_new_mission(&gs, 9);
@@ -75,7 +75,7 @@ static void test_campaign_progression(void) {
 int main(void) {
     test_combat_respects_closed_doors();
     test_campaign_progression();
-    GameState gs;
+    static GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
     gs.base_id = 3;
     game_state_new_mission(&gs, 17);
