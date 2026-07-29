@@ -49,11 +49,30 @@ Point OpenCaptive at your game data directory:
 ./build/opencaptive --data /path/to/captive/data
 ```
 
-### Options
+### Controls
+
+| Key | Action |
+|-----|--------|
+| W / Up | Move forward |
+| S / Down | Move backward |
+| A / Left | Turn left |
+| D / Right | Turn right |
+| Q | Strafe left |
+| E | Strafe right |
+| Space | Attack (selected droid) |
+| F | Interact (open doors, use generators, enter shops) |
+| M | Toggle minimap overlay |
+| 1-4 | Select droid |
+| , / . | Go up/down stairs |
+| F5 | Quick save |
+| F9 | Quick load |
+| Escape | Return to menu |
+
+### Command-line options
 
 | Flag | Description |
 |------|-------------|
-| `--data <path>` | Path to game data (required) |
+| `--data <path>` | Path to game data (required for original assets) |
 | `--game captive\|liberation` | Select which game to play (default: start menu) |
 | `--platform dos\|atari\|amiga\|cd32` | Select platform data to use (default: auto-detect) |
 | `--scale <N>` | Window scale factor (default: `3`) |
@@ -73,46 +92,79 @@ Point OpenCaptive at your game data directory:
 
 | Platform | Files | Notes |
 |----------|-------|-------|
-| Amiga | `.adf` disk images (5 disks) | Floppy version |
-| Amiga CD32 | `.bin/.cue` disc image | CD audio tracks 2-11 are the soundtrack |
+| Amiga | `.adf` disk images (5 disks) | OFS filesystem, IFF FORM/ANIM, RNC |
+| Amiga CD32 | `.bin/.cue` disc image | ISO9660+CDTV, CD audio tracks 2-11 |
 
 ## Project structure
 
 ```
 src/
-  engine/     Game logic, procedural map generator, encounters, droids
-  data/       File format decoders (PL5 graphics, ANM animation, RNC, MIDI, disk images)
-  render/     SDL3 renderer, 3D viewport, UI overlay
-  audio/      Sound effects and music playback
+  engine/     Game logic, map generator, combat, shop, inventory, save/load
+  data/       Format decoders: PL5, ANM, RNC, ADF, ISO9660, FAT12, MIDI
+  render/     SDL3 renderer, 3D viewport, HUD
+  audio/      8SVX/8-channel sound mixer, MIDI
 include/      Public headers
 tests/        Test suite
-tools/        Standalone utilities (pl5_to_bmp, rnc_decode)
-docs/         Reverse engineering notes and format documentation
+tools/        Standalone utilities (pl5_to_bmp, anm_extract, rnc_decode)
+docs/         Format documentation
 ```
 
 ## Status
 
-**Early development.** Current state:
+| Feature | Status |
+|---------|--------|
+| SDL3 renderer + framebuffer | Done |
+| PL5 graphics decoder (32-color, 5-bit packing) | Done |
+| ANM animation decoder (XOR delta, LE frame sizes) | Done |
+| RNC Method 1 decompressor | Done |
+| Start menu (game selection) | Done |
+| 3D viewport (back-to-front, 4-depth) | Done |
+| HUD (droid status, minimap, compass) | Done |
+| Procedural map generator (rooms, corridors, doors) | Done |
+| Combat system (creatures, AI, attacks, leveling) | Done |
+| Item/weapon database (24 weapons, 12 armor, ammo) | Done |
+| Shop system | Done |
+| Sound engine (8SVX, 8-channel mixer) | Done |
+| Save/load game state | Done |
+| Atari ST disk reader (FAT12) | Done |
+| Amiga ADF reader (OFS/FFS) | Done |
+| ISO9660 reader (CD32 BIN/CUE) | Done |
+| PL5 texture loading from game data | Done |
+| Intro cutscene playback (ANM) | Done |
+| CI/CD (Linux, macOS, Windows) | Done |
+| GitHub Actions release workflow | Done |
+| Liberation: Captive 2 format analysis | Done |
+| MIDI music playback | Planned |
+| Liberation: Captive 2 engine | Planned |
+| Enhanced rendering mode | Planned |
+| Textured viewport walls | Planned |
+| Puzzle systems (buttons, levers, bars) | Planned |
 
-- [x] Project scaffolding and build system
-- [x] SDL3 renderer with original-resolution framebuffer
-- [x] PL5 graphics decoder (DOS 32-color custom 5-bit packing)
-- [x] PL5 game palette (32 colors, verified against original)
-- [x] RNC Method 1 decompressor (Atari ST / Amiga data)
-- [ ] ANM animation decoder (palette header parsed, frame decompression pending)
-- [ ] MIDI music playback
-- [ ] Start menu (game selection + settings)
-- [ ] 3D viewport rendering
-- [ ] Procedural map generator
-- [ ] Droid control and inventory system
-- [ ] Encounter/combat system
-- [ ] Shop system
-- [ ] Atari ST disk image reader
-- [ ] Amiga ADF reader
-- [ ] Amiga CD32 ISO reader
-- [ ] Liberation: Captive 2 engine
-- [ ] Enhanced rendering mode
-- [ ] Save/load game state
+## Game data formats
+
+### PL5 (Captive DOS graphics)
+
+40000 bytes = 320x200, 32 colors. Custom 5-bit packing: every 5 bytes encode 8 pixels with a non-standard bit arrangement (not a simple bitstream). Palette: 32 ARGB8888 colors extracted from ANM file headers.
+
+### ANM (Captive DOS animations)
+
+768-byte VGA palette (256 colors, 6-bit RGB), then LE word at offset 768 = `cmd_end` offset, then commands section, then frames stored backwards from EOF. Each frame ends with an LE word = total size (including the 2-byte size field). Frame data uses XOR-delta encoding: byte != 0 → XOR at position, byte == 0 → next byte is skip count (0 = end of frame). Frame buffer is 64000 bytes (chunky 8-bit).
+
+### RNC Method 1 (Rob Northen Compression)
+
+Used by Atari ST and Amiga versions. Header: "RNC\x01", then BE32 uncompressed size, BE32 compressed size, CRC16 fields. Huffman-coded with three tables per sub-block.
+
+### ADF (Amiga Disk File)
+
+880KB floppy image. OFS or FFS filesystem. 80 tracks × 2 sides × 11 sectors × 512 bytes.
+
+### Atari ST disk image
+
+FAT12 filesystem. 720KB-880KB. Standard BPB at offset 11.
+
+### ISO9660 (CD32)
+
+Standard ISO9660 with CDTV extension. MODE1/2352 raw sectors. Volume ID "Liberation_1", mastered 1994-04-15 with ISOCD by Pantaray.
 
 ## References
 

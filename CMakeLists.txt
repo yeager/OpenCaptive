@@ -15,11 +15,16 @@ set(OPENCAPTIVE_SOURCES
     src/engine/start_menu.c
     src/engine/combat.c
     src/engine/save_load.c
+    src/engine/inventory.c
+    src/engine/shop.c
     src/data/pl5_decoder.c
     src/data/anm_decoder.c
     src/data/rnc_decoder.c
     src/data/mid_loader.c
     src/data/gfx_loader.c
+    src/data/adf_reader.c
+    src/data/iso9660_reader.c
+    src/data/st_disk_reader.c
     src/audio/sound.c
     src/render/renderer.c
     src/render/viewport.c

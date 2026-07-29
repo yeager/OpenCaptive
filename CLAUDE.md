@@ -32,14 +32,14 @@ ctest --test-dir build -j4
 
 ```
 src/
-  engine/     - Game logic, map generator, encounters, droids
-  data/       - File format decoders (PL5, ANM, MID, RNC, Atari ST disk, Amiga ADF)
-  render/     - SDL3 renderer, viewport, UI
-  audio/      - Sound and music playback
-include/      - Public headers
-tests/        - Test sources
-tools/        - Standalone tools (pl5_to_bmp, pl5_analyze, rnc_decode)
-docs/         - Format documentation, reverse engineering notes
+  engine/     - Game logic: map_gen, combat, start_menu, inventory, shop, save_load
+  data/       - Format decoders: pl5, anm, rnc, gfx_loader, adf_reader, iso9660, st_disk
+  render/     - SDL3: renderer, viewport (3D), hud
+  audio/      - Sound: 8SVX loader, 8-channel mixer
+include/      - Public headers (one per module)
+tests/        - Test sources (pl5_decoder, anm_decoder, map_gen)
+tools/        - Standalone: pl5_to_bmp, anm_extract, rnc_decode
+docs/         - Format docs: PL5, ANM, map generation, weapons/items, viewport, Liberation
 gamedata/     - Original game data (gitignored)
 ```
 
@@ -54,24 +54,43 @@ gamedata/     - Original game data (gitignored)
 ## Game data formats
 
 ### Captive (DOS)
-- **PL5**: Graphics (CAPICS/*.PL5) — 40000 bytes, 320x200, 32 colors (5-bit custom packing: 5 bytes → 8 pixels). The bit arrangement is non-standard — not a simple MSB/LSB bitstream.
-- **ANM**: Animations (ANIMS/*.ANM) — 768-byte VGA palette header (256 colors, 6-bit RGB), then LE word at 768 = cmd_end offset, then commands section, then frames stored backwards from EOF. Each frame ends with LE word = total size (including the 2-byte size field). Frame data is XOR-delta encoded (byte≠0 → XOR at pos; byte=0 → next byte is skip count, 0=end). Frame buffer is 64000 bytes (chunky 8-bit). First 32 palette entries match the PL5 game palette.
-- **MID**: Music (SOUND/*.MID) — standard MIDI sequences
-- **CTV**: Sound driver configs (SOUND/*.CTV)
+- **PL5**: Graphics — 40000 bytes, 320x200, 32 colors (5-bit custom packing: 5 bytes → 8 pixels, non-standard bit arrangement). See `docs/FORMAT_PL5.md`.
+- **ANM**: Animations — 768-byte VGA palette, LE cmd_end word, frames backwards from EOF, XOR-delta encoded. See `docs/FORMAT_ANM.md`.
+- **MID**: Music — standard MIDI sequences
+- **CTV**: Sound driver configs
 
 ### Captive (Atari ST)
-- FAT12 disk image, all FED* files are RNC Method 1 compressed
-- Decompressed graphics are 32000 bytes (4 bitplanes, word-interleaved, 320x200)
+- FAT12 disk image, FED* files are RNC Method 1 compressed
+- Decompressed graphics: 32000 bytes (4 bitplanes, word-interleaved, 320x200)
 
 ### Captive (Amiga)
-- ADF disk images, RNC Method 1 compressed data
+- ADF disk images (OFS/FFS), RNC Method 1 compressed data
 
-### Liberation: Captive 2 (Amiga / CD32)
-- Format analysis pending
+### Liberation: Captive 2
+- **Amiga**: 5 ADF disks, OFS, IFF FORM/ANIM chunks, RNC compressed
+- **CD32**: ISO9660+CDTV, Volume "Liberation_1", 10 CD audio tracks (soundtrack)
+- See `docs/LIBERATION_FORMATS.md`
+
+## Implemented systems
+
+| System | Module | Description |
+|--------|--------|-------------|
+| Start menu | start_menu.c | Game selection, keyboard navigation |
+| Map generator | map_gen.c | Procedural rooms, corridors, doors, generators, shops |
+| Viewport | viewport.c | Back-to-front 3D, 4-depth perspective |
+| HUD | hud.c | 4 droid panels, HP/energy bars, minimap, compass |
+| Combat | combat.c | Creature AI, damage/defense, leveling |
+| Inventory | inventory.c | 24 weapons, 12 armor, ammo types |
+| Shop | shop.c | Level-scaled stock, buy/sell |
+| Sound | sound.c | 8SVX loader, 8-channel mixer |
+| Save/load | save_load.c | Binary format, seed-regenerated maps |
+| PL5 loader | gfx_loader.c | Loads PL5 textures from game data |
+| ADF reader | adf_reader.c | Amiga OFS/FFS floppy images |
+| ISO reader | iso9660_reader.c | CD32 BIN/CUE (MODE1/2352) |
+| ST reader | st_disk_reader.c | Atari ST FAT12 disk images |
 
 ## Reference
 
-- Game info & technical docs: https://captive.atari.org/
-- Technical pages: ViewRendering, InternalGfx, MapGen, Sounds, DrawingEncounters, FlyingItems, Holamap, FireHydrants
+- Technical docs: https://captive.atari.org/ (MapGen, ViewRendering, InternalGfx, Sounds)
 - CaptiveTools.jar by oFF_rus (old-games.ru) — reference PL5/ANM decoder
-- Wikipedia: https://en.wikipedia.org/wiki/Captive_(video_game)
+- DMWeb: https://dmweb.free.fr/ (RNC compression reference)
