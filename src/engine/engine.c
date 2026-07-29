@@ -60,3 +60,29 @@ placed:
     gs->party_dir = DIR_NORTH;
     gs->mode = STATE_GAME;
 }
+
+bool game_state_change_floor(GameState *gs, int direction) {
+    if (!gs || (direction != -1 && direction != 1)) return false;
+    if (gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
+        gs->party_y < 0 || gs->party_y >= MAP_HEIGHT) return false;
+
+    const DungeonLevel *current = &gs->levels[gs->current_level];
+    CellType required = direction > 0 ? CELL_STAIRS_DOWN : CELL_STAIRS_UP;
+    if (current->cells[gs->party_y][gs->party_x].type != required) return false;
+
+    int destination = gs->current_level + direction;
+    if (destination < 0 || destination >= gs->num_levels) return false;
+    CellType arrival = direction > 0 ? CELL_STAIRS_UP : CELL_STAIRS_DOWN;
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (gs->levels[destination].cells[y][x].type == arrival) {
+                gs->current_level = destination;
+                gs->party_x = x;
+                gs->party_y = y;
+                return true;
+            }
+        }
+    }
+    return false;
+}

@@ -12,6 +12,17 @@ static int generator_count(const GameState *gs) {
     return count;
 }
 
+static void move_to_stair(GameState *gs, CellType stair) {
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            if (gs->levels[gs->current_level].cells[y][x].type == stair) {
+                gs->party_x = x;
+                gs->party_y = y;
+                return;
+            }
+    assert(!"expected stair is missing");
+}
+
 int main(void) {
     GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
@@ -36,6 +47,15 @@ int main(void) {
     combat_interact(&gs);
     assert(gs.generators_destroyed == before + 1);
     assert(gs.levels[0].cells[1][2].type == CELL_FLOOR);
+
+    int initial_level = gs.current_level;
+    move_to_stair(&gs, CELL_STAIRS_DOWN);
+    assert(game_state_change_floor(&gs, 1));
+    assert(gs.current_level == initial_level + 1);
+    assert(gs.levels[gs.current_level].cells[gs.party_y][gs.party_x].type == CELL_STAIRS_UP);
+    assert(game_state_change_floor(&gs, -1));
+    assert(gs.current_level == initial_level);
+    assert(!game_state_change_floor(&gs, -1));
 
     puts("All game state tests passed");
     return 0;

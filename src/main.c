@@ -377,31 +377,10 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             }
             return;
         case SDLK_PERIOD: // > stairs down
-            if (lvl->cells[gs->party_y][gs->party_x].type == CELL_STAIRS_DOWN &&
-                gs->current_level + 1 < gs->num_levels) {
-                gs->current_level++;
-                // Find stairs up on new level
-                for (int sy = 0; sy < MAP_HEIGHT; sy++)
-                    for (int sx = 0; sx < MAP_WIDTH; sx++)
-                        if (gs->levels[gs->current_level].cells[sy][sx].type == CELL_STAIRS_UP) {
-                            gs->party_x = sx; gs->party_y = sy;
-                            goto stairs_done;
-                        }
-                stairs_done: ;
-            }
+            game_state_change_floor(gs, 1);
             return;
         case SDLK_COMMA: // < stairs up
-            if (lvl->cells[gs->party_y][gs->party_x].type == CELL_STAIRS_UP &&
-                gs->current_level > 0) {
-                gs->current_level--;
-                for (int sy = 0; sy < MAP_HEIGHT; sy++)
-                    for (int sx = 0; sx < MAP_WIDTH; sx++)
-                        if (gs->levels[gs->current_level].cells[sy][sx].type == CELL_STAIRS_DOWN) {
-                            gs->party_x = sx; gs->party_y = sy;
-                            goto stairs_done2;
-                        }
-                stairs_done2: ;
-            }
+            game_state_change_floor(gs, -1);
             return;
         default: return;
     }
