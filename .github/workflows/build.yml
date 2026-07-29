@@ -14,7 +14,10 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build
+          sudo apt-get install -y cmake ninja-build \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
+            libxfixes-dev libxss-dev libwayland-dev libxkbcommon-dev \
+            libegl-dev libgles-dev libgl-dev libdrm-dev libgbm-dev
       - name: Build SDL3
         run: |
           git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
