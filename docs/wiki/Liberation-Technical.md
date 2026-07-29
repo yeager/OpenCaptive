@@ -60,6 +60,13 @@ entry. The structural inspection command is hash-driven:
   e54540c3bf8dfaf569380a135ac039f1438e9efb85cf6d5e3e487e25d4c7c13e
 ```
 
+The verified PlotGen digest
+`bc9c922801661eb66024d0bcf822c03e38ffea7f3576693e0512692ccf6d6705`
+has the same two-hunk shape, with one 12,388-byte code block at offset 36,
+one BSS block and three `RELOC32` entries. This confirms that CityGen and
+PlotGen are separate relocatable executable payloads, not data tables that can
+be substituted with the current procedural interior generator.
+
 ## Text-resource observation log
 
 The hash-identified city-text payload
