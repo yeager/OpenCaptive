@@ -57,6 +57,15 @@ static void test_combat_respects_closed_doors(void) {
     assert(gs.droids[0].hp == hp_before);
 }
 
+static void test_first_mission_uses_a_playable_base_id(void) {
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    assert(gs.base_id == 1);
+    game_state_new_mission(&gs, 1);
+    assert(gs.mission_seed == 1);
+    assert(gs.num_levels > 0);
+}
+
 static void test_campaign_progression(void) {
     static GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
@@ -73,6 +82,7 @@ static void test_campaign_progression(void) {
 }
 
 int main(void) {
+    test_first_mission_uses_a_playable_base_id();
     test_combat_respects_closed_doors();
     test_campaign_progression();
     static GameState gs;

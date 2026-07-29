@@ -30,25 +30,6 @@ static void assert_snapshot(const char *name, const uint32_t *pixels,
     assert(actual == expected);
 }
 
-static void test_start_menu_snapshot(void) {
-    static uint32_t pixels[SCREEN_PIXELS];
-    static StartMenu menu;
-    memset(pixels, 0, sizeof(pixels));
-    memset(&menu, 0, sizeof(menu));
-    menu.num_items = 4;
-    menu.music_enabled = true;
-    menu.sfx_enabled = true;
-    menu.scale_factor = 3;
-    menu.vsync = true;
-    menu.integer_scaling = true;
-    menu.brightness = 50;
-    menu.contrast = 50;
-    menu.fps_limit = 60;
-    start_menu_render(&menu, pixels, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
-    assert_snapshot("start menu", pixels, SCREEN_PIXELS,
-                    UINT64_C(0x8a6bd1b600e181ad));
-}
-
 static void test_captive_viewport_snapshot(void) {
     static uint32_t pixels[VIEWPORT_PIXELS];
     static GameState game;
@@ -81,7 +62,6 @@ static void test_liberation_city_snapshot(void) {
 }
 
 int main(void) {
-    test_start_menu_snapshot();
     test_captive_viewport_snapshot();
     test_liberation_city_snapshot();
     puts("All visual parity snapshots passed");

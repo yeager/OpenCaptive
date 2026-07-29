@@ -9,6 +9,10 @@ void game_state_init(GameState *gs, GameType type, int mission) {
     gs->game_type = type;
     gs->mode = STATE_MENU;
     gs->mission = mission;
+    /* Base identifiers are one-based.  Zero selects MapGen's sparse
+     * bootstrap mask and can leave the opening viewport without a usable
+     * route. */
+    gs->base_id = 1;
     gs->selected_droid = 0;
     gs->party_dir = DIR_NORTH;
     gs->gold = 100;
