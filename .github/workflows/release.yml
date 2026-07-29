@@ -17,8 +17,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build rpm \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
-            libxfixes-dev libxss-dev libwayland-dev libxkbcommon-dev \
-            libegl-dev libgles-dev libgl-dev libdrm-dev libgbm-dev
+            libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev \
+            libdecor-0-dev libegl-dev libgles-dev libgl-dev libdrm-dev \
+            libgbm-dev libpulse-dev libasound2-dev
       - name: Build SDL3
         run: |
           git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
@@ -127,8 +128,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build file libfuse2 \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
-            libxfixes-dev libxss-dev libwayland-dev libxkbcommon-dev \
-            libegl-dev libgles-dev libgl-dev libdrm-dev libgbm-dev
+            libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev \
+            libdecor-0-dev libegl-dev libgles-dev libgl-dev libdrm-dev \
+            libgbm-dev libpulse-dev libasound2-dev
       - name: Build SDL3
         run: |
           git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
