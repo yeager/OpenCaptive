@@ -182,16 +182,51 @@ jobs:
           ninja -C build
       - name: Test
         run: ctest --test-dir build -j4 --output-on-failure || true
-      - name: Package
+      - name: Create app bundle
         run: |
-          mkdir -p opencaptive-macos-arm64
-          cp build/opencaptive opencaptive-macos-arm64/
-          cp README.md LICENSE opencaptive-macos-arm64/
-          tar czf opencaptive-macos-arm64.tar.gz opencaptive-macos-arm64/
+          APP=OpenCaptive.app
+          mkdir -p "$APP/Contents/MacOS"
+          mkdir -p "$APP/Contents/Frameworks"
+          mkdir -p "$APP/Contents/Resources"
+          cp build/opencaptive "$APP/Contents/MacOS/OpenCaptive"
+          SDL3_DYLIB=$(brew --prefix sdl3)/lib/libSDL3.0.dylib
+          cp "$SDL3_DYLIB" "$APP/Contents/Frameworks/"
+          install_name_tool -change "$(otool -L "$APP/Contents/MacOS/OpenCaptive" | grep libSDL3 | awk '{print $1}')" \
+            @executable_path/../Frameworks/libSDL3.0.dylib "$APP/Contents/MacOS/OpenCaptive"
+          cat > "$APP/Contents/Info.plist" <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleExecutable</key>
+            <string>OpenCaptive</string>
+            <key>CFBundleIdentifier</key>
+            <string>se.danielnylander.opencaptive</string>
+            <key>CFBundleName</key>
+            <string>OpenCaptive</string>
+            <key>CFBundleVersion</key>
+            <string>${GITHUB_REF_NAME#v}</string>
+            <key>CFBundleShortVersionString</key>
+            <string>${GITHUB_REF_NAME#v}</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleInfoDictionaryVersion</key>
+            <string>6.0</string>
+            <key>LSMinimumSystemVersion</key>
+            <string>14.0</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+      - name: Create DMG
+        run: |
+          hdiutil create -volname OpenCaptive -srcfolder OpenCaptive.app \
+            -ov -format UDZO OpenCaptive-macos-arm64.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: macos-arm64
-          path: opencaptive-macos-arm64.tar.gz
+          path: OpenCaptive-macos-arm64.dmg
 
   build-windows:
     runs-on: windows-2022
@@ -209,18 +244,52 @@ jobs:
           cmake --build build --config Release
       - name: Test
         run: ctest --test-dir build -C Release -j4 --output-on-failure || true
-      - name: Package
-        run: |
-          mkdir opencaptive-windows-x64
-          copy build\Release\opencaptive.exe opencaptive-windows-x64\
-          copy ${{ github.workspace }}\SDL3-install\bin\SDL3.dll opencaptive-windows-x64\
-          copy README.md opencaptive-windows-x64\
-          copy LICENSE opencaptive-windows-x64\
+      - name: Get version
+        id: version
+        shell: bash
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Create Inno Setup script
         shell: cmd
+        run: |
+          mkdir dist
+          copy build\Release\opencaptive.exe dist\
+          copy ${{ github.workspace }}\SDL3-install\bin\SDL3.dll dist\
+          copy README.md dist\
+          copy LICENSE dist\
+          (
+          echo [Setup]
+          echo AppName=OpenCaptive
+          echo AppVersion=${{ steps.version.outputs.version }}
+          echo AppPublisher=Daniel Nylander
+          echo AppPublisherURL=https://github.com/yeager/OpenCaptive
+          echo DefaultDirName={autopf}\OpenCaptive
+          echo DefaultGroupName=OpenCaptive
+          echo OutputDir=installer
+          echo OutputBaseFilename=OpenCaptive-${{ steps.version.outputs.version }}-setup-x64
+          echo Compression=lzma2
+          echo SolidCompression=yes
+          echo ArchitecturesAllowed=x64compatible
+          echo ArchitecturesInstallIn64BitMode=x64compatible
+          echo [Files]
+          echo Source: "dist\opencaptive.exe"; DestDir: "{app}"; Flags: ignoreversion
+          echo Source: "dist\SDL3.dll"; DestDir: "{app}"; Flags: ignoreversion
+          echo Source: "dist\README.md"; DestDir: "{app}"; Flags: ignoreversion
+          echo Source: "dist\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+          echo [Icons]
+          echo Name: "{group}\OpenCaptive"; Filename: "{app}\opencaptive.exe"
+          echo Name: "{group}\Uninstall OpenCaptive"; Filename: "{uninstallexe}"
+          echo Name: "{commondesktop}\OpenCaptive"; Filename: "{app}\opencaptive.exe"; Tasks: desktopicon
+          echo [Tasks]
+          echo Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional icons:"
+          echo [Run]
+          echo Filename: "{app}\opencaptive.exe"; Description: "Launch OpenCaptive"; Flags: nowait postinstall skipifsilent
+          ) > setup.iss
+      - name: Build installer
+        run: iscc setup.iss
       - uses: actions/upload-artifact@v4
         with:
           name: windows-x64
-          path: opencaptive-windows-x64/
+          path: installer/OpenCaptive-*.exe
 
   create-release:
     needs: [build-linux, build-linux-appimage, build-macos, build-windows]
@@ -237,6 +306,6 @@ jobs:
             artifacts/linux-x86_64/opencaptive_*.deb
             artifacts/linux-x86_64/opencaptive-*.rpm
             artifacts/linux-appimage/opencaptive-x86_64.AppImage
-            artifacts/macos-arm64/opencaptive-macos-arm64.tar.gz
-            artifacts/windows-x64/**
+            artifacts/macos-arm64/OpenCaptive-macos-arm64.dmg
+            artifacts/windows-x64/OpenCaptive-*.exe
           generate_release_notes: true
