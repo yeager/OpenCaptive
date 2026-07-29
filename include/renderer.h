@@ -11,9 +11,11 @@ typedef struct {
     int window_width;
     int window_height;
     CaptiveRenderMode mode;
+    bool integer_scaling;
 } OpenCaptiveRenderer;
 
 bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config);
+void renderer_apply_display(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config);
 void renderer_set_effects(OpenCaptiveRenderer *r, bool bilinear, bool scanlines,
                           bool crt_curvature, int brightness, int contrast);
 void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels);

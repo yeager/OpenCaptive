@@ -153,6 +153,27 @@ static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu) 
     config->contrast = menu->contrast;
 }
 
+static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *config,
+                                  bool music_enabled, bool sfx_enabled) {
+    start_menu_init(menu);
+    strncpy(menu->data_path, config->data_path, sizeof(menu->data_path) - 1);
+    menu->data_path[sizeof(menu->data_path) - 1] = '\0';
+    menu->data_path_cursor = (int)strlen(menu->data_path);
+    menu->enhanced_mode = config->render_mode == CAPTIVE_RENDER_ENHANCED;
+    menu->music_enabled = music_enabled;
+    menu->sfx_enabled = sfx_enabled;
+    menu->fullscreen = config->fullscreen;
+    menu->vsync = config->vsync;
+    menu->scanlines = config->scanlines;
+    menu->crt_curvature = config->crt_curvature;
+    menu->bilinear = config->bilinear;
+    menu->integer_scaling = config->integer_scaling;
+    menu->fps_limit = config->fps_limit;
+    menu->brightness = config->brightness;
+    menu->contrast = config->contrast;
+    menu->scale_factor = config->scale_factor;
+}
+
 static CreatureList creatures;
 static PuzzleList puzzles;
 static SoundSystem sound_sys;
@@ -724,20 +745,8 @@ int main(int argc, char *argv[]) {
     }
 
     // State
-    StartMenu menu;
-    start_menu_init(&menu);
-    strncpy(menu.data_path, config.data_path, sizeof(menu.data_path) - 1);
-    menu.enhanced_mode = (config.render_mode == CAPTIVE_RENDER_ENHANCED);
-    menu.fullscreen = config.fullscreen;
-    menu.vsync = config.vsync;
-    menu.scanlines = config.scanlines;
-    menu.crt_curvature = config.crt_curvature;
-    menu.bilinear = config.bilinear;
-    menu.integer_scaling = config.integer_scaling;
-    menu.fps_limit = config.fps_limit;
-    menu.brightness = config.brightness;
-    menu.contrast = config.contrast;
-    menu.scale_factor = config.scale_factor;
+    StartMenu menu = {0};
+    sync_menu_from_config(&menu, &config, true, true);
 
     GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
@@ -801,6 +810,7 @@ int main(int argc, char *argv[]) {
     SDL_Event event;
 
     while (running) {
+        uint64_t frame_started = SDL_GetTicks();
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 running = false;
@@ -830,6 +840,7 @@ int main(int argc, char *argv[]) {
                                                  config.crt_curvature,
                                                  config.brightness,
                                                  config.contrast);
+                            renderer_apply_display(&renderer, &config);
                             if (config.render_mode == CAPTIVE_RENDER_ENHANCED &&
                                 !enhanced.enabled)
                                 enhanced_init(&enhanced);
@@ -867,6 +878,7 @@ int main(int argc, char *argv[]) {
                                                  config.crt_curvature,
                                                  config.brightness,
                                                  config.contrast);
+                            renderer_apply_display(&renderer, &config);
                             music_set_enabled(&music_sys, menu.music_enabled);
                             sound_set_enabled(&sound_sys, menu.sfx_enabled);
                             vfs_free(&vfs);
@@ -907,7 +919,8 @@ int main(int argc, char *argv[]) {
                             lib_state.current_building = -1;
                         } else {
                             gs.mode = STATE_MENU;
-                            start_menu_init(&menu);
+                            sync_menu_from_config(&menu, &config, music_sys.enabled,
+                                                  sound_sys.enabled);
                             music_stop(&music_sys);
                         }
                     } else if (gs.game_type == GAME_LIBERATION) {
@@ -1142,7 +1155,11 @@ int main(int argc, char *argv[]) {
         music_update(&music_sys);
         sound_mix(&sound_sys);
         renderer_present(&renderer, framebuffer);
-        SDL_Delay(16);
+        if (config.fps_limit > 0) {
+            uint64_t elapsed = SDL_GetTicks() - frame_started;
+            uint64_t frame_budget = 1000U / (uint64_t)config.fps_limit;
+            if (elapsed < frame_budget) SDL_Delay((uint32_t)(frame_budget - elapsed));
+        }
     }
 
     vfs_free(&vfs);

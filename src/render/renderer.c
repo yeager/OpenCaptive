@@ -46,7 +46,22 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
     r->window_width = w;
     r->window_height = h;
     r->mode = config->render_mode;
+    renderer_apply_display(r, config);
     return true;
+}
+
+void renderer_apply_display(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
+    if (!r || !r->window || !r->renderer || !config) return;
+
+    r->integer_scaling = config->integer_scaling;
+    r->mode = config->render_mode;
+    SDL_SetRenderVSync(r->renderer, config->vsync ? 1 : 0);
+    SDL_SetWindowFullscreen(r->window, config->fullscreen);
+    if (!config->fullscreen) {
+        r->window_width = CAPTIVE_ORIGINAL_WIDTH * config->scale_factor;
+        r->window_height = CAPTIVE_ORIGINAL_HEIGHT * config->scale_factor;
+        SDL_SetWindowSize(r->window, r->window_width, r->window_height);
+    }
 }
 
 void renderer_set_effects(OpenCaptiveRenderer *r, bool bilinear, bool scanlines,
@@ -101,7 +116,22 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
 
     SDL_SetRenderDrawColor(r->renderer, 0, 0, 0, 255);
     SDL_RenderClear(r->renderer);
-    SDL_RenderTexture(r->renderer, r->framebuffer, NULL, NULL);
+    int output_width = CAPTIVE_ORIGINAL_WIDTH;
+    int output_height = CAPTIVE_ORIGINAL_HEIGHT;
+    SDL_GetRenderOutputSize(r->renderer, &output_width, &output_height);
+    float scale_x = (float)output_width / CAPTIVE_ORIGINAL_WIDTH;
+    float scale_y = (float)output_height / CAPTIVE_ORIGINAL_HEIGHT;
+    float scale = scale_x < scale_y ? scale_x : scale_y;
+    if (r->integer_scaling && scale >= 1.0f) {
+        scale = (float)(int)scale;
+    }
+    SDL_FRect destination = {
+        (output_width - CAPTIVE_ORIGINAL_WIDTH * scale) / 2.0f,
+        (output_height - CAPTIVE_ORIGINAL_HEIGHT * scale) / 2.0f,
+        CAPTIVE_ORIGINAL_WIDTH * scale,
+        CAPTIVE_ORIGINAL_HEIGHT * scale,
+    };
+    SDL_RenderTexture(r->renderer, r->framebuffer, NULL, &destination);
     SDL_RenderPresent(r->renderer);
 }
 
