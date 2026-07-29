@@ -35,6 +35,15 @@ typedef struct {
     CaptiveRenderMode render_mode;
     const char *data_path;
     int scale_factor;
+    bool fullscreen;
+    bool vsync;
+    bool scanlines;
+    bool crt_curvature;
+    bool bilinear;
+    bool integer_scaling;
+    int fps_limit;       // 0 = unlimited, 30, 60, 120
+    int brightness;      // 0-100
+    int contrast;        // 0-100
 } OpenCaptiveConfig;
 
 #endif

@@ -1,5 +1,7 @@
 #include "start_menu.h"
+#include "opencaptive.h"
 #include <string.h>
+#include <stdio.h>
 
 // Simple 5x7 bitmap font for menu text
 static const uint8_t font_5x7[][7] = {
@@ -112,6 +114,11 @@ void start_menu_init(StartMenu *menu) {
     menu->music_enabled = true;
     menu->sfx_enabled = true;
     menu->scale_factor = 3;
+    menu->vsync = true;
+    menu->integer_scaling = true;
+    menu->brightness = 50;
+    menu->contrast = 50;
+    menu->fps_limit = 60;
 }
 
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
@@ -177,12 +184,13 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
     if (event->type != SDL_EVENT_KEY_DOWN) return MENU_RESULT_NONE;
 
     if (menu->in_settings) {
+        #define SETTINGS_COUNT 14
         switch (event->key.key) {
             case SDLK_UP:
                 if (menu->settings_cursor > 0) menu->settings_cursor--;
                 break;
             case SDLK_DOWN:
-                if (menu->settings_cursor < 5) menu->settings_cursor++;
+                if (menu->settings_cursor < SETTINGS_COUNT - 1) menu->settings_cursor++;
                 break;
             case SDLK_RETURN:
             case SDLK_KP_ENTER:
@@ -190,28 +198,61 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
             case SDLK_RIGHT:
                 switch (menu->settings_cursor) {
                     case 0: menu->enhanced_mode = !menu->enhanced_mode; break;
-                    case 1: menu->music_enabled = !menu->music_enabled; break;
-                    case 2: menu->sfx_enabled = !menu->sfx_enabled; break;
-                    case 3:
+                    case 1: menu->scanlines = !menu->scanlines; break;
+                    case 2: menu->crt_curvature = !menu->crt_curvature; break;
+                    case 3: menu->bilinear = !menu->bilinear; break;
+                    case 4: menu->integer_scaling = !menu->integer_scaling; break;
+                    case 5:
                         if (event->key.key == SDLK_RIGHT && menu->scale_factor < 5)
                             menu->scale_factor++;
                         else if (event->key.key == SDLK_LEFT && menu->scale_factor > 1)
                             menu->scale_factor--;
                         break;
-                    case 4:
+                    case 6: menu->fullscreen = !menu->fullscreen; break;
+                    case 7: menu->vsync = !menu->vsync; break;
+                    case 8: {
+                        int fps_vals[] = {0, 30, 60, 120};
+                        int cur = 2;
+                        for (int i = 0; i < 4; i++)
+                            if (fps_vals[i] == menu->fps_limit) cur = i;
+                        if (event->key.key == SDLK_RIGHT) cur = (cur + 1) % 4;
+                        else if (event->key.key == SDLK_LEFT) cur = (cur + 3) % 4;
+                        menu->fps_limit = fps_vals[cur];
+                        break;
+                    }
+                    case 9:
+                        if (event->key.key == SDLK_RIGHT && menu->brightness < 100)
+                            menu->brightness += 5;
+                        else if (event->key.key == SDLK_LEFT && menu->brightness > 0)
+                            menu->brightness -= 5;
+                        break;
+                    case 10:
+                        if (event->key.key == SDLK_RIGHT && menu->contrast < 100)
+                            menu->contrast += 5;
+                        else if (event->key.key == SDLK_LEFT && menu->contrast > 0)
+                            menu->contrast -= 5;
+                        break;
+                    case 11: menu->music_enabled = !menu->music_enabled; break;
+                    case 12:
                         if (event->key.key == SDLK_RETURN || event->key.key == SDLK_KP_ENTER) {
                             menu->data_path_editing = true;
                             menu->data_path_cursor = (int)strlen(menu->data_path);
                             SDL_StartTextInput(NULL);
                         }
                         break;
-                    case 5: menu->in_settings = false; break;
+                    case 13: menu->in_settings = false; break;
                 }
                 break;
             case SDLK_ESCAPE:
                 menu->in_settings = false;
                 break;
         }
+        // Keep cursor visible by scrolling
+        int visible = 8;
+        if (menu->settings_cursor < menu->settings_scroll)
+            menu->settings_scroll = menu->settings_cursor;
+        if (menu->settings_cursor >= menu->settings_scroll + visible)
+            menu->settings_scroll = menu->settings_cursor - visible + 1;
         return MENU_RESULT_NONE;
     }
 
@@ -238,86 +279,97 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
 }
 
 static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int height) {
-    draw_text_centered(pixels, width, height, 20, "OPENCAPTIVE", 0xFFFF8800, 3);
-    draw_text_centered(pixels, width, height, 50, "SETTINGS", 0xFF888888, 1);
+    draw_text_centered(pixels, width, height, 8, "OPENCAPTIVE", 0xFFFF8800, 2);
+    draw_text_centered(pixels, width, height, 26, "BY DANIEL NYLANDER", 0xFF666688, 1);
+    draw_text_centered(pixels, width, height, 38, "SETTINGS", 0xFF888888, 1);
 
     const char *labels[] = {
-        "GRAPHICS:",
-        "MUSIC:",
-        "SFX:",
+        "RENDERER:",
+        "SCANLINES:",
+        "CRT CURVE:",
+        "BILINEAR:",
+        "INT SCALE:",
         "SCALE:",
+        "FULLSCREEN:",
+        "VSYNC:",
+        "FPS LIMIT:",
+        "BRIGHTNESS:",
+        "CONTRAST:",
+        "MUSIC:",
         "DATA PATH:",
         "BACK",
     };
-    char values[6][20];
+    char values[SETTINGS_COUNT][20];
     snprintf(values[0], 20, "%s", menu->enhanced_mode ? "ENHANCED" : "ORIGINAL");
-    snprintf(values[1], 20, "%s", menu->music_enabled ? "ON" : "OFF");
-    snprintf(values[2], 20, "%s", menu->sfx_enabled ? "ON" : "OFF");
-    snprintf(values[3], 20, "%dX", menu->scale_factor);
-    values[4][0] = '\0';
-    values[5][0] = '\0';
+    snprintf(values[1], 20, "%s", menu->scanlines ? "ON" : "OFF");
+    snprintf(values[2], 20, "%s", menu->crt_curvature ? "ON" : "OFF");
+    snprintf(values[3], 20, "%s", menu->bilinear ? "ON" : "OFF");
+    snprintf(values[4], 20, "%s", menu->integer_scaling ? "ON" : "OFF");
+    snprintf(values[5], 20, "%dX", menu->scale_factor);
+    snprintf(values[6], 20, "%s", menu->fullscreen ? "ON" : "OFF");
+    snprintf(values[7], 20, "%s", menu->vsync ? "ON" : "OFF");
+    snprintf(values[8], 20, "%s", menu->fps_limit == 0 ? "UNLIMITED" :
+             (menu->fps_limit == 30 ? "30" : (menu->fps_limit == 60 ? "60" : "120")));
+    snprintf(values[9], 20, "%d%%", menu->brightness);
+    snprintf(values[10], 20, "%d%%", menu->contrast);
+    snprintf(values[11], 20, "%s", menu->music_enabled ? "ON" : "OFF");
+    values[12][0] = '\0';
+    values[13][0] = '\0';
 
-    int menu_y = 70;
-    int item_h = 16;
+    int menu_y = 50;
+    int item_h = 14;
+    int visible = 8;
 
-    for (int i = 0; i < 6; i++) {
-        int y = menu_y + i * item_h;
+    for (int vi = 0; vi < visible && vi + menu->settings_scroll < SETTINGS_COUNT; vi++) {
+        int i = vi + menu->settings_scroll;
+        int y = menu_y + vi * item_h;
         bool sel = (i == menu->settings_cursor);
 
         if (sel) {
-            draw_rect(pixels, width, height, 40, y - 2, width - 80, item_h - 2, 0xFF333366);
+            draw_rect(pixels, width, height, 30, y - 1, width - 60, item_h - 2, 0xFF333366);
             int pulse = (menu->anim_tick / 8) % 2;
-            draw_text(pixels, width, height, 44, y, ">", pulse ? 0xFFFFFF00 : 0xFFFF8800, 2);
+            draw_text(pixels, width, height, 32, y, ">", pulse ? 0xFFFFFF00 : 0xFFFF8800, 1);
         }
 
         uint32_t color = sel ? 0xFFFFFFFF : 0xFFAAAAAA;
-        draw_text(pixels, width, height, 65, y, labels[i], color, 2);
+        draw_text(pixels, width, height, 42, y, labels[i], color, 1);
         if (values[i][0]) {
             uint32_t val_col = sel ? 0xFFFFFF00 : 0xFF88AA88;
-            draw_text(pixels, width, height, 190, y, values[i], val_col, 2);
+            draw_text(pixels, width, height, 180, y, values[i], val_col, 1);
         }
     }
 
-    // Data path display (below settings items)
-    int path_y = menu_y + 4 * item_h + 2;
-    if (menu->settings_cursor == 4) {
-        // Editing or selected - show full path
-        draw_rect(pixels, width, height, 60, path_y + item_h - 2, width - 120, 12, 0xFF222244);
-        // Truncate path display to fit
+    // Scroll indicators
+    if (menu->settings_scroll > 0)
+        draw_text_centered(pixels, width, height, menu_y - 10, "...", 0xFF555555, 1);
+    if (menu->settings_scroll + visible < SETTINGS_COUNT)
+        draw_text_centered(pixels, width, height, menu_y + visible * item_h, "...", 0xFF555555, 1);
+
+    // Data path display
+    if (menu->settings_cursor == 12) {
+        int path_y = menu_y + visible * item_h + 10;
+        draw_rect(pixels, width, height, 30, path_y, width - 60, 12, 0xFF222244);
         const char *dp = menu->data_path;
         int dp_len = (int)strlen(dp);
-        int max_chars = (width - 130) / 6;
+        int max_chars = (width - 70) / 6;
         int start = 0;
         if (dp_len > max_chars) start = dp_len - max_chars;
-        draw_text(pixels, width, height, 65, path_y + item_h,
+        draw_text(pixels, width, height, 35, path_y + 2,
                   dp + start, menu->data_path_editing ? 0xFF44FF44 : 0xFFAAAACC, 1);
         if (menu->data_path_editing) {
-            // Cursor blink
-            int cx = 65 + (menu->data_path_cursor - start) * 6;
-            if ((menu->anim_tick / 6) % 2 == 0 && cx < width - 65)
-                draw_rect(pixels, width, height, cx, path_y + item_h, 1, 7, 0xFFFFFFFF);
+            int cx = 35 + (menu->data_path_cursor - start) * 6;
+            if ((menu->anim_tick / 6) % 2 == 0 && cx < width - 35)
+                draw_rect(pixels, width, height, cx, path_y + 2, 1, 7, 0xFFFFFFFF);
         }
-    } else {
-        // Show truncated path
-        int max_chars = (width - 130) / 6;
-        char truncated[64];
-        int dp_len = (int)strlen(menu->data_path);
-        if (dp_len > max_chars) {
-            snprintf(truncated, sizeof(truncated), "...%s",
-                     menu->data_path + dp_len - max_chars + 3);
-        } else {
-            snprintf(truncated, sizeof(truncated), "%s", menu->data_path);
-        }
-        draw_text(pixels, width, height, 65, path_y + item_h, truncated, 0xFF666688, 1);
     }
 
     if (menu->data_path_editing) {
-        draw_text_centered(pixels, width, height, height - 20,
+        draw_text_centered(pixels, width, height, height - 16,
                            "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL",
                            0xFF555555, 1);
     } else {
-        draw_text_centered(pixels, width, height, height - 20,
-                           "ENTER: EDIT  LEFT-RIGHT: ADJUST  ESC: BACK",
+        draw_text_centered(pixels, width, height, height - 16,
+                           "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK",
                            0xFF555555, 1);
     }
     draw_border(pixels, width, height, 5, 5, width - 10, height - 10, 0xFF444488, 1);
@@ -333,8 +385,9 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
     }
 
     // Title
-    draw_text_centered(pixels, width, height, 20, "OPENCAPTIVE", 0xFFFF8800, 3);
-    draw_text_centered(pixels, width, height, 50, "SELECT GAME", 0xFF888888, 1);
+    draw_text_centered(pixels, width, height, 15, "OPENCAPTIVE", 0xFFFF8800, 3);
+    draw_text_centered(pixels, width, height, 42, "BY DANIEL NYLANDER", 0xFF666688, 1);
+    draw_text_centered(pixels, width, height, 55, "SELECT GAME", 0xFF888888, 1);
 
     const char *items[] = {
         "CAPTIVE (1990)",
@@ -343,7 +396,7 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
         "QUIT",
     };
 
-    int menu_y = 75;
+    int menu_y = 80;
     int item_h = 20;
 
     for (int i = 0; i < menu->num_items; i++) {
@@ -365,5 +418,8 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
                        "UP-DOWN: SELECT  ENTER: START  ESC: QUIT",
                        0xFF555555, 1);
     draw_border(pixels, width, height, 5, 5, width - 10, height - 10, 0xFF444488, 1);
-    draw_text(pixels, width, height, 10, height - 12, "V1.0.0", 0xFF333333, 1);
+    char ver[32];
+    snprintf(ver, sizeof(ver), "V%d.%d.%d",
+             OPENCAPTIVE_VERSION_MAJOR, OPENCAPTIVE_VERSION_MINOR, OPENCAPTIVE_VERSION_PATCH);
+    draw_text(pixels, width, height, 10, height - 12, ver, 0xFF333333, 1);
 }

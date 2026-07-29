@@ -393,7 +393,7 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
 }
 
 int main(int argc, char *argv[]) {
-    printf("OpenCaptive v%d.%d.%d\n",
+    printf("OpenCaptive v%d.%d.%d by Daniel Nylander\n",
            OPENCAPTIVE_VERSION_MAJOR,
            OPENCAPTIVE_VERSION_MINOR,
            OPENCAPTIVE_VERSION_PATCH);
@@ -406,10 +406,56 @@ int main(int argc, char *argv[]) {
         .render_mode = CAPTIVE_RENDER_ORIGINAL,
         .data_path = default_data_path,
         .scale_factor = 3,
+        .vsync = true,
+        .integer_scaling = true,
+        .brightness = 50,
+        .contrast = 50,
+        .fps_limit = 60,
     };
 
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--data") == 0 && i + 1 < argc) {
+        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+            printf(
+                "OpenCaptive v%d.%d.%d by Daniel Nylander\n"
+                "A reimplementation of Captive (1990) and Liberation: Captive 2 (1993)\n\n"
+                "Usage: opencaptive [options]\n\n"
+                "Options:\n"
+                "  --help, -h            Show this help message\n"
+                "  --version, -v         Show version information\n"
+                "  --data <path>         Set game data directory\n"
+                "  --enhanced            Enable enhanced 3D renderer\n"
+                "  --platform <name>     Set platform: dos, atari, amiga\n"
+                "  --scale <n>           Window scale factor (1-5, default 3)\n"
+                "  --fullscreen          Start in fullscreen mode\n"
+                "  --vsync               Enable vertical sync (default)\n"
+                "  --no-vsync            Disable vertical sync\n"
+                "  --scanlines           Enable CRT scanline effect\n"
+                "  --crt                 Enable CRT curvature effect\n"
+                "  --bilinear            Enable bilinear texture filtering\n"
+                "  --integer-scaling     Enable integer scaling (default)\n"
+                "  --no-integer-scaling  Disable integer scaling\n"
+                "  --fps <n>             FPS limit: 0 (unlimited), 30, 60, 120\n"
+                "  --brightness <n>      Brightness 0-100 (default 50)\n"
+                "  --contrast <n>        Contrast 0-100 (default 50)\n"
+                "  --game <name>         Start game directly: captive, liberation\n\n"
+                "Game data:\n"
+                "  Place original Captive game files (or ZIP archives containing them)\n"
+                "  in the data directory. Default location:\n"
+#ifdef _WIN32
+                "    <install dir>\\data\n"
+#else
+                "    ~/.opencaptive\n"
+#endif
+                "  ZIP files are read transparently.\n",
+                OPENCAPTIVE_VERSION_MAJOR, OPENCAPTIVE_VERSION_MINOR,
+                OPENCAPTIVE_VERSION_PATCH);
+            return 0;
+        } else if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
+            printf("OpenCaptive v%d.%d.%d by Daniel Nylander\n",
+                   OPENCAPTIVE_VERSION_MAJOR, OPENCAPTIVE_VERSION_MINOR,
+                   OPENCAPTIVE_VERSION_PATCH);
+            return 0;
+        } else if (strcmp(argv[i], "--data") == 0 && i + 1 < argc) {
             config.data_path = argv[++i];
         } else if (strcmp(argv[i], "--enhanced") == 0) {
             config.render_mode = CAPTIVE_RENDER_ENHANCED;
@@ -420,6 +466,28 @@ int main(int argc, char *argv[]) {
             else if (strcmp(argv[i], "amiga") == 0) config.platform = CAPTIVE_PLATFORM_AMIGA;
         } else if (strcmp(argv[i], "--scale") == 0 && i + 1 < argc) {
             config.scale_factor = atoi(argv[++i]);
+        } else if (strcmp(argv[i], "--fullscreen") == 0) {
+            config.fullscreen = true;
+        } else if (strcmp(argv[i], "--vsync") == 0) {
+            config.vsync = true;
+        } else if (strcmp(argv[i], "--no-vsync") == 0) {
+            config.vsync = false;
+        } else if (strcmp(argv[i], "--scanlines") == 0) {
+            config.scanlines = true;
+        } else if (strcmp(argv[i], "--crt") == 0) {
+            config.crt_curvature = true;
+        } else if (strcmp(argv[i], "--bilinear") == 0) {
+            config.bilinear = true;
+        } else if (strcmp(argv[i], "--integer-scaling") == 0) {
+            config.integer_scaling = true;
+        } else if (strcmp(argv[i], "--no-integer-scaling") == 0) {
+            config.integer_scaling = false;
+        } else if (strcmp(argv[i], "--fps") == 0 && i + 1 < argc) {
+            config.fps_limit = atoi(argv[++i]);
+        } else if (strcmp(argv[i], "--brightness") == 0 && i + 1 < argc) {
+            config.brightness = atoi(argv[++i]);
+        } else if (strcmp(argv[i], "--contrast") == 0 && i + 1 < argc) {
+            config.contrast = atoi(argv[++i]);
         } else if (strcmp(argv[i], "--game") == 0 && i + 1 < argc) {
             i++; // handled after menu
         }
@@ -441,6 +509,17 @@ int main(int argc, char *argv[]) {
     StartMenu menu;
     start_menu_init(&menu);
     strncpy(menu.data_path, config.data_path, sizeof(menu.data_path) - 1);
+    menu.enhanced_mode = (config.render_mode == CAPTIVE_RENDER_ENHANCED);
+    menu.fullscreen = config.fullscreen;
+    menu.vsync = config.vsync;
+    menu.scanlines = config.scanlines;
+    menu.crt_curvature = config.crt_curvature;
+    menu.bilinear = config.bilinear;
+    menu.integer_scaling = config.integer_scaling;
+    menu.fps_limit = config.fps_limit;
+    menu.brightness = config.brightness;
+    menu.contrast = config.contrast;
+    menu.scale_factor = config.scale_factor;
 
     GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
@@ -498,6 +577,17 @@ int main(int argc, char *argv[]) {
                         case MENU_RESULT_START_CAPTIVE:
                             gs.game_type = GAME_CAPTIVE;
                             config.data_path = menu.data_path;
+                            config.render_mode = menu.enhanced_mode ? CAPTIVE_RENDER_ENHANCED : CAPTIVE_RENDER_ORIGINAL;
+                            config.scale_factor = menu.scale_factor;
+                            config.fullscreen = menu.fullscreen;
+                            config.vsync = menu.vsync;
+                            config.scanlines = menu.scanlines;
+                            config.crt_curvature = menu.crt_curvature;
+                            config.bilinear = menu.bilinear;
+                            config.integer_scaling = menu.integer_scaling;
+                            config.fps_limit = menu.fps_limit;
+                            config.brightness = menu.brightness;
+                            config.contrast = menu.contrast;
                             vfs_free(&vfs);
                             vfs_init(&vfs, config.data_path);
                             if (!validate_data_path(&vfs)) {
