@@ -57,6 +57,7 @@ jobs:
           mkdir -p deb/usr/share/doc/opencaptive
           cp build/opencaptive deb/usr/bin/
           cp README.md LICENSE deb/usr/share/doc/opencaptive/
+          mkdir -p deb/usr/share/icons
           cp -r icons/hicolor deb/usr/share/icons/hicolor
           cat > deb/usr/share/applications/opencaptive.desktop <<'EOF'
           [Desktop Entry]
