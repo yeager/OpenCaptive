@@ -144,8 +144,10 @@ docs/         Format documentation
 | Terminal system (map, status, mission) | Done |
 | Game over / victory states | Done |
 | Mission progression (10 missions) | Done |
-| Liberation: Captive 2 engine | Planned |
-| Enhanced rendering mode | Planned |
+| Liberation: Captive 2 city engine | Done |
+| Liberation: building interiors | Done |
+| Enhanced rendering mode (2x SSAA) | Done |
+| Procedural sound effects | Done |
 
 ## Game data formats
 
