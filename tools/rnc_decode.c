@@ -32,7 +32,14 @@ int main(int argc, char *argv[]) {
                         ((uint32_t)data[6] << 8) | data[7];
     uint32_t packed_size = ((uint32_t)data[8] << 24) | ((uint32_t)data[9] << 16) |
                            ((uint32_t)data[10] << 8) | data[11];
-    size_t header_size = data[3] == 2 ? 12u : 18u;
+    /* RNC1 uses both a forward 18-byte layout and the older backwards
+       12-byte layout. Match the runtime discriminator before validating the
+       claimed payload length. */
+    size_t header_size = 18u;
+    if (data[3] == 2 ||
+        ((size_t)packed_size <= (size_t)size - 12u &&
+         (data[(size_t)packed_size + 11u] & 0x80u)))
+        header_size = 12u;
     if ((size_t)size < header_size) {
         fprintf(stderr, "Truncated RNC header\n");
         free(data);

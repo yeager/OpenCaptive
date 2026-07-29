@@ -60,26 +60,35 @@ static bool rb_huff(RncBack *r, bool distance, uint32_t *v) {
     }
     return false;
 }
-static int rnc2_old_decode(const uint8_t *src, int len, uint8_t *dst, int cap) {
+static int rnc_old_decode(const uint8_t *src, int len, uint8_t *dst, int cap, bool rnc2) {
     if (!src || !dst || len < 13) return -1;
     uint32_t raw = ((uint32_t)src[4]<<24)|((uint32_t)src[5]<<16)|((uint32_t)src[6]<<8)|src[7];
     uint32_t packed = ((uint32_t)src[8]<<24)|((uint32_t)src[9]<<16)|((uint32_t)src[10]<<8)|src[11];
     if (raw > (uint32_t)cap || packed > (uint32_t)len - 12) return -2;
     RncBack in = {src, 12, 12 + packed, 0, 0};
+    unsigned distbits = 12;
+    unsigned lenbits = 10;
     uint8_t t;
-    if (!rb_byte(&in, &t)) return -3;
-    t++;
-    unsigned distbits = t & 15;
-    unsigned lenbits = (t >> 4) + 1;
+    if (rnc2) {
+        if (!rb_byte(&in, &t)) return -3;
+        t++;
+        distbits = t & 15;
+        lenbits = (t >> 4) + 1;
+    }
     if (!rb_byte(&in, &t)) return -3;
     for (unsigned i = 0; i < 7; ++i) if (t & (1u << i)) {
         in.bit_count = 7 - i;
         in.bits = (uint8_t)(t >> (i + 1));
         break;
     }
-    uint8_t litlens[18] = {1,1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+    uint8_t litlens[18] = {1,1,2,2,3,10,1,2,3,4,5,6,7,8,9,10,11,12};
+    const unsigned litcount = rnc2 ? 18 : 6;
+    if (rnc2) {
+        static const uint8_t rnc2_litlens[18] = {1,1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+        memcpy(litlens, rnc2_litlens, sizeof(litlens));
+    }
     uint32_t litoff[18], lo = 0;
-    for (unsigned i = 0; i < 18; ++i) {
+    for (unsigned i = 0; i < litcount; ++i) {
         litoff[i] = lo;
         lo += 1u << litlens[i];
     }
@@ -96,12 +105,12 @@ static int rnc2_old_decode(const uint8_t *src, int len, uint8_t *dst, int cap) {
         ddo[i] = lo;
         lo += 1u << dlen[i];
     }
-    /* The old RNC2 stream is read and written backwards.  Its structure was
+    /* Old RNC1 and RNC2 streams are read and written backwards. Their structure was
        independently checked against Ancient Format Decompressor (BSD-2-Clause,
        Teemu Suutari); this is a standalone C implementation. */
     size_t out = raw;
     while (out) {
-        uint32_t n; if (!rb_vlc(&in,litlens,litoff,18,true,0,&n) || n > out) return -3;
+        uint32_t n; if (!rb_vlc(&in,litlens,litoff,litcount,true,0,&n) || n > out) return -3;
         while(n--) { uint8_t b; if(!rb_byte(&in,&b))return -3; dst[--out]=b; } if(!out)break;
         uint32_t base,count,distance,bit; if(!rb_huff(&in,false,&base)||!rb_vlc(&in,llen,llo,5,false,base,&count))return -3; count+=2;
         if(count!=2){ if(!rb_huff(&in,true,&base)||!rb_vlc(&in,dlen,ddo,3,false,base,&distance))return -3; } else {
@@ -209,8 +218,19 @@ int rnc_decode(const uint8_t *src, int src_len, uint8_t *dst, int dst_cap) {
 
     uint32_t sig = ((uint32_t)src[0] << 24) | ((uint32_t)src[1] << 16) |
                    ((uint32_t)src[2] << 8) | src[3];
-    if (sig == RNC2_SIG) return rnc2_old_decode(src, src_len, dst, dst_cap);
+    if (sig == RNC2_SIG) return rnc_old_decode(src, src_len, dst, dst_cap, true);
     if (sig != RNC1_SIG) return -1;
+
+    /* RNC1 has two incompatible stream layouts under the same signature.
+       Old Amiga streams start at byte 12 and are decoded backwards; new
+       streams start at byte 18 and are decoded forwards. The final old-stream
+       byte is a literal marker (high bit set), which distinguishes the
+       verified Captive Amiga Federation payload from the new layout. */
+    uint32_t packed_size = ((uint32_t)src[8] << 24) | ((uint32_t)src[9] << 16) |
+                           ((uint32_t)src[10] << 8) | src[11];
+    if (packed_size <= (uint32_t)src_len - 12U &&
+        (src[packed_size + 11U] & 0x80U))
+        return rnc_old_decode(src, src_len, dst, dst_cap, false);
 
     uint32_t unp = ((uint32_t)src[4] << 24) | ((uint32_t)src[5] << 16) |
                    ((uint32_t)src[6] << 8) | src[7];

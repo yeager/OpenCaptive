@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// RNC (Rob Northen Compression) decoder. Method 1 is forward bitstream;
-// Liberation additionally uses the old Amiga method 2 backward bitstream.
+// RNC (Rob Northen Compression) decoder. It supports the modern forward
+// RNC1 stream plus the older backward RNC1 and RNC2 Amiga stream layouts.
 
 int rnc_decode(const uint8_t *src, int src_len, uint8_t *dst, int dst_cap);
 uint32_t rnc_uncompressed_size(const uint8_t *src, int src_len);
