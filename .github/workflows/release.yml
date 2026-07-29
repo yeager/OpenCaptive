@@ -1,0 +1,143 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libsdl3-dev
+      - name: Build
+        run: |
+          cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release
+          ninja -C build
+      - name: Test
+        run: ctest --test-dir build -j4 --output-on-failure
+      - name: Package
+        run: |
+          mkdir -p opencaptive-linux-x86_64
+          cp build/opencaptive opencaptive-linux-x86_64/
+          cp README.md LICENSE opencaptive-linux-x86_64/
+          tar czf opencaptive-linux-x86_64.tar.gz opencaptive-linux-x86_64/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-x86_64
+          path: opencaptive-linux-x86_64.tar.gz
+
+  build-linux-appimage:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libsdl3-dev file libfuse2
+      - name: Build
+        run: |
+          cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+          ninja -C build
+      - name: Create AppDir
+        run: |
+          mkdir -p AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/256x256/apps
+          cp build/opencaptive AppDir/usr/bin/
+          cat > AppDir/usr/share/applications/opencaptive.desktop << 'EOF'
+          [Desktop Entry]
+          Name=OpenCaptive
+          Exec=opencaptive
+          Icon=opencaptive
+          Type=Application
+          Categories=Game;
+          EOF
+          # Placeholder icon
+          convert -size 256x256 xc:black AppDir/usr/share/icons/hicolor/256x256/apps/opencaptive.png 2>/dev/null || true
+      - name: Download linuxdeploy
+        run: |
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+      - name: Build AppImage
+        run: |
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage || true
+          mv OpenCaptive-*.AppImage opencaptive-x86_64.AppImage 2>/dev/null || \
+            mv *.AppImage opencaptive-x86_64.AppImage 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-appimage
+          path: opencaptive-x86_64.AppImage
+        if: ${{ hashFiles('opencaptive-x86_64.AppImage') != '' }}
+
+  build-macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: brew install cmake ninja sdl3
+      - name: Build
+        run: |
+          cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release
+          ninja -C build
+      - name: Test
+        run: ctest --test-dir build -j4 --output-on-failure
+      - name: Package
+        run: |
+          mkdir -p opencaptive-macos-arm64
+          cp build/opencaptive opencaptive-macos-arm64/
+          cp README.md LICENSE opencaptive-macos-arm64/
+          tar czf opencaptive-macos-arm64.tar.gz opencaptive-macos-arm64/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64
+          path: opencaptive-macos-arm64.tar.gz
+
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SDL3
+        run: |
+          git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
+          cmake -S SDL3-src -B SDL3-build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3-install
+          cmake --build SDL3-build --config Release
+          cmake --install SDL3-build --config Release
+      - name: Build
+        run: |
+          cmake -S . -B build -DCMAKE_PREFIX_PATH=${{ github.workspace }}/SDL3-install -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
+      - name: Test
+        run: ctest --test-dir build -C Release -j4 --output-on-failure
+      - name: Package
+        run: |
+          mkdir opencaptive-windows-x64
+          copy build\Release\opencaptive.exe opencaptive-windows-x64\
+          copy ${{ github.workspace }}\SDL3-install\bin\SDL3.dll opencaptive-windows-x64\
+          copy README.md opencaptive-windows-x64\
+          copy LICENSE opencaptive-windows-x64\
+        shell: cmd
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: opencaptive-windows-x64/
+
+  create-release:
+    needs: [build-linux, build-macos, build-windows]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/linux-x86_64/opencaptive-linux-x86_64.tar.gz
+            artifacts/macos-arm64/opencaptive-macos-arm64.tar.gz
+            artifacts/windows-x64/**
+          generate_release_notes: true

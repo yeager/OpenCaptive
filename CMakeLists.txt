@@ -43,3 +43,11 @@ add_executable(test_anm_decoder
 )
 target_include_directories(test_anm_decoder PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME anm_decoder COMMAND test_anm_decoder)
+
+# --- Tools ---
+
+add_executable(pl5_to_bmp
+    tools/pl5_to_bmp.c
+    src/data/pl5_decoder.c
+)
+target_include_directories(pl5_to_bmp PRIVATE ${CMAKE_SOURCE_DIR}/include)

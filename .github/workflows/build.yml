@@ -1,0 +1,53 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libsdl3-dev
+      - name: Build
+        run: |
+          cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja
+          ninja -C build
+      - name: Test
+        run: ctest --test-dir build -j4 --output-on-failure
+
+  build-macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: brew install cmake ninja sdl3
+      - name: Build
+        run: |
+          cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja
+          ninja -C build
+      - name: Test
+        run: ctest --test-dir build -j4 --output-on-failure
+
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SDL3
+        run: |
+          git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
+          cmake -S SDL3-src -B SDL3-build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3-install
+          cmake --build SDL3-build --config Release
+          cmake --install SDL3-build --config Release
+      - name: Build
+        run: |
+          cmake -S . -B build -DCMAKE_PREFIX_PATH=${{ github.workspace }}/SDL3-install
+          cmake --build build --config Release
+      - name: Test
+        run: ctest --test-dir build -C Release -j4 --output-on-failure
