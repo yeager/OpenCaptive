@@ -9,6 +9,7 @@
 #include <windows.h>
 #else
 #include <dirent.h>
+#include <sys/stat.h>
 #endif
 
 // ZIP format constants
@@ -338,8 +339,89 @@ uint8_t *vfs_read_file(const DataVFS *vfs, const char *rel_path, size_t *out_siz
     return NULL;
 }
 
+static uint8_t *read_regular_file(const char *path, size_t *out_size) {
+    FILE *f = fopen(path, "rb");
+    if (!f) return NULL;
+    if (fseek(f, 0, SEEK_END) != 0) { fclose(f); return NULL; }
+    long length = ftell(f);
+    if (length < 0 || (uint64_t)length > ZIP_MAX_ENTRY_SIZE || fseek(f, 0, SEEK_SET) != 0) {
+        fclose(f); return NULL;
+    }
+    uint8_t *data = malloc((size_t)length);
+    if (!data || fread(data, 1, (size_t)length, f) != (size_t)length) {
+        free(data); fclose(f); return NULL;
+    }
+    fclose(f);
+    if (out_size) *out_size = (size_t)length;
+    return data;
+}
+
+#ifndef _WIN32
+static uint8_t *find_hash_in_directory(const char *path, const char expected_sha256[65],
+                                       size_t *out_size, int depth) {
+    if (depth > 32) return NULL;
+    DIR *dir = opendir(path);
+    if (!dir) return NULL;
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
+        char child[1024];
+        if (snprintf(child, sizeof(child), "%s/%s", path, entry->d_name) >= (int)sizeof(child)) continue;
+        struct stat st;
+        if (stat(child, &st) != 0) continue;
+        if (S_ISDIR(st.st_mode)) {
+            uint8_t *found = find_hash_in_directory(child, expected_sha256, out_size, depth + 1);
+            if (found) { closedir(dir); return found; }
+        } else if (S_ISREG(st.st_mode) && (uint64_t)st.st_size <= ZIP_MAX_ENTRY_SIZE) {
+            size_t size = 0; uint8_t *data = read_regular_file(child, &size);
+            if (!data) continue;
+            uint8_t digest[32]; sha256_digest(data, size, digest);
+            if (sha256_matches_hex(digest, expected_sha256)) {
+                closedir(dir); if (out_size) *out_size = size; return data;
+            }
+            free(data);
+        }
+    }
+    closedir(dir);
+    return NULL;
+}
+#else
+static uint8_t *find_hash_in_directory(const char *path, const char expected_sha256[65],
+                                       size_t *out_size, int depth) {
+    if (depth > 32) return NULL;
+    char pattern[1024];
+    if (snprintf(pattern, sizeof(pattern), "%s\\*", path) >= (int)sizeof(pattern)) return NULL;
+    WIN32_FIND_DATAA entry;
+    HANDLE handle = FindFirstFileA(pattern, &entry);
+    if (handle == INVALID_HANDLE_VALUE) return NULL;
+    do {
+        if (!strcmp(entry.cFileName, ".") || !strcmp(entry.cFileName, "..")) continue;
+        char child[1024];
+        if (snprintf(child, sizeof(child), "%s\\%s", path, entry.cFileName) >= (int)sizeof(child)) continue;
+        if (entry.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            uint8_t *found = find_hash_in_directory(child, expected_sha256, out_size, depth + 1);
+            if (found) { FindClose(handle); return found; }
+        } else {
+            uint64_t size_on_disk = ((uint64_t)entry.nFileSizeHigh << 32) | entry.nFileSizeLow;
+            if (size_on_disk > ZIP_MAX_ENTRY_SIZE) continue;
+            size_t size = 0; uint8_t *data = read_regular_file(child, &size);
+            if (!data) continue;
+            uint8_t digest[32]; sha256_digest(data, size, digest);
+            if (sha256_matches_hex(digest, expected_sha256)) {
+                FindClose(handle); if (out_size) *out_size = size; return data;
+            }
+            free(data);
+        }
+    } while (FindNextFileA(handle, &entry));
+    FindClose(handle);
+    return NULL;
+}
+#endif
+
 uint8_t *vfs_find_sha256(const DataVFS *vfs, const char expected_sha256[65], size_t *out_size) {
     if (!vfs || !vfs->initialized || !expected_sha256) return NULL;
+    uint8_t *loose = find_hash_in_directory(vfs->data_path, expected_sha256, out_size, 0);
+    if (loose) return loose;
     for (int i = 0; i < vfs->num_zips; i++) {
         uint8_t *data = zip_find_sha256(vfs->zip_paths[i], expected_sha256, out_size);
         if (data) return data;

@@ -76,9 +76,26 @@ static void test_rejects_overlong_archive_names(void) {
     assert(remove("test-vfs-overlong.zip") == 0);
 }
 
+static void test_finds_hash_in_extracted_tree(void) {
+    const unsigned char payload[] = { 9, 8, 7, 6 };
+    FILE *f = fopen("test-vfs-loose.bin", "wb");
+    assert(f && fwrite(payload, 1, sizeof(payload), f) == sizeof(payload));
+    assert(fclose(f) == 0);
+    DataVFS vfs;
+    assert(vfs_init(&vfs, "."));
+    size_t size = 0;
+    uint8_t *result = vfs_find_sha256(&vfs,
+        "63d987d1c6d69751c17297f410f5b3547a65d096a8993b35bcb4f9cad054f176", &size);
+    assert(result && size == sizeof(payload) && memcmp(result, payload, sizeof(payload)) == 0);
+    free(result);
+    vfs_free(&vfs);
+    assert(remove("test-vfs-loose.bin") == 0);
+}
+
 int main(void) {
     test_reads_prefixed_case_insensitive_zip_entry();
     test_rejects_overlong_archive_names();
+    test_finds_hash_in_extracted_tree();
     puts("All data VFS tests passed");
     return 0;
 }
