@@ -886,16 +886,13 @@ int main(int argc, char *argv[]) {
                         break;
                     }
 
-                    // Check for mission complete (generator destroyed = no active creatures)
-                    bool mission_done = true;
-                    for (int ci = 0; ci < creatures.num_creatures; ci++) {
-                        if (creatures.creatures[ci].active &&
-                            creatures.creatures[ci].level == gs.current_level) {
-                            mission_done = false; break;
-                        }
-                    }
-                    // Only on last level and after tick 200 (grace period)
-                    if (mission_done && gs.current_level == gs.num_levels - 1 && gs.tick > 200) {
+                    /* A Captive base is completed by destroying its generators,
+                     * not by waiting for a creature list to happen to empty.
+                     * The old condition advanced unattended games after a timer
+                     * and could make an objective impossible to understand. */
+                    bool mission_done = gs.generators_total > 0 &&
+                                        gs.generators_destroyed >= gs.generators_total;
+                    if (mission_done) {
                         if (gs.mission >= 10) {
                             gs.mode = STATE_VICTORY;
                             music_play(&music_sys, MUSIC_ESCAPE);

@@ -102,6 +102,11 @@ add_executable(test_liberation tests/test_liberation.c src/engine/liberation.c)
 target_include_directories(test_liberation PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME liberation COMMAND test_liberation)
 
+add_executable(test_game_state tests/test_game_state.c
+    src/engine/engine.c src/engine/map_gen.c src/engine/combat.c)
+target_include_directories(test_game_state PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME game_state COMMAND test_game_state)
+
 # --- Tools ---
 
 add_executable(pl5_to_bmp
