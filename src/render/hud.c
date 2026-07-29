@@ -226,6 +226,7 @@ void hud_render(const GameState *gs, uint32_t *pixels, int width, int height) {
         draw_minimap(gs, pixels, width, height, 4, hud_y, 30, 30);
     }
 
-    // Level and position info at bottom
+    // Level and gold display
     draw_number(pixels, width, height, 8, height - 8, gs->current_level + 1, 0xFF555555);
+    draw_number(pixels, width, height, width - 40, height - 8, gs->gold, 0xFFFFAA00);
 }

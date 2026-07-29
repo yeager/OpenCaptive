@@ -144,10 +144,13 @@ docs/         Format documentation
 | Terminal system (map, status, mission) | Done |
 | Game over / victory states | Done |
 | Mission progression (10 missions) | Done |
+| Gold economy (drops, shop, HUD display) | Done |
+| Settings menu (graphics, audio, scale) | Done |
 | Liberation: Captive 2 city engine | Done |
 | Liberation: building interiors | Done |
+| Liberation: city/building navigation | Done |
 | Enhanced rendering mode (2x SSAA) | Done |
-| Procedural sound effects | Done |
+| Procedural sound effects (10 types) | Done |
 
 ## Game data formats
 
