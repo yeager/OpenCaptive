@@ -37,6 +37,7 @@ set(OPENCAPTIVE_SOURCES
     src/render/renderer.c
     src/render/viewport.c
     src/render/hud.c
+    src/render/enhanced_render.c
 )
 
 add_executable(opencaptive ${OPENCAPTIVE_SOURCES})

@@ -18,6 +18,7 @@
 #include "terminal.h"
 #include "sfx.h"
 #include "liberation.h"
+#include "enhanced_render.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
@@ -53,6 +54,7 @@ static DroidUIState droid_ui;
 static TerminalState terminal;
 static SfxSystem sfx;
 static LibState lib_state;
+static EnhancedRenderer enhanced;
 
 static const uint8_t simple_font[][5] = {
     ['A'] = {0x7C,0x12,0x12,0x12,0x7C}, ['B'] = {0x7E,0x4A,0x4A,0x4A,0x34},
@@ -407,6 +409,8 @@ int main(int argc, char *argv[]) {
     // Items and SFX
     item_db_init(&item_db);
     sfx_init(&sfx, &sound_sys);
+    if (config.render_mode == CAPTIVE_RENDER_ENHANCED)
+        enhanced_init(&enhanced);
 
     // Texture atlas
     TextureAtlas atlas = {0};
@@ -670,10 +674,17 @@ int main(int argc, char *argv[]) {
                         memcpy(framebuffer, hud_bg,
                                CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
                     }
-                    viewport_render_full(&gs,
-                        &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],
-                        CAPTIVE_ORIGINAL_WIDTH,
-                        textures_loaded ? &atlas : NULL, &creatures);
+                    if (config.render_mode == CAPTIVE_RENDER_ENHANCED && enhanced.enabled) {
+                        enhanced_render(&enhanced, &gs,
+                            &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],
+                            CAPTIVE_ORIGINAL_WIDTH,
+                            textures_loaded ? &atlas : NULL, &creatures);
+                    } else {
+                        viewport_render_full(&gs,
+                            &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],
+                            CAPTIVE_ORIGINAL_WIDTH,
+                            textures_loaded ? &atlas : NULL, &creatures);
+                    }
                     hud_render(&gs, framebuffer,
                                CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 }
