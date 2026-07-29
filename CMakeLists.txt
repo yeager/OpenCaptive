@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.4 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.5 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -117,6 +117,11 @@ add_executable(test_visual_parity tests/test_visual_parity.c
     src/data/data_vfs.c src/data/sha256.c)
 target_include_directories(test_visual_parity PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_visual_parity PRIVATE SDL3::SDL3 ZLIB::ZLIB)
+if(NOT MSVC)
+    # The release renderer is the product being compared.  Build this target
+    # consistently when developers use a Debug build directory.
+    target_compile_options(test_visual_parity PRIVATE -O3)
+endif()
 add_test(NAME visual_parity COMMAND test_visual_parity)
 
 add_executable(test_game_state tests/test_game_state.c

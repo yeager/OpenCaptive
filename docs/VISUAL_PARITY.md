@@ -2,7 +2,7 @@
 
 `test_visual_parity` är en pixelbaserad regressionskontroll som körs med
 `ctest` och därmed i GitHub Actions. Den återger tre fasta scener och jämför
-hela bildbufferten med en SHA-256-referens:
+hela bildbufferten med en deterministisk 64-bitarsbildhash:
 
 - startmenyn
 - Captives förstapersonsvy med dörr och generator
