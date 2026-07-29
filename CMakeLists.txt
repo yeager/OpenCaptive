@@ -32,6 +32,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/iso9660_reader.c
     src/data/st_disk_reader.c
     src/audio/sound.c
+    src/audio/sfx.c
     src/render/renderer.c
     src/render/viewport.c
     src/render/hud.c

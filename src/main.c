@@ -16,6 +16,7 @@
 #include "inventory.h"
 #include "droid_ui.h"
 #include "terminal.h"
+#include "sfx.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
@@ -49,6 +50,7 @@ static ItemDatabase item_db;
 static ShopState shop;
 static DroidUIState droid_ui;
 static TerminalState terminal;
+static SfxSystem sfx;
 
 static const uint8_t simple_font[][5] = {
     ['A'] = {0x7C,0x12,0x12,0x12,0x7C}, ['B'] = {0x7E,0x4A,0x4A,0x4A,0x34},
@@ -155,7 +157,8 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_3: gs->selected_droid = 2; return;
         case SDLK_4: gs->selected_droid = 3; return;
         case SDLK_SPACE:
-            combat_droid_attack(gs, &creatures, gs->selected_droid);
+            if (combat_droid_attack(gs, &creatures, gs->selected_droid))
+                sfx_play(&sfx, SFX_SHOOT);
             return;
         case SDLK_F: {
             const DungeonLevel *cur = &gs->levels[gs->current_level];
@@ -165,6 +168,7 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 shop.gold = gs->gold;
                 gs->mode = STATE_SHOP;
                 music_play(&music_sys, MUSIC_SHOP);
+                sfx_play(&sfx, SFX_DOOR_OPEN);
                 return;
             }
             // Try puzzle first, then general interact
@@ -225,6 +229,9 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         if (cell != CELL_WALL && cell != CELL_DOOR_LOCKED) {
             gs->party_x = nx;
             gs->party_y = ny;
+            sfx_play(&sfx, SFX_STEP);
+        } else if (cell == CELL_DOOR_LOCKED) {
+            sfx_play(&sfx, SFX_DOOR_LOCKED);
         }
     }
 }
@@ -282,8 +289,9 @@ int main(int argc, char *argv[]) {
     sound_init(&sound_sys);
     music_init(&music_sys, &sound_sys, config.data_path);
 
-    // Items
+    // Items and SFX
     item_db_init(&item_db);
+    sfx_init(&sfx, &sound_sys);
 
     // Texture atlas
     TextureAtlas atlas = {0};
@@ -579,6 +587,7 @@ int main(int argc, char *argv[]) {
         }
 
         music_update(&music_sys);
+        sound_mix(&sound_sys);
         renderer_present(&renderer, framebuffer);
         SDL_Delay(16);
     }
