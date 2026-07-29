@@ -1032,6 +1032,18 @@ int main(int argc, char *argv[]) {
                     if (hud_bg) {
                         memcpy(framebuffer, hud_bg,
                                CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                        /* GAME SCRN is a title/menu source frame; its dungeon
+                         * rectangle contains a Captive logo, not an in-game
+                         * view.  Once a game is selected, the original
+                         * renderer replaces this exact interior.  Clear it
+                         * until that renderer is recovered rather than
+                         * passing title pixels off as a game scene. */
+                        for (int y = 0; y < CAPTIVE_VIEWPORT_HEIGHT; ++y) {
+                            uint32_t *row = framebuffer +
+                                (CAPTIVE_VIEWPORT_Y + y) * CAPTIVE_ORIGINAL_WIDTH +
+                                CAPTIVE_VIEWPORT_X;
+                            memset(row, 0, CAPTIVE_VIEWPORT_WIDTH * sizeof(*row));
+                        }
                     }
                     /* The original GAME SCRN frame is decoded from verified
                      * media.  Until the original viewport compositor is
