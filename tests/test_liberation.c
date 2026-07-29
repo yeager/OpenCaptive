@@ -25,6 +25,16 @@ int main(void) {
                == LIB_CELL_DOOR);
     }
 
+    const LibBuilding *target = &first.city.buildings[first.target_building];
+    first.player_cx = target->city_x;
+    first.player_cy = target->city_y;
+    assert(lib_enter_current_building(&first));
+    assert(first.mode == LIB_MODE_BUILDING);
+    assert(first.current_building == first.target_building);
+    assert(first.mission_complete);
+    assert(lib_leave_current_building(&first));
+    assert(first.mode == LIB_MODE_CITY && first.current_building == -1);
+
     puts("All Liberation engine tests passed");
     return 0;
 }

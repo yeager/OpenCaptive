@@ -1,6 +1,19 @@
 #include "renderer.h"
 #include <stdio.h>
 
+static bool renderer_bilinear;
+static bool renderer_scanlines;
+static int renderer_brightness = 50;
+static int renderer_contrast = 50;
+
+static uint8_t apply_channel(uint8_t value) {
+    int adjusted = ((int)value - 128) * renderer_contrast / 50 + 128;
+    adjusted += (renderer_brightness - 50) * 255 / 100;
+    if (adjusted < 0) return 0;
+    if (adjusted > 255) return 255;
+    return (uint8_t)adjusted;
+}
+
 bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
     int w = CAPTIVE_ORIGINAL_WIDTH * config->scale_factor;
     int h = CAPTIVE_ORIGINAL_HEIGHT * config->scale_factor;
@@ -27,15 +40,48 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
     }
 
     SDL_SetTextureScaleMode(r->framebuffer, SDL_SCALEMODE_NEAREST);
+    renderer_set_effects(r, config->bilinear, config->scanlines,
+                         config->brightness, config->contrast);
     r->window_width = w;
     r->window_height = h;
     r->mode = config->render_mode;
     return true;
 }
 
+void renderer_set_effects(OpenCaptiveRenderer *r, bool bilinear, bool scanlines,
+                          int brightness, int contrast) {
+    if (!r || !r->framebuffer) return;
+    renderer_bilinear = bilinear;
+    renderer_scanlines = scanlines;
+    renderer_brightness = brightness < 0 ? 0 : (brightness > 100 ? 100 : brightness);
+    renderer_contrast = contrast < 0 ? 0 : (contrast > 100 ? 100 : contrast);
+    SDL_SetTextureScaleMode(r->framebuffer,
+        renderer_bilinear ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
+}
+
 void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
     if (pixels) {
-        SDL_UpdateTexture(r->framebuffer, NULL, pixels,
+        uint32_t processed[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
+        const uint32_t *source = pixels;
+        if (renderer_scanlines || renderer_brightness != 50 || renderer_contrast != 50) {
+            for (int y = 0; y < CAPTIVE_ORIGINAL_HEIGHT; y++) {
+                for (int x = 0; x < CAPTIVE_ORIGINAL_WIDTH; x++) {
+                    uint32_t color = pixels[y * CAPTIVE_ORIGINAL_WIDTH + x];
+                    uint8_t red = apply_channel((color >> 16) & 0xFF);
+                    uint8_t green = apply_channel((color >> 8) & 0xFF);
+                    uint8_t blue = apply_channel(color & 0xFF);
+                    if (renderer_scanlines && (y & 1)) {
+                        red = (uint8_t)(red * 3 / 5);
+                        green = (uint8_t)(green * 3 / 5);
+                        blue = (uint8_t)(blue * 3 / 5);
+                    }
+                    processed[y * CAPTIVE_ORIGINAL_WIDTH + x] = 0xFF000000 |
+                        ((uint32_t)red << 16) | ((uint32_t)green << 8) | blue;
+                }
+            }
+            source = processed;
+        }
+        SDL_UpdateTexture(r->framebuffer, NULL, source,
                           CAPTIVE_ORIGINAL_WIDTH * sizeof(uint32_t));
     }
 

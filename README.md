@@ -68,6 +68,7 @@ Point OpenCaptive at your game data directory:
 | , / . | Go up/down stairs |
 | F5 | Quick save |
 | F9 | Quick load |
+| F10 | Runtime graphics and cheat options |
 | Escape | Return to menu |
 
 ### Command-line options

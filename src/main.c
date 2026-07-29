@@ -124,6 +124,27 @@ static LibState lib_state;
 static LiberationData liberation_data;
 static EnhancedRenderer enhanced;
 
+typedef struct {
+    bool open;
+    int selected;
+    bool invulnerable;
+    bool infinite_energy;
+} RuntimePopup;
+
+static RuntimePopup runtime_popup;
+
+enum {
+    POPUP_ENHANCED,
+    POPUP_SCANLINES,
+    POPUP_BILINEAR,
+    POPUP_BRIGHTNESS,
+    POPUP_INVULNERABLE,
+    POPUP_INFINITE_ENERGY,
+    POPUP_COMPLETE_OBJECTIVE,
+    POPUP_CLOSE,
+    POPUP_ITEMS,
+};
+
 static const uint8_t simple_font[][5] = {
     ['A'] = {0x7C,0x12,0x12,0x12,0x7C}, ['B'] = {0x7E,0x4A,0x4A,0x4A,0x34},
     ['C'] = {0x3C,0x42,0x42,0x42,0x24}, ['D'] = {0x7E,0x42,0x42,0x42,0x3C},
@@ -171,6 +192,109 @@ static void draw_centered(uint32_t *fb, int pw, int ph,
     draw_simple_text(fb, pw, ph, (pw - tw) / 2, y, text, color, scale);
 }
 
+static void draw_rect(uint32_t *fb, int pw, int ph,
+                      int x, int y, int w, int h, uint32_t color) {
+    for (int py = y; py < y + h; py++) {
+        if (py < 0 || py >= ph) continue;
+        for (int px = x; px < x + w; px++)
+            if (px >= 0 && px < pw) fb[py * pw + px] = color;
+    }
+}
+
+static const char *popup_toggle(bool value) {
+    return value ? "ON" : "OFF";
+}
+
+static const char *popup_brightness(int value) {
+    return value < 40 ? "LOW" : (value > 60 ? "HIGH" : "NORMAL");
+}
+
+static void popup_apply_cheats(GameState *gs) {
+    if (!gs || gs->game_type != GAME_CAPTIVE) return;
+    for (int i = 0; i < 4; i++) {
+        if (runtime_popup.invulnerable) gs->droids[i].hp = gs->droids[i].hp_max;
+        if (runtime_popup.infinite_energy) gs->droids[i].energy = gs->droids[i].energy_max;
+    }
+}
+
+static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
+                               OpenCaptiveRenderer *renderer, const SDL_Event *event) {
+    if (!event || event->type != SDL_EVENT_KEY_DOWN) return;
+    SDL_Keycode key = event->key.key;
+    if (key == SDLK_F10 || key == SDLK_ESCAPE) {
+        runtime_popup.open = false;
+        return;
+    }
+    if (key == SDLK_UP) {
+        runtime_popup.selected = (runtime_popup.selected + POPUP_ITEMS - 1) % POPUP_ITEMS;
+        return;
+    }
+    if (key == SDLK_DOWN) {
+        runtime_popup.selected = (runtime_popup.selected + 1) % POPUP_ITEMS;
+        return;
+    }
+    if (key != SDLK_LEFT && key != SDLK_RIGHT && key != SDLK_RETURN && key != SDLK_KP_ENTER)
+        return;
+
+    switch (runtime_popup.selected) {
+        case POPUP_ENHANCED:
+            config->render_mode = config->render_mode == CAPTIVE_RENDER_ENHANCED
+                ? CAPTIVE_RENDER_ORIGINAL : CAPTIVE_RENDER_ENHANCED;
+            if (config->render_mode == CAPTIVE_RENDER_ENHANCED && !enhanced.enabled)
+                enhanced_init(&enhanced);
+            break;
+        case POPUP_SCANLINES: config->scanlines = !config->scanlines; break;
+        case POPUP_BILINEAR: config->bilinear = !config->bilinear; break;
+        case POPUP_BRIGHTNESS:
+            config->brightness = config->brightness < 50 ? 50 :
+                (config->brightness < 75 ? 75 : 25);
+            break;
+        case POPUP_INVULNERABLE: runtime_popup.invulnerable = !runtime_popup.invulnerable; break;
+        case POPUP_INFINITE_ENERGY: runtime_popup.infinite_energy = !runtime_popup.infinite_energy; break;
+        case POPUP_COMPLETE_OBJECTIVE:
+            if (gs->game_type == GAME_CAPTIVE)
+                gs->generators_destroyed = gs->generators_total;
+            else
+                lib_state.mission_complete = true;
+            break;
+        case POPUP_CLOSE: runtime_popup.open = false; break;
+    }
+    gs->config = *config;
+    renderer_set_effects(renderer, config->bilinear, config->scanlines,
+                         config->brightness, config->contrast);
+}
+
+static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
+    static const char *labels[POPUP_ITEMS] = {
+        "ENHANCED VIEW", "SCANLINES", "BILINEAR", "BRIGHTNESS",
+        "GOD MODE", "INFINITE ENERGY", "COMPLETE OBJECTIVE", "CLOSE",
+    };
+    int x = 30, y = 18, w = pw - 60, h = 164;
+    draw_rect(fb, pw, ph, x, y, w, h, 0xFF101420);
+    draw_rect(fb, pw, ph, x, y, w, 2, 0xFF55CCFF);
+    draw_rect(fb, pw, ph, x, y + h - 2, w, 2, 0xFF55CCFF);
+    draw_centered(fb, pw, ph, y + 8, "RUNTIME OPTIONS", 0xFFFFFFFF, 1);
+    draw_centered(fb, pw, ph, y + 19, "ESC CLOSE", 0xFF99AACC, 1);
+    for (int i = 0; i < POPUP_ITEMS; i++) {
+        int row_y = y + 34 + i * 13;
+        uint32_t color = i == runtime_popup.selected ? 0xFFFFFF44 : 0xFFCCDDEE;
+        draw_simple_text(fb, pw, ph, x + 12, row_y, labels[i], color, 1);
+        const char *value = "";
+        switch (i) {
+            case POPUP_ENHANCED: value = popup_toggle(gs->config.render_mode == CAPTIVE_RENDER_ENHANCED); break;
+            case POPUP_SCANLINES: value = popup_toggle(gs->config.scanlines); break;
+            case POPUP_BILINEAR: value = popup_toggle(gs->config.bilinear); break;
+            case POPUP_BRIGHTNESS: value = popup_brightness(gs->config.brightness); break;
+            case POPUP_INVULNERABLE: value = popup_toggle(runtime_popup.invulnerable); break;
+            case POPUP_INFINITE_ENERGY: value = popup_toggle(runtime_popup.infinite_energy); break;
+            case POPUP_COMPLETE_OBJECTIVE: value = "NOW"; break;
+            default: break;
+        }
+        draw_simple_text(fb, pw, ph, x + w - 80, row_y, value, color, 1);
+    }
+    draw_centered(fb, pw, ph, y + h - 14, "UP DOWN ENTER", 0xFF99AACC, 1);
+}
+
 static void spawn_level_content(GameState *gs_ptr) {
     combat_init(&creatures);
     puzzle_init(&puzzles);
@@ -195,25 +319,7 @@ static void lib_handle_input(GameState *gs, LibState *ls, const SDL_Event *event
             case SDLK_D: case SDLK_RIGHT: mx = 1; break;
             case SDLK_RETURN:
             case SDLK_F: {
-                // Enter building at current position
-                LibBuildingType bt = ls->city.grid[ls->player_cy][ls->player_cx];
-                if (bt != LIB_BUILDING_NONE) {
-                    for (int i = 0; i < ls->city.num_buildings; i++) {
-                        const LibBuilding *b = &ls->city.buildings[i];
-                        if (ls->player_cx >= b->city_x &&
-                            ls->player_cx < b->city_x + b->width &&
-                            ls->player_cy >= b->city_y &&
-                            ls->player_cy < b->city_y + b->height) {
-                            ls->current_building = i;
-                            ls->mode = LIB_MODE_BUILDING;
-                            ls->player_bx = LIB_FLOOR_WIDTH / 2;
-                            ls->player_by = LIB_FLOOR_HEIGHT - 2;
-                            ls->player_floor = 0;
-                            sfx_play(&sfx, SFX_DOOR_OPEN);
-                            break;
-                        }
-                    }
-                }
+                if (lib_enter_current_building(ls)) sfx_play(&sfx, SFX_DOOR_OPEN);
                 return;
             }
             default: return;
@@ -262,31 +368,18 @@ static void lib_handle_input(GameState *gs, LibState *ls, const SDL_Event *event
             case SDLK_F:
                 // Check if on elevator
                 if (fl->cells[ls->player_by][ls->player_bx] == LIB_CELL_ELEVATOR) {
-                    if (ls->player_floor + 1 < b->num_floors) {
-                        ls->player_floor++;
-                        sfx_play(&sfx, SFX_DOOR_OPEN);
-                    }
+                    if (lib_change_floor(ls, 1)) sfx_play(&sfx, SFX_DOOR_OPEN);
                 }
                 // Check if at exit door
                 if (ls->player_by == LIB_FLOOR_HEIGHT - 1 && ls->player_floor == 0) {
-                    ls->mode = LIB_MODE_CITY;
-                    ls->current_building = -1;
-                    sfx_play(&sfx, SFX_DOOR_OPEN);
+                    if (lib_leave_current_building(ls)) sfx_play(&sfx, SFX_DOOR_OPEN);
                 }
                 break;
             case SDLK_PERIOD:
-                if (fl->cells[ls->player_by][ls->player_bx] == LIB_CELL_ELEVATOR &&
-                    ls->player_floor + 1 < b->num_floors) {
-                    ls->player_floor++;
-                    sfx_play(&sfx, SFX_DOOR_OPEN);
-                }
+                if (lib_change_floor(ls, 1)) sfx_play(&sfx, SFX_DOOR_OPEN);
                 break;
             case SDLK_COMMA:
-                if (fl->cells[ls->player_by][ls->player_bx] == LIB_CELL_ELEVATOR &&
-                    ls->player_floor > 0) {
-                    ls->player_floor--;
-                    sfx_play(&sfx, SFX_DOOR_OPEN);
-                }
+                if (lib_change_floor(ls, -1)) sfx_play(&sfx, SFX_DOOR_OPEN);
                 break;
             default: break;
         }
@@ -646,6 +739,16 @@ int main(int argc, char *argv[]) {
                 break;
             }
 
+            if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_F10 &&
+                gs.mode == STATE_GAME) {
+                runtime_popup.open = !runtime_popup.open;
+                continue;
+            }
+            if (runtime_popup.open) {
+                popup_handle_event(&gs, &config, &renderer, &event);
+                continue;
+            }
+
             switch (gs.mode) {
                 case STATE_MENU: {
                     MenuResult result = start_menu_handle_event(&menu, &event);
@@ -840,7 +943,10 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_GAME: {
-                gs.tick++;
+                if (!runtime_popup.open) {
+                    gs.tick++;
+                    popup_apply_cheats(&gs);
+                }
                 if (gs.game_type == GAME_LIBERATION) {
                     /* Liberation has its own city/building loop.  Captive's
                      * droid combat and generator completion conditions do not
@@ -857,7 +963,8 @@ int main(int argc, char *argv[]) {
                                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                     }
                 } else {
-                    if (gs.tick % 4 == 0) combat_tick(&creatures, &gs);
+                    if (!runtime_popup.open && gs.tick % 4 == 0)
+                        combat_tick(&creatures, &gs);
 
                     // Check for game over (all droids destroyed)
                     bool all_dead = true;
@@ -944,6 +1051,9 @@ int main(int argc, char *argv[]) {
 
             default: break;
         }
+
+        if (runtime_popup.open && gs.mode == STATE_GAME)
+            popup_render(&gs, framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
 
         music_update(&music_sys);
         sound_mix(&sound_sys);

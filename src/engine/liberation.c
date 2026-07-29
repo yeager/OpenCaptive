@@ -151,6 +151,56 @@ void lib_generate_building(LibBuilding *b, LibBuildingType type, uint32_t seed) 
     }
 }
 
+bool lib_enter_current_building(LibState *ls) {
+    if (!ls || ls->mode != LIB_MODE_CITY ||
+        ls->player_cx < 0 || ls->player_cx >= LIB_CITY_WIDTH ||
+        ls->player_cy < 0 || ls->player_cy >= LIB_CITY_HEIGHT ||
+        ls->city.grid[ls->player_cy][ls->player_cx] == LIB_BUILDING_NONE)
+        return false;
+
+    for (int i = 0; i < ls->city.num_buildings; i++) {
+        const LibBuilding *building = &ls->city.buildings[i];
+        if (ls->player_cx < building->city_x ||
+            ls->player_cx >= building->city_x + building->width ||
+            ls->player_cy < building->city_y ||
+            ls->player_cy >= building->city_y + building->height)
+            continue;
+        ls->current_building = i;
+        ls->mode = LIB_MODE_BUILDING;
+        ls->player_bx = LIB_FLOOR_WIDTH / 2;
+        ls->player_by = LIB_FLOOR_HEIGHT - 2;
+        ls->player_floor = 0;
+        if (i == ls->target_building) ls->mission_complete = true;
+        return true;
+    }
+    return false;
+}
+
+bool lib_leave_current_building(LibState *ls) {
+    if (!ls || ls->mode != LIB_MODE_BUILDING || ls->current_building < 0)
+        return false;
+    ls->mode = LIB_MODE_CITY;
+    ls->current_building = -1;
+    return true;
+}
+
+bool lib_change_floor(LibState *ls, int direction) {
+    if (!ls || ls->mode != LIB_MODE_BUILDING || (direction != -1 && direction != 1) ||
+        ls->current_building < 0 || ls->current_building >= ls->city.num_buildings)
+        return false;
+    const LibBuilding *building = &ls->city.buildings[ls->current_building];
+    if (ls->player_floor < 0 || ls->player_floor >= building->num_floors ||
+        ls->player_bx < 0 || ls->player_bx >= LIB_FLOOR_WIDTH ||
+        ls->player_by < 0 || ls->player_by >= LIB_FLOOR_HEIGHT ||
+        building->floors[ls->player_floor].cells[ls->player_by][ls->player_bx]
+            != LIB_CELL_ELEVATOR)
+        return false;
+    int next_floor = ls->player_floor + direction;
+    if (next_floor < 0 || next_floor >= building->num_floors) return false;
+    ls->player_floor = next_floor;
+    return true;
+}
+
 static const uint32_t building_colors[] = {
     [LIB_BUILDING_NONE]        = 0xFF222222,
     [LIB_BUILDING_RESIDENTIAL] = 0xFF445566,
@@ -206,7 +256,8 @@ void lib_render_city(const LibState *ls, uint32_t *pixels, int width, int height
                 int px = ox + tcx * scale + sx;
                 int py = oy + tcy * scale + sy;
                 if (px >= 0 && px < width && py >= 0 && py < height)
-                    pixels[py * width + px] = 0xFFFF4444;
+                        pixels[py * width + px] = ls->mission_complete
+                            ? 0xFF44FF44 : 0xFFFF4444;
             }
     }
 }

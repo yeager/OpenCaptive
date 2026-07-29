@@ -82,6 +82,9 @@ typedef struct {
 void lib_init(LibState *ls, uint32_t seed);
 void lib_generate_city(LibState *ls);
 void lib_generate_building(LibBuilding *b, LibBuildingType type, uint32_t seed);
+bool lib_enter_current_building(LibState *ls);
+bool lib_leave_current_building(LibState *ls);
+bool lib_change_floor(LibState *ls, int direction);
 void lib_render_city(const LibState *ls, uint32_t *pixels, int width, int height);
 void lib_render_building(const LibState *ls, uint32_t *pixels, int stride);
 
