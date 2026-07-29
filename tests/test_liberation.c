@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <stdio.h>
 
+static const char save_path[] = "opencaptive-liberation-test-save.bin";
+
 int main(void) {
     LibState first, second;
     lib_init(&first, 42);
@@ -34,6 +36,24 @@ int main(void) {
     assert(first.mission_complete);
     assert(lib_leave_current_building(&first));
     assert(first.mode == LIB_MODE_CITY && first.current_building == -1);
+
+    first.player_cx = 7;
+    first.player_cy = 8;
+    first.mission_complete = true;
+    assert(lib_save_game(&first, save_path));
+    LibState loaded = {0};
+    assert(lib_load_game(&loaded, save_path));
+    assert(loaded.player_cx == 7 && loaded.player_cy == 8);
+    assert(loaded.mission_complete && loaded.mode == LIB_MODE_CITY);
+
+    FILE *file = fopen(save_path, "r+b");
+    assert(file != NULL);
+    assert(fputc(0, file) != EOF);
+    assert(fclose(file) == 0);
+    loaded.player_cx = 13;
+    assert(!lib_load_game(&loaded, save_path));
+    assert(loaded.player_cx == 13);
+    remove(save_path);
 
     puts("All Liberation engine tests passed");
     return 0;

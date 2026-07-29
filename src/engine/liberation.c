@@ -1,6 +1,16 @@
 #include "liberation.h"
 #include "opencaptive.h"
+#include <stdio.h>
 #include <string.h>
+
+#define LIB_SAVE_MAGIC 0x4C425356U /* LBSV */
+#define LIB_SAVE_VERSION 1U
+
+typedef struct {
+    uint32_t magic;
+    uint32_t version;
+    uint32_t state_size;
+} LibSaveHeader;
 
 static uint32_t lib_prng;
 static uint32_t lib_rand(void) {
@@ -198,6 +208,79 @@ bool lib_change_floor(LibState *ls, int direction) {
     int next_floor = ls->player_floor + direction;
     if (next_floor < 0 || next_floor >= building->num_floors) return false;
     ls->player_floor = next_floor;
+    return true;
+}
+
+static bool lib_state_valid(const LibState *ls) {
+    if (!ls || ls->city.num_buildings < 1 ||
+        ls->city.num_buildings > LIB_MAX_BUILDINGS ||
+        ls->mode < LIB_MODE_CITY || ls->mode > LIB_MODE_BUILDING ||
+        ls->player_dir < DIR_NORTH || ls->player_dir > DIR_WEST ||
+        ls->target_building < 0 || ls->target_building >= ls->city.num_buildings ||
+        ls->player_cx < 0 || ls->player_cx >= LIB_CITY_WIDTH ||
+        ls->player_cy < 0 || ls->player_cy >= LIB_CITY_HEIGHT)
+        return false;
+
+    for (int y = 0; y < LIB_CITY_HEIGHT; y++) {
+        for (int x = 0; x < LIB_CITY_WIDTH; x++) {
+            if (ls->city.grid[y][x] < LIB_BUILDING_NONE ||
+                ls->city.grid[y][x] > LIB_BUILDING_SHOP) return false;
+        }
+    }
+    for (int i = 0; i < ls->city.num_buildings; i++) {
+        const LibBuilding *building = &ls->city.buildings[i];
+        if (building->type < LIB_BUILDING_RESIDENTIAL ||
+            building->type > LIB_BUILDING_SHOP || building->width < 1 ||
+            building->height < 1 || building->city_x < 0 || building->city_y < 0 ||
+            building->city_x + building->width > LIB_CITY_WIDTH ||
+            building->city_y + building->height > LIB_CITY_HEIGHT ||
+            building->num_floors < 1 || building->num_floors > LIB_BUILDING_FLOORS)
+            return false;
+        for (int y = building->city_y; y < building->city_y + building->height; y++)
+            for (int x = building->city_x; x < building->city_x + building->width; x++)
+                if (ls->city.grid[y][x] != building->type) return false;
+        for (int floor = 0; floor < building->num_floors; floor++)
+            for (int y = 0; y < LIB_FLOOR_HEIGHT; y++)
+                for (int x = 0; x < LIB_FLOOR_WIDTH; x++)
+                    if (building->floors[floor].cells[y][x] < LIB_CELL_VOID ||
+                        building->floors[floor].cells[y][x] > LIB_CELL_NPC) return false;
+    }
+    if (ls->mode == LIB_MODE_CITY) return ls->current_building == -1;
+    return ls->current_building >= 0 && ls->current_building < ls->city.num_buildings &&
+        ls->player_floor >= 0 &&
+        ls->player_floor < ls->city.buildings[ls->current_building].num_floors &&
+        ls->player_bx >= 0 && ls->player_bx < LIB_FLOOR_WIDTH &&
+        ls->player_by >= 0 && ls->player_by < LIB_FLOOR_HEIGHT;
+}
+
+bool lib_save_game(const LibState *ls, const char *path) {
+    if (!path || !lib_state_valid(ls)) return false;
+    FILE *file = fopen(path, "wb");
+    if (!file) return false;
+    LibSaveHeader header = {
+        .magic = LIB_SAVE_MAGIC,
+        .version = LIB_SAVE_VERSION,
+        .state_size = sizeof(*ls),
+    };
+    bool ok = fwrite(&header, sizeof(header), 1, file) == 1 &&
+        fwrite(ls, sizeof(*ls), 1, file) == 1;
+    if (fclose(file) != 0) ok = false;
+    return ok;
+}
+
+bool lib_load_game(LibState *ls, const char *path) {
+    if (!ls || !path) return false;
+    FILE *file = fopen(path, "rb");
+    if (!file) return false;
+    LibSaveHeader header;
+    LibState restored;
+    bool ok = fread(&header, sizeof(header), 1, file) == 1 &&
+        header.magic == LIB_SAVE_MAGIC && header.version == LIB_SAVE_VERSION &&
+        header.state_size == sizeof(restored) &&
+        fread(&restored, sizeof(restored), 1, file) == 1 && lib_state_valid(&restored);
+    if (fclose(file) != 0) ok = false;
+    if (!ok) return false;
+    *ls = restored;
     return true;
 }
 

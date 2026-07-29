@@ -68,7 +68,9 @@ saves are rejected without overwriting the running game.
 
 The save format is intentionally versioned. Newer engine versions can reject
 old experimental saves rather than interpreting them incorrectly. Liberation
-saves are not exposed by the current save system.
+uses a separate versioned save format for its city and interior state. Use
+**F5** and **F9** while playing Liberation; it does not reuse Captive's
+incompatible dungeon save format.
 
 ## Useful diagnostics
 

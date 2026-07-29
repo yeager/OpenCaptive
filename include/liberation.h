@@ -85,6 +85,8 @@ void lib_generate_building(LibBuilding *b, LibBuildingType type, uint32_t seed);
 bool lib_enter_current_building(LibState *ls);
 bool lib_leave_current_building(LibState *ls);
 bool lib_change_floor(LibState *ls, int direction);
+bool lib_save_game(const LibState *ls, const char *path);
+bool lib_load_game(LibState *ls, const char *path);
 void lib_render_city(const LibState *ls, uint32_t *pixels, int width, int height);
 void lib_render_building(const LibState *ls, uint32_t *pixels, int stride);
 

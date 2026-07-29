@@ -397,6 +397,12 @@ static void lib_handle_input(GameState *gs, LibState *ls, const SDL_Event *event
                 if (lib_enter_current_building(ls)) sfx_play(&sfx, SFX_DOOR_OPEN);
                 return;
             }
+            case SDLK_F5:
+                lib_save_game(ls, "opencaptive-liberation.sav");
+                return;
+            case SDLK_F9:
+                lib_load_game(ls, "opencaptive-liberation.sav");
+                return;
             default: return;
         }
         int nx = ls->player_cx + mx;
@@ -455,6 +461,12 @@ static void lib_handle_input(GameState *gs, LibState *ls, const SDL_Event *event
                 break;
             case SDLK_COMMA:
                 if (lib_change_floor(ls, -1)) sfx_play(&sfx, SFX_DOOR_OPEN);
+                break;
+            case SDLK_F5:
+                lib_save_game(ls, "opencaptive-liberation.sav");
+                break;
+            case SDLK_F9:
+                lib_load_game(ls, "opencaptive-liberation.sav");
                 break;
             default: break;
         }
