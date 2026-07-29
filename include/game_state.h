@@ -86,6 +86,7 @@ typedef enum {
     STATE_TERMINAL,
     STATE_GAMEOVER,
     STATE_VICTORY,
+    STATE_INVENTORY,
 } GameStateMode;
 
 typedef struct {

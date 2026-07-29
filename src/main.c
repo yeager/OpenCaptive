@@ -14,6 +14,8 @@
 #include "sound.h"
 #include "shop.h"
 #include "inventory.h"
+#include "droid_ui.h"
+#include "terminal.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
@@ -45,6 +47,8 @@ static SoundSystem sound_sys;
 static MusicSystem music_sys;
 static ItemDatabase item_db;
 static ShopState shop;
+static DroidUIState droid_ui;
+static TerminalState terminal;
 
 static const uint8_t simple_font[][5] = {
     ['A'] = {0x7C,0x12,0x12,0x12,0x7C}, ['B'] = {0x7E,0x4A,0x4A,0x4A,0x34},
@@ -137,6 +141,14 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             return;
         case SDLK_M:
             gs->map_overlay = !gs->map_overlay;
+            return;
+        case SDLK_I:
+            droid_ui_init(&droid_ui, gs->selected_droid);
+            gs->mode = STATE_INVENTORY;
+            return;
+        case SDLK_T:
+            terminal_init(&terminal, gs->current_level);
+            gs->mode = STATE_TERMINAL;
             return;
         case SDLK_1: gs->selected_droid = 0; return;
         case SDLK_2: gs->selected_droid = 1; return;
@@ -362,6 +374,51 @@ int main(int argc, char *argv[]) {
                         game_handle_input(&gs, &event);
                     }
                     break;
+                case STATE_TERMINAL:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        switch (event.key.key) {
+                            case SDLK_ESCAPE:
+                                if (terminal.page != TERM_MAIN)
+                                    terminal_handle_key(&terminal, 0x1B);
+                                else
+                                    gs.mode = STATE_GAME;
+                                break;
+                            case SDLK_UP:
+                                terminal_handle_key(&terminal, 0x50);
+                                break;
+                            case SDLK_DOWN:
+                                terminal_handle_key(&terminal, 0x51);
+                                break;
+                            case SDLK_RETURN:
+                                terminal_handle_key(&terminal, 0x0D);
+                                if (!terminal.active) gs.mode = STATE_GAME;
+                                break;
+                            default: break;
+                        }
+                    }
+                    break;
+                case STATE_INVENTORY:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        switch (event.key.key) {
+                            case SDLK_ESCAPE:
+                                gs.mode = STATE_GAME;
+                                break;
+                            case SDLK_UP:
+                                droid_ui_handle_key(&droid_ui, &gs, 0x50);
+                                break;
+                            case SDLK_DOWN:
+                                droid_ui_handle_key(&droid_ui, &gs, 0x51);
+                                break;
+                            case SDLK_TAB:
+                                droid_ui_handle_key(&droid_ui, &gs, 0x09);
+                                break;
+                            case SDLK_RETURN:
+                                droid_ui_handle_key(&droid_ui, &gs, 0x0D);
+                                break;
+                            default: break;
+                        }
+                    }
+                    break;
                 case STATE_SHOP:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
                         switch (event.key.key) {
@@ -480,6 +537,16 @@ int main(int argc, char *argv[]) {
                            CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 break;
             }
+
+            case STATE_TERMINAL:
+                terminal_render(&terminal, &gs, framebuffer,
+                                CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                break;
+
+            case STATE_INVENTORY:
+                droid_ui_render(&droid_ui, &gs, &item_db, framebuffer,
+                                CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                break;
 
             case STATE_SHOP:
                 shop_render(&shop, &item_db, framebuffer,

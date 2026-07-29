@@ -18,6 +18,8 @@ set(OPENCAPTIVE_SOURCES
     src/engine/inventory.c
     src/engine/shop.c
     src/engine/puzzle.c
+    src/engine/droid_ui.c
+    src/engine/terminal.c
     src/audio/midi_player.c
     src/audio/music.c
     src/data/pl5_decoder.c
