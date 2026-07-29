@@ -107,6 +107,10 @@ add_executable(test_amiga_hunk tests/test_amiga_hunk.c src/data/amiga_hunk.c)
 target_include_directories(test_amiga_hunk PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME amiga_hunk COMMAND test_amiga_hunk)
 
+add_executable(test_amiga_ofs tests/test_amiga_ofs.c src/data/amiga_ofs.c src/data/sha256.c)
+target_include_directories(test_amiga_ofs PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME amiga_ofs COMMAND test_amiga_ofs)
+
 add_executable(test_amos_sprite tests/test_amos_sprite.c src/data/amos_sprite.c)
 target_include_directories(test_amos_sprite PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME amos_sprite COMMAND test_amos_sprite)
@@ -144,7 +148,7 @@ endfunction()
 
 foreach(test_target IN ITEMS
         test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_data_vfs
-        test_sha256 test_iso9660_reader test_amiga_hunk test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load)
+        test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
 
@@ -182,6 +186,11 @@ target_link_libraries(hash_find PRIVATE ZLIB::ZLIB)
 add_executable(hash_extract tools/hash_extract.c src/data/data_vfs.c src/data/sha256.c)
 target_include_directories(hash_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(hash_extract PRIVATE ZLIB::ZLIB)
+
+add_executable(amiga_ofs_extract tools/amiga_ofs_extract.c src/data/amiga_ofs.c
+    src/data/data_vfs.c src/data/sha256.c)
+target_include_directories(amiga_ofs_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(amiga_ofs_extract PRIVATE ZLIB::ZLIB)
 
 add_executable(verify_liberation
     tools/verify_liberation.c
