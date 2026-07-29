@@ -27,6 +27,8 @@ set(OPENCAPTIVE_SOURCES
     src/data/pl5_decoder.c
     src/data/anm_decoder.c
     src/data/rnc_decoder.c
+    src/data/amiga_ofs.c
+    src/data/captive_amiga_data.c
     src/data/liberation_anim.c
     src/data/mid_loader.c
     src/data/data_vfs.c

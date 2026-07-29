@@ -17,6 +17,7 @@
 #include "terminal.h"
 #include "sfx.h"
 #include "data_vfs.h"
+#include "captive_amiga_data.h"
 #include "sha256.h"
 #include "liberation_data.h"
 #include <SDL3/SDL.h>
@@ -674,9 +675,12 @@ int main(int argc, char *argv[]) {
         bool check_captive = strcmp(verify_data, "liberation") != 0;
         bool check_liberation = strcmp(verify_data, "captive") != 0;
         if (check_captive) {
-            bool valid = vfs_ok && validate_data_path(&verify_vfs);
-            printf("Captive data: %s\n", valid ? "verified" : "not verified");
-            ok = ok && valid;
+            bool dos_valid = vfs_ok && validate_data_path(&verify_vfs);
+            bool amiga_valid = vfs_ok && captive_amiga_data_verify(&verify_vfs);
+            printf("Captive source media: DOS=%s Amiga=%s\n",
+                   dos_valid ? "verified" : "not verified",
+                   amiga_valid ? "verified/RNC" : "not verified");
+            ok = ok && (dos_valid || amiga_valid);
         }
         if (check_liberation) {
             bool valid = vfs_ok && liberation_data_open(&verify_liberation, &verify_vfs);
