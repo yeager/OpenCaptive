@@ -59,10 +59,11 @@ to a PPM inspection image using a resource hash and an entry index.
 The high bit of the width word is not compression. The original 68000 loader
 doubles the low 15 bits and subtracts one when that bit is set, so it represents
 an odd number of bytes per row. The same planar-plus-mask decoder handles both
-even and odd row widths and has been verified through entry 11 of this digest.
-Entry 12 introduces a further unclassified variant and still fails closed. The
-decoder remains an analysis tool until every variant is parsed and the runtime
-maps particular sprite hashes to particular game entities.
+even and odd row widths. Records are word aligned: an odd total payload is
+followed by one padding byte before the next header. The full declared 42-entry
+stream, including the final entry, is now structurally decodable. The decoder
+remains an analysis tool until the runtime maps particular sprite hashes to
+particular game entities.
 
 ## CityGen observation log
 

@@ -11,5 +11,12 @@ int main(void) {
     uint32_t odd_pixels[8]; assert(amos_sprite_get(odd, sizeof odd, 0, &sprite));
     assert(sprite.width == 8 && sprite.bytes_per_row == 1);
     assert(amos_sprite_decode_argb(&sprite, odd_pixels, 8)); assert(odd_pixels[0] == 0xffff0000u);
+    uint8_t aligned[98] = {0}; memcpy(aligned, "AmSp", 4); aligned[5] = 2;
+    aligned[6] = 0x80; aligned[7] = 1; aligned[9] = 1; aligned[11] = 2;
+    aligned[16] = aligned[17] = aligned[18] = 0x80; /* three planes, then pad */
+    aligned[21] = 1; aligned[23] = 1; aligned[25] = 1; aligned[30] = aligned[32] = 0x80;
+    aligned[36] = 0x0f;
+    assert(amos_sprite_get(aligned, sizeof aligned, 1, &sprite));
+    assert(sprite.width == 16 && sprite.bytes_per_row == 2);
     return 0;
 }

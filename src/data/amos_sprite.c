@@ -25,7 +25,10 @@ bool amos_sprite_get(const uint8_t *data, size_t size, unsigned index, AmosSprit
             for (int p = 0; p < 32; ++p) out->palette[p] = rgb(be16(data + size - 64 + p * 2));
             return true;
         }
-        pos += 10 + bytes;
+        /* Object records are word aligned.  An odd planar payload gets one
+         * padding byte before the next record, exactly as the 68000 loader
+         * advances its source pointer. */
+        pos += (10 + bytes + 1) & ~(size_t)1;
     }
     return false;
 }
