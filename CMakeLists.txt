@@ -11,12 +11,15 @@ find_package(SDL3 REQUIRED)
 set(OPENCAPTIVE_SOURCES
     src/main.c
     src/engine/engine.c
+    src/engine/map_gen.c
+    src/engine/start_menu.c
     src/data/pl5_decoder.c
     src/data/anm_decoder.c
     src/data/rnc_decoder.c
     src/data/mid_loader.c
     src/render/renderer.c
     src/render/viewport.c
+    src/render/hud.c
 )
 
 add_executable(opencaptive ${OPENCAPTIVE_SOURCES})
@@ -44,6 +47,13 @@ add_executable(test_anm_decoder
 )
 target_include_directories(test_anm_decoder PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME anm_decoder COMMAND test_anm_decoder)
+
+add_executable(test_map_gen
+    tests/test_map_gen.c
+    src/engine/map_gen.c
+)
+target_include_directories(test_map_gen PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME map_gen COMMAND test_map_gen)
 
 # --- Tools ---
 
