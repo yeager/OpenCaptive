@@ -71,8 +71,10 @@ int iso_list_dir(const ISOImage *iso, uint32_t dir_lba, uint32_t dir_size,
         while (pos + 33 < ISO_SECTOR_SIZE && count < max_entries) {
             uint8_t rec_len = sector[pos];
             if (rec_len < 33) break;
+            if (pos + rec_len > ISO_SECTOR_SIZE) break;
 
             uint8_t name_len = sector[pos + 32];
+            if (name_len > rec_len - 33) break;
             if (name_len == 0) { pos += rec_len; continue; }
 
             // Skip "." and ".." entries

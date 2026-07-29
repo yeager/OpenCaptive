@@ -93,6 +93,10 @@ add_executable(test_sha256 tests/test_sha256.c src/data/sha256.c)
 target_include_directories(test_sha256 PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME sha256 COMMAND test_sha256)
 
+add_executable(test_iso9660_reader tests/test_iso9660_reader.c src/data/iso9660_reader.c)
+target_include_directories(test_iso9660_reader PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME iso9660_reader COMMAND test_iso9660_reader)
+
 # --- Tools ---
 
 add_executable(pl5_to_bmp
