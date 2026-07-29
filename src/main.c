@@ -8,6 +8,10 @@
 #include "pl5_decoder.h"
 #include "combat.h"
 #include "save_load.h"
+#include "texture_atlas.h"
+#include "music.h"
+#include "puzzle.h"
+#include "sound.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
@@ -34,6 +38,18 @@ static bool load_intro_anm(const char *data_path, ANMAnimation *anim) {
 }
 
 static CreatureList creatures;
+static PuzzleList puzzles;
+static SoundSystem sound_sys;
+static MusicSystem music_sys;
+
+static void spawn_level_content(GameState *gs_ptr) {
+    combat_init(&creatures);
+    puzzle_init(&puzzles);
+    for (int i = 0; i < gs_ptr->num_levels; i++) {
+        combat_spawn_for_level(&creatures, &gs_ptr->levels[i], i, gs_ptr->mission_seed);
+        puzzle_generate(&puzzles, &gs_ptr->levels[i], i, gs_ptr->mission_seed);
+    }
+}
 
 static void game_handle_input(GameState *gs, const SDL_Event *event) {
     if (event->type != SDL_EVENT_KEY_DOWN) return;
@@ -78,17 +94,25 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_SPACE:
             combat_droid_attack(gs, &creatures, gs->selected_droid);
             return;
-        case SDLK_F:
-            combat_interact(gs);
+        case SDLK_F: {
+            // Try puzzle first, then general interact
+            int fwd_x = (int[]){0,1,0,-1}[gs->party_dir];
+            int fwd_y = (int[]){-1,0,1,0}[gs->party_dir];
+            int tx = gs->party_x + fwd_x;
+            int ty = gs->party_y + fwd_y;
+            int face = (gs->party_dir + 2) % 4; // opposite face
+            if (!puzzle_interact(&puzzles, gs, gs->party_x, gs->party_y, gs->party_dir) &&
+                !puzzle_interact(&puzzles, gs, tx, ty, face)) {
+                combat_interact(gs);
+            }
             return;
+        }
         case SDLK_F5:
             save_game(gs, "opencaptive.sav");
             return;
         case SDLK_F9:
             if (load_game(gs, "opencaptive.sav")) {
-                combat_init(&creatures);
-                for (int i = 0; i < gs->num_levels; i++)
-                    combat_spawn_for_level(&creatures, &gs->levels[i], i, gs->mission_seed);
+                spawn_level_content(gs);
             }
             return;
         case SDLK_PERIOD: // > stairs down
@@ -182,6 +206,25 @@ int main(int argc, char *argv[]) {
     game_state_init(&gs, GAME_CAPTIVE, 1);
     gs.config = config;
 
+    // Audio
+    sound_init(&sound_sys);
+    music_init(&music_sys, &sound_sys, config.data_path);
+
+    // Texture atlas
+    TextureAtlas atlas = {0};
+    bool textures_loaded = false;
+    if (config.data_path) {
+        textures_loaded = texture_atlas_load(&atlas, config.data_path);
+        if (textures_loaded) printf("Loaded texture atlas\n");
+    }
+
+    // HUD background from GAMESCRN
+    uint32_t *hud_bg = NULL;
+    if (textures_loaded && atlas.gamescrn_sheet >= 0) {
+        const Texture *gs_tex = gfx_get(&atlas.gfx, atlas.gamescrn_sheet);
+        if (gs_tex) hud_bg = gs_tex->pixels;
+    }
+
     // Intro animation (loaded on demand)
     ANMAnimation intro_anim = {0};
     bool intro_loaded = false;
@@ -213,23 +256,23 @@ int main(int argc, char *argv[]) {
                                 }
                                 if (!intro_loaded) {
                                     game_state_new_mission(&gs, 1);
-                                    combat_init(&creatures);
-                                    for (int i = 0; i < gs.num_levels; i++)
-                                        combat_spawn_for_level(&creatures, &gs.levels[i], i, gs.mission_seed);
+                                    spawn_level_content(&gs);
+                                    music_play(&music_sys, MUSIC_BASE);
+                                    gs.mode = STATE_GAME;
                                 }
                             } else {
                                 game_state_new_mission(&gs, 1);
-                                combat_init(&creatures);
-                                for (int i = 0; i < gs.num_levels; i++)
-                                    combat_spawn_for_level(&creatures, &gs.levels[i], i, gs.mission_seed);
+                                spawn_level_content(&gs);
+                                music_play(&music_sys, MUSIC_BASE);
+                                gs.mode = STATE_GAME;
                             }
                             break;
                         case MENU_RESULT_START_LIBERATION:
                             gs.game_type = GAME_LIBERATION;
                             game_state_new_mission(&gs, 1);
-                            combat_init(&creatures);
-                            for (int li = 0; li < gs.num_levels; li++)
-                                combat_spawn_for_level(&creatures, &gs.levels[li], li, gs.mission_seed);
+                            spawn_level_content(&gs);
+                            music_play(&music_sys, MUSIC_BASE);
+                            gs.mode = STATE_GAME;
                             break;
                         case MENU_RESULT_QUIT:
                             running = false;
@@ -241,9 +284,9 @@ int main(int argc, char *argv[]) {
                 case STATE_INTRO:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
                         game_state_new_mission(&gs, 1);
-                        combat_init(&creatures);
-                        for (int li = 0; li < gs.num_levels; li++)
-                            combat_spawn_for_level(&creatures, &gs.levels[li], li, gs.mission_seed);
+                        spawn_level_content(&gs);
+                        music_play(&music_sys, MUSIC_BASE);
+                        gs.mode = STATE_GAME;
                     }
                     break;
                 case STATE_GAME:
@@ -276,9 +319,9 @@ int main(int argc, char *argv[]) {
                         intro_last_tick = now;
                         if (intro_frame >= intro_anim.frame_count) {
                             game_state_new_mission(&gs, 1);
-                            combat_init(&creatures);
-                            for (int li = 0; li < gs.num_levels; li++)
-                                combat_spawn_for_level(&creatures, &gs.levels[li], li, gs.mission_seed);
+                            spawn_level_content(&gs);
+                            music_play(&music_sys, MUSIC_BASE);
+                            gs.mode = STATE_GAME;
                             break;
                         }
                     }
@@ -293,11 +336,20 @@ int main(int argc, char *argv[]) {
             case STATE_GAME:
                 gs.tick++;
                 if (gs.tick % 4 == 0) combat_tick(&creatures, &gs);
-                // Viewport
-                viewport_render(&gs,
+
+                // HUD background from GAMESCRN
+                if (hud_bg) {
+                    memcpy(framebuffer, hud_bg,
+                           CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                }
+
+                // Viewport (textured if available)
+                viewport_render_textured(&gs,
                     &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],
-                    CAPTIVE_ORIGINAL_WIDTH);
-                // HUD
+                    CAPTIVE_ORIGINAL_WIDTH,
+                    textures_loaded ? &atlas : NULL);
+
+                // HUD overlay
                 hud_render(&gs, framebuffer,
                            CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 break;
@@ -305,11 +357,15 @@ int main(int argc, char *argv[]) {
             default: break;
         }
 
+        music_update(&music_sys);
         renderer_present(&renderer, framebuffer);
         SDL_Delay(16);
     }
 
+    music_shutdown(&music_sys);
+    sound_shutdown(&sound_sys);
     if (intro_loaded) anm_free(&intro_anim);
+    if (textures_loaded) texture_atlas_free(&atlas);
     renderer_shutdown(&renderer);
     SDL_Quit();
     return 0;
