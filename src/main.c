@@ -17,6 +17,7 @@
 #include "droid_ui.h"
 #include "terminal.h"
 #include "sfx.h"
+#include "liberation.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
@@ -51,6 +52,7 @@ static ShopState shop;
 static DroidUIState droid_ui;
 static TerminalState terminal;
 static SfxSystem sfx;
+static LibState lib_state;
 
 static const uint8_t simple_font[][5] = {
     ['A'] = {0x7C,0x12,0x12,0x12,0x7C}, ['B'] = {0x7E,0x4A,0x4A,0x4A,0x34},
@@ -352,6 +354,7 @@ int main(int argc, char *argv[]) {
                             break;
                         case MENU_RESULT_START_LIBERATION:
                             gs.game_type = GAME_LIBERATION;
+                            lib_init(&lib_state, 42);
                             game_state_new_mission(&gs, 1);
                             spawn_level_content(&gs);
                             music_play(&music_sys, MUSIC_BASE);
@@ -528,21 +531,31 @@ int main(int argc, char *argv[]) {
                     break;
                 }
 
-                // HUD background from GAMESCRN
-                if (hud_bg) {
-                    memcpy(framebuffer, hud_bg,
-                           CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                if (gs.game_type == GAME_LIBERATION) {
+                    // Liberation: city or building view
+                    if (lib_state.mode == LIB_MODE_CITY) {
+                        lib_render_city(&lib_state, framebuffer,
+                                        CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                    } else {
+                        lib_render_building(&lib_state,
+                            &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],
+                            CAPTIVE_ORIGINAL_WIDTH);
+                        hud_render(&gs, framebuffer,
+                                   CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                    }
+                } else {
+                    // Captive: dungeon crawling
+                    if (hud_bg) {
+                        memcpy(framebuffer, hud_bg,
+                               CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                    }
+                    viewport_render_full(&gs,
+                        &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],
+                        CAPTIVE_ORIGINAL_WIDTH,
+                        textures_loaded ? &atlas : NULL, &creatures);
+                    hud_render(&gs, framebuffer,
+                               CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 }
-
-                // Viewport (textured if available, with creatures)
-                viewport_render_full(&gs,
-                    &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],
-                    CAPTIVE_ORIGINAL_WIDTH,
-                    textures_loaded ? &atlas : NULL, &creatures);
-
-                // HUD overlay
-                hud_render(&gs, framebuffer,
-                           CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 break;
             }
 

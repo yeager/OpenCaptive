@@ -1,0 +1,262 @@
+#include "liberation.h"
+#include "opencaptive.h"
+#include <string.h>
+
+static uint32_t lib_prng;
+static uint32_t lib_rand(void) {
+    lib_prng = lib_prng * 1103515245 + 12345;
+    return (lib_prng >> 16) & 0x7FFF;
+}
+
+void lib_init(LibState *ls, uint32_t seed) {
+    memset(ls, 0, sizeof(*ls));
+    ls->city.city_seed = seed;
+    ls->mode = LIB_MODE_CITY;
+    ls->current_building = -1;
+    ls->player_dir = DIR_NORTH;
+    lib_generate_city(ls);
+
+    // Place player at city center
+    ls->player_cx = LIB_CITY_WIDTH / 2;
+    ls->player_cy = LIB_CITY_HEIGHT / 2;
+
+    // Pick a random target building
+    if (ls->city.num_buildings > 0) {
+        lib_prng = seed + 999;
+        ls->target_building = lib_rand() % ls->city.num_buildings;
+    }
+}
+
+void lib_generate_city(LibState *ls) {
+    lib_prng = ls->city.city_seed;
+    LibCity *c = &ls->city;
+
+    // Fill grid with streets
+    for (int y = 0; y < LIB_CITY_HEIGHT; y++)
+        for (int x = 0; x < LIB_CITY_WIDTH; x++)
+            c->grid[y][x] = LIB_BUILDING_NONE;
+
+    // Place buildings in a grid pattern with streets
+    static const LibBuildingType types[] = {
+        LIB_BUILDING_RESIDENTIAL, LIB_BUILDING_COMMERCIAL,
+        LIB_BUILDING_INDUSTRIAL, LIB_BUILDING_GOVERNMENT,
+        LIB_BUILDING_HOSPITAL, LIB_BUILDING_POLICE,
+        LIB_BUILDING_SHOP, LIB_BUILDING_PRISON,
+    };
+    int num_types = sizeof(types) / sizeof(types[0]);
+
+    c->num_buildings = 0;
+
+    // Place buildings in a 4x4 block pattern with 2-wide streets
+    for (int by = 0; by < 6; by++) {
+        for (int bx = 0; bx < 6; bx++) {
+            if (c->num_buildings >= LIB_MAX_BUILDINGS) break;
+
+            int cx = 2 + bx * 5;
+            int cy = 2 + by * 5;
+            int bw = 3 + lib_rand() % 2;
+            int bh = 3 + lib_rand() % 2;
+
+            if (cx + bw >= LIB_CITY_WIDTH || cy + bh >= LIB_CITY_HEIGHT) continue;
+
+            LibBuildingType type = types[lib_rand() % num_types];
+            LibBuilding *b = &c->buildings[c->num_buildings];
+            b->city_x = cx;
+            b->city_y = cy;
+            b->width = bw;
+            b->height = bh;
+            b->type = type;
+            b->seed = lib_rand();
+            b->num_floors = 1 + lib_rand() % LIB_BUILDING_FLOORS;
+
+            for (int y = cy; y < cy + bh; y++)
+                for (int x = cx; x < cx + bw; x++)
+                    c->grid[y][x] = type;
+
+            lib_generate_building(b, type, b->seed);
+            c->num_buildings++;
+        }
+    }
+}
+
+void lib_generate_building(LibBuilding *b, LibBuildingType type, uint32_t seed) {
+    lib_prng = seed;
+
+    for (int f = 0; f < b->num_floors; f++) {
+        LibFloor *fl = &b->floors[f];
+        memset(fl, 0, sizeof(*fl));
+
+        // Walls around perimeter
+        for (int y = 0; y < LIB_FLOOR_HEIGHT; y++) {
+            for (int x = 0; x < LIB_FLOOR_WIDTH; x++) {
+                if (y == 0 || y == LIB_FLOOR_HEIGHT - 1 ||
+                    x == 0 || x == LIB_FLOOR_WIDTH - 1) {
+                    fl->cells[y][x] = LIB_CELL_WALL;
+                } else {
+                    fl->cells[y][x] = LIB_CELL_FLOOR;
+                }
+            }
+        }
+
+        // Internal walls creating rooms
+        int num_walls = 2 + lib_rand() % 4;
+        for (int w = 0; w < num_walls; w++) {
+            bool horiz = lib_rand() % 2;
+            if (horiz) {
+                int wy = 3 + lib_rand() % (LIB_FLOOR_HEIGHT - 6);
+                for (int x = 1; x < LIB_FLOOR_WIDTH - 1; x++)
+                    fl->cells[wy][x] = LIB_CELL_WALL;
+                // Door
+                int dx = 2 + lib_rand() % (LIB_FLOOR_WIDTH - 4);
+                fl->cells[wy][dx] = LIB_CELL_DOOR;
+            } else {
+                int wx = 3 + lib_rand() % (LIB_FLOOR_WIDTH - 6);
+                for (int y = 1; y < LIB_FLOOR_HEIGHT - 1; y++)
+                    fl->cells[y][wx] = LIB_CELL_WALL;
+                int dy = 2 + lib_rand() % (LIB_FLOOR_HEIGHT - 4);
+                fl->cells[dy][wx] = LIB_CELL_DOOR;
+            }
+        }
+
+        // Entrance door on ground floor
+        if (f == 0) {
+            fl->cells[LIB_FLOOR_HEIGHT - 1][LIB_FLOOR_WIDTH / 2] = LIB_CELL_DOOR;
+        }
+
+        // Elevator/stairs between floors
+        if (b->num_floors > 1) {
+            int ex = LIB_FLOOR_WIDTH - 3;
+            int ey = 2;
+            fl->cells[ey][ex] = LIB_CELL_ELEVATOR;
+        }
+
+        // Terminal in some rooms
+        if (lib_rand() % 3 == 0) {
+            int tx = 2 + lib_rand() % (LIB_FLOOR_WIDTH - 4);
+            int ty = 2 + lib_rand() % (LIB_FLOOR_HEIGHT - 4);
+            if (fl->cells[ty][tx] == LIB_CELL_FLOOR)
+                fl->cells[ty][tx] = LIB_CELL_TERMINAL;
+        }
+
+        // NPC placement
+        if (type == LIB_BUILDING_COMMERCIAL || type == LIB_BUILDING_SHOP) {
+            int np = 1 + lib_rand() % 3;
+            for (int n = 0; n < np; n++) {
+                int nx = 2 + lib_rand() % (LIB_FLOOR_WIDTH - 4);
+                int ny = 2 + lib_rand() % (LIB_FLOOR_HEIGHT - 4);
+                if (fl->cells[ny][nx] == LIB_CELL_FLOOR)
+                    fl->cells[ny][nx] = LIB_CELL_NPC;
+            }
+        }
+    }
+}
+
+static const uint32_t building_colors[] = {
+    [LIB_BUILDING_NONE]        = 0xFF222222,
+    [LIB_BUILDING_RESIDENTIAL] = 0xFF445566,
+    [LIB_BUILDING_COMMERCIAL]  = 0xFF556644,
+    [LIB_BUILDING_INDUSTRIAL]  = 0xFF665544,
+    [LIB_BUILDING_GOVERNMENT]  = 0xFF444466,
+    [LIB_BUILDING_PRISON]      = 0xFF664444,
+    [LIB_BUILDING_HOSPITAL]    = 0xFF446644,
+    [LIB_BUILDING_POLICE]      = 0xFF444488,
+    [LIB_BUILDING_SHOP]        = 0xFF666644,
+};
+
+void lib_render_city(const LibState *ls, uint32_t *pixels, int width, int height) {
+    memset(pixels, 0, width * height * sizeof(uint32_t));
+
+    int scale = 4;
+    int ox = (width - LIB_CITY_WIDTH * scale) / 2;
+    int oy = (height - LIB_CITY_HEIGHT * scale) / 2;
+
+    // Draw city grid
+    for (int cy = 0; cy < LIB_CITY_HEIGHT; cy++) {
+        for (int cx = 0; cx < LIB_CITY_WIDTH; cx++) {
+            LibBuildingType bt = ls->city.grid[cy][cx];
+            uint32_t color = (bt == LIB_BUILDING_NONE) ? 0xFF333333 : building_colors[bt];
+
+            for (int sy = 0; sy < scale; sy++)
+                for (int sx = 0; sx < scale; sx++) {
+                    int px = ox + cx * scale + sx;
+                    int py = oy + cy * scale + sy;
+                    if (px >= 0 && px < width && py >= 0 && py < height)
+                        pixels[py * width + px] = color;
+                }
+        }
+    }
+
+    // Player position (blinking)
+    uint32_t player_col = 0xFFFFFFFF;
+    for (int sy = 0; sy < scale; sy++)
+        for (int sx = 0; sx < scale; sx++) {
+            int px = ox + ls->player_cx * scale + sx;
+            int py = oy + ls->player_cy * scale + sy;
+            if (px >= 0 && px < width && py >= 0 && py < height)
+                pixels[py * width + px] = player_col;
+        }
+
+    // Target building marker
+    if (ls->target_building >= 0 && ls->target_building < ls->city.num_buildings) {
+        const LibBuilding *tb = &ls->city.buildings[ls->target_building];
+        int tcx = tb->city_x + tb->width / 2;
+        int tcy = tb->city_y + tb->height / 2;
+        for (int sy = 0; sy < scale; sy++)
+            for (int sx = 0; sx < scale; sx++) {
+                int px = ox + tcx * scale + sx;
+                int py = oy + tcy * scale + sy;
+                if (px >= 0 && px < width && py >= 0 && py < height)
+                    pixels[py * width + px] = 0xFFFF4444;
+            }
+    }
+}
+
+void lib_render_building(const LibState *ls, uint32_t *pixels, int stride) {
+    if (ls->current_building < 0) return;
+
+    const LibBuilding *b = &ls->city.buildings[ls->current_building];
+    if (ls->player_floor >= b->num_floors) return;
+    const LibFloor *fl = &b->floors[ls->player_floor];
+
+    int vp_w = CAPTIVE_VIEWPORT_WIDTH;
+    int vp_h = CAPTIVE_VIEWPORT_HEIGHT;
+
+    // Top-down minimap in viewport area
+    int scale = 6;
+    int ox = (vp_w - LIB_FLOOR_WIDTH * scale) / 2;
+    int oy = (vp_h - LIB_FLOOR_HEIGHT * scale) / 2;
+
+    for (int fy = 0; fy < LIB_FLOOR_HEIGHT; fy++) {
+        for (int fx = 0; fx < LIB_FLOOR_WIDTH; fx++) {
+            uint32_t color = 0;
+            switch (fl->cells[fy][fx]) {
+                case LIB_CELL_WALL:     color = 0xFF555577; break;
+                case LIB_CELL_FLOOR:    color = 0xFF333344; break;
+                case LIB_CELL_DOOR:     color = 0xFF5555AA; break;
+                case LIB_CELL_ELEVATOR: color = 0xFF55AA55; break;
+                case LIB_CELL_STAIRS:   color = 0xFF55AA55; break;
+                case LIB_CELL_TERMINAL: color = 0xFF00FF00; break;
+                case LIB_CELL_NPC:      color = 0xFFFF8800; break;
+                default: break;
+            }
+            if (!color) continue;
+
+            for (int sy = 0; sy < scale; sy++)
+                for (int sx = 0; sx < scale; sx++) {
+                    int px = ox + fx * scale + sx;
+                    int py = oy + fy * scale + sy;
+                    if (px >= 0 && px < vp_w && py >= 0 && py < vp_h)
+                        pixels[py * stride + px] = color;
+                }
+        }
+    }
+
+    // Player
+    for (int sy = 0; sy < scale; sy++)
+        for (int sx = 0; sx < scale; sx++) {
+            int px = ox + ls->player_bx * scale + sx;
+            int py = oy + ls->player_by * scale + sy;
+            if (px >= 0 && px < vp_w && py >= 0 && py < vp_h)
+                pixels[py * stride + px] = 0xFFFFFFFF;
+        }
+}
