@@ -45,6 +45,26 @@ work area and records 64×64 dimensions in its output state before invoking its
 generation routines. These are observations from the verified bytes, not a
 claim that OpenCaptive already reproduces CityGen output.
 
+## Text-resource observation log
+
+The hash-identified city-text payload
+`99f7bd75794a7b4f3e94eeef9c61b756da938d862bb83339b140c18d02eb79c5`
+is 17,809 bytes. The hash-identified dialogue payload
+`e154d250c1acdbed66835bb356a699efdb6f9f8b5e6d586ca07080414610a94c`
+is 14,136 bytes. Both contain readable English prose interleaved with compact
+control bytes and expression-like tokens, so neither is a flat NUL-terminated
+string table.
+
+The city-text payload has a readable location-description section whose
+records begin with a numeric selector followed by prose and branch comments.
+The surrounding control stream contains conditional expressions and variable
+references. The dialogue payload similarly contains response alternatives,
+quoted text and scripted branches. This is enough to establish that text is
+data-driven, but not enough to assign opcode semantics or wire original plot
+decisions into the runtime. A future parser must retain byte offsets and
+control boundaries, rather than stripping printable strings and treating them
+as independent records.
+
 `liberation_extract` is the supported inspection entry point:
 
 ```sh
