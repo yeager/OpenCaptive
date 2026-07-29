@@ -146,3 +146,6 @@ add_executable(verify_liberation
 )
 target_include_directories(verify_liberation PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(verify_liberation PRIVATE ZLIB::ZLIB)
+
+add_executable(st_list tools/st_list.c src/data/st_disk_reader.c src/data/sha256.c)
+target_include_directories(st_list PRIVATE ${CMAKE_SOURCE_DIR}/include)

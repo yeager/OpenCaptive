@@ -273,7 +273,8 @@ static bool architect_pick_cell(const DungeonLevel *level, int *x, int *y) {
     for (int n = 0; n < MAP_WIDTH * MAP_HEIGHT; n++) {
         int pos = (start + n) % (MAP_WIDTH * MAP_HEIGHT);
         int px = pos % MAP_WIDTH, py = pos / MAP_WIDTH;
-        if (level->cells[py][px].type == CELL_FLOOR) {
+        /* Keep row zero clear for the base entrance on the root floor. */
+        if (py != 0 && level->cells[py][px].type == CELL_FLOOR) {
             *x = px; *y = py;
             return true;
         }
@@ -320,7 +321,15 @@ void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
 
     /* Assign at least one physical 16x8 region to each floor, then assign the
      * remaining regions adjacent to an already assigned region where possible. */
-    for (int i = 0; i < floors; i++) {
+    /* The root is always on the first map row.  Reserve a permitted top-row
+     * section for floor 0 before assigning the remaining logical floors. */
+    int root_sections[ARCH_SECTIONS_X], root_count = 0;
+    for (int s = 0; s < ARCH_SECTIONS_X; s++)
+        if (architect_allowed_section(seed, s)) root_sections[root_count++] = s;
+    int root_section = root_sections[prng_next() % root_count];
+    section_floor[root_section] = 0;
+
+    for (int i = 1; i < floors; i++) {
         int at = (int)(prng_next() % section_count);
         while (section_floor[sections[at]] != -1)
             at = (at + 1) % section_count;
@@ -355,7 +364,10 @@ void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
             if (section_floor[s] == f) { start_section = s; break; }
         int sx = (start_section % 4) * ARCH_SECTION_W + ARCH_SECTION_W / 2;
         int sy = (start_section / 4) * ARCH_SECTION_H + ARCH_SECTION_H / 2;
-        if (f == 0 && seed == 0) { sx = 30; sy = 0; }
+        if (f == 0) {
+            sx = (root_section % 4) * ARCH_SECTION_W + ARCH_SECTION_W / 2;
+            sy = 0;
+        }
         architect_carve_floor(&levels[f], section_floor, f, sx, sy);
         architect_finish_level(&levels[f], f);
     }

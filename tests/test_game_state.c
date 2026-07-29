@@ -22,6 +22,7 @@ int main(void) {
     assert(gs.num_levels >= 2 && gs.num_levels <= 5);
     assert(gs.generators_total == generator_count(&gs));
     assert(gs.generators_total > 0);
+    assert(gs.party_y == 0);
 
     /* Interacting with a generator is the only action that increments the
      * objective counter.  Position it in front of the party to test the
