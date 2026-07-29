@@ -50,6 +50,12 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
+      - name: Install zlib
+        run: |
+          git clone --depth 1 https://github.com/madler/zlib.git zlib-src
+          cmake -S zlib-src -B zlib-build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/zlib-install
+          cmake --build zlib-build --config Release
+          cmake --install zlib-build --config Release
       - name: Install SDL3
         run: |
           git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
@@ -58,7 +64,7 @@ jobs:
           cmake --install SDL3-build --config Release
       - name: Build
         run: |
-          cmake -S . -B build -DCMAKE_PREFIX_PATH=${{ github.workspace }}/SDL3-install
+          cmake -S . -B build -DCMAKE_PREFIX_PATH="${{ github.workspace }}/SDL3-install;${{ github.workspace }}/zlib-install"
           cmake --build build --config Release
       - name: Test
         run: ctest --test-dir build -C Release -j4 --output-on-failure

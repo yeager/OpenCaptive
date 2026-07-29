@@ -230,6 +230,12 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
+      - name: Install zlib
+        run: |
+          git clone --depth 1 https://github.com/madler/zlib.git zlib-src
+          cmake -S zlib-src -B zlib-build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/zlib-install
+          cmake --build zlib-build --config Release
+          cmake --install zlib-build --config Release
       - name: Install SDL3
         run: |
           git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
@@ -238,7 +244,7 @@ jobs:
           cmake --install SDL3-build --config Release
       - name: Build
         run: |
-          cmake -S . -B build -DCMAKE_PREFIX_PATH=${{ github.workspace }}/SDL3-install -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build -DCMAKE_PREFIX_PATH="${{ github.workspace }}/SDL3-install;${{ github.workspace }}/zlib-install" -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
       - name: Test
         run: ctest --test-dir build -C Release -j4 --output-on-failure || true
@@ -252,6 +258,7 @@ jobs:
           mkdir dist
           copy build\Release\opencaptive.exe dist\
           copy ${{ github.workspace }}\SDL3-install\bin\SDL3.dll dist\
+          copy ${{ github.workspace }}\zlib-install\bin\zlib.dll dist\ 2>nul || copy ${{ github.workspace }}\zlib-install\bin\zlib1.dll dist\ 2>nul || echo No zlib DLL found
           copy README.md dist\
           copy LICENSE dist\
           copy assets\icon.ico dist\
@@ -273,6 +280,7 @@ jobs:
           echo [Files]
           echo Source: "dist\opencaptive.exe"; DestDir: "{app}"; Flags: ignoreversion
           echo Source: "dist\SDL3.dll"; DestDir: "{app}"; Flags: ignoreversion
+          echo Source: "dist\zlib*.dll"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
           echo Source: "dist\README.md"; DestDir: "{app}"; Flags: ignoreversion
           echo Source: "dist\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
           echo Source: "dist\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
