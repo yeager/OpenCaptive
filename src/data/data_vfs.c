@@ -23,6 +23,7 @@
  * using any value from an archive header. */
 #define ZIP_MAX_ENTRY_NAME 511
 #define ZIP_MAX_ENTRY_SIZE (256u * 1024u * 1024u)
+#define ZIP_MAX_NESTING 3
 
 static uint16_t read_u16(const uint8_t *p) {
     return (uint16_t)(p[0] | (p[1] << 8));
@@ -212,6 +213,97 @@ static uint8_t *zip_extract(const char *zip_path, const char *rel_path, size_t *
     return NULL;
 }
 
+static uint8_t *zip_extract_memory_entry(const uint8_t *archive, size_t archive_size,
+                                         uint32_t local_offset, uint32_t comp_size,
+                                         uint32_t uncomp_size, uint16_t method,
+                                         size_t *out_size) {
+    if (!archive || local_offset > archive_size || archive_size - local_offset < 30U ||
+        comp_size > ZIP_MAX_ENTRY_SIZE || uncomp_size > ZIP_MAX_ENTRY_SIZE ||
+        read_u32(archive + local_offset) != ZIP_LOCAL_SIG) return NULL;
+    const uint8_t *local = archive + local_offset;
+    uint16_t name_len = read_u16(local + 26U);
+    uint16_t extra_len = read_u16(local + 28U);
+    size_t data_offset = (size_t)local_offset + 30U + name_len + extra_len;
+    if (data_offset > archive_size || comp_size > archive_size - data_offset) return NULL;
+    uint8_t *out = malloc(uncomp_size ? uncomp_size : 1U);
+    if (!out) return NULL;
+    if (method == ZIP_METHOD_STORE) {
+        if (comp_size != uncomp_size) { free(out); return NULL; }
+        if (uncomp_size) memcpy(out, archive + data_offset, uncomp_size);
+    } else if (method == ZIP_METHOD_DEFLATE) {
+        z_stream strm = {0};
+        strm.next_in = (Bytef *)(archive + data_offset);
+        strm.avail_in = comp_size;
+        strm.next_out = out;
+        strm.avail_out = uncomp_size;
+        if (inflateInit2(&strm, -MAX_WBITS) != Z_OK ||
+            inflate(&strm, Z_FINISH) != Z_STREAM_END ||
+            strm.total_out != uncomp_size) {
+            inflateEnd(&strm);
+            free(out);
+            return NULL;
+        }
+        inflateEnd(&strm);
+    } else {
+        free(out);
+        return NULL;
+    }
+    if (out_size) *out_size = uncomp_size;
+    return out;
+}
+
+static uint8_t *zip_find_sha256_memory(const uint8_t *archive, size_t archive_size,
+                                        const char expected_sha256[65],
+                                        size_t *out_size, unsigned depth) {
+    if (!archive || archive_size < 22U || depth > ZIP_MAX_NESTING) return NULL;
+    size_t start = archive_size > 65557U ? archive_size - 65557U : 0U;
+    size_t eocd = SIZE_MAX;
+    for (size_t pos = archive_size - 22U + 1U; pos-- > start;) {
+        if (read_u32(archive + pos) == ZIP_END_SIG) { eocd = pos; break; }
+    }
+    if (eocd == SIZE_MAX || archive_size - eocd < 22U) return NULL;
+    const uint8_t *end = archive + eocd;
+    uint16_t entries = read_u16(end + 10U);
+    uint32_t cd_size = read_u32(end + 12U), cd_offset = read_u32(end + 16U);
+    if (cd_offset > archive_size || cd_size > archive_size - cd_offset) return NULL;
+
+    size_t pos = cd_offset;
+    for (uint16_t i = 0; i < entries; ++i) {
+        if (archive_size - pos < 46U || read_u32(archive + pos) != ZIP_CENTRAL_SIG) break;
+        const uint8_t *hdr = archive + pos;
+        uint16_t method = read_u16(hdr + 10U);
+        uint32_t comp_size = read_u32(hdr + 20U), uncomp_size = read_u32(hdr + 24U);
+        uint16_t name_len = read_u16(hdr + 28U), extra_len = read_u16(hdr + 30U);
+        uint16_t comment_len = read_u16(hdr + 32U);
+        uint32_t local_offset = read_u32(hdr + 42U);
+        size_t record_size = 46U + name_len + extra_len + comment_len;
+        if (!name_len || name_len > ZIP_MAX_ENTRY_NAME || record_size > archive_size - pos)
+            break;
+        const uint8_t *name = hdr + 46U;
+        pos += record_size;
+        if (name[name_len - 1U] == '/') continue;
+
+        size_t size = 0;
+        uint8_t *data = zip_extract_memory_entry(archive, archive_size, local_offset,
+                                                  comp_size, uncomp_size, method, &size);
+        if (!data) continue;
+        uint8_t digest[32];
+        sha256_digest(data, size, digest);
+        if (sha256_matches_hex(digest, expected_sha256)) {
+            if (out_size) *out_size = size;
+            return data;
+        }
+        if (depth < ZIP_MAX_NESTING && size >= 4U &&
+            read_u32(data) == ZIP_LOCAL_SIG) {
+            uint8_t *nested = zip_find_sha256_memory(data, size, expected_sha256,
+                                                      out_size, depth + 1U);
+            if (nested) { free(data); return nested; }
+        }
+        free(data);
+    }
+    return NULL;
+}
+
 static uint8_t *zip_find_sha256(const char *zip_path, const char expected_sha256[65],
                                 size_t *out_size) {
     FILE *f = fopen(zip_path, "rb");
@@ -251,6 +343,15 @@ static uint8_t *zip_find_sha256(const char *zip_path, const char expected_sha256
         uint8_t digest[32]; sha256_digest(data, size, digest);
         if (sha256_matches_hex(digest, expected_sha256)) {
             fclose(f); if (out_size) *out_size = size; return data;
+        }
+        /* Preservation archives commonly package an ADF or disk image in a
+         * second ZIP.  Descend only by content and only when the extracted
+         * entry itself has a ZIP signature; no archive or entry name is used
+         * to identify game data. */
+        if (size >= 4U && read_u32(data) == ZIP_LOCAL_SIG) {
+            uint8_t *nested = zip_find_sha256_memory(data, size, expected_sha256,
+                                                      out_size, 1U);
+            if (nested) { free(data); fclose(f); return nested; }
         }
         free(data);
     }

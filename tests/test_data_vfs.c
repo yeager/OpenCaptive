@@ -92,10 +92,36 @@ static void test_finds_hash_in_extracted_tree(void) {
     assert(remove("test-vfs-loose.bin") == 0);
 }
 
+static void test_finds_hash_in_nested_zip(void) {
+    const unsigned char payload[] = { 0xca, 0xfe, 0xba, 0xbe };
+    write_stored_zip("test-vfs-inner.zip", "original-media.adf", payload, sizeof(payload));
+    FILE *inner = fopen("test-vfs-inner.zip", "rb");
+    assert(inner && fseek(inner, 0, SEEK_END) == 0);
+    long inner_size = ftell(inner);
+    assert(inner_size > 0 && fseek(inner, 0, SEEK_SET) == 0);
+    unsigned char *inner_bytes = malloc((size_t)inner_size);
+    assert(inner_bytes && fread(inner_bytes, 1, (size_t)inner_size, inner) == (size_t)inner_size);
+    assert(fclose(inner) == 0);
+    assert(remove("test-vfs-inner.zip") == 0);
+    write_stored_zip("test-vfs-outer.zip", "preservation-copy.zip", inner_bytes, (unsigned)inner_size);
+    free(inner_bytes);
+
+    DataVFS vfs;
+    assert(vfs_init(&vfs, "."));
+    size_t size = 0;
+    uint8_t *result = vfs_find_sha256(&vfs,
+        "65ab12a8ff3263fbc257e5ddf0aa563c64573d0bab1f1115b9b107834cfa6971", &size);
+    assert(result && size == sizeof(payload) && memcmp(result, payload, sizeof(payload)) == 0);
+    free(result);
+    vfs_free(&vfs);
+    assert(remove("test-vfs-outer.zip") == 0);
+}
+
 int main(void) {
     test_reads_prefixed_case_insensitive_zip_entry();
     test_rejects_overlong_archive_names();
     test_finds_hash_in_extracted_tree();
+    test_finds_hash_in_nested_zip();
     puts("All data VFS tests passed");
     return 0;
 }
