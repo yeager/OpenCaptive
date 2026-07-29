@@ -47,6 +47,9 @@ target_include_directories(opencaptive PRIVATE
 )
 
 target_link_libraries(opencaptive PRIVATE SDL3::SDL3)
+if(UNIX AND NOT APPLE)
+    target_link_libraries(opencaptive PRIVATE m)
+endif()
 
 # --- Tests ---
 
