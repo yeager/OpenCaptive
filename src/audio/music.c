@@ -3,16 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const char *track_files[] = {
+static const char *track_hashes[] = {
     [MUSIC_NONE]    = NULL,
-    [MUSIC_TITLE]   = "MAIN2.MID",
-    [MUSIC_BASE]    = "GENBASE.MID",
-    [MUSIC_BATTLE]  = "BATT1.MID",
-    [MUSIC_SHOP]    = "SHOPKEEP.MID",
-    [MUSIC_HOLOMAP] = "HOLOMAP.MID",
-    [MUSIC_ESCAPE]  = "ESCAPED.MID",
-    [MUSIC_FINAL]   = "FINAL2.MID",
-    [MUSIC_TRAPPED] = "TRAPPED.MID",
+    [MUSIC_TITLE]   = "ef9ec6b8fac6710c99f9ed037dfdb2767a3e20bc9259789ced977d322d3420be",
+    [MUSIC_BASE]    = "150db09bf3ba0914501b9be1353c21916a597e89ef711f7b2dff4989313f2810",
+    [MUSIC_BATTLE]  = "a4b8a8fdef37602e732af3435b0ade18219de456e5563e0229e0d9f1c5132e6f",
+    [MUSIC_SHOP]    = "dfe6b899e1e499d3c9a326c4554c8da3e7e83d395b1d13c81341d2688c50a0bc",
+    [MUSIC_HOLOMAP] = "7be1dc97c004fc04f1ead07a2957c6e2a1b97ddf48dafa998964f74db816757f",
+    [MUSIC_ESCAPE]  = "2ddacc25ece9e3e6bdd13e3f1e7f926bfce2e180daf0fce8d57a3beb5ec30d1a",
+    [MUSIC_FINAL]   = "d8cb990243dcdb885881f09a0bbe0788caee3c7b6ec9f62ed5d70c4c1d411587",
+    [MUSIC_TRAPPED] = "8c1ad7905a95dacb8a57d9f34d97beeb8eb42a4f38a2188909d6c769ebdbab2d",
 };
 
 bool music_init(MusicSystem *mus, SoundSystem *snd, const DataVFS *vfs) {
@@ -29,14 +29,11 @@ void music_play(MusicSystem *mus, MusicTrack track) {
     midi_stop(&mus->player);
     mus->current_track = track;
 
-    if (track == MUSIC_NONE || !track_files[track]) return;
+    if (track == MUSIC_NONE || !track_hashes[track]) return;
     if (!mus->vfs) return;
 
-    char rel_path[256];
-    snprintf(rel_path, sizeof(rel_path), "SOUND/%s", track_files[track]);
-
     size_t size;
-    uint8_t *data = vfs_read_file(mus->vfs, rel_path, &size);
+    uint8_t *data = vfs_find_sha256(mus->vfs, track_hashes[track], &size);
     if (!data) return;
 
     if (midi_load(&mus->player, data, size)) {

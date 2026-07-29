@@ -23,7 +23,7 @@ typedef struct {
 
 bool gfx_init(GfxData *gfx, const DataVFS *vfs);
 void gfx_free(GfxData *gfx);
-int  gfx_load_pl5(GfxData *gfx, const char *filename);
+int  gfx_load_pl5_hash(GfxData *gfx, const char expected_sha256[65]);
 const Texture *gfx_get(const GfxData *gfx, int id);
 
 #endif

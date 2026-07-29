@@ -16,14 +16,11 @@ void gfx_free(GfxData *gfx) {
     memset(gfx, 0, sizeof(*gfx));
 }
 
-int gfx_load_pl5(GfxData *gfx, const char *filename) {
+int gfx_load_pl5_hash(GfxData *gfx, const char expected_sha256[65]) {
     if (gfx->num_textures >= MAX_TEXTURES) return -1;
 
-    char rel_path[256];
-    snprintf(rel_path, sizeof(rel_path), "CAPICS/%s", filename);
-
     size_t size;
-    uint8_t *raw = vfs_read_file(gfx->vfs, rel_path, &size);
+    uint8_t *raw = vfs_find_sha256(gfx->vfs, expected_sha256, &size);
     if (!raw) return -1;
 
     if (size != PL5_FILE_SIZE) {
@@ -57,7 +54,8 @@ int gfx_load_pl5(GfxData *gfx, const char *filename) {
     tex->width = PL5_WIDTH;
     tex->height = PL5_HEIGHT;
     tex->loaded = true;
-    strncpy(tex->name, filename, sizeof(tex->name) - 1);
+    memcpy(tex->name, expected_sha256, 16);
+    tex->name[16] = '\0';
 
     return id;
 }
