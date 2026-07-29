@@ -221,7 +221,10 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
             case SDLK_LEFT:
             case SDLK_RIGHT:
                 switch (menu->settings_cursor) {
-                    case 0: menu->enhanced_mode = !menu->enhanced_mode; break;
+                    /* Captive's original viewport composition is pending
+                     * recovery.  Do not expose the retired generated corridor
+                     * as a graphics option when verified media is present. */
+                    case 0: menu->enhanced_mode = false; break;
                     case 1: menu->scanlines = !menu->scanlines; break;
                     case 2: menu->crt_curvature = !menu->crt_curvature; break;
                     case 3: menu->bilinear = !menu->bilinear; break;
@@ -326,7 +329,7 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
         "BACK",
     };
     char values[SETTINGS_COUNT][20];
-    snprintf(values[0], 20, "%s", menu->enhanced_mode ? "ENHANCED" : "ORIGINAL");
+    snprintf(values[0], 20, "PENDING");
     snprintf(values[1], 20, "%s", menu->scanlines ? "ON" : "OFF");
     snprintf(values[2], 20, "%s", menu->crt_curvature ? "ON" : "OFF");
     snprintf(values[3], 20, "%s", menu->bilinear ? "ON" : "OFF");

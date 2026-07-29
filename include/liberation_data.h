@@ -3,6 +3,7 @@
 
 #include "data_vfs.h"
 #include "iso9660_reader.h"
+#include "liberation_anim.h"
 #include <stdbool.h>
 
 typedef struct {
@@ -10,6 +11,10 @@ typedef struct {
     size_t disc_size;
     ISOImage iso;
     bool verified;
+    LiberationAnimFrame city_frame;
+    LiberationAnimFrame intro_frame;
+    LiberationAnimScript city_script;
+    LiberationAnimScript intro_script;
 } LiberationData;
 
 typedef enum {

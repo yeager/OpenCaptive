@@ -79,7 +79,7 @@ Point OpenCaptive at your game data directory:
 | `--game captive\|liberation` | Select which game to play (default: start menu) |
 | `--platform dos\|atari\|amiga` | Select Captive platform mode (default: `dos`) |
 | `--scale <N>` | Window scale factor (default: `3`) |
-| `--enhanced` | Enable enhanced rendering mode |
+| `--enhanced` | Accepted for configuration compatibility; Captive's reconstructed viewport is withheld until it uses the original compositor |
 
 ## Supported game data
 

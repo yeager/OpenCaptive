@@ -2,7 +2,6 @@
 #include "renderer.h"
 #include "game_state.h"
 #include "start_menu.h"
-#include "viewport.h"
 #include "hud.h"
 #include "anm_decoder.h"
 #include "pl5_decoder.h"
@@ -18,11 +17,9 @@
 #include "terminal.h"
 #include "sfx.h"
 #include "liberation.h"
-#include "enhanced_render.h"
 #include "data_vfs.h"
 #include "sha256.h"
 #include "liberation_data.h"
-#include "amos_sprite.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <errno.h>
@@ -206,66 +203,9 @@ static TerminalState terminal;
 static SfxSystem sfx;
 static LibState lib_state;
 static LiberationData liberation_data;
-static EnhancedRenderer enhanced;
+static bool liberation_intro_active;
+static bool skip_liberation_intro_requested;
 
-typedef struct {
-    uint32_t *pixels;
-    int width;
-    int height;
-} LiberationScene;
-
-static LiberationScene liberation_interior_scene;
-
-static void liberation_scene_free(void) {
-    free(liberation_interior_scene.pixels);
-    liberation_interior_scene = (LiberationScene){0};
-}
-
-/* This hash identifies a verified, unmasked 320x109 AMOS scene.  It is a
- * visual fallback only: selecting it does not assert original PlotGen state
- * or location semantics. */
-static bool liberation_scene_load(const LiberationData *data) {
-    static const char resource_sha256[] =
-        "d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2";
-    size_t size = 0;
-    uint8_t *bytes = NULL;
-    AmosSprite sprite;
-    uint32_t *pixels = NULL;
-
-    liberation_scene_free();
-    if (!data || !data->verified) return false;
-    bytes = iso_read_file_sha256(&data->iso, resource_sha256, &size);
-    if (!bytes || !amos_sprite_get(bytes, size, 0, &sprite)) goto done;
-    pixels = malloc((size_t)sprite.width * sprite.height * sizeof(*pixels));
-    if (!pixels || !amos_sprite_decode_argb(&sprite, pixels,
-                                             (size_t)sprite.width * sprite.height))
-        goto done;
-    liberation_interior_scene.pixels = pixels;
-    liberation_interior_scene.width = sprite.width;
-    liberation_interior_scene.height = sprite.height;
-    pixels = NULL;
-
-done:
-    free(pixels);
-    free(bytes);
-    return liberation_interior_scene.pixels != NULL;
-}
-
-static bool liberation_blit_interior_scene(uint32_t *pixels, int width, int height) {
-    const LiberationScene *scene = &liberation_interior_scene;
-    if (!pixels || !scene->pixels || width < LIBERATION_VIEWPORT_X + LIBERATION_VIEWPORT_WIDTH ||
-        height < LIBERATION_VIEWPORT_Y + LIBERATION_VIEWPORT_HEIGHT ||
-        scene->width < LIBERATION_VIEWPORT_WIDTH || scene->height < LIBERATION_VIEWPORT_HEIGHT)
-        return false;
-    int source_x = (scene->width - LIBERATION_VIEWPORT_WIDTH) / 2;
-    int source_y = (scene->height - LIBERATION_VIEWPORT_HEIGHT) / 2;
-    for (int y = 0; y < LIBERATION_VIEWPORT_HEIGHT; ++y) {
-        memcpy(&pixels[(LIBERATION_VIEWPORT_Y + y) * width + LIBERATION_VIEWPORT_X],
-               &scene->pixels[(source_y + y) * scene->width + source_x],
-               LIBERATION_VIEWPORT_WIDTH * sizeof(*pixels));
-    }
-    return true;
-}
 
 typedef struct {
     bool open;
@@ -392,10 +332,12 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
 
     switch (runtime_popup.selected) {
         case POPUP_ENHANCED:
-            config->render_mode = config->render_mode == CAPTIVE_RENDER_ENHANCED
-                ? CAPTIVE_RENDER_ORIGINAL : CAPTIVE_RENDER_ENHANCED;
-            if (config->render_mode == CAPTIVE_RENDER_ENHANCED && !enhanced.enabled)
-                enhanced_init(&enhanced);
+            /* There is verified Captive viewport media, but its original
+             * composition routine is not reconstructed yet.  Do not replace
+             * it with the former generated corridor just because F10 was
+             * pressed.  Keep old configuration files compatible by
+             * normalising this obsolete choice to the original path. */
+            config->render_mode = CAPTIVE_RENDER_ORIGINAL;
             break;
         case POPUP_SCANLINES: config->scanlines = !config->scanlines; break;
         case POPUP_CRT: config->crt_curvature = !config->crt_curvature; break;
@@ -424,7 +366,7 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
 
 static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
     static const char *labels[POPUP_ITEMS] = {
-        "ENHANCED VIEW", "SCANLINES", "CRT CURVE", "BILINEAR",
+        "VIEW RECONSTRUCTION", "SCANLINES", "CRT CURVE", "BILINEAR",
         "BRIGHTNESS", "MUSIC", "SFX", "GOD MODE", "INFINITE ENERGY",
         "COMPLETE OBJECTIVE", "CLOSE",
     };
@@ -440,7 +382,7 @@ static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
         draw_simple_text(fb, pw, ph, x + 12, row_y, labels[i], color, 1);
         const char *value = "";
         switch (i) {
-            case POPUP_ENHANCED: value = popup_toggle(gs->config.render_mode == CAPTIVE_RENDER_ENHANCED); break;
+            case POPUP_ENHANCED: value = "PENDING"; break;
             case POPUP_SCANLINES: value = popup_toggle(gs->config.scanlines); break;
             case POPUP_CRT: value = popup_toggle(gs->config.crt_curvature); break;
             case POPUP_BILINEAR: value = popup_toggle(gs->config.bilinear); break;
@@ -457,29 +399,6 @@ static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
     draw_centered(fb, pw, ph, y + h - 14, "UP DOWN ENTER", 0xFF99AACC, 1);
 }
 
-static void liberation_render_hud(const LibState *ls, uint32_t *fb, int pw, int ph) {
-    int panel_y = 176;
-    draw_rect(fb, pw, ph, 0, panel_y, pw, ph - panel_y, 0xFF100D25);
-    draw_rect(fb, pw, ph, 0, panel_y, pw, 2, 0xFF8065A9);
-    draw_rect(fb, pw, ph, 6, panel_y + 7, pw - 12, 20, 0xFF1D1939);
-    draw_rect(fb, pw, ph, 6, panel_y + 7, pw - 12, 1, 0xFF564676);
-    draw_simple_text(fb, pw, ph, 12, panel_y + 10, "LIBERATION // CITY NET", 0xFF99CCDD, 1);
-    draw_simple_text(fb, pw, ph, 12, panel_y + 34,
-                     ls->mission_complete ? "TARGET COMPLETE" : "TARGET ACTIVE",
-                     ls->mission_complete ? 0xFF55FF55 : 0xFFFFAA44, 1);
-    if (ls->mode == LIB_MODE_CITY) {
-        draw_simple_text(fb, pw, ph, 160, panel_y + 34,
-                         "ARROWS MOVE", 0xFFCCDDEE, 1);
-        draw_simple_text(fb, pw, ph, 12, panel_y + 47,
-                         "F ENTER  F5 SAVE", 0xFF99AACC, 1);
-    } else {
-        draw_simple_text(fb, pw, ph, 160, panel_y + 34,
-                         "ARROWS MOVE TURN", 0xFFCCDDEE, 1);
-        draw_simple_text(fb, pw, ph, 12, panel_y + 47,
-                         "F EXIT  DOT UP", 0xFF99AACC, 1);
-    }
-}
-
 static void spawn_level_content(GameState *gs_ptr) {
     combat_init(&creatures);
     puzzle_init(&puzzles);
@@ -493,11 +412,17 @@ static void start_liberation_session(GameState *gs_ptr, LibState *ls) {
     gs_ptr->game_type = GAME_LIBERATION;
     gs_ptr->mode = STATE_GAME;
     lib_init(ls, 42);
+    liberation_intro_active = !skip_liberation_intro_requested &&
+                              liberation_data.intro_frame.bitplanes != NULL;
 }
 
 static void lib_handle_input(GameState *gs, LibState *ls, const SDL_Event *event) {
     (void)gs;
     if (event->type != SDL_EVENT_KEY_DOWN) return;
+    if (liberation_intro_active) {
+        liberation_intro_active = false;
+        return;
+    }
 
     static const int dx[] = {0, 1, 0, -1};
     static const int dy[] = {-1, 0, 1, 0};
@@ -748,6 +673,7 @@ int main(int argc, char *argv[]) {
                 "  --game <name>         Start game directly: captive, liberation\n\n"
                 "  --verify-data <name>  Verify data by SHA-256: captive, liberation, all\n\n"
                 "  --capture-frame <ppm> Save one unscaled native game frame, then exit\n\n"
+                "  --skip-intro          Skip Liberation's original intro (automation only)\n\n"
                 "Game data:\n"
                 "  Place original Captive game files (or ZIP archives containing them)\n"
                 "  in the data directory. Default location:\n"
@@ -838,6 +764,8 @@ int main(int argc, char *argv[]) {
             }
         } else if (strcmp(argv[i], "--capture-frame") == 0 && i + 1 < argc) {
             capture_frame_path = argv[++i];
+        } else if (strcmp(argv[i], "--skip-intro") == 0) {
+            skip_liberation_intro_requested = true;
         } else {
             fprintf(stderr, "Unknown option: %s\n", argv[i]);
             return 2;
@@ -859,6 +787,13 @@ int main(int argc, char *argv[]) {
         if (check_liberation) {
             bool valid = vfs_ok && liberation_data_open(&verify_liberation, &verify_vfs);
             printf("Liberation data: %s\n", valid ? "verified" : "not verified");
+            if (valid) {
+                printf("Liberation presentation: intro=%s/%s city=%s/%s\n",
+                       verify_liberation.intro_frame.bitplanes ? "decoded" : "unavailable",
+                       verify_liberation.intro_script.bytes ? "SCPT" : "no-SCPT",
+                       verify_liberation.city_frame.bitplanes ? "decoded" : "unavailable",
+                       verify_liberation.city_script.bytes ? "SCPT" : "no-SCPT");
+            }
             liberation_data_close(&verify_liberation);
             ok = ok && valid;
         }
@@ -897,9 +832,6 @@ int main(int argc, char *argv[]) {
     // Items and SFX
     item_db_init(&item_db);
     sfx_init(&sfx, &sound_sys);
-    if (config.render_mode == CAPTIVE_RENDER_ENHANCED)
-        enhanced_init(&enhanced);
-
     // Texture atlas
     TextureAtlas atlas = {0};
     uint32_t *hud_bg = NULL;
@@ -936,7 +868,6 @@ int main(int argc, char *argv[]) {
         if (!liberation_data_open(&liberation_data, &vfs)) {
             show_missing_liberation_data_dialog(config.data_path);
         } else {
-            liberation_scene_load(&liberation_data);
             start_liberation_session(&gs, &lib_state);
             printf("Starting verified Liberation game\n");
         }
@@ -988,9 +919,6 @@ int main(int argc, char *argv[]) {
                                                  config.brightness,
                                                  config.contrast);
                             renderer_apply_display(&renderer, &config);
-                            if (config.render_mode == CAPTIVE_RENDER_ENHANCED &&
-                                !enhanced.enabled)
-                                enhanced_init(&enhanced);
                             music_set_enabled(&music_sys, menu.music_enabled);
                             sound_set_enabled(&sound_sys, menu.sfx_enabled);
                             vfs_free(&vfs);
@@ -1031,12 +959,10 @@ int main(int argc, char *argv[]) {
                             vfs_free(&vfs);
                             vfs_init(&vfs, config.data_path);
                             liberation_data_close(&liberation_data);
-                            liberation_scene_free();
                             if (!liberation_data_open(&liberation_data, &vfs)) {
                                 show_missing_liberation_data_dialog(config.data_path);
                                 break;
                             }
-                            liberation_scene_load(&liberation_data);
                             start_liberation_session(&gs, &lib_state);
                             break;
                         case MENU_RESULT_QUIT:
@@ -1202,20 +1128,20 @@ int main(int argc, char *argv[]) {
                      * droid combat and generator completion conditions do not
                      * apply here: running them caused an unattended city game
                      * to advance or end after its timer elapsed. */
-                    if (lib_state.mode == LIB_MODE_CITY) {
-                        lib_render_city(&lib_state, framebuffer,
-                                        LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
+                    memset(framebuffer, 0, sizeof(framebuffer));
+                    if (liberation_data.city_frame.bitplanes) {
+                        const LiberationAnimFrame *frame = liberation_intro_active
+                            ? &liberation_data.intro_frame : &liberation_data.city_frame;
+                        int y = liberation_intro_active ? 47 : 44;
+                        liberation_anim_blit(frame, framebuffer,
+                                             LIBERATION_SCREEN_WIDTH,
+                                             LIBERATION_SCREEN_HEIGHT, 0, y);
                     } else {
-                        lib_render_city(&lib_state, framebuffer,
-                                        LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
-                        if (!liberation_blit_interior_scene(framebuffer,
-                                                            LIBERATION_SCREEN_WIDTH,
-                                                            LIBERATION_SCREEN_HEIGHT))
-                            lib_render_building(&lib_state, framebuffer,
-                                                LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
+                        draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                      LIBERATION_SCREEN_HEIGHT, 118,
+                                      "VERIFIED LIBERATION PRESENTATION DATA REQUIRED",
+                                      0xFFCCDDEE, 1);
                     }
-                    liberation_render_hud(&lib_state, framebuffer,
-                                          LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
                 } else {
                     if (!runtime_popup.open && gs.tick % 4 == 0)
                         combat_tick(&creatures, &gs);
@@ -1249,17 +1175,13 @@ int main(int argc, char *argv[]) {
                         memcpy(framebuffer, hud_bg,
                                CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
                     }
-                    if (config.render_mode == CAPTIVE_RENDER_ENHANCED && enhanced.enabled) {
-                        enhanced_render(&enhanced, &gs,
-                            &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],
-                            CAPTIVE_ORIGINAL_WIDTH,
-                            textures_loaded ? &atlas : NULL, &creatures);
-                    } else {
-                        viewport_render_full(&gs,
-                            &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],
-                            CAPTIVE_ORIGINAL_WIDTH,
-                            textures_loaded ? &atlas : NULL, &creatures);
-                    }
+                    /* The original GAME SCRN frame is decoded from verified
+                     * media.  Until the original viewport compositor is
+                     * reconstructed, leave its dungeon window untouched.
+                     * The former F10 path drew a generated corridor, lighting
+                     * and substitute creature shapes from inferred state; it
+                     * is deliberately not invoked when original data exists. */
+                    (void)textures_loaded;
                     /* The original GAME SCRN resource already contains the
                      * complete control and status-panel shell.  Do not paint
                      * the replacement HUD over it in original-render mode. */
@@ -1335,7 +1257,6 @@ int main(int argc, char *argv[]) {
     }
 
     vfs_free(&vfs);
-    liberation_scene_free();
     liberation_data_close(&liberation_data);
     music_shutdown(&music_sys);
     sound_shutdown(&sound_sys);

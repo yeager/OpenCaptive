@@ -15,6 +15,7 @@ static const char *container_kind(const uint8_t *bytes, size_t size) {
         return "IFF/FORM";
     }
     if (size >= 4 && memcmp(bytes, "RNC\1", 4) == 0) return "RNC1";
+    if (size >= 4 && memcmp(bytes, "RNC\2", 4) == 0) return "RNC2-old";
     if (size >= 4 && memcmp(bytes, "AmSp", 4) == 0) return "AMOS-sprite-bank";
     if (size >= 4 && memcmp(bytes, "AmIc", 4) == 0) return "AMOS-icon-bank";
     if (size >= 4 && bytes[0] == 0 && bytes[1] == 0 && bytes[2] == 3 &&

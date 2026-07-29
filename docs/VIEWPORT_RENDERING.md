@@ -2,25 +2,27 @@
 
 Reference: captive.atari.org Technical/ViewRendering
 
-## Display layout
+## Status
 
-- Screen: 320 × 200 pixels
-- Viewport: 256 × 136 pixels at offset (32, 8)
-- HUD: below viewport, contains droid status panels, minimap, compass
+The 19-cell traversal and ordered visibility cleanup below are implemented and
+tested.  The original panel compositor is not yet recovered, so OpenCaptive
+does **not** claim a pixel-parity Captive viewport and must not substitute a
+generated perspective scene for it.  Exact screen offsets are deliberately
+not specified here until they are measured from a verified original frame.
 
 ## Visible area
 
 - 19 cells total
-- Player at cell index 18
+- Player at canonical cell 18
 - Extends 4 cells forward, 2 cells left to 2 right
 - All 4 facing directions normalized to "facing north" before rendering
 
 ## Draw order
 
 Back-to-front:
-1. Distant walls
-2. Cell interiors/objects
-3. Wall panels/decorations
+1. Front panels of the farthest wall row
+2. Farthest drawable cells
+3. For each nearer cell: its interior, then its wall panels and decorations
 
 ## Wall composition
 

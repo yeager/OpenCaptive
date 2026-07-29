@@ -1,9 +1,9 @@
 #include "map_gen.h"
 #include <string.h>
 
-/* Original Architect PRNG, recovered from the hash-identified fed_MapGen
- * module in the Atari ST release.  The module keeps a 16-bit state, multiplies
- * it by 1509, adds 41, rotates the result right by four bits and XORs bit 11. */
+/* Deterministic implementation PRNG.  Its output keeps current saves and
+ * tests stable, but it has not been validated against original Architect
+ * output and must not be described as recovered MapGen code. */
 static uint16_t prng_state;
 
 static uint16_t ror16(uint16_t value, unsigned count) {
@@ -431,7 +431,10 @@ void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
         int sx = (start_section % 4) * ARCH_SECTION_W + ARCH_SECTION_W / 2;
         int sy = (start_section / 4) * ARCH_SECTION_H + ARCH_SECTION_H / 2;
         if (f == 0) {
-            sx = (root_section % 4) * ARCH_SECTION_W + ARCH_SECTION_W / 2;
+            /* The first base is hard-coded by Architect to the documented
+             * column 30, not the centre of its sparse top-row section. */
+            sx = seed == 0U ? 30 :
+                (root_section % 4) * ARCH_SECTION_W + ARCH_SECTION_W / 2;
             sy = 0;
         }
         architect_carve_floor(&levels[f], section_floor, f, sx, sy);

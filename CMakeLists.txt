@@ -13,6 +13,7 @@ set(OPENCAPTIVE_SOURCES
     src/main.c
     src/engine/engine.c
     src/engine/map_gen.c
+    src/engine/captive_view_window.c
     src/engine/start_menu.c
     src/engine/combat.c
     src/engine/save_load.c
@@ -27,6 +28,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/pl5_decoder.c
     src/data/anm_decoder.c
     src/data/rnc_decoder.c
+    src/data/liberation_anim.c
     src/data/mid_loader.c
     src/data/data_vfs.c
     src/data/sha256.c
@@ -40,9 +42,7 @@ set(OPENCAPTIVE_SOURCES
     src/audio/sound.c
     src/audio/sfx.c
     src/render/renderer.c
-    src/render/viewport.c
     src/render/hud.c
-    src/render/enhanced_render.c
 )
 
 add_executable(opencaptive ${OPENCAPTIVE_SOURCES})
@@ -81,6 +81,11 @@ add_executable(test_map_gen
 target_include_directories(test_map_gen PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME map_gen COMMAND test_map_gen)
 
+add_executable(test_captive_view_window tests/test_captive_view_window.c
+    src/engine/captive_view_window.c)
+target_include_directories(test_captive_view_window PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME captive_view_window COMMAND test_captive_view_window)
+
 add_executable(test_data_vfs
     tests/test_data_vfs.c
     src/data/data_vfs.c
@@ -111,23 +116,15 @@ add_executable(test_liberation tests/test_liberation.c src/engine/liberation.c)
 target_include_directories(test_liberation PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME liberation COMMAND test_liberation)
 
+add_executable(test_liberation_anim tests/test_liberation_anim.c
+    src/data/liberation_anim.c)
+target_include_directories(test_liberation_anim PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation_anim COMMAND test_liberation_anim)
+
 add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c)
 target_include_directories(test_start_menu PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_start_menu PRIVATE SDL3::SDL3)
 add_test(NAME start_menu COMMAND test_start_menu)
-
-add_executable(test_visual_parity tests/test_visual_parity.c
-    src/engine/start_menu.c src/engine/liberation.c src/render/viewport.c
-    src/data/texture_atlas.c src/data/gfx_loader.c src/data/pl5_decoder.c
-    src/data/data_vfs.c src/data/sha256.c)
-target_include_directories(test_visual_parity PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(test_visual_parity PRIVATE SDL3::SDL3 ZLIB::ZLIB)
-if(NOT MSVC)
-    # The release renderer is the product being compared.  Build this target
-    # consistently when developers use a Debug build directory.
-    target_compile_options(test_visual_parity PRIVATE -O3)
-endif()
-add_test(NAME visual_parity COMMAND test_visual_parity)
 
 add_executable(test_game_state tests/test_game_state.c
     src/engine/engine.c src/engine/map_gen.c src/engine/combat.c)
@@ -151,8 +148,8 @@ function(opencaptive_enable_test_assertions target)
 endfunction()
 
 foreach(test_target IN ITEMS
-        test_pl5_decoder test_anm_decoder test_map_gen test_data_vfs
-        test_sha256 test_iso9660_reader test_amiga_hunk test_amos_sprite test_liberation test_start_menu test_visual_parity test_game_state test_save_load)
+        test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_data_vfs
+        test_sha256 test_iso9660_reader test_amiga_hunk test_amos_sprite test_liberation test_liberation_anim test_start_menu test_game_state test_save_load)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
 
@@ -172,6 +169,7 @@ target_include_directories(anm_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 add_executable(rnc_decode_tool
     tools/rnc_decode.c
+    src/data/rnc_decoder.c
 )
 target_include_directories(rnc_decode_tool PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
@@ -193,6 +191,8 @@ target_link_libraries(hash_extract PRIVATE ZLIB::ZLIB)
 add_executable(verify_liberation
     tools/verify_liberation.c
     src/data/liberation_data.c
+    src/data/liberation_anim.c
+    src/data/rnc_decoder.c
     src/data/iso9660_reader.c
     src/data/data_vfs.c
     src/data/sha256.c
@@ -203,6 +203,8 @@ target_link_libraries(verify_liberation PRIVATE ZLIB::ZLIB)
 add_executable(liberation_extract
     tools/liberation_extract.c
     src/data/liberation_data.c
+    src/data/liberation_anim.c
+    src/data/rnc_decoder.c
     src/data/iso9660_reader.c
     src/data/data_vfs.c
     src/data/sha256.c
@@ -214,6 +216,8 @@ add_executable(liberation_hunk_info
     tools/liberation_hunk_info.c
     src/data/amiga_hunk.c
     src/data/liberation_data.c
+    src/data/liberation_anim.c
+    src/data/rnc_decoder.c
     src/data/iso9660_reader.c
     src/data/data_vfs.c
     src/data/sha256.c
@@ -226,12 +230,39 @@ add_executable(liberation_inventory
     src/data/data_vfs.c
     src/data/iso9660_reader.c
     src/data/liberation_data.c
+    src/data/liberation_anim.c
+    src/data/rnc_decoder.c
     src/data/sha256.c)
 target_include_directories(liberation_inventory PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(liberation_inventory PRIVATE ZLIB::ZLIB)
 
+add_executable(liberation_presentation_inventory
+    tools/liberation_presentation_inventory.c
+    src/data/liberation_data.c
+    src/data/liberation_anim.c
+    src/data/rnc_decoder.c
+    src/data/iso9660_reader.c
+    src/data/data_vfs.c
+    src/data/sha256.c
+)
+target_include_directories(liberation_presentation_inventory PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(liberation_presentation_inventory PRIVATE ZLIB::ZLIB)
+
+add_executable(liberation_presentation_capture
+    tools/liberation_presentation_capture.c
+    src/data/liberation_data.c
+    src/data/liberation_anim.c
+    src/data/rnc_decoder.c
+    src/data/iso9660_reader.c
+    src/data/data_vfs.c
+    src/data/sha256.c
+)
+target_include_directories(liberation_presentation_capture PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(liberation_presentation_capture PRIVATE ZLIB::ZLIB)
+
 add_executable(amos_sprite_dump tools/amos_sprite_dump.c src/data/amos_sprite.c
-    src/data/data_vfs.c src/data/iso9660_reader.c src/data/liberation_data.c src/data/sha256.c)
+    src/data/data_vfs.c src/data/iso9660_reader.c src/data/liberation_data.c
+    src/data/liberation_anim.c src/data/rnc_decoder.c src/data/sha256.c)
 target_include_directories(amos_sprite_dump PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(amos_sprite_dump PRIVATE ZLIB::ZLIB)
 

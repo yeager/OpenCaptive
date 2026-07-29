@@ -8,6 +8,8 @@
 #define HUNK_SYMBOL  0x3F0U
 #define HUNK_END     0x3F2U
 #define HUNK_HEADER  0x3F3U
+/* HUNK memory-attribute bits occupy the high two bits of a hunk tag. */
+#define HUNK_TYPE_MASK 0x3FFFFFFFU
 
 static bool read_be32(const uint8_t *data, size_t size, size_t *offset, uint32_t *value) {
     if (*offset > size || size - *offset < 4) return false;
@@ -47,6 +49,7 @@ bool amiga_hunk_parse(const uint8_t *data, size_t size, AmigaHunkInfo *info) {
     size_t end_count = 0;
     while (offset < size) {
         if (!read_be32(data, size, &offset, &value)) return false;
+        value &= HUNK_TYPE_MASK;
         if (value == HUNK_END) {
             end_count++;
             continue;

@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// RNC (Rob Northen Compression) Method 1 decoder
-// Used by Captive on Atari ST and Amiga for all graphics and sound data
+// RNC (Rob Northen Compression) decoder. Method 1 is forward bitstream;
+// Liberation additionally uses the old Amiga method 2 backward bitstream.
 
 int rnc_decode(const uint8_t *src, int src_len, uint8_t *dst, int dst_cap);
 uint32_t rnc_uncompressed_size(const uint8_t *src, int src_len);

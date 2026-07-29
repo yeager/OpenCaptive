@@ -51,19 +51,21 @@ Closed doors block movement and line of sight. Face a normal door and use `F`.
 Generators are mission objectives; destroying all generated generators advances
 the campaign. A direct attack or enemy shot cannot cross a wall or closed door.
 
-## Liberation controls
+## Liberation status and controls
 
-In the city, use arrow keys or `WASD` to move and `F` or Enter to enter a
-building when standing on it. In an interior, arrow keys or `WASD` move and
-turn; `F` leaves through the ground-floor exit. Stand on an elevator and use
-`.` to go up or `,` to go down. F5 and F9 save and load Liberation's separate
-city-state save.
+Verified CD32 presentation data is decoded for Liberation's opening and city
+frame. Press any key to advance from the opening to the city frame. The old
+procedural city/interior controls are not presented as a playable Liberation
+implementation: their generated logic is not the original game's logic and no
+longer produces substitute graphics. F10 still opens the runtime options.
 
 ## Runtime options and cheats
 
 Press `F10` during either game to pause the live simulation and open the
-runtime popup. It can switch the enhanced viewport, scanlines, CRT curvature,
-bilinear output filtering, brightness, music and SFX immediately. The same popup has explicit cheat
+runtime popup. It can switch scanlines, CRT curvature, bilinear output filtering,
+brightness, music and SFX immediately. Captive's viewport reconstruction is shown as
+**PENDING**: the former generated corridor is not used when verified original media is
+available. The same popup has explicit cheat
 switches for god mode, infinite energy and completing the current objective.
 `Escape` or `F10` closes it. The start-menu settings page also exposes music
 and SFX enablement for the next game session. Cheats are deliberately visible and opt-in; they

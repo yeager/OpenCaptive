@@ -32,6 +32,15 @@ plot generator, plot text, city text and dialogue text. At present:
 
 No original payload is bundled or emitted by tooling.
 
+The hash-identified main executable
+`db61f7e39fd31ac19b82216ea963711728d25518454fae42fd89c5bab52f2215`
+is a valid four-hunk Amiga LoadSeg stream. Structural inspection reports one
+225,396-byte code hunk at byte offset 44, one data hunk, two BSS hunks and
+1,356 `RELOC32` entries. Hunk tags may carry Amiga memory-attribute bits, so
+the parser masks those tag bits before validating the container. This makes
+the original presentation/game executable available for static analysis; it
+does not execute it or claim that its gameplay logic is already reproduced.
+
 `liberation_inventory` is the discovery entry point for every remaining CD32
 resource. It recursively walks the verified ISO and emits only SHA-256 digest,
 byte length and container class (`IFF/ILBM`, `IFF/ANIM`, `RNC1`,
@@ -71,12 +80,61 @@ the image unmasked. Both variants are now accepted by the decoder.
 
 The separately hash-identified resource
 `d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2`
-contains one unmasked 320×109 AMOS scene. The runtime decodes it and copies a
-centred 144×104 crop, without scaling, into its Liberation interior viewport.
-If the hash resource cannot be decoded, it keeps the procedural interior as a
-fallback. This is deliberately a visual integration, not evidence that the
-resource is associated with any particular original city, building or PlotGen
-state.
+contains one unmasked 320×109 AMOS scene. It remains available to the analysis
+tools only. The runtime does not place it into an inferred city or building,
+because that would falsely assign original pixels to an unverified game state.
+
+RNC method 2 in the verified CD32 data is the old Amiga backwards stream: it
+has a 12-byte header, reads compressed bytes from the packed end and writes the
+decoded bytes backwards. OpenCaptive verifies its output byte-for-byte against
+a separately decoded local reference before using it for container analysis.
+
+## Verified FORM/ANIM city raster
+
+The presentation bundle is selected from the verified ISO by SHA-256
+`1d3a335d254c0eae919a712dd73bd41b24ed897bf145ed118ccf2277baa7a35f`.
+Its byte offset `386824` is an old-RNC2 stream which expands to a `FORM/ANIM`
+container. The first `PACK` record declares a 320×167, six-bitplane image
+(`40 × 167 × 6 = 40,080` bytes) and is paired with the container's 32-colour
+`PALL` palette. Runtime selection is exclusively the bundle digest plus this
+offset; the ISO member name is neither queried nor used as an identity.
+
+`liberation_anim_decode_first_frame()` handles this verified record and
+`liberation_anim_blit()` renders planar pixels without interpolation. The
+native capture's 320×167 city region has been directly compared against an
+independent decoding of the same source bytes: both RGB buffers have SHA-256
+`c546bebd107928a5721cd1a33d7e458098b134d4cd86c48b6547f8b615abbdae`.
+This proves that particular original raster is rendered exactly. It does not
+yet prove parity for animated overlays, the in-game HUD, city state, or plot
+logic.
+
+The PACK stream is not a sequence of independently decodable full frames.
+The verified player first expands one bounded work area: in the city resource
+that area is 40,094 bytes (14-byte descriptor plus 40,080 planar bytes). The
+following bytes in the PACK chunk are not yet assigned a standalone record
+meaning. `liberation_pack_decode_workspace()` exposes only the bounded area;
+the stricter full-stream diagnostic intentionally reports the trailing format
+data as undecoded. This keeps the exact first raster available without
+misrepresenting unknown animation layers as image data.
+
+The accompanying `SCPT` IFF chunk is now copied verbatim into
+`LiberationAnimScript` after the same FORM boundary checks. Both the intro and
+city presentation report `decoded/SCPT` through `--verify-data liberation`.
+This makes the original scene bytecode available to the runtime without
+pretending that its instruction semantics have already been recovered.
+
+The verified CD32 player traverses a script by reading a big-endian 16-bit
+record size at each record boundary, advancing by that full size, and stopping
+at a zero size. OpenCaptive validates this first sequence and exposes its
+records through `liberation_anim_script_record_at()`. All 21 decoded
+presentation resources terminate cleanly under that rule. This proves the
+container-level record boundaries only: the payload opcodes, timing units and
+draw operations are still deliberately opaque.
+
+One payload field is also directly evidenced by the player: byte 2 of a record
+is multiplied by the current timing base, shifted right by four and added to
+the next update countdown. It is exposed as `timing_multiplier`; the absolute
+clock unit and all remaining payload fields are not yet assigned semantics.
 
 ## CityGen observation log
 
@@ -154,7 +212,9 @@ entering a building, walking interiors and using elevators.
 
 This separation matters: Captive combat ticks and Captive generator-completion
 rules must not advance or end a Liberation session. The main loop explicitly
-branches before applying either Captive-only rule.
+branches before applying either Captive-only rule. The former inferred city and
+interior rasterizers have been removed; no procedural drawing is used as a
+fallback when original presentation data is available.
 
 ## Reverse-engineering plan
 

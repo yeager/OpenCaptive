@@ -72,9 +72,19 @@ static void test_mission_seed_formula(void) {
     assert(seed == 179);
 }
 
-static void test_architect_prng_regression(void) {
-    /* The seed used by map 17.3 in the original game must keep generating the
-     * same base; this digest-like sample catches accidental LCG substitutions. */
+static void test_first_base_start_matches_architect_special_case(void) {
+    DungeonLevel levels[MAX_LEVELS];
+    int count = 0;
+    map_generate_base(levels, &count, 0);
+    assert(count == 1);
+    assert(levels[0].cells[0][30].type == CELL_FLOOR);
+    for (int x = 0; x < MAP_WIDTH; x++)
+        if (x != 30) assert(levels[0].cells[0][x].type == CELL_WALL);
+}
+
+static void test_implementation_prng_regression(void) {
+    /* This locks current deterministic behaviour only. It is not an original
+     * MapGen fixture and therefore cannot establish original-game parity. */
     DungeonLevel base;
     map_generate(&base, 179, 0);
     uint64_t checksum = 0;
@@ -215,7 +225,8 @@ int main(void) {
     test_border_walls();
     test_has_generators();
     test_mission_seed_formula();
-    test_architect_prng_regression();
+    test_first_base_start_matches_architect_special_case();
+    test_implementation_prng_regression();
     test_architect_base_layout();
     test_logical_floors_are_connected();
     test_architect_seed_range();

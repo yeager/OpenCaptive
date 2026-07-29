@@ -1,23 +1,22 @@
 # Visuell paritet
 
-`test_visual_parity` är en pixelbaserad regressionskontroll som körs med
-`ctest` och därmed i GitHub Actions. Den återger tre fasta scener och jämför
-hela bildbufferten med en deterministisk 64-bitarsbildhash:
+Paritetskontroller får bara använda avkodade originalresurser eller fångster
+från en sådan avkodningsväg. Den tidigare CI-snapshoten av en hembyggd
+Captive-korridor har tagits bort: en stabil hash av syntetiska pixlar är inte
+en paritetskontroll. Eftersom originalmedia inte ingår i källträdet körs den
+fulla visuella kontrollen lokalt mot användarens verifierade media.
 
-- Captives förstapersonsvy med dörr och generator
-- Liberations stadsbild med fast seed (`42`) på dess egna 320×256-canvas.
-  Referensbilden omfattar den CD32-inspirerade modulraden, sidopanelerna och
-  det centrala stadsområdet; den blandar inte in Captives 320×200-layout.
-
-Kontrollen fångar oavsiktliga ändringar av placering, färger, överlappning och
-skalning. Referenserna är avsiktligt interna renderingsögonblick; de är inte
-ett påstående om fullständig bildmässig identitet med originalutgåvorna eller
-om att odetekterade grafiska resurser från speldata har återskapats.
+Liberation har dessutom en direkt verifierad originalregion: den första
+320×167-rutan ur den hashidentifierade CD32 `FORM/ANIM`-resursen avkodas till
+planar bild och jämförs med OpenCaptives fångade raster. Båda RGB-buffertarna
+har SHA-256 `c546bebd107928a5721cd1a33d7e458098b134d4cd86c48b6547f8b615abbdae`.
+Detta är bevis för den rutan, inte för hela Liberation-spelvyn eller dess
+animerade lager.
 
 Kör lokalt med:
 
 ```sh
-ctest --test-dir build -R visual_parity --output-on-failure
+./build/opencaptive --verify-data all --data /path/to/media
 ```
 
 Vid en avsiktlig visuell ändring ska den nya bilden granskas först. Uppdatera
@@ -35,10 +34,14 @@ före fönsterskalning, systemets färghantering och externa överlägg:
   --capture-frame /tmp/captive.ppm
 ./build/opencaptive --game liberation --data /path/to/media \
   --capture-frame /tmp/liberation.ppm
+./build/opencaptive --game liberation --skip-intro --data /path/to/media \
+  --capture-frame /tmp/liberation-city.ppm
 ```
 
 Captive-fångsten kan jämföras med den hashidentifierade HUD-resursen utanför
 spelvyn. Med den verifierade referensresursen är den aktuella originalramen
 pixelidentisk i samtliga 47 872 pixlar utanför rektangeln `(32,55,144,112)`.
-Det bevisar ram/HUD-paritet, men inte att den dynamiska förstapersonsvyn är
-pixelidentisk med originalet.
+I standardläget lämnas den dynamiska rektangeln `(32,55,144,112)` orörd tills
+originalrenderingen är återställd; den fylls alltså inte med syntetisk grafik.
+Det experimentella F10-läget kan fortfarande rita en förbättrad approximation,
+men räknas inte som visuell paritet.
