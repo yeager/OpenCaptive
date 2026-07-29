@@ -1,4 +1,5 @@
 #include "iso9660_reader.h"
+#include "sha256.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -128,4 +129,27 @@ uint8_t *iso_read_file(const ISOImage *iso, uint32_t lba, uint32_t size) {
     }
 
     return result;
+}
+
+uint8_t *iso_read_file_sha256(const ISOImage *iso, const char *expected_sha256,
+                              size_t *out_size) {
+    if (out_size) *out_size = 0;
+    if (!iso || !expected_sha256) return NULL;
+
+    ISOEntry entries[256];
+    int count = iso_list_root(iso, entries, 256);
+    for (int i = 0; i < count; i++) {
+        if (entries[i].is_dir) continue;
+        uint8_t *file = iso_read_file(iso, entries[i].lba, entries[i].size);
+        if (!file) continue;
+
+        uint8_t digest[32];
+        sha256_digest(file, entries[i].size, digest);
+        if (sha256_matches_hex(digest, expected_sha256)) {
+            if (out_size) *out_size = entries[i].size;
+            return file;
+        }
+        free(file);
+    }
+    return NULL;
 }

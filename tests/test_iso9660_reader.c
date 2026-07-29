@@ -36,6 +36,10 @@ int main(void) {
     uint8_t *file = iso_read_file(&iso, entries[0].lba, entries[0].size);
     assert(file && memcmp(file, "DATA", 4) == 0);
     free(file);
+    file = iso_read_file_sha256(&iso,
+        "c97c29c7a71b392b437ee03fd17f09bb10b75e879466fc0eb757b2c4a78ac938", NULL);
+    assert(file && memcmp(file, "DATA", 4) == 0);
+    free(file);
 
     root[0] = 250; root[32] = 250;
     assert(iso_list_root(&iso, entries, 2) == 0);
