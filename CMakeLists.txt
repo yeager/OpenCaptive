@@ -192,5 +192,16 @@ add_executable(liberation_extract
 target_include_directories(liberation_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(liberation_extract PRIVATE ZLIB::ZLIB)
 
+add_executable(liberation_hunk_info
+    tools/liberation_hunk_info.c
+    src/data/amiga_hunk.c
+    src/data/liberation_data.c
+    src/data/iso9660_reader.c
+    src/data/data_vfs.c
+    src/data/sha256.c
+)
+target_include_directories(liberation_hunk_info PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(liberation_hunk_info PRIVATE ZLIB::ZLIB)
+
 add_executable(st_list tools/st_list.c src/data/st_disk_reader.c src/data/sha256.c)
 target_include_directories(st_list PRIVATE ${CMAKE_SOURCE_DIR}/include)

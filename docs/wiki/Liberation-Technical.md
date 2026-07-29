@@ -51,6 +51,15 @@ payload. It is deliberately a structural parser: relocations are counted and
 bounds-checked, but no original instruction stream is interpreted as gameplay
 logic.
 
+Against the verified CityGen digest, the parser reports two hunks, one code
+block of 10,824 bytes at byte offset 36, one BSS block and one `RELOC32`
+entry. The structural inspection command is hash-driven:
+
+```sh
+./build/liberation_hunk_info /path/to/media \
+  e54540c3bf8dfaf569380a135ac039f1438e9efb85cf6d5e3e487e25d4c7c13e
+```
+
 ## Text-resource observation log
 
 The hash-identified city-text payload
