@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool gfx_init(GfxData *gfx, const char *data_path) {
+bool gfx_init(GfxData *gfx, const DataVFS *vfs) {
     memset(gfx, 0, sizeof(*gfx));
-    strncpy(gfx->data_path, data_path, sizeof(gfx->data_path) - 1);
+    gfx->vfs = vfs;
     return true;
 }
 
@@ -19,25 +19,17 @@ void gfx_free(GfxData *gfx) {
 int gfx_load_pl5(GfxData *gfx, const char *filename) {
     if (gfx->num_textures >= MAX_TEXTURES) return -1;
 
-    char path[1024];
-    snprintf(path, sizeof(path), "%s/CAPICS/%s", gfx->data_path, filename);
+    char rel_path[256];
+    snprintf(rel_path, sizeof(rel_path), "CAPICS/%s", filename);
 
-    FILE *f = fopen(path, "rb");
-    if (!f) return -1;
-
-    fseek(f, 0, SEEK_END);
-    long size = ftell(f);
-    fseek(f, 0, SEEK_SET);
+    size_t size;
+    uint8_t *raw = vfs_read_file(gfx->vfs, rel_path, &size);
+    if (!raw) return -1;
 
     if (size != PL5_FILE_SIZE) {
-        fclose(f);
+        free(raw);
         return -1;
     }
-
-    uint8_t *raw = malloc(PL5_FILE_SIZE);
-    if (!raw) { fclose(f); return -1; }
-    fread(raw, 1, PL5_FILE_SIZE, f);
-    fclose(f);
 
     PL5Image img;
     if (!pl5_decode(raw, PL5_FILE_SIZE, &img)) {
@@ -56,7 +48,6 @@ int gfx_load_pl5(GfxData *gfx, const char *filename) {
         return -1;
     }
 
-    // Convert indexed pixels to ARGB8888 using palette
     for (int i = 0; i < PL5_PIXEL_COUNT; i++) {
         uint8_t idx = img.pixel_data[i];
         tex->pixels[i] = (idx < PL5_COLORS) ? img.palette[idx] : 0xFF000000;

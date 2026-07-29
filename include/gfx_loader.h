@@ -2,6 +2,7 @@
 #define GFX_LOADER_H
 
 #include "pl5_decoder.h"
+#include "data_vfs.h"
 #include <stdbool.h>
 
 #define MAX_TEXTURES 64
@@ -17,10 +18,10 @@ typedef struct {
 typedef struct {
     Texture textures[MAX_TEXTURES];
     int     num_textures;
-    char    data_path[512];
+    const DataVFS *vfs;
 } GfxData;
 
-bool gfx_init(GfxData *gfx, const char *data_path);
+bool gfx_init(GfxData *gfx, const DataVFS *vfs);
 void gfx_free(GfxData *gfx);
 int  gfx_load_pl5(GfxData *gfx, const char *filename);
 const Texture *gfx_get(const GfxData *gfx, int id);

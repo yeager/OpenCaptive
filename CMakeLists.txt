@@ -5,6 +5,7 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 find_package(SDL3 REQUIRED)
+find_package(ZLIB REQUIRED)
 
 # --- Source files ---
 
@@ -27,6 +28,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/anm_decoder.c
     src/data/rnc_decoder.c
     src/data/mid_loader.c
+    src/data/data_vfs.c
     src/data/gfx_loader.c
     src/data/texture_atlas.c
     src/data/adf_reader.c
@@ -46,7 +48,7 @@ target_include_directories(opencaptive PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
-target_link_libraries(opencaptive PRIVATE SDL3::SDL3)
+target_link_libraries(opencaptive PRIVATE SDL3::SDL3 ZLIB::ZLIB)
 if(UNIX AND NOT APPLE)
     target_link_libraries(opencaptive PRIVATE m)
 endif()

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
-bool texture_atlas_load(TextureAtlas *atlas, const char *data_path) {
+bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs) {
     memset(atlas, 0, sizeof(*atlas));
     for (int i = 0; i < 5; i++) atlas->wall_sheets[i] = -1;
     atlas->roof_sheet = -1;
@@ -11,7 +11,7 @@ bool texture_atlas_load(TextureAtlas *atlas, const char *data_path) {
     atlas->object_sheet = -1;
     atlas->gamescrn_sheet = -1;
 
-    if (!gfx_init(&atlas->gfx, data_path)) return false;
+    if (!gfx_init(&atlas->gfx, vfs)) return false;
 
     const char *wall_names[] = {"WALLA.PL5","WALLB.PL5","WALLC.PL5","WALLD.PL5","WALLE.PL5"};
     for (int i = 0; i < 5; i++) {

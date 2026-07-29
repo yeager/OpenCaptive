@@ -19,6 +19,7 @@
 #include "sfx.h"
 #include "liberation.h"
 #include "enhanced_render.h"
+#include "data_vfs.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
@@ -49,16 +50,10 @@ static void get_default_data_path(char *buf, size_t bufsize) {
 #endif
 }
 
-static bool validate_data_path(const char *data_path) {
-    if (!data_path || !data_path[0]) return false;
-    char path[600];
-    snprintf(path, sizeof(path), "%s/CAPICS/WALLA.PL5", data_path);
-    FILE *f = fopen(path, "rb");
-    if (f) { fclose(f); return true; }
-    snprintf(path, sizeof(path), "%s/ANIMS/TEST0.ANM", data_path);
-    f = fopen(path, "rb");
-    if (f) { fclose(f); return true; }
-    return false;
+static bool validate_data_path(const DataVFS *vfs) {
+    if (!vfs || !vfs->initialized) return false;
+    return vfs_file_exists(vfs, "CAPICS/WALLA.PL5") ||
+           vfs_file_exists(vfs, "ANIMS/TEST0.ANM");
 }
 
 static void show_missing_data_dialog(const char *data_path) {
@@ -79,18 +74,10 @@ static void show_missing_data_dialog(const char *data_path) {
         "OpenCaptive - Missing Game Data", msg, NULL);
 }
 
-static bool load_intro_anm(const char *data_path, ANMAnimation *anim) {
-    char path[512];
-    snprintf(path, sizeof(path), "%s/ANIMS/TEST0.ANM", data_path);
-    FILE *f = fopen(path, "rb");
-    if (!f) return false;
-    fseek(f, 0, SEEK_END);
-    long size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    uint8_t *data = malloc(size);
-    if (!data) { fclose(f); return false; }
-    fread(data, 1, size, f);
-    fclose(f);
+static bool load_intro_anm(const DataVFS *vfs, ANMAnimation *anim) {
+    size_t size;
+    uint8_t *data = vfs_read_file(vfs, "ANIMS/TEST0.ANM", &size);
+    if (!data) return false;
     bool ok = anm_decode(data, size, anim);
     free(data);
     return ok;
@@ -459,9 +446,13 @@ int main(int argc, char *argv[]) {
     game_state_init(&gs, GAME_CAPTIVE, 1);
     gs.config = config;
 
+    // Virtual filesystem
+    DataVFS vfs;
+    vfs_init(&vfs, config.data_path);
+
     // Audio
     sound_init(&sound_sys);
-    music_init(&music_sys, &sound_sys, config.data_path);
+    music_init(&music_sys, &sound_sys, &vfs);
 
     // Items and SFX
     item_db_init(&item_db);
@@ -473,7 +464,7 @@ int main(int argc, char *argv[]) {
     TextureAtlas atlas = {0};
     bool textures_loaded = false;
     if (config.data_path) {
-        textures_loaded = texture_atlas_load(&atlas, config.data_path);
+        textures_loaded = texture_atlas_load(&atlas, &vfs);
         if (textures_loaded) printf("Loaded texture atlas\n");
     }
 
@@ -507,13 +498,15 @@ int main(int argc, char *argv[]) {
                         case MENU_RESULT_START_CAPTIVE:
                             gs.game_type = GAME_CAPTIVE;
                             config.data_path = menu.data_path;
-                            if (!validate_data_path(config.data_path)) {
+                            vfs_free(&vfs);
+                            vfs_init(&vfs, config.data_path);
+                            if (!validate_data_path(&vfs)) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
                             gs.mode = STATE_INTRO;
                             if (!intro_loaded) {
-                                intro_loaded = load_intro_anm(config.data_path, &intro_anim);
+                                intro_loaded = load_intro_anm(&vfs, &intro_anim);
                                 intro_frame = 0;
                                 intro_last_tick = SDL_GetTicks();
                             }
@@ -792,6 +785,7 @@ int main(int argc, char *argv[]) {
         SDL_Delay(16);
     }
 
+    vfs_free(&vfs);
     music_shutdown(&music_sys);
     sound_shutdown(&sound_sys);
     if (intro_loaded) anm_free(&intro_anim);

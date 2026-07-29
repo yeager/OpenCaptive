@@ -3,6 +3,7 @@
 
 #include "midi_player.h"
 #include "sound.h"
+#include "data_vfs.h"
 #include <stdbool.h>
 
 typedef enum {
@@ -21,11 +22,11 @@ typedef struct {
     MIDIPlayer  player;
     SoundSystem *sound;
     MusicTrack  current_track;
-    char        data_path[512];
+    const DataVFS *vfs;
     bool        enabled;
 } MusicSystem;
 
-bool music_init(MusicSystem *mus, SoundSystem *snd, const char *data_path);
+bool music_init(MusicSystem *mus, SoundSystem *snd, const DataVFS *vfs);
 void music_play(MusicSystem *mus, MusicTrack track);
 void music_stop(MusicSystem *mus);
 void music_update(MusicSystem *mus);

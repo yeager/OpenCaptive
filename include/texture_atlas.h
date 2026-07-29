@@ -42,7 +42,7 @@ typedef struct {
     bool    loaded;
 } TextureAtlas;
 
-bool texture_atlas_load(TextureAtlas *atlas, const char *data_path);
+bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs);
 void texture_atlas_free(TextureAtlas *atlas);
 
 // Sample a pixel from a texture region, with UV coordinates [0,1]

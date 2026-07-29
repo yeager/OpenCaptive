@@ -15,12 +15,11 @@ static const char *track_files[] = {
     [MUSIC_TRAPPED] = "TRAPPED.MID",
 };
 
-bool music_init(MusicSystem *mus, SoundSystem *snd, const char *data_path) {
+bool music_init(MusicSystem *mus, SoundSystem *snd, const DataVFS *vfs) {
     memset(mus, 0, sizeof(*mus));
     mus->sound = snd;
     mus->enabled = true;
-    if (data_path)
-        strncpy(mus->data_path, data_path, sizeof(mus->data_path) - 1);
+    mus->vfs = vfs;
     return true;
 }
 
@@ -31,28 +30,19 @@ void music_play(MusicSystem *mus, MusicTrack track) {
     mus->current_track = track;
 
     if (track == MUSIC_NONE || !track_files[track]) return;
+    if (!mus->vfs) return;
 
-    char path[1024];
-    snprintf(path, sizeof(path), "%s/SOUND/%s", mus->data_path, track_files[track]);
+    char rel_path[256];
+    snprintf(rel_path, sizeof(rel_path), "SOUND/%s", track_files[track]);
 
-    FILE *f = fopen(path, "rb");
-    if (!f) return;
-
-    fseek(f, 0, SEEK_END);
-    long size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    uint8_t *data = malloc(size);
-    if (!data) { fclose(f); return; }
-    fread(data, 1, size, f);
-    fclose(f);
+    size_t size;
+    uint8_t *data = vfs_read_file(mus->vfs, rel_path, &size);
+    if (!data) return;
 
     if (midi_load(&mus->player, data, size)) {
         midi_set_volume(&mus->player, 0.3f);
         midi_play(&mus->player, true);
     }
-    // Note: data must persist while playing — leaking intentionally for now
-    // TODO: track allocation and free on stop
 }
 
 void music_stop(MusicSystem *mus) {
@@ -63,7 +53,6 @@ void music_stop(MusicSystem *mus) {
 void music_update(MusicSystem *mus) {
     if (!mus->enabled || !mus->player.playing) return;
 
-    // Render MIDI to the sound system's audio stream
     int16_t buffer[1024];
     midi_render(&mus->player, buffer, 1024);
 
