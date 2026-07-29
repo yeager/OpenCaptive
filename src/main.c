@@ -840,6 +840,11 @@ int main(int argc, char *argv[]) {
             game_state_new_mission(&gs, 1);
             spawn_level_content(&gs);
             music_play(&music_sys, MUSIC_BASE);
+            /* game_state_init() starts at the menu.  A direct command-line
+             * launch must make the same state transition as selecting
+             * Captive in the menu; without this the prepared mission was
+             * hidden behind the start screen. */
+            gs.mode = STATE_GAME;
             printf("Starting verified Captive game\n");
         }
     } else if (start_directly && requested_game == GAME_LIBERATION) {
