@@ -56,10 +56,11 @@ transparency mask plane. The observed record size is therefore
 eighth entry exact. `amos_sprite_dump` decodes this verified, unflagged prefix
 to a PPM inspection image using a resource hash and an entry index.
 
-The next record sets the high bit of the width word. That is a distinct
-Liberation variant and deliberately fails closed in the current parser rather
-than being treated as ordinary planar data. Consequently this decoder is an
-analysis tool, not yet a live Liberation renderer dependency.
+The high bit of the width word is not compression. The original 68000 loader
+doubles the low 15 bits and subtracts one when that bit is set, so it represents
+an odd number of bytes per row. The same planar-plus-mask decoder therefore
+handles both even and odd row widths. It remains an analysis tool until the
+runtime maps particular sprite hashes to particular game entities.
 
 ## CityGen observation log
 

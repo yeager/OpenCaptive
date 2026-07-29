@@ -13,13 +13,15 @@ bool amos_sprite_get(const uint8_t *data, size_t size, unsigned index, AmosSprit
     if (index >= count) return false;
     for (unsigned n = 0; n < count; ++n) {
         if (pos + 10 > size - 64) return false;
-        unsigned words = be16(data + pos), height = be16(data + pos + 2), depth = be16(data + pos + 4);
-        if (!words || !height || !depth || depth > 5) return false;
-        /* Liberation's AMOS banks retain the optional mask plane. */
-        size_t bytes = (size_t)words * height * (depth + 1) * 2;
+        unsigned width_field = be16(data + pos), height = be16(data + pos + 2), depth = be16(data + pos + 4);
+        unsigned bytes_per_row = (width_field & 0x7fff) * 2 - (width_field >> 15);
+        if (!bytes_per_row || !height || !depth || depth > 5) return false;
+        /* The high bit of width encodes an odd byte count. Liberation keeps
+         * a fifth transparency-mask plane after its colour planes. */
+        size_t bytes = (size_t)bytes_per_row * height * (depth + 1);
         if (bytes > size - 64 - pos - 10) return false;
         if (n == index) {
-            memset(out, 0, sizeof(*out)); out->width = words * 16; out->height = height; out->depth = depth; out->planes = data + pos + 10;
+            memset(out, 0, sizeof(*out)); out->width = bytes_per_row * 8; out->height = height; out->depth = depth; out->bytes_per_row = bytes_per_row; out->planes = data + pos + 10;
             for (int p = 0; p < 32; ++p) out->palette[p] = rgb(be16(data + size - 64 + p * 2));
             return true;
         }
@@ -30,13 +32,12 @@ bool amos_sprite_get(const uint8_t *data, size_t size, unsigned index, AmosSprit
 
 bool amos_sprite_decode_argb(const AmosSprite *sprite, uint32_t *pixels, size_t count) {
     if (!sprite || !pixels || !sprite->planes || count < (size_t)sprite->width * sprite->height) return false;
-    size_t words = sprite->width / 16;
     for (unsigned y = 0; y < sprite->height; ++y) for (unsigned x = 0; x < sprite->width; ++x) {
-        size_t word = x / 16, offset = y * words + word; unsigned bit = 15 - (x & 15), colour = 0;
+        size_t offset = (size_t)y * sprite->bytes_per_row + x / 8; unsigned bit = 7 - (x & 7), colour = 0;
         for (unsigned p = 0; p < sprite->depth; ++p)
-            if (be16(sprite->planes + ((size_t)p * sprite->height * words + offset) * 2) & (1u << bit)) colour |= 1u << p;
-        size_t mask = (size_t)sprite->depth * sprite->height * words + offset;
-        bool visible = be16(sprite->planes + mask * 2) & (1u << bit);
+            if (sprite->planes[(size_t)p * sprite->height * sprite->bytes_per_row + offset] & (1u << bit)) colour |= 1u << p;
+        size_t mask = (size_t)sprite->depth * sprite->height * sprite->bytes_per_row + offset;
+        bool visible = sprite->planes[mask] & (1u << bit);
         pixels[(size_t)y * sprite->width + x] = visible ? sprite->palette[colour] : 0;
     }
     return true;
