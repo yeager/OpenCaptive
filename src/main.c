@@ -369,12 +369,10 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             return;
         }
         case SDLK_F5:
-            save_game(gs, "opencaptive.sav");
+            save_game(gs, &creatures, &puzzles, "opencaptive.sav");
             return;
         case SDLK_F9:
-            if (load_game(gs, "opencaptive.sav")) {
-                spawn_level_content(gs);
-            }
+            load_game(gs, &creatures, &puzzles, "opencaptive.sav");
             return;
         case SDLK_PERIOD: // > stairs down
             game_state_change_floor(gs, 1);

@@ -108,7 +108,8 @@ target_include_directories(test_game_state PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME game_state COMMAND test_game_state)
 
 add_executable(test_save_load tests/test_save_load.c
-    src/engine/save_load.c src/engine/engine.c src/engine/map_gen.c)
+    src/engine/save_load.c src/engine/engine.c src/engine/map_gen.c
+    src/engine/combat.c src/engine/puzzle.c)
 target_include_directories(test_save_load PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME save_load COMMAND test_save_load)
 

@@ -7,6 +7,8 @@ static const char save_path[] = "opencaptive-test-save.bin";
 
 static void test_round_trip(void) {
     GameState saved, loaded;
+    CreatureList saved_creatures = {0}, loaded_creatures = {0};
+    PuzzleList saved_puzzles = {0}, loaded_puzzles = {0};
     game_state_init(&saved, GAME_CAPTIVE, 1);
     saved.base_id = 3;
     game_state_new_mission(&saved, 17);
@@ -20,10 +22,21 @@ static void test_round_trip(void) {
     saved.droids[2].hp = 37;
     saved.levels[0].cells[7][12].type = CELL_FLOOR;
     saved.generators_destroyed = 1;
+    saved_creatures.num_creatures = 1;
+    saved_creatures.creatures[0] = (Creature){
+        .type = CREATURE_DRONE, .hp = 0, .hp_max = 30,
+        .x = 12, .y = 7, .level = 0, .active = false,
+    };
+    saved_puzzles.num_puzzles = 1;
+    saved_puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_LEVER, .x = 9, .y = 7, .level = 0,
+        .face = DIR_NORTH, .target_x = -1, .target_y = -1,
+        .state = 1, .solution = 1, .solved = true,
+    };
 
-    assert(save_game(&saved, save_path));
+    assert(save_game(&saved, &saved_creatures, &saved_puzzles, save_path));
     memset(&loaded, 0, sizeof(loaded));
-    assert(load_game(&loaded, save_path));
+    assert(load_game(&loaded, &loaded_creatures, &loaded_puzzles, save_path));
     assert(loaded.mission == 17 && loaded.mission_seed == 179);
     assert(loaded.party_x == 11 && loaded.party_y == 7);
     assert(loaded.party_dir == DIR_EAST && loaded.selected_droid == 2);
@@ -31,14 +44,20 @@ static void test_round_trip(void) {
     assert(loaded.gold == 777);
     assert(loaded.levels[0].cells[7][12].type == CELL_FLOOR);
     assert(loaded.generators_destroyed == 1);
+    assert(loaded_creatures.num_creatures == 1);
+    assert(!loaded_creatures.creatures[0].active);
+    assert(loaded_puzzles.num_puzzles == 1);
+    assert(loaded_puzzles.puzzles[0].solved);
 }
 
 static void test_corrupt_save_preserves_state(void) {
     GameState before, target;
+    CreatureList creatures = {0}, target_creatures = {0};
+    PuzzleList puzzles = {0}, target_puzzles = {0};
     game_state_init(&before, GAME_CAPTIVE, 1);
     before.base_id = 3;
     game_state_new_mission(&before, 17);
-    assert(save_game(&before, save_path));
+    assert(save_game(&before, &creatures, &puzzles, save_path));
 
     FILE *file = fopen(save_path, "r+b");
     assert(file != NULL);
@@ -48,7 +67,7 @@ static void test_corrupt_save_preserves_state(void) {
     game_state_init(&target, GAME_CAPTIVE, 1);
     target.mission = 99;
     target.party_x = 55;
-    assert(!load_game(&target, save_path));
+    assert(!load_game(&target, &target_creatures, &target_puzzles, save_path));
     assert(target.mission == 99 && target.party_x == 55);
 }
 
