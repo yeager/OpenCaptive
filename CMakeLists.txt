@@ -107,6 +107,11 @@ add_executable(test_game_state tests/test_game_state.c
 target_include_directories(test_game_state PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME game_state COMMAND test_game_state)
 
+add_executable(test_save_load tests/test_save_load.c
+    src/engine/save_load.c src/engine/engine.c src/engine/map_gen.c)
+target_include_directories(test_save_load PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME save_load COMMAND test_save_load)
+
 # The tests use assert() for both execution and verification.  Release builds
 # define NDEBUG, which would otherwise turn those test expressions into no-ops.
 function(opencaptive_enable_test_assertions target)
@@ -119,7 +124,7 @@ endfunction()
 
 foreach(test_target IN ITEMS
         test_pl5_decoder test_anm_decoder test_map_gen test_data_vfs
-        test_sha256 test_iso9660_reader test_liberation test_game_state)
+        test_sha256 test_iso9660_reader test_liberation test_game_state test_save_load)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
 
