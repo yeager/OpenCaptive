@@ -540,16 +540,17 @@ int main(int argc, char *argv[]) {
     if (verify_data) {
         DataVFS verify_vfs;
         LiberationData verify_liberation = {0};
-        bool ok = vfs_init(&verify_vfs, config.data_path);
+        bool vfs_ok = vfs_init(&verify_vfs, config.data_path);
+        bool ok = vfs_ok;
         bool check_captive = strcmp(verify_data, "liberation") != 0;
         bool check_liberation = strcmp(verify_data, "captive") != 0;
         if (check_captive) {
-            bool valid = ok && validate_data_path(&verify_vfs);
+            bool valid = vfs_ok && validate_data_path(&verify_vfs);
             printf("Captive data: %s\n", valid ? "verified" : "not verified");
             ok = ok && valid;
         }
         if (check_liberation) {
-            bool valid = ok && liberation_data_open(&verify_liberation, &verify_vfs);
+            bool valid = vfs_ok && liberation_data_open(&verify_liberation, &verify_vfs);
             printf("Liberation data: %s\n", valid ? "verified" : "not verified");
             liberation_data_close(&verify_liberation);
             ok = ok && valid;
@@ -636,6 +637,7 @@ int main(int argc, char *argv[]) {
             game_state_new_mission(&gs, 1);
             spawn_level_content(&gs);
             music_play(&music_sys, MUSIC_BASE);
+            printf("Starting verified Captive game\n");
         }
     } else if (start_directly && requested_game == GAME_LIBERATION) {
         if (!liberation_data_open(&liberation_data, &vfs)) {
@@ -646,6 +648,7 @@ int main(int argc, char *argv[]) {
             game_state_new_mission(&gs, 1);
             spawn_level_content(&gs);
             music_play(&music_sys, MUSIC_BASE);
+            printf("Starting verified Liberation game\n");
         }
     }
 
