@@ -32,10 +32,10 @@ ctest --test-dir build -j4
 
 ```
 src/
-  engine/     - Game logic: map_gen, combat, start_menu, inventory, shop, save_load
-  data/       - Format decoders: pl5, anm, rnc, gfx_loader, adf_reader, iso9660, st_disk
-  render/     - SDL3: renderer, viewport (3D), hud
-  audio/      - Sound: 8SVX loader, 8-channel mixer
+  engine/     - Game logic: map_gen, combat, start_menu, inventory, shop, save_load, puzzle, droid_ui, terminal
+  data/       - Format decoders: pl5, anm, rnc, gfx_loader, texture_atlas, adf_reader, iso9660, st_disk, mid_loader
+  render/     - SDL3: renderer, viewport (3D with creatures), hud
+  audio/      - Sound: 8SVX loader, 8-channel mixer, MIDI player, music system
 include/      - Public headers (one per module)
 tests/        - Test sources (pl5_decoder, anm_decoder, map_gen)
 tools/        - Standalone: pl5_to_bmp, anm_extract, rnc_decode
@@ -84,6 +84,14 @@ gamedata/     - Original game data (gitignored)
 | Shop | shop.c | Level-scaled stock, buy/sell |
 | Sound | sound.c | 8SVX loader, 8-channel mixer |
 | Save/load | save_load.c | Binary format, seed-regenerated maps |
+| Puzzles | puzzle.c | Buttons, levers, triple-levers, power sockets |
+| MIDI music | midi_player.c | Software square-wave synth, 32-voice polyphony |
+| Music system | music.c | Track management, state transitions |
+| Texture atlas | texture_atlas.c | PL5 wall/floor/door/icon sheets |
+| Droid UI | droid_ui.c | Equipment, inventory, equip/unequip |
+| Terminal | terminal.c | CRT-style map, status, mission briefing |
+| Creature render | viewport.c | Colored sprites, HP bars in viewport |
+| Game states | main.c | Game over, victory, mission progression |
 | PL5 loader | gfx_loader.c | Loads PL5 textures from game data |
 | ADF reader | adf_reader.c | Amiga OFS/FFS floppy images |
 | ISO reader | iso9660_reader.c | CD32 BIN/CUE (MODE1/2352) |

@@ -60,7 +60,9 @@ Point OpenCaptive at your game data directory:
 | Q | Strafe left |
 | E | Strafe right |
 | Space | Attack (selected droid) |
-| F | Interact (open doors, use generators, enter shops) |
+| F | Interact (puzzles, doors, generators, shops) |
+| I | Droid inventory/equipment screen |
+| T | Terminal (map, status, mission info) |
 | M | Toggle minimap overlay |
 | 1-4 | Select droid |
 | , / . | Go up/down stairs |
@@ -134,11 +136,16 @@ docs/         Format documentation
 | CI/CD (Linux, macOS, Windows) | Done |
 | GitHub Actions release workflow | Done |
 | Liberation: Captive 2 format analysis | Done |
-| MIDI music playback | Planned |
+| MIDI music (software synth, 32-voice) | Done |
+| Puzzle systems (buttons, levers, power sockets) | Done |
+| Textured viewport (walls, floors, doors) | Done |
+| Creature rendering in viewport | Done |
+| Droid inventory/equipment UI | Done |
+| Terminal system (map, status, mission) | Done |
+| Game over / victory states | Done |
+| Mission progression (10 missions) | Done |
 | Liberation: Captive 2 engine | Planned |
 | Enhanced rendering mode | Planned |
-| Textured viewport walls | Planned |
-| Puzzle systems (buttons, levers, bars) | Planned |
 
 ## Game data formats
 
