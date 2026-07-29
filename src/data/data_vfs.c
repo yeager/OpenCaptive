@@ -1,4 +1,5 @@
 #include "data_vfs.h"
+#include "sha256.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -210,6 +211,52 @@ static uint8_t *zip_extract(const char *zip_path, const char *rel_path, size_t *
     return NULL;
 }
 
+static uint8_t *zip_find_sha256(const char *zip_path, const char expected_sha256[65],
+                                size_t *out_size) {
+    FILE *f = fopen(zip_path, "rb");
+    if (!f) return NULL;
+    fseek(f, 0, SEEK_END);
+    long zip_size = ftell(f);
+    if (zip_size < 22) { fclose(f); return NULL; }
+    long start = zip_size > 65557 ? zip_size - 65557 : 0;
+    uint8_t tail[65557];
+    long tail_len = zip_size - start;
+    fseek(f, start, SEEK_SET);
+    if (fread(tail, 1, tail_len, f) != (size_t)tail_len) { fclose(f); return NULL; }
+    long eocd = -1;
+    for (long i = tail_len - 22; i >= 0; i--)
+        if (read_u32(tail + i) == ZIP_END_SIG) { eocd = start + i; break; }
+    if (eocd < 0) { fclose(f); return NULL; }
+    fseek(f, eocd, SEEK_SET);
+    uint8_t end[22];
+    if (fread(end, 1, sizeof(end), f) != sizeof(end)) { fclose(f); return NULL; }
+    uint16_t entries = read_u16(end + 10);
+    uint32_t cd_size = read_u32(end + 12), cd_offset = read_u32(end + 16);
+    if ((uint64_t)cd_offset + cd_size > (uint64_t)zip_size) { fclose(f); return NULL; }
+    fseek(f, cd_offset, SEEK_SET);
+    for (uint16_t i = 0; i < entries; i++) {
+        uint8_t hdr[46];
+        if (fread(hdr, 1, sizeof(hdr), f) != sizeof(hdr) || read_u32(hdr) != ZIP_CENTRAL_SIG) break;
+        uint16_t name_len = read_u16(hdr + 28), extra_len = read_u16(hdr + 30), comment_len = read_u16(hdr + 32);
+        if (!name_len || name_len > ZIP_MAX_ENTRY_NAME) break;
+        char name[ZIP_MAX_ENTRY_NAME + 1];
+        if (fread(name, 1, name_len, f) != name_len) break;
+        name[name_len] = '\0';
+        if (fseek(f, extra_len + comment_len, SEEK_CUR) != 0) break;
+        if (name[name_len - 1] == '/') continue;
+        size_t size = 0;
+        uint8_t *data = zip_extract(zip_path, name, &size);
+        if (!data) continue;
+        uint8_t digest[32]; sha256_digest(data, size, digest);
+        if (sha256_matches_hex(digest, expected_sha256)) {
+            fclose(f); if (out_size) *out_size = size; return data;
+        }
+        free(data);
+    }
+    fclose(f);
+    return NULL;
+}
+
 static void scan_for_zips(DataVFS *vfs) {
     vfs->num_zips = 0;
 
@@ -288,6 +335,15 @@ uint8_t *vfs_read_file(const DataVFS *vfs, const char *rel_path, size_t *out_siz
         if (data) return data;
     }
 
+    return NULL;
+}
+
+uint8_t *vfs_find_sha256(const DataVFS *vfs, const char expected_sha256[65], size_t *out_size) {
+    if (!vfs || !vfs->initialized || !expected_sha256) return NULL;
+    for (int i = 0; i < vfs->num_zips; i++) {
+        uint8_t *data = zip_find_sha256(vfs->zip_paths[i], expected_sha256, out_size);
+        if (data) return data;
+    }
     return NULL;
 }
 

@@ -1,4 +1,5 @@
 #include "data_vfs.h"
+#include "sha256.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,6 +51,12 @@ static void test_reads_prefixed_case_insensitive_zip_entry(void) {
     assert(result);
     assert(size == sizeof(payload));
     assert(memcmp(result, payload, sizeof(payload)) == 0);
+    free(result);
+    uint8_t digest[32];
+    sha256_digest(payload, sizeof(payload), digest);
+    result = vfs_find_sha256(&vfs,
+        "9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a", &size);
+    assert(result && size == sizeof(payload));
     free(result);
     vfs_free(&vfs);
     assert(remove("test-vfs-assets.zip") == 0);

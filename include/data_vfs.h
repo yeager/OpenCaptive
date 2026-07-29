@@ -22,6 +22,11 @@ void vfs_free(DataVFS *vfs);
 // Returns malloc'd buffer, caller must free. Sets *out_size.
 uint8_t *vfs_read_file(const DataVFS *vfs, const char *rel_path, size_t *out_size);
 
+// Find archive content by its SHA-256 digest. File names are not part of the
+// identity decision. Returns malloc'd content on success.
+uint8_t *vfs_find_sha256(const DataVFS *vfs, const char expected_sha256[65],
+                         size_t *out_size);
+
 // Check if a file exists (on disk or in any ZIP)
 bool vfs_file_exists(const DataVFS *vfs, const char *rel_path);
 

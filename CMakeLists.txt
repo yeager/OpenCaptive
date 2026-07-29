@@ -82,6 +82,7 @@ add_test(NAME map_gen COMMAND test_map_gen)
 add_executable(test_data_vfs
     tests/test_data_vfs.c
     src/data/data_vfs.c
+    src/data/sha256.c
 )
 target_include_directories(test_data_vfs PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_data_vfs PRIVATE ZLIB::ZLIB)
