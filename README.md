@@ -111,12 +111,9 @@ docs/         Format documentation
 | ANM animation decoder (XOR delta, LE frame sizes) | Done |
 | RNC Method 1 decompressor | Done |
 | Start menu (game selection) | Done |
-| 3D viewport (back-to-front, 4-depth) | Done |
-| HUD (droid status, minimap, compass) | Done |
-| Procedural map generator (rooms, corridors, doors) | Done |
-| Combat system (creatures, AI, attacks, leveling) | Done |
-| Item/weapon database (24 weapons, 12 armor, ammo) | Done |
-| Shop system | Done |
+| Original Captive viewport visibility analysis | Done; original panel compositor remains unrecovered |
+| Verified original Captive HUD shell | Done |
+| Generated map, combat, inventory and shop prototypes | Kept out of runtime; not parity evidence |
 | Sound engine (8SVX, 8-channel mixer) | Done |
 | Save/load game state | Done |
 | Atari ST disk reader (FAT12) | Done |

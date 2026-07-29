@@ -2,11 +2,11 @@
 
 ## Runtime model
 
-Captive is implemented as a grid-based first-person crawler. The engine keeps
-logical `DungeonLevel` arrays at 64×32 cells. A cell has a type, per-face wall
-textures, floor/ceiling textures, ornaments and small object fields. The
-viewport renders the current level while HUD, inventory, terminal, shop and
-puzzle systems operate on the same `GameState`.
+Captive's recovered presentation currently consists of the original 320×200
+HUD shell and the documented visibility rules. Legacy `DungeonLevel` and
+gameplay structures remain in the source tree as reverse-engineering notes,
+but are not driven by the runtime: they were generated substitutes, not decoded
+original map or save state.
 
 ## PL5 graphics
 
@@ -50,6 +50,25 @@ The sampling footprint, ordered cleanup conditions and back-to-front boundary
 are documented independently in [The Ultimate Captive Guide: View Rendering](https://captive.atari.org/Technical/ViewRendering/ViewRendering.php).
 The implementation intentionally limits itself to those published rules until
 the DOS panel tables are also recovered from verified executable/media bytes.
+
+### Verified panel sheets
+
+The five relevant DOS PL5 resources are selected only by SHA-256:
+
+```text
+47ad15b4a593c37880d0306b6a0f51b7a9f20615cf6a188f23716d5b48315524
+43833e4a8df622f84d53698a76c6d18f910c1cca79c6b89cbfacc563f695356c
+8b7301fc6c302fd673a81d23e7a99d715aa02d5b404c1e1edea19ceccccc9681
+519d3ef4494f0e868479a90c8a47249b840598e382c7ba3272f417ce3daf5936
+7edb8ee856a91e835ea86dda00af49fda3dae730d694bd7234b7fa96d711e296
+```
+
+The first digest decodes to the published `fed7-A` interior reference image.
+This establishes that the source data is authentic, but also rules out the old
+64×64 tile interpretation: each 320×200 sheet contains irregular, overlapping
+preprojected panels. A parity renderer must recover the original panel source
+rectangles, destinations, transparency convention and per-cell state table;
+sampling fixed-size tiles cannot reproduce the reference viewport.
 
 ## ANM animation
 

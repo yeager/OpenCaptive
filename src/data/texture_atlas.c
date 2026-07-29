@@ -65,27 +65,3 @@ uint32_t texture_sample(const TextureAtlas *atlas, int sheet_id,
 
     return tex->pixels[py * tex->width + px];
 }
-
-TextureRegion texture_get_wall(const TextureAtlas *atlas, int wall_set, int tile) {
-    TextureRegion r = {0, 0, WALL_TILE_W, WALL_TILE_H, -1};
-
-    if (wall_set < 0 || wall_set >= 5) wall_set = 0;
-    r.sheet_id = atlas->wall_sheets[wall_set];
-
-    // Wall sheets are 320x200. Tiles are arranged as:
-    // Row 0: tiles at (0,0), (64,0), (128,0), (192,0), (256,0)  = 5 tiles
-    // Row 1: tiles at (0,64), (64,64), ...
-    // Row 2: tiles at (0,128), (64,128), ...  (only 72px high)
-    int tiles_per_row = 320 / WALL_TILE_W; // 5
-    int row = tile / tiles_per_row;
-    int col = tile % tiles_per_row;
-
-    r.x = col * WALL_TILE_W;
-    r.y = row * WALL_TILE_H;
-
-    // Clamp to sheet bounds
-    if (r.x + r.w > 320) r.w = 320 - r.x;
-    if (r.y + r.h > 200) r.h = 200 - r.y;
-
-    return r;
-}
