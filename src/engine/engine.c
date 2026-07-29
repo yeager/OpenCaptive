@@ -11,6 +11,7 @@ void game_state_init(GameState *gs, GameType type, int mission) {
     gs->mission = mission;
     gs->selected_droid = 0;
     gs->party_dir = DIR_NORTH;
+    gs->gold = 100;
 
     for (int i = 0; i < 4; i++) {
         strncpy(gs->droids[i].name, droid_names[i], 15);

@@ -156,8 +156,8 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     target->hp -= damage;
     if (target->hp <= 0) {
         target->active = false;
-        // XP gain
         d->xp += target->hp_max / 10;
+        gs->gold += target->hp_max / 5 + 1;
         if (d->xp >= d->level * 100) {
             d->level++;
             d->hp_max += 10;

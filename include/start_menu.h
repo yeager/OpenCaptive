@@ -16,8 +16,13 @@ typedef struct {
     int selected_item;    // 0=Captive, 1=Liberation, 2=Settings, 3=Quit
     int num_items;
     bool enhanced_mode;
+    bool music_enabled;
+    bool sfx_enabled;
+    int scale_factor;     // 1-5
     CaptivePlatform platform;
     uint32_t anim_tick;
+    bool in_settings;
+    int settings_cursor;
 } StartMenu;
 
 void start_menu_init(StartMenu *menu);

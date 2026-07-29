@@ -104,47 +104,126 @@ void start_menu_init(StartMenu *menu) {
     memset(menu, 0, sizeof(*menu));
     menu->num_items = 4;
     menu->platform = CAPTIVE_PLATFORM_DOS;
+    menu->music_enabled = true;
+    menu->sfx_enabled = true;
+    menu->scale_factor = 3;
 }
 
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
-    if (event->type == SDL_EVENT_KEY_DOWN) {
+    if (event->type != SDL_EVENT_KEY_DOWN) return MENU_RESULT_NONE;
+
+    if (menu->in_settings) {
         switch (event->key.key) {
             case SDLK_UP:
-                menu->selected_item = (menu->selected_item + menu->num_items - 1) % menu->num_items;
+                if (menu->settings_cursor > 0) menu->settings_cursor--;
                 break;
             case SDLK_DOWN:
-                menu->selected_item = (menu->selected_item + 1) % menu->num_items;
+                if (menu->settings_cursor < 4) menu->settings_cursor++;
                 break;
             case SDLK_RETURN:
             case SDLK_KP_ENTER:
-                switch (menu->selected_item) {
-                    case 0: return MENU_RESULT_START_CAPTIVE;
-                    case 1: return MENU_RESULT_START_LIBERATION;
-                    case 3: return MENU_RESULT_QUIT;
+            case SDLK_LEFT:
+            case SDLK_RIGHT:
+                switch (menu->settings_cursor) {
+                    case 0: menu->enhanced_mode = !menu->enhanced_mode; break;
+                    case 1: menu->music_enabled = !menu->music_enabled; break;
+                    case 2: menu->sfx_enabled = !menu->sfx_enabled; break;
+                    case 3:
+                        if (event->key.key == SDLK_RIGHT && menu->scale_factor < 5)
+                            menu->scale_factor++;
+                        else if (event->key.key == SDLK_LEFT && menu->scale_factor > 1)
+                            menu->scale_factor--;
+                        break;
+                    case 4: menu->in_settings = false; break;
                 }
                 break;
             case SDLK_ESCAPE:
-                return MENU_RESULT_QUIT;
+                menu->in_settings = false;
+                break;
         }
+        return MENU_RESULT_NONE;
+    }
+
+    switch (event->key.key) {
+        case SDLK_UP:
+            menu->selected_item = (menu->selected_item + menu->num_items - 1) % menu->num_items;
+            break;
+        case SDLK_DOWN:
+            menu->selected_item = (menu->selected_item + 1) % menu->num_items;
+            break;
+        case SDLK_RETURN:
+        case SDLK_KP_ENTER:
+            switch (menu->selected_item) {
+                case 0: return MENU_RESULT_START_CAPTIVE;
+                case 1: return MENU_RESULT_START_LIBERATION;
+                case 2: menu->in_settings = true; menu->settings_cursor = 0; break;
+                case 3: return MENU_RESULT_QUIT;
+            }
+            break;
+        case SDLK_ESCAPE:
+            return MENU_RESULT_QUIT;
     }
     return MENU_RESULT_NONE;
 }
 
+static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int height) {
+    draw_text_centered(pixels, width, height, 20, "OPENCAPTIVE", 0xFFFF8800, 3);
+    draw_text_centered(pixels, width, height, 50, "SETTINGS", 0xFF888888, 1);
+
+    const char *labels[] = {
+        "GRAPHICS:",
+        "MUSIC:",
+        "SFX:",
+        "SCALE:",
+        "BACK",
+    };
+    char values[5][20];
+    snprintf(values[0], 20, "%s", menu->enhanced_mode ? "ENHANCED" : "ORIGINAL");
+    snprintf(values[1], 20, "%s", menu->music_enabled ? "ON" : "OFF");
+    snprintf(values[2], 20, "%s", menu->sfx_enabled ? "ON" : "OFF");
+    snprintf(values[3], 20, "%dX", menu->scale_factor);
+    values[4][0] = '\0';
+
+    int menu_y = 75;
+    int item_h = 18;
+
+    for (int i = 0; i < 5; i++) {
+        int y = menu_y + i * item_h;
+        bool sel = (i == menu->settings_cursor);
+
+        if (sel) {
+            draw_rect(pixels, width, height, 40, y - 2, width - 80, item_h - 2, 0xFF333366);
+            int pulse = (menu->anim_tick / 8) % 2;
+            draw_text(pixels, width, height, 44, y, ">", pulse ? 0xFFFFFF00 : 0xFFFF8800, 2);
+        }
+
+        uint32_t color = sel ? 0xFFFFFFFF : 0xFFAAAAAA;
+        draw_text(pixels, width, height, 65, y, labels[i], color, 2);
+        if (values[i][0]) {
+            uint32_t val_col = sel ? 0xFFFFFF00 : 0xFF88AA88;
+            draw_text(pixels, width, height, 190, y, values[i], val_col, 2);
+        }
+    }
+
+    draw_text_centered(pixels, width, height, height - 20,
+                       "ENTER: TOGGLE  LEFT-RIGHT: ADJUST  ESC: BACK",
+                       0xFF555555, 1);
+    draw_border(pixels, width, height, 5, 5, width - 10, height - 10, 0xFF444488, 1);
+}
+
 void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height) {
     menu->anim_tick++;
-
-    // Black background
     memset(pixels, 0, width * height * sizeof(uint32_t));
 
+    if (menu->in_settings) {
+        render_settings(menu, pixels, width, height);
+        return;
+    }
+
     // Title
-    uint32_t title_color = 0xFFFF8800; // orange, like Captive's text
-    draw_text_centered(pixels, width, height, 20, "OPENCAPTIVE", title_color, 3);
+    draw_text_centered(pixels, width, height, 20, "OPENCAPTIVE", 0xFFFF8800, 3);
+    draw_text_centered(pixels, width, height, 50, "SELECT GAME", 0xFF888888, 1);
 
-    // Subtitle
-    uint32_t sub_color = 0xFF888888;
-    draw_text_centered(pixels, width, height, 50, "SELECT GAME", sub_color, 1);
-
-    // Menu items
     const char *items[] = {
         "CAPTIVE (1990)",
         "LIBERATION: CAPTIVE 2",
@@ -160,11 +239,7 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
         bool selected = (i == menu->selected_item);
 
         if (selected) {
-            // Highlight bar
-            uint32_t hl = 0xFF333366;
-            draw_rect(pixels, width, height, 40, y - 2, width - 80, item_h - 2, hl);
-
-            // Pulsing selection indicator
+            draw_rect(pixels, width, height, 40, y - 2, width - 80, item_h - 2, 0xFF333366);
             int pulse = (menu->anim_tick / 8) % 2;
             uint32_t arrow_col = pulse ? 0xFFFFFF00 : 0xFFFF8800;
             draw_text(pixels, width, height, 44, y, ">", arrow_col, 2);
@@ -174,15 +249,9 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
         draw_text(pixels, width, height, 65, y, items[i], color, 2);
     }
 
-    // Bottom info
     draw_text_centered(pixels, width, height, height - 20,
                        "UP-DOWN: SELECT  ENTER: START  ESC: QUIT",
                        0xFF555555, 1);
-
-    // Decorative border
-    draw_border(pixels, width, height, 5, 5, width - 10, height - 10,
-                0xFF444488, 1);
-
-    // Version
+    draw_border(pixels, width, height, 5, 5, width - 10, height - 10, 0xFF444488, 1);
     draw_text(pixels, width, height, 10, height - 12, "V0.1.0", 0xFF333333, 1);
 }
