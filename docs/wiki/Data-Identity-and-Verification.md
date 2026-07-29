@@ -1,0 +1,61 @@
+# Data identity and verification
+
+## Principle
+
+OpenCaptive identifies original game data by **SHA-256 of content**, never by
+the name of an archive, disk image or member file. Names are unreliable:
+different releases, dump tools, repacks and case conventions all vary while
+the bytes of a known resource remain stable.
+
+The virtual filesystem (`src/data/data_vfs.c`) accepts directories and ZIP
+archives. `vfs_find_sha256()` streams candidate content and returns a matching
+buffer only when the requested digest matches. Callers own and free that buffer.
+
+## Captive manifest
+
+The current Captive startup manifest verifies the intro plus textures needed by
+the active renderer. Examples:
+
+| Purpose | SHA-256 |
+| --- | --- |
+| Intro animation | `1ec1f90adbcfcb3b99b64a56cf1c669b409b7d3a76bc09cedb056f503bfb1959` |
+| Wall texture A | `47ad15b4a593c37880d0306b6a0f51b7a9f20615cf6a188f23716d5b48315524` |
+| Object sheet | `21db7daf64cff3b0cae19c3e7eb2057762df9110055e7253175024ecb146fb6b` |
+| HUD sheet | `dfca77f0e219962242226f11f9697f580f92e8ad24786296a5b2571b20c2b707` |
+
+Music is loaded the same way. The MIDI system owns each retrieved buffer for
+the lifetime of the selected track, preventing a use-after-free during track
+changes.
+
+## Liberation CD32 manifest
+
+The verified CD32 data track is:
+
+```text
+f807b1385c0996d54ed10afab271a7dd31d2c6dc6a18f13196ad2a79a0af8a80
+```
+
+After opening the raw ISO9660 image, the loader verifies these content hashes
+inside it:
+
+| Resource role | SHA-256 |
+| --- | --- |
+| Executable payload | `db61f7e39fd31ac19b82216ea963711728d25518454fae42fd89c5bab52f2215` |
+| City generator payload | `e54540c3bf8dfaf569380a135ac039f1438e9efb85cf6d5e3e487e25d4c7c13e` |
+| Plot generator payload | `bc9c922801661eb66024d0bcf822c03e38ffea7f3576693e0512692ccf6d6705` |
+| Plot text payload | `884d4124fa1ab600a4f7dd889df160779eda8c62e13af1d0280ac9aad681818c` |
+| City text payload | `99f7bd75794a7b4f3e94eeef9c61b756da938d862bb83339b140c18d02eb79c5` |
+| Dialogue text payload | `e154d250c1acdbed66835bb356a699efdb6f9f8b5e6d586ca07080414610a94c` |
+
+`liberation_data_open()` requires every listed digest. `liberation_data_read()`
+then retrieves a resource by its enum-to-hash manifest mapping, rather than by
+media filename.
+
+## Adding a digest
+
+1. Obtain media legally and keep it outside the repository.
+2. Derive the digest from bytes, record platform/revision/provenance, and test
+   a known-good sample.
+3. Add the digest to the narrowest manifest that needs it.
+4. Add a test or verifier that proves a mismatch is rejected.
+5. Do not commit the media, an extracted payload, or a filename-based fallback.
