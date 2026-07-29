@@ -22,12 +22,14 @@ typedef struct {
     MIDIPlayer  player;
     SoundSystem *sound;
     MusicTrack  current_track;
+    MusicTrack  requested_track;
     const DataVFS *vfs;
     uint8_t     *owned_data;
     bool        enabled;
 } MusicSystem;
 
 bool music_init(MusicSystem *mus, SoundSystem *snd, const DataVFS *vfs);
+void music_set_enabled(MusicSystem *mus, bool enabled);
 void music_play(MusicSystem *mus, MusicTrack track);
 void music_stop(MusicSystem *mus);
 void music_update(MusicSystem *mus);

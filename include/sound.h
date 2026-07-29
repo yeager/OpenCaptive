@@ -32,6 +32,7 @@ typedef struct {
     SoundChannel channels[MAX_CHANNELS];
     float master_volume;
     bool initialized;
+    bool enabled;
 } SoundSystem;
 
 bool sound_init(SoundSystem *snd);
@@ -41,6 +42,7 @@ int  sound_load_8svx(SoundSystem *snd, const uint8_t *data, uint32_t size);
 void sound_play(SoundSystem *snd, int sample_id, float volume, float pitch);
 void sound_play_loop(SoundSystem *snd, int sample_id, float volume, float pitch);
 void sound_stop_all(SoundSystem *snd);
+void sound_set_enabled(SoundSystem *snd, bool enabled);
 void sound_mix(SoundSystem *snd);
 
 #endif

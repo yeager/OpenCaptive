@@ -18,6 +18,7 @@ bool sound_init(SoundSystem *snd) {
 
     SDL_ResumeAudioStreamDevice(snd->stream);
     snd->initialized = true;
+    snd->enabled = true;
     return true;
 }
 
@@ -83,7 +84,7 @@ int sound_load_8svx(SoundSystem *snd, const uint8_t *data, uint32_t size) {
 }
 
 void sound_play(SoundSystem *snd, int sample_id, float volume, float pitch) {
-    if (!snd->initialized || sample_id < 0 || sample_id >= snd->num_samples) return;
+    if (!snd->initialized || !snd->enabled || sample_id < 0 || sample_id >= snd->num_samples) return;
 
     // Find free channel
     for (int i = 0; i < MAX_CHANNELS; i++) {
@@ -122,8 +123,14 @@ void sound_stop_all(SoundSystem *snd) {
         snd->channels[i].playing = false;
 }
 
+void sound_set_enabled(SoundSystem *snd, bool enabled) {
+    if (!snd) return;
+    snd->enabled = enabled;
+    if (!enabled) sound_stop_all(snd);
+}
+
 void sound_mix(SoundSystem *snd) {
-    if (!snd->initialized) return;
+    if (!snd->initialized || !snd->enabled) return;
 
     // Mix 1024 samples at a time
     int16_t buffer[1024];

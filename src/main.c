@@ -153,6 +153,8 @@ enum {
     POPUP_CRT,
     POPUP_BILINEAR,
     POPUP_BRIGHTNESS,
+    POPUP_MUSIC,
+    POPUP_SFX,
     POPUP_INVULNERABLE,
     POPUP_INFINITE_ENERGY,
     POPUP_COMPLETE_OBJECTIVE,
@@ -265,6 +267,8 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
             config->brightness = config->brightness < 50 ? 50 :
                 (config->brightness < 75 ? 75 : 25);
             break;
+        case POPUP_MUSIC: music_set_enabled(&music_sys, !music_sys.enabled); break;
+        case POPUP_SFX: sound_set_enabled(&sound_sys, !sound_sys.enabled); break;
         case POPUP_INVULNERABLE: runtime_popup.invulnerable = !runtime_popup.invulnerable; break;
         case POPUP_INFINITE_ENERGY: runtime_popup.infinite_energy = !runtime_popup.infinite_energy; break;
         case POPUP_COMPLETE_OBJECTIVE:
@@ -284,7 +288,8 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
 static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
     static const char *labels[POPUP_ITEMS] = {
         "ENHANCED VIEW", "SCANLINES", "CRT CURVE", "BILINEAR",
-        "BRIGHTNESS", "GOD MODE", "INFINITE ENERGY", "COMPLETE OBJECTIVE", "CLOSE",
+        "BRIGHTNESS", "MUSIC", "SFX", "GOD MODE", "INFINITE ENERGY",
+        "COMPLETE OBJECTIVE", "CLOSE",
     };
     int x = 30, y = 18, w = pw - 60, h = 164;
     draw_rect(fb, pw, ph, x, y, w, h, 0xFF101420);
@@ -303,6 +308,8 @@ static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
             case POPUP_CRT: value = popup_toggle(gs->config.crt_curvature); break;
             case POPUP_BILINEAR: value = popup_toggle(gs->config.bilinear); break;
             case POPUP_BRIGHTNESS: value = popup_brightness(gs->config.brightness); break;
+            case POPUP_MUSIC: value = popup_toggle(music_sys.enabled); break;
+            case POPUP_SFX: value = popup_toggle(sound_sys.enabled); break;
             case POPUP_INVULNERABLE: value = popup_toggle(runtime_popup.invulnerable); break;
             case POPUP_INFINITE_ENERGY: value = popup_toggle(runtime_popup.infinite_energy); break;
             case POPUP_COMPLETE_OBJECTIVE: value = "NOW"; break;
@@ -816,6 +823,8 @@ int main(int argc, char *argv[]) {
                             if (config.render_mode == CAPTIVE_RENDER_ENHANCED &&
                                 !enhanced.enabled)
                                 enhanced_init(&enhanced);
+                            music_set_enabled(&music_sys, menu.music_enabled);
+                            sound_set_enabled(&sound_sys, menu.sfx_enabled);
                             vfs_free(&vfs);
                             vfs_init(&vfs, config.data_path);
                             if (!validate_data_path(&vfs)) {

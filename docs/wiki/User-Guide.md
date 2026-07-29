@@ -55,7 +55,7 @@ the campaign. A direct attack or enemy shot cannot cross a wall or closed door.
 
 Press `F10` during either game to pause the live simulation and open the
 runtime popup. It can switch the enhanced viewport, scanlines, CRT curvature,
-bilinear output filtering and brightness immediately. The same popup has explicit cheat
+bilinear output filtering, brightness, music and SFX immediately. The same popup has explicit cheat
 switches for god mode, infinite energy and completing the current objective.
 `Escape` or `F10` closes it. Cheats are deliberately visible and opt-in; they
 are not activated by command-line defaults.

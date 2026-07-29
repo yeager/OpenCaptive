@@ -23,7 +23,22 @@ bool music_init(MusicSystem *mus, SoundSystem *snd, const DataVFS *vfs) {
     return true;
 }
 
+void music_set_enabled(MusicSystem *mus, bool enabled) {
+    if (!mus || mus->enabled == enabled) return;
+    mus->enabled = enabled;
+    if (!enabled) {
+        midi_stop(&mus->player);
+        free(mus->owned_data);
+        mus->owned_data = NULL;
+        mus->current_track = MUSIC_NONE;
+    } else if (mus->requested_track != MUSIC_NONE) {
+        music_play(mus, mus->requested_track);
+    }
+}
+
 void music_play(MusicSystem *mus, MusicTrack track) {
+    if (!mus) return;
+    mus->requested_track = track;
     if (!mus->enabled || track == mus->current_track) return;
 
     midi_stop(&mus->player);
@@ -53,6 +68,7 @@ void music_stop(MusicSystem *mus) {
     free(mus->owned_data);
     mus->owned_data = NULL;
     mus->current_track = MUSIC_NONE;
+    mus->requested_track = MUSIC_NONE;
 }
 
 void music_update(MusicSystem *mus) {
