@@ -49,14 +49,11 @@ while si < packed_size and pos < 64000:
         pos += skip
 ```
 
-## Test data
+## Test observations
 
-| File | Size | Frames | Content |
-|------|------|--------|---------|
-| TEST0.ANM | 2472 | 1 | "Courtroom 101, 2127ad." |
-| TEST9.ANM | varies | 43 | Space station animation |
-| TEST10.ANM | varies | 18 | Multiple scenes |
-| TEST13.ANM | varies | 23 | Cryo-pod sequence |
+Observed samples include a one-frame text scene, a 43-frame station sequence,
+an 18-frame multi-scene sequence and a 23-frame cryo-pod sequence. Paths and
+original filenames are deliberately not part of the format contract.
 
 ## Reference
 

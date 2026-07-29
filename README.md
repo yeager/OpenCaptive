@@ -22,7 +22,7 @@ The sequel expands the concept into a cyberpunk city setting. Developed by Byte 
 
 ## What is OpenCaptive?
 
-OpenCaptive is a faithful reimplementation of both game engines in modern C with SDL3. It aims to:
+OpenCaptive is a modern C/SDL3 reimplementation project for both game engines. Captive has the broader playable implementation; Liberation is an explicitly separate, early runtime while its original generator and plot code are being reverse-engineered. It aims to:
 
 - **Preserve the original experience** — pixel-perfect rendering, original game logic, and authentic gameplay using the original data files
 - **Enhance where it makes sense** — optional higher-resolution rendering, modern display scaling, and quality-of-life improvements while keeping the original mode as the default
@@ -85,18 +85,19 @@ Point OpenCaptive at your game data directory:
 
 ### Captive
 
-| Platform | Files | Notes |
-|----------|-------|-------|
-| DOS | `CAPICS/*.PL5`, `ANIMS/*.ANM`, `SOUND/*.MID` | Extracted game directory |
-| Atari ST | `.st` disk image | RNC compressed, 4-bitplane graphics |
-| Amiga | `.adf` disk images | RNC compressed |
+OpenCaptive discovers required assets recursively in loose data and supported
+archives, then accepts each asset only when its SHA-256 content digest matches
+the Captive manifest. The path and original filename have no bearing on the
+match. Use `--verify-data captive` before starting the game.
 
 ### Liberation: Captive 2
 
-| Platform | Files | Notes |
-|----------|-------|-------|
-| Amiga | `.adf` disk images (5 disks) | OFS filesystem, IFF FORM/ANIM, RNC |
-| Amiga CD32 | `.bin/.cue` disc image | ISO9660+CDTV, CD audio tracks 2-11 |
+The currently supported Liberation source is the known CD32 MODE1/2352 data
+track whose outer digest and required ISO resources match the Liberation
+manifest. Both the outer track and every required resource are selected by
+SHA-256, not by filesystem path or original filename. Use
+`--verify-data liberation` before starting it. Other Liberation editions are
+not accepted as equivalent data yet.
 
 ## Project structure
 
@@ -136,7 +137,7 @@ docs/         Format documentation
 | Intro cutscene playback (ANM) | Done |
 | CI/CD (Linux, macOS, Windows) | Done |
 | GitHub Actions release workflow | Done |
-| Liberation: Captive 2 format analysis | Done |
+| Liberation: Captive 2 hash verification and format analysis | Done |
 | MIDI music (software synth, 32-voice) | Done |
 | Puzzle systems (buttons, levers, power sockets) | Done |
 | Textured viewport (walls, floors, doors) | Done |
@@ -147,9 +148,9 @@ docs/         Format documentation
 | Mission progression (10 missions) | Done |
 | Gold economy (drops, shop, HUD display) | Done |
 | Settings menu (graphics, audio, scale) | Done |
-| Liberation: Captive 2 city engine | Done |
-| Liberation: building interiors | Done |
-| Liberation: city/building navigation | Done |
+| Liberation: Captive 2 city runtime | Experimental |
+| Liberation: original city, plot and dialogue logic | In reverse engineering |
+| Liberation: building-interior navigation | Experimental |
 | Enhanced rendering mode (2x SSAA) | Done |
 | Procedural sound effects (10 types) | Done |
 
