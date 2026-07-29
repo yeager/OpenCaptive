@@ -390,7 +390,7 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
     int ny = gs->party_y + dy;
     if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT) {
         CellType cell = lvl->cells[ny][nx].type;
-        if (cell != CELL_WALL && cell != CELL_DOOR_LOCKED) {
+        if (cell != CELL_WALL && cell != CELL_DOOR && cell != CELL_DOOR_LOCKED) {
             gs->party_x = nx;
             gs->party_y = ny;
             sfx_play(&sfx, SFX_STEP);

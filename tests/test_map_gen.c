@@ -89,11 +89,15 @@ static void test_architect_base_layout(void) {
     int count = 0;
     map_generate_base(levels, &count, 179);
     assert(count >= 2 && count <= 5);
+    int doors = 0;
     for (int level = 0; level < count; level++) {
         int usable = 0;
         for (int y = 0; y < MAP_HEIGHT; y++)
             for (int x = 0; x < MAP_WIDTH; x++)
-                if (levels[level].cells[y][x].type != CELL_WALL) usable++;
+                if (levels[level].cells[y][x].type != CELL_WALL) {
+                    usable++;
+                    doors += levels[level].cells[y][x].type == CELL_DOOR;
+                }
         assert(usable > 20);
         if (level + 1 < count) {
             int down = 0, up = 0;
@@ -105,6 +109,7 @@ static void test_architect_base_layout(void) {
             assert(down == 1 && up == 1);
         }
     }
+    assert(doors > 0);
 }
 
 static void test_logical_floors_are_connected(void) {

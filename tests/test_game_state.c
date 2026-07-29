@@ -48,6 +48,11 @@ int main(void) {
     assert(gs.generators_destroyed == before + 1);
     assert(gs.levels[0].cells[1][2].type == CELL_FLOOR);
 
+    /* Doors are barriers until the interaction path opens them. */
+    gs.levels[0].cells[1][2].type = CELL_DOOR;
+    combat_interact(&gs);
+    assert(gs.levels[0].cells[1][2].type == CELL_FLOOR);
+
     int initial_level = gs.current_level;
     move_to_stair(&gs, CELL_STAIRS_DOWN);
     assert(game_state_change_floor(&gs, 1));

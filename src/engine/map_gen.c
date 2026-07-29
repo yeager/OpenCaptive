@@ -310,6 +310,44 @@ static void architect_finish_level(DungeonLevel *level, int level_num) {
     }
 }
 
+/* Architect places doors after carving paths, at one-cell choke points.  Keep
+ * that placement separate from the digger: a door is an interactive barrier,
+ * not a different kind of path. */
+static void architect_place_doors(DungeonLevel *level) {
+    int candidates[MAP_WIDTH * MAP_HEIGHT];
+    int count = 0;
+
+    for (int y = 1; y < MAP_HEIGHT - 1; y++) {
+        for (int x = 1; x < MAP_WIDTH - 1; x++) {
+            if (level->cells[y][x].type != CELL_FLOOR) continue;
+            bool ns_walls = level->cells[y - 1][x].type == CELL_WALL &&
+                            level->cells[y + 1][x].type == CELL_WALL;
+            bool ew_open = level->cells[y][x - 1].type == CELL_FLOOR &&
+                           level->cells[y][x + 1].type == CELL_FLOOR;
+            bool ew_walls = level->cells[y][x - 1].type == CELL_WALL &&
+                            level->cells[y][x + 1].type == CELL_WALL;
+            bool ns_open = level->cells[y - 1][x].type == CELL_FLOOR &&
+                           level->cells[y + 1][x].type == CELL_FLOOR;
+            if ((ns_walls && ew_open) || (ew_walls && ns_open))
+                candidates[count++] = y * MAP_WIDTH + x;
+        }
+    }
+
+    /* A base without a door makes the door and wall-control gameplay paths
+     * unreachable.  Guarantee one where topology permits, then add up to the
+     * documented maximum of eight with Architect's PRNG. */
+    int placed = 0;
+    while (count > 0 && placed < 8) {
+        int index = (int)(prng_next() % (uint16_t)count);
+        int pos = candidates[index];
+        candidates[index] = candidates[--count];
+        if (placed == 0 || (prng_next() & 3u) == 0) {
+            level->cells[pos / MAP_WIDTH][pos % MAP_WIDTH].type = CELL_DOOR;
+            placed++;
+        }
+    }
+}
+
 void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
                        uint32_t seed) {
     int section_floor[16];
@@ -398,6 +436,7 @@ void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
         }
         architect_carve_floor(&levels[f], section_floor, f, sx, sy);
         architect_finish_level(&levels[f], f);
+        architect_place_doors(&levels[f]);
     }
 
     /* Connect adjacent logical floors using paired cells.  The current game
