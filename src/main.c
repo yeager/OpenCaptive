@@ -768,6 +768,14 @@ int main(int argc, char *argv[]) {
                             config.fps_limit = menu.fps_limit;
                             config.brightness = menu.brightness;
                             config.contrast = menu.contrast;
+                            gs.config = config;
+                            renderer_set_effects(&renderer, config.bilinear,
+                                                 config.scanlines,
+                                                 config.brightness,
+                                                 config.contrast);
+                            if (config.render_mode == CAPTIVE_RENDER_ENHANCED &&
+                                !enhanced.enabled)
+                                enhanced_init(&enhanced);
                             vfs_free(&vfs);
                             vfs_init(&vfs, config.data_path);
                             if (!validate_data_path(&vfs)) {
