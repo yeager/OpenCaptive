@@ -121,6 +121,30 @@ void start_menu_init(StartMenu *menu) {
     menu->fps_limit = 60;
 }
 
+MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
+    if (!menu || menu->in_settings) return MENU_RESULT_NONE;
+
+    /* Keep the clickable bounds aligned with start_menu_render(). */
+    const float menu_x = 40.0f;
+    const float menu_width = 240.0f;
+    const float menu_y = 78.0f;
+    const float item_height = 20.0f;
+    if (x < menu_x || x >= menu_x + menu_width || y < menu_y ||
+        y >= menu_y + item_height * menu->num_items)
+        return MENU_RESULT_NONE;
+
+    int item = (int)((y - menu_y) / item_height);
+    if (item < 0 || item >= menu->num_items) return MENU_RESULT_NONE;
+    menu->selected_item = item;
+    switch (item) {
+        case 0: return MENU_RESULT_START_CAPTIVE;
+        case 1: return MENU_RESULT_START_LIBERATION;
+        case 2: menu->in_settings = true; menu->settings_cursor = 0; break;
+        case 3: return MENU_RESULT_QUIT;
+    }
+    return MENU_RESULT_NONE;
+}
+
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
     // Handle text input for data path editing
     if (menu->data_path_editing) {

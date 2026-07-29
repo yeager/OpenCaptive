@@ -872,7 +872,18 @@ int main(int argc, char *argv[]) {
 
             switch (gs.mode) {
                 case STATE_MENU: {
-                    MenuResult result = start_menu_handle_event(&menu, &event);
+                    MenuResult result;
+                    if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
+                        event.button.button == SDL_BUTTON_LEFT) {
+                        int width = CAPTIVE_ORIGINAL_WIDTH;
+                        int height = CAPTIVE_ORIGINAL_HEIGHT;
+                        SDL_GetWindowSize(renderer.window, &width, &height);
+                        float x = event.button.x * CAPTIVE_ORIGINAL_WIDTH / width;
+                        float y = event.button.y * CAPTIVE_ORIGINAL_HEIGHT / height;
+                        result = start_menu_handle_click(&menu, x, y);
+                    } else {
+                        result = start_menu_handle_event(&menu, &event);
+                    }
                     switch (result) {
                         case MENU_RESULT_START_CAPTIVE:
                             gs.game_type = GAME_CAPTIVE;

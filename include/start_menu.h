@@ -40,6 +40,8 @@ typedef struct {
 
 void start_menu_init(StartMenu *menu);
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event);
+/* Coordinates are in the 320x200 virtual framebuffer used by the menu. */
+MenuResult start_menu_handle_click(StartMenu *menu, float x, float y);
 void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height);
 
 #endif

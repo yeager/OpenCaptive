@@ -28,6 +28,13 @@ int main(void) {
     assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_NONE);
     assert(!menu.in_settings);
 
+    assert(start_menu_handle_click(&menu, 100.0f, 85.0f) ==
+           MENU_RESULT_START_CAPTIVE);
+    assert(start_menu_handle_click(&menu, 100.0f, 105.0f) ==
+           MENU_RESULT_START_LIBERATION);
+    assert(start_menu_handle_click(&menu, 100.0f, 125.0f) == MENU_RESULT_NONE);
+    assert(menu.in_settings);
+
     puts("All start menu tests passed");
     return 0;
 }
