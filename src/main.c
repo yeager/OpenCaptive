@@ -659,6 +659,7 @@ int main(int argc, char *argv[]) {
     bool start_directly = false;
     const char *verify_data = NULL;
     const char *capture_frame_path = NULL;
+    int exit_status = 0;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
@@ -1249,6 +1250,7 @@ int main(int argc, char *argv[]) {
         if (capture_frame_path) {
             if (!write_frame_ppm(capture_frame_path, framebuffer, frame_width, frame_height)) {
                 fprintf(stderr, "Could not write frame capture: %s\n", capture_frame_path);
+                exit_status = 1;
                 running = false;
             } else {
                 printf("Wrote native frame capture: %s\n", capture_frame_path);
@@ -1274,5 +1276,5 @@ int main(int argc, char *argv[]) {
     if (textures_loaded) texture_atlas_free(&atlas);
     renderer_shutdown(&renderer);
     SDL_Quit();
-    return 0;
+    return exit_status;
 }
