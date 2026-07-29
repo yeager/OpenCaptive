@@ -45,6 +45,22 @@ nor accepts filenames:
 Any future graphics decoder must record the selected digest in code and tests
 before it is wired into the renderer.
 
+## Sprite-bank observation log
+
+The hash-identified resource
+`07cca53c7efaac9e2880d50524039b0f9cb2a403e0cfbfb0b5f6ce408594d2d1`
+has the `AmSp` signature and a 42-entry declaration. Its initial eight entries
+are conventional four-colour-bitplane images followed by a fifth, one-bit
+transparency mask plane. The observed record size is therefore
+`10 + words × height × (depth + 1) × 2`; this makes every boundary through the
+eighth entry exact. `amos_sprite_dump` decodes this verified, unflagged prefix
+to a PPM inspection image using a resource hash and an entry index.
+
+The next record sets the high bit of the width word. That is a distinct
+Liberation variant and deliberately fails closed in the current parser rather
+than being treated as ordinary planar data. Consequently this decoder is an
+analysis tool, not yet a live Liberation renderer dependency.
+
 ## CityGen observation log
 
 The city-generator payload selected by
