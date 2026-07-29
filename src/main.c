@@ -1153,8 +1153,12 @@ int main(int argc, char *argv[]) {
                             CAPTIVE_ORIGINAL_WIDTH,
                             textures_loaded ? &atlas : NULL, &creatures);
                     }
-                    hud_render(&gs, framebuffer,
-                               CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                    /* The original GAME SCRN resource already contains the
+                     * complete control and status-panel shell.  Do not paint
+                     * the replacement HUD over it in original-render mode. */
+                    if (config.render_mode == CAPTIVE_RENDER_ENHANCED)
+                        hud_render(&gs, framebuffer,
+                                   CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 }
                 break;
             }

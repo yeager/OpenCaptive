@@ -48,7 +48,7 @@ static void test_captive_viewport_snapshot(void) {
     game.levels[0].cells[14][33].type = CELL_GENERATOR;
     viewport_render(&game, pixels, CAPTIVE_VIEWPORT_WIDTH);
     assert_snapshot("captive viewport", pixels, VIEWPORT_PIXELS,
-                    UINT64_C(0xc56601e520b7e7a5));
+                    UINT64_C(0x3eafbe90312c3125));
 }
 
 static void test_liberation_city_snapshot(void) {

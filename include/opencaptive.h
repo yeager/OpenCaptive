@@ -7,17 +7,19 @@
 
 #define OPENCAPTIVE_VERSION_MAJOR 1
 #define OPENCAPTIVE_VERSION_MINOR 1
-#define OPENCAPTIVE_VERSION_PATCH 7
+#define OPENCAPTIVE_VERSION_PATCH 8
 
 // Original Captive resolution: 320x200 (DOS/Atari ST), 320x256 (Amiga)
 #define CAPTIVE_ORIGINAL_WIDTH  320
 #define CAPTIVE_ORIGINAL_HEIGHT 200
 
-// Viewport area in original game (upper portion of screen)
-#define CAPTIVE_VIEWPORT_WIDTH  256
-#define CAPTIVE_VIEWPORT_HEIGHT 136
+/* Captive's original GAME SCRN shell reserves a 144x112 dungeon window at
+ * these coordinates.  The earlier 256x136 rectangle covered the status
+ * monitors, controls and message panel in the hash-verified source frame. */
+#define CAPTIVE_VIEWPORT_WIDTH  144
+#define CAPTIVE_VIEWPORT_HEIGHT 112
 #define CAPTIVE_VIEWPORT_X      32
-#define CAPTIVE_VIEWPORT_Y       8
+#define CAPTIVE_VIEWPORT_Y      55
 
 typedef enum {
     CAPTIVE_PLATFORM_DOS,
