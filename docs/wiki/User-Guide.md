@@ -57,7 +57,8 @@ Press `F10` during either game to pause the live simulation and open the
 runtime popup. It can switch the enhanced viewport, scanlines, CRT curvature,
 bilinear output filtering, brightness, music and SFX immediately. The same popup has explicit cheat
 switches for god mode, infinite energy and completing the current objective.
-`Escape` or `F10` closes it. Cheats are deliberately visible and opt-in; they
+`Escape` or `F10` closes it. The start-menu settings page also exposes music
+and SFX enablement for the next game session. Cheats are deliberately visible and opt-in; they
 are not activated by command-line defaults.
 
 ## Saves

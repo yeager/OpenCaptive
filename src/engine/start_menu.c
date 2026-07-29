@@ -184,7 +184,7 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
     if (event->type != SDL_EVENT_KEY_DOWN) return MENU_RESULT_NONE;
 
     if (menu->in_settings) {
-        #define SETTINGS_COUNT 14
+        #define SETTINGS_COUNT 15
         switch (event->key.key) {
             case SDLK_UP:
                 if (menu->settings_cursor > 0) menu->settings_cursor--;
@@ -233,14 +233,15 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
                             menu->contrast -= 5;
                         break;
                     case 11: menu->music_enabled = !menu->music_enabled; break;
-                    case 12:
+                    case 12: menu->sfx_enabled = !menu->sfx_enabled; break;
+                    case 13:
                         if (event->key.key == SDLK_RETURN || event->key.key == SDLK_KP_ENTER) {
                             menu->data_path_editing = true;
                             menu->data_path_cursor = (int)strlen(menu->data_path);
                             SDL_StartTextInput(NULL);
                         }
                         break;
-                    case 13: menu->in_settings = false; break;
+                    case 14: menu->in_settings = false; break;
                 }
                 break;
             case SDLK_ESCAPE:
@@ -296,6 +297,7 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
         "BRIGHTNESS:",
         "CONTRAST:",
         "MUSIC:",
+        "SFX:",
         "DATA PATH:",
         "BACK",
     };
@@ -313,8 +315,9 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
     snprintf(values[9], 20, "%d%%", menu->brightness);
     snprintf(values[10], 20, "%d%%", menu->contrast);
     snprintf(values[11], 20, "%s", menu->music_enabled ? "ON" : "OFF");
-    values[12][0] = '\0';
+    snprintf(values[12], 20, "%s", menu->sfx_enabled ? "ON" : "OFF");
     values[13][0] = '\0';
+    values[14][0] = '\0';
 
     int menu_y = 50;
     int item_h = 14;
@@ -346,7 +349,7 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
         draw_text_centered(pixels, width, height, menu_y + visible * item_h, "...", 0xFF555555, 1);
 
     // Data path display
-    if (menu->settings_cursor == 12) {
+    if (menu->settings_cursor == 13) {
         int path_y = menu_y + visible * item_h + 10;
         draw_rect(pixels, width, height, 30, path_y, width - 60, 12, 0xFF222244);
         const char *dp = menu->data_path;
