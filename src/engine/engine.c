@@ -86,3 +86,16 @@ bool game_state_change_floor(GameState *gs, int direction) {
     }
     return false;
 }
+
+bool game_state_complete_mission(GameState *gs) {
+    if (!gs || gs->game_type != GAME_CAPTIVE || gs->generators_total <= 0 ||
+        gs->generators_destroyed < gs->generators_total)
+        return false;
+
+    if (gs->mission >= 10) {
+        gs->mode = STATE_VICTORY;
+    } else {
+        game_state_new_mission(gs, gs->mission + 1);
+    }
+    return true;
+}

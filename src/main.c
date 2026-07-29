@@ -874,15 +874,10 @@ int main(int argc, char *argv[]) {
                      * not by waiting for a creature list to happen to empty.
                      * The old condition advanced unattended games after a timer
                      * and could make an objective impossible to understand. */
-                    bool mission_done = gs.generators_total > 0 &&
-                                        gs.generators_destroyed >= gs.generators_total;
-                    if (mission_done) {
-                        if (gs.mission >= 10) {
-                            gs.mode = STATE_VICTORY;
+                    if (game_state_complete_mission(&gs)) {
+                        if (gs.mode == STATE_VICTORY) {
                             music_play(&music_sys, MUSIC_ESCAPE);
                         } else {
-                            gs.mission++;
-                            game_state_new_mission(&gs, gs.mission);
                             spawn_level_content(&gs);
                         }
                         break;

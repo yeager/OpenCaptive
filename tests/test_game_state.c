@@ -57,8 +57,24 @@ static void test_combat_respects_closed_doors(void) {
     assert(gs.droids[0].hp == hp_before);
 }
 
+static void test_campaign_progression(void) {
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    gs.base_id = 3;
+    game_state_new_mission(&gs, 9);
+    assert(!game_state_complete_mission(&gs));
+    gs.generators_destroyed = gs.generators_total;
+    assert(game_state_complete_mission(&gs));
+    assert(gs.mission == 10 && gs.mode == STATE_GAME);
+
+    gs.generators_destroyed = gs.generators_total;
+    assert(game_state_complete_mission(&gs));
+    assert(gs.mode == STATE_VICTORY);
+}
+
 int main(void) {
     test_combat_respects_closed_doors();
+    test_campaign_progression();
     GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
     gs.base_id = 3;

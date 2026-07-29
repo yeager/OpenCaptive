@@ -126,5 +126,6 @@ typedef struct {
 void game_state_init(GameState *gs, GameType type, int mission);
 void game_state_new_mission(GameState *gs, int mission);
 bool game_state_change_floor(GameState *gs, int direction);
+bool game_state_complete_mission(GameState *gs);
 
 #endif
