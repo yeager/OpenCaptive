@@ -20,6 +20,7 @@
 #include "liberation.h"
 #include "enhanced_render.h"
 #include "data_vfs.h"
+#include "sha256.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
@@ -51,9 +52,19 @@ static void get_default_data_path(char *buf, size_t bufsize) {
 }
 
 static bool validate_data_path(const DataVFS *vfs) {
+    static const struct { const char *path; const char *sha256; } required[] = {
+        { "CAPPO.EXE", "71bcf404103f1ac2920800a8bc166939bb49a1204cf51bebce8aca7dd5faafde" },
+        { "ANIMS/TEST0.ANM", "1ec1f90adbcfcb3b99b64a56cf1c669b409b7d3a76bc09cedb056f503bfb1959" },
+        { "CAPICS/WALLA.PL5", "47ad15b4a593c37880d0306b6a0f51b7a9f20615cf6a188f23716d5b48315524" },
+    };
     if (!vfs || !vfs->initialized) return false;
-    return vfs_file_exists(vfs, "CAPICS/WALLA.PL5") ||
-           vfs_file_exists(vfs, "ANIMS/TEST0.ANM");
+    for (size_t i = 0; i < sizeof(required) / sizeof(required[0]); i++) {
+        size_t size = 0; uint8_t *data = vfs_read_file(vfs, required[i].path, &size); uint8_t digest[32];
+        if (!data) return false;
+        sha256_digest(data, size, digest); free(data);
+        if (!sha256_matches_hex(digest, required[i].sha256)) return false;
+    }
+    return true;
 }
 
 static void show_missing_data_dialog(const char *data_path) {

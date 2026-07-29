@@ -29,6 +29,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/rnc_decoder.c
     src/data/mid_loader.c
     src/data/data_vfs.c
+    src/data/sha256.c
     src/data/gfx_loader.c
     src/data/texture_atlas.c
     src/data/adf_reader.c
@@ -86,6 +87,10 @@ target_include_directories(test_data_vfs PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_data_vfs PRIVATE ZLIB::ZLIB)
 add_test(NAME data_vfs COMMAND test_data_vfs)
 
+add_executable(test_sha256 tests/test_sha256.c src/data/sha256.c)
+target_include_directories(test_sha256 PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME sha256 COMMAND test_sha256)
+
 # --- Tools ---
 
 add_executable(pl5_to_bmp
@@ -104,3 +109,9 @@ add_executable(rnc_decode_tool
     tools/rnc_decode.c
 )
 target_include_directories(rnc_decode_tool PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+add_executable(iso_list
+    tools/iso_list.c
+    src/data/iso9660_reader.c
+)
+target_include_directories(iso_list PRIVATE ${CMAKE_SOURCE_DIR}/include)
