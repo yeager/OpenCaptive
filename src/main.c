@@ -24,6 +24,8 @@
 #include "liberation_data.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,6 +34,18 @@
 #endif
 
 static uint32_t framebuffer[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
+
+static bool parse_int_option(const char *text, int minimum, int maximum, int *value) {
+    if (!text || !value) return false;
+    char *end = NULL;
+    errno = 0;
+    long parsed = strtol(text, &end, 10);
+    if (errno != 0 || end == text || *end != '\0' ||
+        parsed < minimum || parsed > maximum || parsed > INT_MAX)
+        return false;
+    *value = (int)parsed;
+    return true;
+}
 
 static void get_default_data_path(char *buf, size_t bufsize) {
 #ifdef _WIN32
@@ -568,12 +582,19 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "--enhanced") == 0) {
             config.render_mode = CAPTIVE_RENDER_ENHANCED;
         } else if (strcmp(argv[i], "--platform") == 0 && i + 1 < argc) {
-            i++;
-            if (strcmp(argv[i], "dos") == 0) config.platform = CAPTIVE_PLATFORM_DOS;
-            else if (strcmp(argv[i], "atari") == 0) config.platform = CAPTIVE_PLATFORM_ATARI_ST;
-            else if (strcmp(argv[i], "amiga") == 0) config.platform = CAPTIVE_PLATFORM_AMIGA;
+            const char *platform = argv[++i];
+            if (strcmp(platform, "dos") == 0) config.platform = CAPTIVE_PLATFORM_DOS;
+            else if (strcmp(platform, "atari") == 0) config.platform = CAPTIVE_PLATFORM_ATARI_ST;
+            else if (strcmp(platform, "amiga") == 0) config.platform = CAPTIVE_PLATFORM_AMIGA;
+            else {
+                fprintf(stderr, "Unknown platform: %s (expected dos, atari or amiga)\n", platform);
+                return 2;
+            }
         } else if (strcmp(argv[i], "--scale") == 0 && i + 1 < argc) {
-            config.scale_factor = atoi(argv[++i]);
+            if (!parse_int_option(argv[++i], 1, 5, &config.scale_factor)) {
+                fprintf(stderr, "--scale must be an integer from 1 to 5\n");
+                return 2;
+            }
         } else if (strcmp(argv[i], "--fullscreen") == 0) {
             config.fullscreen = true;
         } else if (strcmp(argv[i], "--vsync") == 0) {
@@ -591,11 +612,22 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "--no-integer-scaling") == 0) {
             config.integer_scaling = false;
         } else if (strcmp(argv[i], "--fps") == 0 && i + 1 < argc) {
-            config.fps_limit = atoi(argv[++i]);
+            if (!parse_int_option(argv[++i], 0, 120, &config.fps_limit) ||
+                (config.fps_limit != 0 && config.fps_limit != 30 &&
+                 config.fps_limit != 60 && config.fps_limit != 120)) {
+                fprintf(stderr, "--fps must be one of 0, 30, 60 or 120\n");
+                return 2;
+            }
         } else if (strcmp(argv[i], "--brightness") == 0 && i + 1 < argc) {
-            config.brightness = atoi(argv[++i]);
+            if (!parse_int_option(argv[++i], 0, 100, &config.brightness)) {
+                fprintf(stderr, "--brightness must be an integer from 0 to 100\n");
+                return 2;
+            }
         } else if (strcmp(argv[i], "--contrast") == 0 && i + 1 < argc) {
-            config.contrast = atoi(argv[++i]);
+            if (!parse_int_option(argv[++i], 0, 100, &config.contrast)) {
+                fprintf(stderr, "--contrast must be an integer from 0 to 100\n");
+                return 2;
+            }
         } else if (strcmp(argv[i], "--game") == 0 && i + 1 < argc) {
             const char *game = argv[++i];
             if (strcmp(game, "captive") == 0) {
@@ -616,6 +648,9 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "Unknown data set: %s (expected captive, liberation or all)\n", verify_data);
                 return 2;
             }
+        } else {
+            fprintf(stderr, "Unknown option: %s\n", argv[i]);
+            return 2;
         }
     }
 

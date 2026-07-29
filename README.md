@@ -77,7 +77,7 @@ Point OpenCaptive at your game data directory:
 |------|-------------|
 | `--data <path>` | Path to game data (required for original assets) |
 | `--game captive\|liberation` | Select which game to play (default: start menu) |
-| `--platform dos\|atari\|amiga\|cd32` | Select platform data to use (default: auto-detect) |
+| `--platform dos\|atari\|amiga` | Select Captive platform mode (default: `dos`) |
 | `--scale <N>` | Window scale factor (default: `3`) |
 | `--enhanced` | Enable enhanced rendering mode |
 
