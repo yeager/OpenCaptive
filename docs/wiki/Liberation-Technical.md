@@ -45,6 +45,12 @@ work area and records 64×64 dimensions in its output state before invoking its
 generation routines. These are observations from the verified bytes, not a
 claim that OpenCaptive already reproduces CityGen output.
 
+`amiga_hunk_parse()` now validates the HUNK header, allocation table, code,
+data, BSS, `RELOC32`, symbol and end records without loading or executing the
+payload. It is deliberately a structural parser: relocations are counted and
+bounds-checked, but no original instruction stream is interpreted as gameplay
+logic.
+
 ## Text-resource observation log
 
 The hash-identified city-text payload

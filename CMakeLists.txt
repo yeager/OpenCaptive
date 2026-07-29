@@ -98,6 +98,10 @@ add_executable(test_iso9660_reader tests/test_iso9660_reader.c
 target_include_directories(test_iso9660_reader PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME iso9660_reader COMMAND test_iso9660_reader)
 
+add_executable(test_amiga_hunk tests/test_amiga_hunk.c src/data/amiga_hunk.c)
+target_include_directories(test_amiga_hunk PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME amiga_hunk COMMAND test_amiga_hunk)
+
 add_executable(test_liberation tests/test_liberation.c src/engine/liberation.c)
 target_include_directories(test_liberation PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME liberation COMMAND test_liberation)
@@ -130,7 +134,7 @@ endfunction()
 
 foreach(test_target IN ITEMS
         test_pl5_decoder test_anm_decoder test_map_gen test_data_vfs
-        test_sha256 test_iso9660_reader test_liberation test_start_menu test_game_state test_save_load)
+        test_sha256 test_iso9660_reader test_amiga_hunk test_liberation test_start_menu test_game_state test_save_load)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
 
