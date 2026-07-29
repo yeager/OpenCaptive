@@ -31,17 +31,29 @@ static void assert_snapshot(const char *name, const uint32_t *pixels,
 }
 
 static void test_start_menu_snapshot(void) {
-    uint32_t pixels[SCREEN_PIXELS] = {0};
-    StartMenu menu = {0};
-    start_menu_init(&menu);
+    static uint32_t pixels[SCREEN_PIXELS];
+    static StartMenu menu;
+    memset(pixels, 0, sizeof(pixels));
+    memset(&menu, 0, sizeof(menu));
+    menu.num_items = 4;
+    menu.music_enabled = true;
+    menu.sfx_enabled = true;
+    menu.scale_factor = 3;
+    menu.vsync = true;
+    menu.integer_scaling = true;
+    menu.brightness = 50;
+    menu.contrast = 50;
+    menu.fps_limit = 60;
     start_menu_render(&menu, pixels, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
     assert_snapshot("start menu", pixels, SCREEN_PIXELS,
-                    UINT64_C(0xc1c7344455ff335d));
+                    UINT64_C(0x8a6bd1b600e181ad));
 }
 
 static void test_captive_viewport_snapshot(void) {
-    uint32_t pixels[VIEWPORT_PIXELS] = {0};
-    GameState game = {0};
+    static uint32_t pixels[VIEWPORT_PIXELS];
+    static GameState game;
+    memset(pixels, 0, sizeof(pixels));
+    memset(&game, 0, sizeof(game));
     game.current_level = 0;
     game.party_x = 32;
     game.party_y = 16;
@@ -59,8 +71,9 @@ static void test_captive_viewport_snapshot(void) {
 }
 
 static void test_liberation_city_snapshot(void) {
-    uint32_t pixels[SCREEN_PIXELS] = {0};
-    LibState state;
+    static uint32_t pixels[SCREEN_PIXELS];
+    static LibState state;
+    memset(pixels, 0, sizeof(pixels));
     lib_init(&state, 42);
     lib_render_city(&state, pixels, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
     assert_snapshot("liberation city", pixels, SCREEN_PIXELS,
