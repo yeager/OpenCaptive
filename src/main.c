@@ -22,6 +22,7 @@
 #include "data_vfs.h"
 #include "sha256.h"
 #include "liberation_data.h"
+#include "amos_sprite.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <errno.h>
@@ -206,6 +207,65 @@ static SfxSystem sfx;
 static LibState lib_state;
 static LiberationData liberation_data;
 static EnhancedRenderer enhanced;
+
+typedef struct {
+    uint32_t *pixels;
+    int width;
+    int height;
+} LiberationScene;
+
+static LiberationScene liberation_interior_scene;
+
+static void liberation_scene_free(void) {
+    free(liberation_interior_scene.pixels);
+    liberation_interior_scene = (LiberationScene){0};
+}
+
+/* This hash identifies a verified, unmasked 320x109 AMOS scene.  It is a
+ * visual fallback only: selecting it does not assert original PlotGen state
+ * or location semantics. */
+static bool liberation_scene_load(const LiberationData *data) {
+    static const char resource_sha256[] =
+        "d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2";
+    size_t size = 0;
+    uint8_t *bytes = NULL;
+    AmosSprite sprite;
+    uint32_t *pixels = NULL;
+
+    liberation_scene_free();
+    if (!data || !data->verified) return false;
+    bytes = iso_read_file_sha256(&data->iso, resource_sha256, &size);
+    if (!bytes || !amos_sprite_get(bytes, size, 0, &sprite)) goto done;
+    pixels = malloc((size_t)sprite.width * sprite.height * sizeof(*pixels));
+    if (!pixels || !amos_sprite_decode_argb(&sprite, pixels,
+                                             (size_t)sprite.width * sprite.height))
+        goto done;
+    liberation_interior_scene.pixels = pixels;
+    liberation_interior_scene.width = sprite.width;
+    liberation_interior_scene.height = sprite.height;
+    pixels = NULL;
+
+done:
+    free(pixels);
+    free(bytes);
+    return liberation_interior_scene.pixels != NULL;
+}
+
+static bool liberation_blit_interior_scene(uint32_t *pixels, int width, int height) {
+    const LiberationScene *scene = &liberation_interior_scene;
+    if (!pixels || !scene->pixels || width < LIBERATION_VIEWPORT_X + LIBERATION_VIEWPORT_WIDTH ||
+        height < LIBERATION_VIEWPORT_Y + LIBERATION_VIEWPORT_HEIGHT ||
+        scene->width < LIBERATION_VIEWPORT_WIDTH || scene->height < LIBERATION_VIEWPORT_HEIGHT)
+        return false;
+    int source_x = (scene->width - LIBERATION_VIEWPORT_WIDTH) / 2;
+    int source_y = (scene->height - LIBERATION_VIEWPORT_HEIGHT) / 2;
+    for (int y = 0; y < LIBERATION_VIEWPORT_HEIGHT; ++y) {
+        memcpy(&pixels[(LIBERATION_VIEWPORT_Y + y) * width + LIBERATION_VIEWPORT_X],
+               &scene->pixels[(source_y + y) * scene->width + source_x],
+               LIBERATION_VIEWPORT_WIDTH * sizeof(*pixels));
+    }
+    return true;
+}
 
 typedef struct {
     bool open;
@@ -876,6 +936,7 @@ int main(int argc, char *argv[]) {
         if (!liberation_data_open(&liberation_data, &vfs)) {
             show_missing_liberation_data_dialog(config.data_path);
         } else {
+            liberation_scene_load(&liberation_data);
             start_liberation_session(&gs, &lib_state);
             printf("Starting verified Liberation game\n");
         }
@@ -970,10 +1031,12 @@ int main(int argc, char *argv[]) {
                             vfs_free(&vfs);
                             vfs_init(&vfs, config.data_path);
                             liberation_data_close(&liberation_data);
+                            liberation_scene_free();
                             if (!liberation_data_open(&liberation_data, &vfs)) {
                                 show_missing_liberation_data_dialog(config.data_path);
                                 break;
                             }
+                            liberation_scene_load(&liberation_data);
                             start_liberation_session(&gs, &lib_state);
                             break;
                         case MENU_RESULT_QUIT:
@@ -1145,8 +1208,11 @@ int main(int argc, char *argv[]) {
                     } else {
                         lib_render_city(&lib_state, framebuffer,
                                         LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
-                        lib_render_building(&lib_state, framebuffer,
-                                            LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
+                        if (!liberation_blit_interior_scene(framebuffer,
+                                                            LIBERATION_SCREEN_WIDTH,
+                                                            LIBERATION_SCREEN_HEIGHT))
+                            lib_render_building(&lib_state, framebuffer,
+                                                LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
                     }
                     liberation_render_hud(&lib_state, framebuffer,
                                           LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
@@ -1269,6 +1335,7 @@ int main(int argc, char *argv[]) {
     }
 
     vfs_free(&vfs);
+    liberation_scene_free();
     liberation_data_close(&liberation_data);
     music_shutdown(&music_sys);
     sound_shutdown(&sound_sys);

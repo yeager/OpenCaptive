@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.12 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.13 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -35,6 +35,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/adf_reader.c
     src/data/iso9660_reader.c
     src/data/liberation_data.c
+    src/data/amos_sprite.c
     src/data/st_disk_reader.c
     src/audio/sound.c
     src/audio/sfx.c

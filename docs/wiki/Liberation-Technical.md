@@ -69,6 +69,15 @@ The loader also tests the X-hotspot sign bit. A negative X hotspot adds one
 transparency-mask plane after the colour planes; a non-negative hotspot leaves
 the image unmasked. Both variants are now accepted by the decoder.
 
+The separately hash-identified resource
+`d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2`
+contains one unmasked 320×109 AMOS scene. The runtime decodes it and copies a
+centred 144×104 crop, without scaling, into its Liberation interior viewport.
+If the hash resource cannot be decoded, it keeps the procedural interior as a
+fallback. This is deliberately a visual integration, not evidence that the
+resource is associated with any particular original city, building or PlotGen
+state.
+
 ## CityGen observation log
 
 The city-generator payload selected by
