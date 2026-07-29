@@ -101,7 +101,12 @@ static void draw_border(uint32_t *pixels, int pw, int ph,
 }
 
 void start_menu_init(StartMenu *menu) {
+    char saved_path[512];
+    memcpy(saved_path, menu->data_path, sizeof(saved_path));
+    int saved_cursor = menu->data_path_cursor;
     memset(menu, 0, sizeof(*menu));
+    memcpy(menu->data_path, saved_path, sizeof(menu->data_path));
+    menu->data_path_cursor = saved_cursor ? saved_cursor : (int)strlen(menu->data_path);
     menu->num_items = 4;
     menu->platform = CAPTIVE_PLATFORM_DOS;
     menu->music_enabled = true;
@@ -110,6 +115,65 @@ void start_menu_init(StartMenu *menu) {
 }
 
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
+    // Handle text input for data path editing
+    if (menu->data_path_editing) {
+        if (event->type == SDL_EVENT_TEXT_INPUT) {
+            int len = (int)strlen(menu->data_path);
+            const char *text = event->text.text;
+            int tlen = (int)strlen(text);
+            if (len + tlen < 510) {
+                memmove(&menu->data_path[menu->data_path_cursor + tlen],
+                        &menu->data_path[menu->data_path_cursor],
+                        len - menu->data_path_cursor + 1);
+                memcpy(&menu->data_path[menu->data_path_cursor], text, tlen);
+                menu->data_path_cursor += tlen;
+            }
+            return MENU_RESULT_NONE;
+        }
+        if (event->type != SDL_EVENT_KEY_DOWN) return MENU_RESULT_NONE;
+        switch (event->key.key) {
+            case SDLK_BACKSPACE:
+                if (menu->data_path_cursor > 0) {
+                    int len = (int)strlen(menu->data_path);
+                    memmove(&menu->data_path[menu->data_path_cursor - 1],
+                            &menu->data_path[menu->data_path_cursor],
+                            len - menu->data_path_cursor + 1);
+                    menu->data_path_cursor--;
+                }
+                break;
+            case SDLK_DELETE: {
+                int len = (int)strlen(menu->data_path);
+                if (menu->data_path_cursor < len) {
+                    memmove(&menu->data_path[menu->data_path_cursor],
+                            &menu->data_path[menu->data_path_cursor + 1],
+                            len - menu->data_path_cursor);
+                }
+                break;
+            }
+            case SDLK_LEFT:
+                if (menu->data_path_cursor > 0) menu->data_path_cursor--;
+                break;
+            case SDLK_RIGHT:
+                if (menu->data_path_cursor < (int)strlen(menu->data_path))
+                    menu->data_path_cursor++;
+                break;
+            case SDLK_HOME:
+                menu->data_path_cursor = 0;
+                break;
+            case SDLK_END:
+                menu->data_path_cursor = (int)strlen(menu->data_path);
+                break;
+            case SDLK_RETURN:
+            case SDLK_KP_ENTER:
+            case SDLK_ESCAPE:
+                menu->data_path_editing = false;
+                SDL_StopTextInput(NULL);
+                break;
+            default: break;
+        }
+        return MENU_RESULT_NONE;
+    }
+
     if (event->type != SDL_EVENT_KEY_DOWN) return MENU_RESULT_NONE;
 
     if (menu->in_settings) {
@@ -118,7 +182,7 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
                 if (menu->settings_cursor > 0) menu->settings_cursor--;
                 break;
             case SDLK_DOWN:
-                if (menu->settings_cursor < 4) menu->settings_cursor++;
+                if (menu->settings_cursor < 5) menu->settings_cursor++;
                 break;
             case SDLK_RETURN:
             case SDLK_KP_ENTER:
@@ -134,7 +198,14 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
                         else if (event->key.key == SDLK_LEFT && menu->scale_factor > 1)
                             menu->scale_factor--;
                         break;
-                    case 4: menu->in_settings = false; break;
+                    case 4:
+                        if (event->key.key == SDLK_RETURN || event->key.key == SDLK_KP_ENTER) {
+                            menu->data_path_editing = true;
+                            menu->data_path_cursor = (int)strlen(menu->data_path);
+                            SDL_StartTextInput(NULL);
+                        }
+                        break;
+                    case 5: menu->in_settings = false; break;
                 }
                 break;
             case SDLK_ESCAPE:
@@ -175,19 +246,21 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
         "MUSIC:",
         "SFX:",
         "SCALE:",
+        "DATA PATH:",
         "BACK",
     };
-    char values[5][20];
+    char values[6][20];
     snprintf(values[0], 20, "%s", menu->enhanced_mode ? "ENHANCED" : "ORIGINAL");
     snprintf(values[1], 20, "%s", menu->music_enabled ? "ON" : "OFF");
     snprintf(values[2], 20, "%s", menu->sfx_enabled ? "ON" : "OFF");
     snprintf(values[3], 20, "%dX", menu->scale_factor);
     values[4][0] = '\0';
+    values[5][0] = '\0';
 
-    int menu_y = 75;
-    int item_h = 18;
+    int menu_y = 70;
+    int item_h = 16;
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 6; i++) {
         int y = menu_y + i * item_h;
         bool sel = (i == menu->settings_cursor);
 
@@ -205,9 +278,48 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
         }
     }
 
-    draw_text_centered(pixels, width, height, height - 20,
-                       "ENTER: TOGGLE  LEFT-RIGHT: ADJUST  ESC: BACK",
-                       0xFF555555, 1);
+    // Data path display (below settings items)
+    int path_y = menu_y + 4 * item_h + 2;
+    if (menu->settings_cursor == 4) {
+        // Editing or selected - show full path
+        draw_rect(pixels, width, height, 60, path_y + item_h - 2, width - 120, 12, 0xFF222244);
+        // Truncate path display to fit
+        const char *dp = menu->data_path;
+        int dp_len = (int)strlen(dp);
+        int max_chars = (width - 130) / 6;
+        int start = 0;
+        if (dp_len > max_chars) start = dp_len - max_chars;
+        draw_text(pixels, width, height, 65, path_y + item_h,
+                  dp + start, menu->data_path_editing ? 0xFF44FF44 : 0xFFAAAACC, 1);
+        if (menu->data_path_editing) {
+            // Cursor blink
+            int cx = 65 + (menu->data_path_cursor - start) * 6;
+            if ((menu->anim_tick / 6) % 2 == 0 && cx < width - 65)
+                draw_rect(pixels, width, height, cx, path_y + item_h, 1, 7, 0xFFFFFFFF);
+        }
+    } else {
+        // Show truncated path
+        int max_chars = (width - 130) / 6;
+        char truncated[64];
+        int dp_len = (int)strlen(menu->data_path);
+        if (dp_len > max_chars) {
+            snprintf(truncated, sizeof(truncated), "...%s",
+                     menu->data_path + dp_len - max_chars + 3);
+        } else {
+            snprintf(truncated, sizeof(truncated), "%s", menu->data_path);
+        }
+        draw_text(pixels, width, height, 65, path_y + item_h, truncated, 0xFF666688, 1);
+    }
+
+    if (menu->data_path_editing) {
+        draw_text_centered(pixels, width, height, height - 20,
+                           "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL",
+                           0xFF555555, 1);
+    } else {
+        draw_text_centered(pixels, width, height, height - 20,
+                           "ENTER: EDIT  LEFT-RIGHT: ADJUST  ESC: BACK",
+                           0xFF555555, 1);
+    }
     draw_border(pixels, width, height, 5, 5, width - 10, height - 10, 0xFF444488, 1);
 }
 

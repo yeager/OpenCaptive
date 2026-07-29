@@ -23,6 +23,9 @@ typedef struct {
     uint32_t anim_tick;
     bool in_settings;
     int settings_cursor;
+    char data_path[512];
+    bool data_path_editing;
+    int data_path_cursor;
 } StartMenu;
 
 void start_menu_init(StartMenu *menu);

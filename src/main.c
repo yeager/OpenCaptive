@@ -24,8 +24,60 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 static uint32_t framebuffer[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
+
+static void get_default_data_path(char *buf, size_t bufsize) {
+#ifdef _WIN32
+    // Windows: <exe_dir>\data
+    char exe_path[512] = {0};
+    GetModuleFileNameA(NULL, exe_path, sizeof(exe_path));
+    char *last_sep = strrchr(exe_path, '\\');
+    if (last_sep) *last_sep = '\0';
+    snprintf(buf, bufsize, "%s\\data", exe_path);
+#else
+    // Linux/macOS: ~/.opencaptive
+    const char *home = getenv("HOME");
+    if (home) {
+        snprintf(buf, bufsize, "%s/.opencaptive", home);
+    } else {
+        snprintf(buf, bufsize, ".opencaptive");
+    }
+#endif
+}
+
+static bool validate_data_path(const char *data_path) {
+    if (!data_path || !data_path[0]) return false;
+    char path[600];
+    snprintf(path, sizeof(path), "%s/CAPICS/WALLA.PL5", data_path);
+    FILE *f = fopen(path, "rb");
+    if (f) { fclose(f); return true; }
+    snprintf(path, sizeof(path), "%s/ANIMS/TEST0.ANM", data_path);
+    f = fopen(path, "rb");
+    if (f) { fclose(f); return true; }
+    return false;
+}
+
+static void show_missing_data_dialog(const char *data_path) {
+    char msg[1024];
+    snprintf(msg, sizeof(msg),
+        "Game data files not found!\n\n"
+        "OpenCaptive requires the original Captive game data to run.\n\n"
+        "Expected location:\n  %s\n\n"
+        "Place your Captive game files there, or use:\n"
+        "  --data <path>  to specify a different location.\n\n"
+        "Required files:\n"
+        "  CAPICS/*.PL5  (graphics)\n"
+        "  ANIMS/*.ANM   (animations)\n"
+        "  SOUND/*.MID   (music)\n\n"
+        "You can also change the data path in Settings.",
+        data_path);
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+        "OpenCaptive - Missing Game Data", msg, NULL);
+}
 
 static bool load_intro_anm(const char *data_path, ANMAnimation *anim) {
     char path[512];
@@ -359,10 +411,13 @@ int main(int argc, char *argv[]) {
            OPENCAPTIVE_VERSION_MINOR,
            OPENCAPTIVE_VERSION_PATCH);
 
+    static char default_data_path[512];
+    get_default_data_path(default_data_path, sizeof(default_data_path));
+
     OpenCaptiveConfig config = {
         .platform = CAPTIVE_PLATFORM_DOS,
         .render_mode = CAPTIVE_RENDER_ORIGINAL,
-        .data_path = NULL,
+        .data_path = default_data_path,
         .scale_factor = 3,
     };
 
@@ -398,6 +453,8 @@ int main(int argc, char *argv[]) {
     // State
     StartMenu menu;
     start_menu_init(&menu);
+    strncpy(menu.data_path, config.data_path, sizeof(menu.data_path) - 1);
+
     GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
     gs.config = config;
@@ -449,20 +506,18 @@ int main(int argc, char *argv[]) {
                     switch (result) {
                         case MENU_RESULT_START_CAPTIVE:
                             gs.game_type = GAME_CAPTIVE;
-                            if (config.data_path) {
-                                gs.mode = STATE_INTRO;
-                                if (!intro_loaded) {
-                                    intro_loaded = load_intro_anm(config.data_path, &intro_anim);
-                                    intro_frame = 0;
-                                    intro_last_tick = SDL_GetTicks();
-                                }
-                                if (!intro_loaded) {
-                                    game_state_new_mission(&gs, 1);
-                                    spawn_level_content(&gs);
-                                    music_play(&music_sys, MUSIC_BASE);
-                                    gs.mode = STATE_GAME;
-                                }
-                            } else {
+                            config.data_path = menu.data_path;
+                            if (!validate_data_path(config.data_path)) {
+                                show_missing_data_dialog(config.data_path);
+                                break;
+                            }
+                            gs.mode = STATE_INTRO;
+                            if (!intro_loaded) {
+                                intro_loaded = load_intro_anm(config.data_path, &intro_anim);
+                                intro_frame = 0;
+                                intro_last_tick = SDL_GetTicks();
+                            }
+                            if (!intro_loaded) {
                                 game_state_new_mission(&gs, 1);
                                 spawn_level_content(&gs);
                                 music_play(&music_sys, MUSIC_BASE);
