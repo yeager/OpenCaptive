@@ -125,6 +125,34 @@ static bool load_intro_anm(const DataVFS *vfs, ANMAnimation *anim) {
     return ok;
 }
 
+static bool reload_captive_assets(TextureAtlas *atlas, const DataVFS *vfs,
+                                  uint32_t **hud_bg) {
+    texture_atlas_free(atlas);
+    *hud_bg = NULL;
+    if (!texture_atlas_load(atlas, vfs)) return false;
+
+    const Texture *screen = gfx_get(&atlas->gfx, atlas->gamescrn_sheet);
+    if (screen) *hud_bg = screen->pixels;
+    printf("Loaded texture atlas\n");
+    return true;
+}
+
+static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu) {
+    config->data_path = menu->data_path;
+    config->render_mode = menu->enhanced_mode
+        ? CAPTIVE_RENDER_ENHANCED : CAPTIVE_RENDER_ORIGINAL;
+    config->scale_factor = menu->scale_factor;
+    config->fullscreen = menu->fullscreen;
+    config->vsync = menu->vsync;
+    config->scanlines = menu->scanlines;
+    config->crt_curvature = menu->crt_curvature;
+    config->bilinear = menu->bilinear;
+    config->integer_scaling = menu->integer_scaling;
+    config->fps_limit = menu->fps_limit;
+    config->brightness = menu->brightness;
+    config->contrast = menu->contrast;
+}
+
 static CreatureList creatures;
 static PuzzleList puzzles;
 static SoundSystem sound_sys;
@@ -731,17 +759,10 @@ int main(int argc, char *argv[]) {
 
     // Texture atlas
     TextureAtlas atlas = {0};
+    uint32_t *hud_bg = NULL;
     bool textures_loaded = false;
     if (config.data_path) {
-        textures_loaded = texture_atlas_load(&atlas, &vfs);
-        if (textures_loaded) printf("Loaded texture atlas\n");
-    }
-
-    // HUD background from GAMESCRN
-    uint32_t *hud_bg = NULL;
-    if (textures_loaded && atlas.gamescrn_sheet >= 0) {
-        const Texture *gs_tex = gfx_get(&atlas.gfx, atlas.gamescrn_sheet);
-        if (gs_tex) hud_bg = gs_tex->pixels;
+        textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg);
     }
 
     // Intro animation (loaded on demand)
@@ -802,18 +823,7 @@ int main(int argc, char *argv[]) {
                     switch (result) {
                         case MENU_RESULT_START_CAPTIVE:
                             gs.game_type = GAME_CAPTIVE;
-                            config.data_path = menu.data_path;
-                            config.render_mode = menu.enhanced_mode ? CAPTIVE_RENDER_ENHANCED : CAPTIVE_RENDER_ORIGINAL;
-                            config.scale_factor = menu.scale_factor;
-                            config.fullscreen = menu.fullscreen;
-                            config.vsync = menu.vsync;
-                            config.scanlines = menu.scanlines;
-                            config.crt_curvature = menu.crt_curvature;
-                            config.bilinear = menu.bilinear;
-                            config.integer_scaling = menu.integer_scaling;
-                            config.fps_limit = menu.fps_limit;
-                            config.brightness = menu.brightness;
-                            config.contrast = menu.contrast;
+                            apply_menu_config(&config, &menu);
                             gs.config = config;
                             renderer_set_effects(&renderer, config.bilinear,
                                                  config.scanlines,
@@ -831,6 +841,11 @@ int main(int argc, char *argv[]) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
+                            textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg);
+                            if (intro_loaded) {
+                                anm_free(&intro_anim);
+                                intro_loaded = false;
+                            }
                             gs.mode = STATE_INTRO;
                             if (!intro_loaded) {
                                 intro_loaded = load_intro_anm(&vfs, &intro_anim);
@@ -845,6 +860,17 @@ int main(int argc, char *argv[]) {
                             }
                             break;
                         case MENU_RESULT_START_LIBERATION:
+                            apply_menu_config(&config, &menu);
+                            gs.config = config;
+                            renderer_set_effects(&renderer, config.bilinear,
+                                                 config.scanlines,
+                                                 config.crt_curvature,
+                                                 config.brightness,
+                                                 config.contrast);
+                            music_set_enabled(&music_sys, menu.music_enabled);
+                            sound_set_enabled(&sound_sys, menu.sfx_enabled);
+                            vfs_free(&vfs);
+                            vfs_init(&vfs, config.data_path);
                             liberation_data_close(&liberation_data);
                             if (!liberation_data_open(&liberation_data, &vfs)) {
                                 show_missing_liberation_data_dialog(config.data_path);
