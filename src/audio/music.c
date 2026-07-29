@@ -27,6 +27,8 @@ void music_play(MusicSystem *mus, MusicTrack track) {
     if (!mus->enabled || track == mus->current_track) return;
 
     midi_stop(&mus->player);
+    free(mus->owned_data);
+    mus->owned_data = NULL;
     mus->current_track = track;
 
     if (track == MUSIC_NONE || !track_hashes[track]) return;
@@ -37,13 +39,19 @@ void music_play(MusicSystem *mus, MusicTrack track) {
     if (!data) return;
 
     if (midi_load(&mus->player, data, size)) {
+        /* MIDI tracks retain pointers into the source buffer while playing. */
+        mus->owned_data = data;
         midi_set_volume(&mus->player, 0.3f);
         midi_play(&mus->player, true);
+    } else {
+        free(data);
     }
 }
 
 void music_stop(MusicSystem *mus) {
     midi_stop(&mus->player);
+    free(mus->owned_data);
+    mus->owned_data = NULL;
     mus->current_track = MUSIC_NONE;
 }
 

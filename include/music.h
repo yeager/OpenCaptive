@@ -23,6 +23,7 @@ typedef struct {
     SoundSystem *sound;
     MusicTrack  current_track;
     const DataVFS *vfs;
+    uint8_t     *owned_data;
     bool        enabled;
 } MusicSystem;
 
