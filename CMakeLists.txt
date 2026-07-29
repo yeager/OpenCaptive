@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.3 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.4 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -111,6 +111,14 @@ target_include_directories(test_start_menu PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_start_menu PRIVATE SDL3::SDL3)
 add_test(NAME start_menu COMMAND test_start_menu)
 
+add_executable(test_visual_parity tests/test_visual_parity.c
+    src/engine/start_menu.c src/engine/liberation.c src/render/viewport.c
+    src/data/texture_atlas.c src/data/gfx_loader.c src/data/pl5_decoder.c
+    src/data/data_vfs.c src/data/sha256.c)
+target_include_directories(test_visual_parity PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_visual_parity PRIVATE SDL3::SDL3 ZLIB::ZLIB)
+add_test(NAME visual_parity COMMAND test_visual_parity)
+
 add_executable(test_game_state tests/test_game_state.c
     src/engine/engine.c src/engine/map_gen.c src/engine/combat.c)
 target_include_directories(test_game_state PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -134,7 +142,7 @@ endfunction()
 
 foreach(test_target IN ITEMS
         test_pl5_decoder test_anm_decoder test_map_gen test_data_vfs
-        test_sha256 test_iso9660_reader test_amiga_hunk test_liberation test_start_menu test_game_state test_save_load)
+        test_sha256 test_iso9660_reader test_amiga_hunk test_liberation test_start_menu test_visual_parity test_game_state test_save_load)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
 
