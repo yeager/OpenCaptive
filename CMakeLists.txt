@@ -17,11 +17,15 @@ set(OPENCAPTIVE_SOURCES
     src/engine/save_load.c
     src/engine/inventory.c
     src/engine/shop.c
+    src/engine/puzzle.c
+    src/audio/midi_player.c
+    src/audio/music.c
     src/data/pl5_decoder.c
     src/data/anm_decoder.c
     src/data/rnc_decoder.c
     src/data/mid_loader.c
     src/data/gfx_loader.c
+    src/data/texture_atlas.c
     src/data/adf_reader.c
     src/data/iso9660_reader.c
     src/data/st_disk_reader.c

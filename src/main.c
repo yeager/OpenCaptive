@@ -12,6 +12,8 @@
 #include "music.h"
 #include "puzzle.h"
 #include "sound.h"
+#include "shop.h"
+#include "inventory.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
@@ -41,6 +43,55 @@ static CreatureList creatures;
 static PuzzleList puzzles;
 static SoundSystem sound_sys;
 static MusicSystem music_sys;
+static ItemDatabase item_db;
+static ShopState shop;
+
+static const uint8_t simple_font[][5] = {
+    ['A'] = {0x7C,0x12,0x12,0x12,0x7C}, ['B'] = {0x7E,0x4A,0x4A,0x4A,0x34},
+    ['C'] = {0x3C,0x42,0x42,0x42,0x24}, ['D'] = {0x7E,0x42,0x42,0x42,0x3C},
+    ['E'] = {0x7E,0x4A,0x4A,0x4A,0x42}, ['F'] = {0x7E,0x0A,0x0A,0x0A,0x02},
+    ['G'] = {0x3C,0x42,0x52,0x52,0x34}, ['H'] = {0x7E,0x08,0x08,0x08,0x7E},
+    ['I'] = {0x42,0x42,0x7E,0x42,0x42}, ['K'] = {0x7E,0x08,0x14,0x22,0x40},
+    ['L'] = {0x7E,0x40,0x40,0x40,0x40}, ['M'] = {0x7E,0x04,0x08,0x04,0x7E},
+    ['N'] = {0x7E,0x04,0x08,0x10,0x7E}, ['O'] = {0x3C,0x42,0x42,0x42,0x3C},
+    ['P'] = {0x7E,0x12,0x12,0x12,0x0C}, ['R'] = {0x7E,0x12,0x32,0x52,0x0C},
+    ['S'] = {0x24,0x4A,0x4A,0x4A,0x30}, ['T'] = {0x02,0x02,0x7E,0x02,0x02},
+    ['U'] = {0x3E,0x40,0x40,0x40,0x3E}, ['V'] = {0x1E,0x20,0x40,0x20,0x1E},
+    ['W'] = {0x3E,0x40,0x30,0x40,0x3E}, ['Y'] = {0x06,0x08,0x70,0x08,0x06},
+    ['!'] = {0x00,0x00,0x5E,0x00,0x00}, [' '] = {0x00,0x00,0x00,0x00,0x00},
+    ['.'] = {0x00,0x40,0x00,0x00,0x00},
+};
+
+static void draw_simple_text(uint32_t *fb, int pw, int ph,
+                             int x, int y, const char *text, uint32_t color, int scale) {
+    for (int i = 0; text[i]; i++) {
+        unsigned char ch = (unsigned char)text[i];
+        if (ch >= sizeof(simple_font)/sizeof(simple_font[0])) continue;
+        const uint8_t *glyph = simple_font[ch];
+        for (int col = 0; col < 5; col++) {
+            uint8_t bits = glyph[col];
+            for (int row = 0; row < 7; row++) {
+                if (bits & (1 << row)) {
+                    for (int sy = 0; sy < scale; sy++)
+                        for (int sx = 0; sx < scale; sx++) {
+                            int px = x + (i * 6 + col) * scale + sx;
+                            int py = y + row * scale + sy;
+                            if (px >= 0 && px < pw && py >= 0 && py < ph)
+                                fb[py * pw + px] = color;
+                        }
+                }
+            }
+        }
+    }
+}
+
+static void draw_centered(uint32_t *fb, int pw, int ph,
+                          int y, const char *text, uint32_t color, int scale) {
+    int len = 0;
+    while (text[len]) len++;
+    int tw = len * 6 * scale;
+    draw_simple_text(fb, pw, ph, (pw - tw) / 2, y, text, color, scale);
+}
 
 static void spawn_level_content(GameState *gs_ptr) {
     combat_init(&creatures);
@@ -95,12 +146,21 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             combat_droid_attack(gs, &creatures, gs->selected_droid);
             return;
         case SDLK_F: {
+            const DungeonLevel *cur = &gs->levels[gs->current_level];
+            // Check if on shop cell
+            if (cur->cells[gs->party_y][gs->party_x].type == CELL_SHOP) {
+                shop_init(&shop, &item_db, gs->current_level, gs->mission_seed);
+                shop.gold = gs->gold;
+                gs->mode = STATE_SHOP;
+                music_play(&music_sys, MUSIC_SHOP);
+                return;
+            }
             // Try puzzle first, then general interact
             int fwd_x = (int[]){0,1,0,-1}[gs->party_dir];
             int fwd_y = (int[]){-1,0,1,0}[gs->party_dir];
             int tx = gs->party_x + fwd_x;
             int ty = gs->party_y + fwd_y;
-            int face = (gs->party_dir + 2) % 4; // opposite face
+            int face = (gs->party_dir + 2) % 4;
             if (!puzzle_interact(&puzzles, gs, gs->party_x, gs->party_y, gs->party_dir) &&
                 !puzzle_interact(&puzzles, gs, tx, ty, face)) {
                 combat_interact(gs);
@@ -210,6 +270,9 @@ int main(int argc, char *argv[]) {
     sound_init(&sound_sys);
     music_init(&music_sys, &sound_sys, config.data_path);
 
+    // Items
+    item_db_init(&item_db);
+
     // Texture atlas
     TextureAtlas atlas = {0};
     bool textures_loaded = false;
@@ -294,8 +357,39 @@ int main(int argc, char *argv[]) {
                         event.key.key == SDLK_ESCAPE) {
                         gs.mode = STATE_MENU;
                         start_menu_init(&menu);
+                        music_stop(&music_sys);
                     } else {
                         game_handle_input(&gs, &event);
+                    }
+                    break;
+                case STATE_SHOP:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        switch (event.key.key) {
+                            case SDLK_ESCAPE:
+                                gs.gold = shop.gold;
+                                gs.mode = STATE_GAME;
+                                music_play(&music_sys, MUSIC_BASE);
+                                break;
+                            case SDLK_UP:
+                                if (shop.selected > 0) shop.selected--;
+                                break;
+                            case SDLK_DOWN:
+                                if (shop.selected < shop.num_items - 1) shop.selected++;
+                                break;
+                            case SDLK_RETURN:
+                                shop_buy(&shop, &item_db, &gs);
+                                break;
+                            default: break;
+                        }
+                    }
+                    break;
+                case STATE_GAMEOVER:
+                case STATE_VICTORY:
+                    if (event.type == SDL_EVENT_KEY_DOWN &&
+                        event.key.key == SDLK_ESCAPE) {
+                        gs.mode = STATE_MENU;
+                        start_menu_init(&menu);
+                        music_stop(&music_sys);
                     }
                     break;
                 default: break;
@@ -333,9 +427,41 @@ int main(int argc, char *argv[]) {
                 }
                 break;
 
-            case STATE_GAME:
+            case STATE_GAME: {
                 gs.tick++;
                 if (gs.tick % 4 == 0) combat_tick(&creatures, &gs);
+
+                // Check for game over (all droids destroyed)
+                bool all_dead = true;
+                for (int d = 0; d < 4; d++) {
+                    if (gs.droids[d].hp > 0) { all_dead = false; break; }
+                }
+                if (all_dead) {
+                    gs.mode = STATE_GAMEOVER;
+                    music_play(&music_sys, MUSIC_TRAPPED);
+                    break;
+                }
+
+                // Check for mission complete (generator destroyed = no active creatures)
+                bool mission_done = true;
+                for (int ci = 0; ci < creatures.num_creatures; ci++) {
+                    if (creatures.creatures[ci].active &&
+                        creatures.creatures[ci].level == gs.current_level) {
+                        mission_done = false; break;
+                    }
+                }
+                // Only on last level and after tick 200 (grace period)
+                if (mission_done && gs.current_level == gs.num_levels - 1 && gs.tick > 200) {
+                    if (gs.mission >= 10) {
+                        gs.mode = STATE_VICTORY;
+                        music_play(&music_sys, MUSIC_ESCAPE);
+                    } else {
+                        gs.mission++;
+                        game_state_new_mission(&gs, gs.mission);
+                        spawn_level_content(&gs);
+                    }
+                    break;
+                }
 
                 // HUD background from GAMESCRN
                 if (hud_bg) {
@@ -343,15 +469,43 @@ int main(int argc, char *argv[]) {
                            CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
                 }
 
-                // Viewport (textured if available)
-                viewport_render_textured(&gs,
+                // Viewport (textured if available, with creatures)
+                viewport_render_full(&gs,
                     &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],
                     CAPTIVE_ORIGINAL_WIDTH,
-                    textures_loaded ? &atlas : NULL);
+                    textures_loaded ? &atlas : NULL, &creatures);
 
                 // HUD overlay
                 hud_render(&gs, framebuffer,
                            CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                break;
+            }
+
+            case STATE_SHOP:
+                shop_render(&shop, &item_db, framebuffer,
+                            CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                break;
+
+            case STATE_GAMEOVER:
+                memset(framebuffer, 0, sizeof(framebuffer));
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              60, "GAME OVER", 0xFFFF2222, 3);
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              100, "ALL DROIDS DESTROYED", 0xFFAAAAAA, 1);
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              130, "PRESS ESCAPE", 0xFF888888, 1);
+                break;
+
+            case STATE_VICTORY:
+                memset(framebuffer, 0, sizeof(framebuffer));
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              40, "VICTORY!", 0xFF44FF44, 3);
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              80, "ALL MISSIONS COMPLETE", 0xFFFFFF44, 2);
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              120, "YOU HAVE ESCAPED!", 0xFFAAAAFF, 1);
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              150, "PRESS ESCAPE", 0xFF888888, 1);
                 break;
 
             default: break;

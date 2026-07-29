@@ -85,6 +85,7 @@ typedef enum {
     STATE_SHOP,
     STATE_TERMINAL,
     STATE_GAMEOVER,
+    STATE_VICTORY,
 } GameStateMode;
 
 typedef struct {
@@ -109,6 +110,7 @@ typedef struct {
     uint32_t    mission_seed;
     int         generators_total;
     int         generators_destroyed;
+    int         gold;
 
     // Timing
     uint32_t    tick;
