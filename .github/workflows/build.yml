@@ -14,7 +14,14 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build libsdl3-dev
+          sudo apt-get install -y cmake ninja-build
+      - name: Build SDL3
+        run: |
+          git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
+          cmake -S SDL3-src -B SDL3-build -DCMAKE_INSTALL_PREFIX=/usr/local -G Ninja -DCMAKE_BUILD_TYPE=Release
+          ninja -C SDL3-build
+          sudo ninja -C SDL3-build install
+          sudo ldconfig
       - name: Build
         run: |
           cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja

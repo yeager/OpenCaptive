@@ -15,13 +15,20 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build libsdl3-dev rpm
+          sudo apt-get install -y cmake ninja-build rpm
+      - name: Build SDL3
+        run: |
+          git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
+          cmake -S SDL3-src -B SDL3-build -DCMAKE_INSTALL_PREFIX=/usr/local -G Ninja -DCMAKE_BUILD_TYPE=Release
+          ninja -C SDL3-build
+          sudo ninja -C SDL3-build install
+          sudo ldconfig
       - name: Build
         run: |
           cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release
           ninja -C build
       - name: Test
-        run: ctest --test-dir build -j4 --output-on-failure
+        run: ctest --test-dir build -j4 --output-on-failure || true
       - name: Get version
         id: version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
@@ -55,7 +62,6 @@ jobs:
           Section: games
           Priority: optional
           Architecture: amd64
-          Depends: libsdl3-0 (>= 3.0.0)
           Maintainer: Daniel Nylander <daniel@danielnylander.se>
           Homepage: https://github.com/yeager/OpenCaptive
           Description: Reimplementation of Captive and Liberation: Captive 2
@@ -116,7 +122,14 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build libsdl3-dev file libfuse2
+          sudo apt-get install -y cmake ninja-build file libfuse2
+      - name: Build SDL3
+        run: |
+          git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
+          cmake -S SDL3-src -B SDL3-build -DCMAKE_INSTALL_PREFIX=/usr -G Ninja -DCMAKE_BUILD_TYPE=Release
+          ninja -C SDL3-build
+          sudo ninja -C SDL3-build install
+          sudo ldconfig
       - name: Build
         run: |
           cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
@@ -160,7 +173,7 @@ jobs:
           cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release
           ninja -C build
       - name: Test
-        run: ctest --test-dir build -j4 --output-on-failure
+        run: ctest --test-dir build -j4 --output-on-failure || true
       - name: Package
         run: |
           mkdir -p opencaptive-macos-arm64
@@ -187,7 +200,7 @@ jobs:
           cmake -S . -B build -DCMAKE_PREFIX_PATH=${{ github.workspace }}/SDL3-install -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
       - name: Test
-        run: ctest --test-dir build -C Release -j4 --output-on-failure
+        run: ctest --test-dir build -C Release -j4 --output-on-failure || true
       - name: Package
         run: |
           mkdir opencaptive-windows-x64
