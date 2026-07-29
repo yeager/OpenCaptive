@@ -407,6 +407,12 @@ static void spawn_level_content(GameState *gs_ptr) {
     }
 }
 
+static void start_liberation_session(GameState *gs_ptr, LibState *ls) {
+    gs_ptr->game_type = GAME_LIBERATION;
+    gs_ptr->mode = STATE_GAME;
+    lib_init(ls, 42);
+}
+
 static void lib_handle_input(GameState *gs, LibState *ls, const SDL_Event *event) {
     (void)gs;
     if (event->type != SDL_EVENT_KEY_DOWN) return;
@@ -838,11 +844,7 @@ int main(int argc, char *argv[]) {
         if (!liberation_data_open(&liberation_data, &vfs)) {
             show_missing_liberation_data_dialog(config.data_path);
         } else {
-            gs.game_type = GAME_LIBERATION;
-            lib_init(&lib_state, 42);
-            game_state_new_mission(&gs, 1);
-            spawn_level_content(&gs);
-            music_play(&music_sys, MUSIC_BASE);
+            start_liberation_session(&gs, &lib_state);
             printf("Starting verified Liberation game\n");
         }
     }
@@ -929,12 +931,7 @@ int main(int argc, char *argv[]) {
                                 show_missing_liberation_data_dialog(config.data_path);
                                 break;
                             }
-                            gs.game_type = GAME_LIBERATION;
-                            lib_init(&lib_state, 42);
-                            game_state_new_mission(&gs, 1);
-                            spawn_level_content(&gs);
-                            music_play(&music_sys, MUSIC_BASE);
-                            gs.mode = STATE_GAME;
+                            start_liberation_session(&gs, &lib_state);
                             break;
                         case MENU_RESULT_QUIT:
                             running = false;
