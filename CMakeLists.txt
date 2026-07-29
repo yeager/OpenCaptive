@@ -28,6 +28,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/anm_decoder.c
     src/data/rnc_decoder.c
     src/data/amiga_ofs.c
+    src/data/amiga_planar.c
     src/data/captive_amiga_data.c
     src/data/liberation_anim.c
     src/data/mid_loader.c
@@ -113,6 +114,10 @@ add_executable(test_amiga_ofs tests/test_amiga_ofs.c src/data/amiga_ofs.c src/da
 target_include_directories(test_amiga_ofs PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME amiga_ofs COMMAND test_amiga_ofs)
 
+add_executable(test_amiga_planar tests/test_amiga_planar.c src/data/amiga_planar.c)
+target_include_directories(test_amiga_planar PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME amiga_planar COMMAND test_amiga_planar)
+
 add_executable(test_amos_sprite tests/test_amos_sprite.c src/data/amos_sprite.c)
 target_include_directories(test_amos_sprite PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME amos_sprite COMMAND test_amos_sprite)
@@ -150,7 +155,7 @@ endfunction()
 
 foreach(test_target IN ITEMS
         test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_data_vfs
-        test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load)
+        test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_amiga_planar test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
 

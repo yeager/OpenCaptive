@@ -1,5 +1,6 @@
 #include "captive_amiga_data.h"
 #include "amiga_ofs.h"
+#include "amiga_planar.h"
 #include "rnc_decoder.h"
 #include "sha256.h"
 
@@ -53,9 +54,15 @@ bool captive_amiga_data_verify(const DataVFS *vfs) {
         /* The known Fed7-E output has a pinned post-decompression hash. It
          * catches a decoder which merely accepts the header but emits wrong
          * pixels, while remaining independent of the file's original name. */
-        if (i == 5U && !sha256_data_matches(raw, raw_size,
-            "ee0f6d0ca51af38854274949192f0062ff58f4ba02bab47d96f02a4024012997"))
-            valid = false;
+        if (i == 5U) {
+            uint8_t pixels[AMIGA_PLANAR_WIDTH * AMIGA_PLANAR_HEIGHT];
+            if (!sha256_data_matches(raw, raw_size,
+                "ee0f6d0ca51af38854274949192f0062ff58f4ba02bab47d96f02a4024012997") ||
+                !amiga_planar_decode_320x200_5(raw, raw_size, pixels) ||
+                !sha256_data_matches(pixels, sizeof(pixels),
+                "d2efa8a9cbbbaa45e49c82465765836ba173676645e810fda5cd23ef85bd3431"))
+                valid = false;
+        }
         free(raw);
         free(resource);
     }
