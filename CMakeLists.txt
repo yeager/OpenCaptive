@@ -159,6 +159,10 @@ add_executable(hash_find tools/hash_find.c src/data/data_vfs.c src/data/sha256.c
 target_include_directories(hash_find PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(hash_find PRIVATE ZLIB::ZLIB)
 
+add_executable(hash_extract tools/hash_extract.c src/data/data_vfs.c src/data/sha256.c)
+target_include_directories(hash_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(hash_extract PRIVATE ZLIB::ZLIB)
+
 add_executable(verify_liberation
     tools/verify_liberation.c
     src/data/liberation_data.c
@@ -168,6 +172,16 @@ add_executable(verify_liberation
 )
 target_include_directories(verify_liberation PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(verify_liberation PRIVATE ZLIB::ZLIB)
+
+add_executable(liberation_extract
+    tools/liberation_extract.c
+    src/data/liberation_data.c
+    src/data/iso9660_reader.c
+    src/data/data_vfs.c
+    src/data/sha256.c
+)
+target_include_directories(liberation_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(liberation_extract PRIVATE ZLIB::ZLIB)
 
 add_executable(st_list tools/st_list.c src/data/st_disk_reader.c src/data/sha256.c)
 target_include_directories(st_list PRIVATE ${CMAKE_SOURCE_DIR}/include)

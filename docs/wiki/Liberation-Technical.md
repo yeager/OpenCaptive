@@ -32,6 +32,30 @@ plot generator, plot text, city text and dialogue text. At present:
 
 No original payload is bundled or emitted by tooling.
 
+## CityGen observation log
+
+The city-generator payload selected by
+`e54540c3bf8dfaf569380a135ac039f1438e9efb85cf6d5e3e487e25d4c7c13e`
+is 10,896 bytes and is recognised as an AmigaOS `loadseg()` executable. Its
+embedded release string identifies it as **CityGen 1.12**, built 1994-01-03.
+
+It uses the Amiga HUNK container layout. Initial disassembly shows an exported
+entry path that receives a caller-owned parameter block, clears a 12,288-byte
+work area and records 64×64 dimensions in its output state before invoking its
+generation routines. These are observations from the verified bytes, not a
+claim that OpenCaptive already reproduces CityGen output.
+
+`liberation_extract` is the supported inspection entry point:
+
+```sh
+./build/liberation_extract /path/to/media \
+  e54540c3bf8dfaf569380a135ac039f1438e9efb85cf6d5e3e487e25d4c7c13e \
+  /tmp/citygen.bin
+```
+
+The command first verifies the enclosing CD32 track, then performs an ISO
+lookup by the resource digest. Its output must stay outside version control.
+
 ## Current city runtime
 
 The current `LibState` is deliberately separate from Captive's dungeon and
