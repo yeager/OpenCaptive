@@ -22,7 +22,6 @@ set(OPENCAPTIVE_SOURCES
     src/engine/puzzle.c
     src/engine/droid_ui.c
     src/engine/terminal.c
-    src/engine/liberation.c
     src/audio/midi_player.c
     src/audio/music.c
     src/data/pl5_decoder.c
@@ -112,10 +111,6 @@ add_executable(test_amos_sprite tests/test_amos_sprite.c src/data/amos_sprite.c)
 target_include_directories(test_amos_sprite PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME amos_sprite COMMAND test_amos_sprite)
 
-add_executable(test_liberation tests/test_liberation.c src/engine/liberation.c)
-target_include_directories(test_liberation PRIVATE ${CMAKE_SOURCE_DIR}/include)
-add_test(NAME liberation COMMAND test_liberation)
-
 add_executable(test_liberation_anim tests/test_liberation_anim.c
     src/data/liberation_anim.c)
 target_include_directories(test_liberation_anim PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -149,7 +144,7 @@ endfunction()
 
 foreach(test_target IN ITEMS
         test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_data_vfs
-        test_sha256 test_iso9660_reader test_amiga_hunk test_amos_sprite test_liberation test_liberation_anim test_start_menu test_game_state test_save_load)
+        test_sha256 test_iso9660_reader test_amiga_hunk test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
 

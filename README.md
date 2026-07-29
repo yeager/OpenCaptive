@@ -22,7 +22,7 @@ The sequel expands the concept into a cyberpunk city setting. Developed by Byte 
 
 ## What is OpenCaptive?
 
-OpenCaptive is a modern C/SDL3 reimplementation project for both game engines. Captive has the broader playable implementation; Liberation is an explicitly separate, early runtime while its original generator and plot code are being reverse-engineered. It aims to:
+OpenCaptive is a modern C/SDL3 reimplementation project for both game engines. Captive has the broader playable implementation; Liberation currently plays only hash-verified original presentation frames while its original generator and plot code are being reverse-engineered. It aims to:
 
 - **Preserve the original experience** — pixel-perfect rendering, original game logic, and authentic gameplay using the original data files
 - **Enhance where it makes sense** — optional higher-resolution rendering, modern display scaling, and quality-of-life improvements while keeping the original mode as the default
@@ -49,27 +49,16 @@ Point OpenCaptive at your game data directory:
 ./build/opencaptive --data /path/to/captive/data
 ```
 
-### Controls
+### Current controls
 
 | Key | Action |
 |-----|--------|
-| W / Up | Move forward |
-| S / Down | Move backward |
-| A / Left | Turn left |
-| D / Right | Turn right |
-| Q | Strafe left |
-| E | Strafe right |
-| Space | Attack (selected droid) |
-| F | Interact (puzzles, doors, generators, shops) |
-| I | Droid inventory/equipment screen |
-| T | Terminal (map, status, mission info) |
-| M | Toggle minimap overlay |
-| 1-4 | Select droid |
-| , / . | Go up/down stairs |
-| F5 | Quick save |
-| F9 | Quick load |
-| F10 | Runtime graphics and cheat options |
+| F10 | Runtime display options; cheat commands are pending original state recovery |
 | Escape | Return to menu |
+
+Movement, combat, saves and mission commands are intentionally disabled. The
+previous implementation generated its own Captive state and was not derived
+from verified original data.
 
 ### Command-line options
 
@@ -139,19 +128,15 @@ docs/         Format documentation
 | GitHub Actions release workflow | Done |
 | Liberation: Captive 2 hash verification and format analysis | Done |
 | MIDI music (software synth, 32-voice) | Done |
-| Puzzle systems (buttons, levers, power sockets) | Done |
-| Textured viewport (walls, floors, doors) | Done |
-| Creature rendering in viewport | Done |
-| Droid inventory/equipment UI | Done |
-| Terminal system (map, status, mission) | Done |
-| Game over / victory states | Done |
-| Mission progression (10 missions) | Done |
-| Gold economy (drops, shop, HUD display) | Done |
+| Original Captive map, state and input command decoding | In reverse engineering |
+| Original Captive viewport compositor | In reverse engineering |
+| Original Captive encounters in viewport | In reverse engineering |
+| Captive generated map/combat/shop/save implementation | Disabled pending original state recovery |
 | Settings menu (graphics, audio, scale) | Done |
-| Liberation: Captive 2 city runtime | Experimental |
+| Liberation: Captive 2 original presentation playback | Verified first frames |
 | Liberation: original city, plot and dialogue logic | In reverse engineering |
-| Liberation: building-interior navigation | Experimental |
-| Enhanced rendering mode (2x SSAA) | Done |
+| Liberation: city/building interaction | Not implemented from inferred state |
+| Generated enhanced dungeon rendering | Removed pending original compositor |
 | Procedural sound effects (10 types) | Done |
 
 ## Game data formats

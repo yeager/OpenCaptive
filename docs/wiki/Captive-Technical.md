@@ -116,9 +116,15 @@ The technical reference used for this boundary is the documented
 and its linked stage pages. New MapGen work must add an original-output fixture
 or an independently reproducible reference before claiming parity.
 
-## Campaign and combat
+## Current runtime boundary
 
-The mission objective is generator destruction, not elapsed time or creature
-count. Completing every generator advances to the next mission; mission ten
-sets victory. Combat uses grid line-of-sight: walls and closed doors block both
-droid and enemy attacks. Normal doors require interaction to change to floor.
+The former generated map, combat, mission, save and cheat implementation is
+not active in the runtime. Although it used plausible game rules, its state
+was not decoded from hash-verified Captive media and could not establish visual
+or logical parity with the original. The runtime currently displays verified
+intro/HUD data and keeps the viewport untouched until the original panel
+compositor and state format are recovered.
+
+The F10 menu is limited to display and audio options. Its game-affecting cheat
+commands remain visibly pending instead of mutating a generated substitute
+state.

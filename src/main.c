@@ -16,7 +16,6 @@
 #include "droid_ui.h"
 #include "terminal.h"
 #include "sfx.h"
-#include "liberation.h"
 #include "data_vfs.h"
 #include "sha256.h"
 #include "liberation_data.h"
@@ -201,7 +200,6 @@ static ShopState shop;
 static DroidUIState droid_ui;
 static TerminalState terminal;
 static SfxSystem sfx;
-static LibState lib_state;
 static LiberationData liberation_data;
 static bool liberation_intro_active;
 static bool skip_liberation_intro_requested;
@@ -304,11 +302,9 @@ static const char *popup_brightness(int value) {
 }
 
 static void popup_apply_cheats(GameState *gs) {
-    if (!gs || gs->game_type != GAME_CAPTIVE) return;
-    for (int i = 0; i < 4; i++) {
-        if (runtime_popup.invulnerable) gs->droids[i].hp = gs->droids[i].hp_max;
-        if (runtime_popup.infinite_energy) gs->droids[i].energy = gs->droids[i].energy_max;
-    }
+    /* Captive's original save/state format has not been recovered.  A cheat
+       toggle must not silently mutate the old generated mission state. */
+    (void)gs;
 }
 
 static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
@@ -348,13 +344,11 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
             break;
         case POPUP_MUSIC: music_set_enabled(&music_sys, !music_sys.enabled); break;
         case POPUP_SFX: sound_set_enabled(&sound_sys, !sound_sys.enabled); break;
-        case POPUP_INVULNERABLE: runtime_popup.invulnerable = !runtime_popup.invulnerable; break;
-        case POPUP_INFINITE_ENERGY: runtime_popup.infinite_energy = !runtime_popup.infinite_energy; break;
+        case POPUP_INVULNERABLE:
+        case POPUP_INFINITE_ENERGY:
         case POPUP_COMPLETE_OBJECTIVE:
-            if (gs->game_type == GAME_CAPTIVE)
-                gs->generators_destroyed = gs->generators_total;
-            else
-                lib_state.mission_complete = true;
+            /* Keep the option visible, but do not fabricate an effect until
+             * the original game-state and command format is decoded. */
             break;
         case POPUP_CLOSE: runtime_popup.open = false; break;
     }
@@ -389,9 +383,9 @@ static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
             case POPUP_BRIGHTNESS: value = popup_brightness(gs->config.brightness); break;
             case POPUP_MUSIC: value = popup_toggle(music_sys.enabled); break;
             case POPUP_SFX: value = popup_toggle(sound_sys.enabled); break;
-            case POPUP_INVULNERABLE: value = popup_toggle(runtime_popup.invulnerable); break;
-            case POPUP_INFINITE_ENERGY: value = popup_toggle(runtime_popup.infinite_energy); break;
-            case POPUP_COMPLETE_OBJECTIVE: value = "NOW"; break;
+            case POPUP_INVULNERABLE:
+            case POPUP_INFINITE_ENERGY:
+            case POPUP_COMPLETE_OBJECTIVE: value = "PENDING"; break;
             default: break;
         }
         draw_simple_text(fb, pw, ph, x + w - 80, row_y, value, color, 1);
@@ -408,111 +402,11 @@ static void spawn_level_content(GameState *gs_ptr) {
     }
 }
 
-static void start_liberation_session(GameState *gs_ptr, LibState *ls) {
+static void start_liberation_session(GameState *gs_ptr) {
     gs_ptr->game_type = GAME_LIBERATION;
     gs_ptr->mode = STATE_GAME;
-    lib_init(ls, 42);
     liberation_intro_active = !skip_liberation_intro_requested &&
                               liberation_data.intro_frame.bitplanes != NULL;
-}
-
-static void lib_handle_input(GameState *gs, LibState *ls, const SDL_Event *event) {
-    (void)gs;
-    if (event->type != SDL_EVENT_KEY_DOWN) return;
-    if (liberation_intro_active) {
-        liberation_intro_active = false;
-        return;
-    }
-
-    static const int dx[] = {0, 1, 0, -1};
-    static const int dy[] = {-1, 0, 1, 0};
-
-    if (ls->mode == LIB_MODE_CITY) {
-        int mx = 0, my = 0;
-        switch (event->key.key) {
-            case SDLK_W: case SDLK_UP:    my = -1; break;
-            case SDLK_S: case SDLK_DOWN:  my = 1; break;
-            case SDLK_A: case SDLK_LEFT:  mx = -1; break;
-            case SDLK_D: case SDLK_RIGHT: mx = 1; break;
-            case SDLK_RETURN:
-            case SDLK_F: {
-                if (lib_enter_current_building(ls)) sfx_play(&sfx, SFX_DOOR_OPEN);
-                return;
-            }
-            case SDLK_F5:
-                lib_save_game(ls, "opencaptive-liberation.sav");
-                return;
-            case SDLK_F9:
-                lib_load_game(ls, "opencaptive-liberation.sav");
-                return;
-            default: return;
-        }
-        int nx = ls->player_cx + mx;
-        int ny = ls->player_cy + my;
-        if (nx >= 0 && nx < LIB_CITY_WIDTH && ny >= 0 && ny < LIB_CITY_HEIGHT) {
-            ls->player_cx = nx;
-            ls->player_cy = ny;
-            sfx_play(&sfx, SFX_STEP);
-        }
-    } else {
-        // Building interior
-        const LibBuilding *b = &ls->city.buildings[ls->current_building];
-        const LibFloor *fl = &b->floors[ls->player_floor];
-
-        switch (event->key.key) {
-            case SDLK_W: case SDLK_UP: {
-                int nx = ls->player_bx + dx[ls->player_dir];
-                int ny = ls->player_by + dy[ls->player_dir];
-                if (nx >= 0 && nx < LIB_FLOOR_WIDTH && ny >= 0 && ny < LIB_FLOOR_HEIGHT &&
-                    fl->cells[ny][nx] != LIB_CELL_WALL) {
-                    ls->player_bx = nx;
-                    ls->player_by = ny;
-                    sfx_play(&sfx, SFX_STEP);
-                }
-                break;
-            }
-            case SDLK_S: case SDLK_DOWN: {
-                int nx = ls->player_bx - dx[ls->player_dir];
-                int ny = ls->player_by - dy[ls->player_dir];
-                if (nx >= 0 && nx < LIB_FLOOR_WIDTH && ny >= 0 && ny < LIB_FLOOR_HEIGHT &&
-                    fl->cells[ny][nx] != LIB_CELL_WALL) {
-                    ls->player_bx = nx;
-                    ls->player_by = ny;
-                    sfx_play(&sfx, SFX_STEP);
-                }
-                break;
-            }
-            case SDLK_A: case SDLK_LEFT:
-                ls->player_dir = (ls->player_dir + 3) % 4;
-                break;
-            case SDLK_D: case SDLK_RIGHT:
-                ls->player_dir = (ls->player_dir + 1) % 4;
-                break;
-            case SDLK_F:
-                // Check if on elevator
-                if (fl->cells[ls->player_by][ls->player_bx] == LIB_CELL_ELEVATOR) {
-                    if (lib_change_floor(ls, 1)) sfx_play(&sfx, SFX_DOOR_OPEN);
-                }
-                // Check if at exit door
-                if (ls->player_by == LIB_FLOOR_HEIGHT - 1 && ls->player_floor == 0) {
-                    if (lib_leave_current_building(ls)) sfx_play(&sfx, SFX_DOOR_OPEN);
-                }
-                break;
-            case SDLK_PERIOD:
-                if (lib_change_floor(ls, 1)) sfx_play(&sfx, SFX_DOOR_OPEN);
-                break;
-            case SDLK_COMMA:
-                if (lib_change_floor(ls, -1)) sfx_play(&sfx, SFX_DOOR_OPEN);
-                break;
-            case SDLK_F5:
-                lib_save_game(ls, "opencaptive-liberation.sav");
-                break;
-            case SDLK_F9:
-                lib_load_game(ls, "opencaptive-liberation.sav");
-                break;
-            default: break;
-        }
-    }
 }
 
 static void game_handle_input(GameState *gs, const SDL_Event *event) {
@@ -847,15 +741,13 @@ int main(int argc, char *argv[]) {
     uint32_t intro_last_tick = 0;
 
     /* Keep command-line launches deterministic and useful for scripts and
-     * desktop shortcuts. The menu follows the same Captive initialisation
-     * path, but direct launch must not wait for a synthetic key event. */
+     * desktop shortcuts.  The original HUD and intro are decoded from media;
+     * do not seed the former generated dungeon beneath them. */
     if (start_directly && requested_game == GAME_CAPTIVE) {
         if (!validate_data_path(&vfs)) {
             show_missing_data_dialog(config.data_path);
         } else {
             gs.game_type = GAME_CAPTIVE;
-            game_state_new_mission(&gs, 1);
-            spawn_level_content(&gs);
             music_play(&music_sys, MUSIC_BASE);
             /* game_state_init() starts at the menu.  A direct command-line
              * launch must make the same state transition as selecting
@@ -868,7 +760,7 @@ int main(int argc, char *argv[]) {
         if (!liberation_data_open(&liberation_data, &vfs)) {
             show_missing_liberation_data_dialog(config.data_path);
         } else {
-            start_liberation_session(&gs, &lib_state);
+            start_liberation_session(&gs);
             printf("Starting verified Liberation game\n");
         }
     }
@@ -939,8 +831,6 @@ int main(int argc, char *argv[]) {
                                 intro_last_tick = SDL_GetTicks();
                             }
                             if (!intro_loaded) {
-                                game_state_new_mission(&gs, 1);
-                                spawn_level_content(&gs);
                                 music_play(&music_sys, MUSIC_BASE);
                                 gs.mode = STATE_GAME;
                             }
@@ -963,7 +853,7 @@ int main(int argc, char *argv[]) {
                                 show_missing_liberation_data_dialog(config.data_path);
                                 break;
                             }
-                            start_liberation_session(&gs, &lib_state);
+                            start_liberation_session(&gs);
                             break;
                         case MENU_RESULT_QUIT:
                             running = false;
@@ -974,8 +864,6 @@ int main(int argc, char *argv[]) {
                 }
                 case STATE_INTRO:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
-                        game_state_new_mission(&gs, 1);
-                        spawn_level_content(&gs);
                         music_play(&music_sys, MUSIC_BASE);
                         gs.mode = STATE_GAME;
                     }
@@ -983,10 +871,8 @@ int main(int argc, char *argv[]) {
                 case STATE_GAME:
                     if (event.type == SDL_EVENT_KEY_DOWN &&
                         event.key.key == SDLK_ESCAPE) {
-                        if (gs.game_type == GAME_LIBERATION &&
-                            lib_state.mode == LIB_MODE_BUILDING) {
-                            lib_state.mode = LIB_MODE_CITY;
-                            lib_state.current_building = -1;
+                        if (gs.game_type == GAME_LIBERATION && liberation_intro_active) {
+                            liberation_intro_active = false;
                         } else {
                             gs.mode = STATE_MENU;
                             sync_menu_from_config(&menu, &config, music_sys.enabled,
@@ -994,10 +880,14 @@ int main(int argc, char *argv[]) {
                             music_stop(&music_sys);
                         }
                     } else if (gs.game_type == GAME_LIBERATION) {
-                        lib_handle_input(&gs, &lib_state, &event);
-                    } else {
-                        game_handle_input(&gs, &event);
-                    }
+                        /* The verified ANIM presentation can advance from its
+                         * intro to the city frame.  Movement and building
+                         * entry remain disabled until their original CD32
+                         * game-state format is recovered. */
+                        if (event.type == SDL_EVENT_KEY_DOWN)
+                            liberation_intro_active = false;
+                    } /* Captive input remains disabled until the original
+                         * map/state format is decoded. */
                     break;
                 case STATE_TERMINAL:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
@@ -1103,8 +993,6 @@ int main(int argc, char *argv[]) {
                         intro_frame++;
                         intro_last_tick = now;
                         if (intro_frame >= intro_anim.frame_count) {
-                            game_state_new_mission(&gs, 1);
-                            spawn_level_content(&gs);
                             music_play(&music_sys, MUSIC_BASE);
                             gs.mode = STATE_GAME;
                             break;
@@ -1119,10 +1007,7 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_GAME: {
-                if (!runtime_popup.open) {
-                    gs.tick++;
-                    popup_apply_cheats(&gs);
-                }
+                if (!runtime_popup.open) popup_apply_cheats(&gs);
                 if (gs.game_type == GAME_LIBERATION) {
                     /* Liberation has its own city/building loop.  Captive's
                      * droid combat and generator completion conditions do not
@@ -1143,34 +1028,7 @@ int main(int argc, char *argv[]) {
                                       0xFFCCDDEE, 1);
                     }
                 } else {
-                    if (!runtime_popup.open && gs.tick % 4 == 0)
-                        combat_tick(&creatures, &gs);
-
-                    // Check for game over (all droids destroyed)
-                    bool all_dead = true;
-                    for (int d = 0; d < 4; d++) {
-                        if (gs.droids[d].hp > 0) { all_dead = false; break; }
-                    }
-                    if (all_dead) {
-                        gs.mode = STATE_GAMEOVER;
-                        music_play(&music_sys, MUSIC_TRAPPED);
-                        break;
-                    }
-
-                    /* A Captive base is completed by destroying its generators,
-                     * not by waiting for a creature list to happen to empty.
-                     * The old condition advanced unattended games after a timer
-                     * and could make an objective impossible to understand. */
-                    if (game_state_complete_mission(&gs)) {
-                        if (gs.mode == STATE_VICTORY) {
-                            music_play(&music_sys, MUSIC_ESCAPE);
-                        } else {
-                            spawn_level_content(&gs);
-                        }
-                        break;
-                    }
-
-                    // Captive: dungeon crawling
+                    /* Captive: the verified original GAME SCRN shell. */
                     if (hud_bg) {
                         memcpy(framebuffer, hud_bg,
                                CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));

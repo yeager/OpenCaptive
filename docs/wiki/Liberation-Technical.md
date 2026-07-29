@@ -3,8 +3,8 @@
 ## Current boundary
 
 OpenCaptive currently verifies and opens the known CD32 data track, reads its
-ISO9660 filesystem by content hash, and provides a separate city/interior
-runtime loop. It does **not** yet reproduce the original CityGen/PlotGen game
+ISO9660 filesystem by content hash, and presents verified original ANIM frames.
+It does **not** yet reproduce the original CityGen/PlotGen game
 logic. The verified payloads are preserved as a reverse-engineering boundary,
 not silently substituted for original behaviour.
 
@@ -202,19 +202,14 @@ as independent records.
 The command first verifies the enclosing CD32 track, then performs an ISO
 lookup by the resource digest. Its output must stay outside version control.
 
-## Current city runtime
+## Current runtime boundary
 
-The current `LibState` is deliberately separate from Captive's dungeon and
-mission loop. It contains a 32×32 city grid, building footprints, up to four
-interior floors, a city/building mode and player coordinates. Its deterministic
-generator uses a seed, produces streets and building blocks, and supports
-entering a building, walking interiors and using elevators.
-
-This separation matters: Captive combat ticks and Captive generator-completion
-rules must not advance or end a Liberation session. The main loop explicitly
-branches before applying either Captive-only rule. The former inferred city and
-interior rasterizers have been removed; no procedural drawing is used as a
-fallback when original presentation data is available.
+The former inferred `LibState` city and interior implementation has been
+removed. It generated streets, buildings and objectives that were not derived
+from the CD32 game state and therefore could not be visually or logically
+verified. The runtime now has a narrow, explicit boundary: it displays the
+hash-verified intro and city ANIM first frames, can advance from intro to city,
+and does not invent movement, buildings, objectives or saves.
 
 ## Reverse-engineering plan
 
