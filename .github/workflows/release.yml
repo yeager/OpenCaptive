@@ -15,23 +15,99 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build libsdl3-dev
+          sudo apt-get install -y cmake ninja-build libsdl3-dev rpm
       - name: Build
         run: |
           cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release
           ninja -C build
       - name: Test
         run: ctest --test-dir build -j4 --output-on-failure
-      - name: Package
+      - name: Get version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Package tar.gz
         run: |
           mkdir -p opencaptive-linux-x86_64
           cp build/opencaptive opencaptive-linux-x86_64/
           cp README.md LICENSE opencaptive-linux-x86_64/
           tar czf opencaptive-linux-x86_64.tar.gz opencaptive-linux-x86_64/
+      - name: Build deb
+        run: |
+          PKG_VERSION=${{ steps.version.outputs.version }}
+          mkdir -p deb/DEBIAN
+          mkdir -p deb/usr/bin
+          mkdir -p deb/usr/share/applications
+          mkdir -p deb/usr/share/doc/opencaptive
+          cp build/opencaptive deb/usr/bin/
+          cp README.md LICENSE deb/usr/share/doc/opencaptive/
+          cat > deb/usr/share/applications/opencaptive.desktop <<'EOF'
+          [Desktop Entry]
+          Name=OpenCaptive
+          Comment=Reimplementation of Captive and Liberation: Captive 2
+          Exec=opencaptive
+          Icon=opencaptive
+          Type=Application
+          Categories=Game;ActionGame;
+          EOF
+          cat > deb/DEBIAN/control <<EOF
+          Package: opencaptive
+          Version: ${PKG_VERSION}
+          Section: games
+          Priority: optional
+          Architecture: amd64
+          Depends: libsdl3-0 (>= 3.0.0)
+          Maintainer: Daniel Nylander <daniel@danielnylander.se>
+          Homepage: https://github.com/yeager/OpenCaptive
+          Description: Reimplementation of Captive and Liberation: Captive 2
+           A modern C/SDL3 reimplementation of the classic sci-fi dungeon
+           crawlers Captive (1990) and Liberation: Captive 2 (1993).
+          EOF
+          dpkg-deb --build deb opencaptive_${PKG_VERSION}_amd64.deb
+      - name: Build rpm
+        run: |
+          PKG_VERSION=${{ steps.version.outputs.version }}
+          mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+          mkdir -p rpmbuild/SOURCES/opencaptive-${PKG_VERSION}
+          cp build/opencaptive rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/
+          cp README.md LICENSE rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/
+          tar czf rpmbuild/SOURCES/opencaptive-${PKG_VERSION}.tar.gz \
+            -C rpmbuild/SOURCES opencaptive-${PKG_VERSION}
+          cat > rpmbuild/SPECS/opencaptive.spec <<EOF
+          Name:           opencaptive
+          Version:        ${PKG_VERSION}
+          Release:        1%{?dist}
+          Summary:        Reimplementation of Captive and Liberation: Captive 2
+          License:        MIT
+          URL:            https://github.com/yeager/OpenCaptive
+          Source0:        opencaptive-${PKG_VERSION}.tar.gz
+
+          %description
+          A modern C/SDL3 reimplementation of the classic sci-fi dungeon
+          crawlers Captive (1990) and Liberation: Captive 2 (1993).
+
+          %prep
+          %setup -q
+
+          %install
+          mkdir -p %{buildroot}/usr/bin
+          cp opencaptive %{buildroot}/usr/bin/
+          mkdir -p %{buildroot}/usr/share/doc/opencaptive
+          cp README.md LICENSE %{buildroot}/usr/share/doc/opencaptive/
+
+          %files
+          /usr/bin/opencaptive
+          /usr/share/doc/opencaptive/README.md
+          /usr/share/doc/opencaptive/LICENSE
+          EOF
+          rpmbuild --define "_topdir $(pwd)/rpmbuild" -bb rpmbuild/SPECS/opencaptive.spec
+          cp rpmbuild/RPMS/x86_64/*.rpm opencaptive-${PKG_VERSION}.x86_64.rpm
       - uses: actions/upload-artifact@v4
         with:
           name: linux-x86_64
-          path: opencaptive-linux-x86_64.tar.gz
+          path: |
+            opencaptive-linux-x86_64.tar.gz
+            opencaptive_*.deb
+            opencaptive-*.rpm
 
   build-linux-appimage:
     runs-on: ubuntu-24.04
@@ -49,7 +125,7 @@ jobs:
         run: |
           mkdir -p AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/256x256/apps
           cp build/opencaptive AppDir/usr/bin/
-          cat > AppDir/usr/share/applications/opencaptive.desktop << 'EOF'
+          cat > AppDir/usr/share/applications/opencaptive.desktop <<'EOF'
           [Desktop Entry]
           Name=OpenCaptive
           Exec=opencaptive
@@ -57,7 +133,6 @@ jobs:
           Type=Application
           Categories=Game;
           EOF
-          # Placeholder icon
           convert -size 256x256 xc:black AppDir/usr/share/icons/hicolor/256x256/apps/opencaptive.png 2>/dev/null || true
       - name: Download linuxdeploy
         run: |
@@ -127,7 +202,7 @@ jobs:
           path: opencaptive-windows-x64/
 
   create-release:
-    needs: [build-linux, build-macos, build-windows]
+    needs: [build-linux, build-linux-appimage, build-macos, build-windows]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/download-artifact@v4
@@ -138,6 +213,9 @@ jobs:
         with:
           files: |
             artifacts/linux-x86_64/opencaptive-linux-x86_64.tar.gz
+            artifacts/linux-x86_64/opencaptive_*.deb
+            artifacts/linux-x86_64/opencaptive-*.rpm
+            artifacts/linux-appimage/opencaptive-x86_64.AppImage
             artifacts/macos-arm64/opencaptive-macos-arm64.tar.gz
             artifacts/windows-x64/**
           generate_release_notes: true
