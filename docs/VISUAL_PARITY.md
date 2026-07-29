@@ -5,11 +5,14 @@
 hela bildbufferten med en deterministisk 64-bitarsbildhash:
 
 - Captives förstapersonsvy med dörr och generator
-- Liberations stadsbild med fast seed (`42`)
+- Liberations stadsbild med fast seed (`42`) på dess egna 320×256-canvas.
+  Referensbilden omfattar den CD32-inspirerade modulraden, sidopanelerna och
+  det centrala stadsområdet; den blandar inte in Captives 320×200-layout.
 
 Kontrollen fångar oavsiktliga ändringar av placering, färger, överlappning och
 skalning. Referenserna är avsiktligt interna renderingsögonblick; de är inte
-ett påstående om fullständig bildmässig identitet med originalutgåvorna.
+ett påstående om fullständig bildmässig identitet med originalutgåvorna eller
+om att odetekterade grafiska resurser från speldata har återskapats.
 
 Kör lokalt med:
 

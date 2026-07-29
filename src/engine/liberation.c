@@ -296,12 +296,59 @@ static const uint32_t building_colors[] = {
     [LIB_BUILDING_SHOP]        = 0xFF666644,
 };
 
-void lib_render_city(const LibState *ls, uint32_t *pixels, int width, int height) {
-    memset(pixels, 0, width * height * sizeof(uint32_t));
+static void lib_rect(uint32_t *pixels, int width, int height,
+                     int x, int y, int w, int h, uint32_t color) {
+    int x0 = x < 0 ? 0 : x;
+    int y0 = y < 0 ? 0 : y;
+    int x1 = x + w > width ? width : x + w;
+    int y1 = y + h > height ? height : y + h;
+    for (int py = y0; py < y1; ++py)
+        for (int px = x0; px < x1; ++px)
+            pixels[py * width + px] = color;
+}
 
-    int scale = 4;
-    int ox = (width - LIB_CITY_WIDTH * scale) / 2;
-    int oy = (height - LIB_CITY_HEIGHT * scale) / 2;
+static void lib_frame(uint32_t *pixels, int width, int height,
+                      int x, int y, int w, int h, uint32_t edge, uint32_t fill) {
+    lib_rect(pixels, width, height, x, y, w, h, fill);
+    lib_rect(pixels, width, height, x, y, w, 2, edge);
+    lib_rect(pixels, width, height, x, y + h - 2, w, 2, edge);
+    lib_rect(pixels, width, height, x, y, 2, h, edge);
+    lib_rect(pixels, width, height, x + w - 2, y, 2, h, edge);
+}
+
+void lib_render_city(const LibState *ls, uint32_t *pixels, int width, int height) {
+    memset(pixels, 0, (size_t)width * height * sizeof(uint32_t));
+
+    /* This is deliberately a layout renderer, not a substitute for the
+     * original CD assets.  It mirrors the native screen regions so UI and
+     * gameplay never inherit Captive's 320x200 geometry. */
+    lib_rect(pixels, width, height, 0, 0, width, height, 0xFF09081B);
+    lib_rect(pixels, width, height, 0, 35, width, 2, 0xFF30245D);
+    for (int module = 0; module < 4; ++module) {
+        int x = 8 + module * 78;
+        lib_frame(pixels, width, height, x, 5, 70, 25, 0xFF7860A0, 0xFF201B3D);
+        lib_rect(pixels, width, height, x + 5, 10, 16, 5, 0xFF4D987D);
+        lib_rect(pixels, width, height, x + 25, 10, 36, 5, 0xFF3C3567);
+        lib_rect(pixels, width, height, x + 5, 19, 56, 5, 0xFF2D2850);
+    }
+
+    for (int side = 0; side < 2; ++side) {
+        int x = side == 0 ? 6 : width - 78;
+        lib_frame(pixels, width, height, x, 48, 72, 122, 0xFF69588E, 0xFF17142D);
+        lib_rect(pixels, width, height, x + 12, 58, 48, 42, 0xFF2A254A);
+        lib_rect(pixels, width, height, x + 24, 64, 24, 25, 0xFF577A82);
+        lib_rect(pixels, width, height, x + 17, 102, 38, 7, 0xFF4B3B71);
+        lib_rect(pixels, width, height, x + 12, 117, 48, 5, 0xFF38416A);
+        lib_rect(pixels, width, height, x + 12, 130, 48, 5, 0xFF38416A);
+        lib_rect(pixels, width, height, x + 12, 143, 48, 5, 0xFF38416A);
+    }
+    lib_frame(pixels, width, height, LIBERATION_VIEWPORT_X - 3,
+              LIBERATION_VIEWPORT_Y - 3, LIBERATION_VIEWPORT_WIDTH + 6,
+              LIBERATION_VIEWPORT_HEIGHT + 6, 0xFF8167A8, 0xFF100E24);
+
+    int scale = 3;
+    int ox = LIBERATION_VIEWPORT_X + (LIBERATION_VIEWPORT_WIDTH - LIB_CITY_WIDTH * scale) / 2;
+    int oy = LIBERATION_VIEWPORT_Y + (LIBERATION_VIEWPORT_HEIGHT - LIB_CITY_HEIGHT * scale) / 2;
 
     // Draw city grid
     for (int cy = 0; cy < LIB_CITY_HEIGHT; cy++) {
@@ -345,20 +392,20 @@ void lib_render_city(const LibState *ls, uint32_t *pixels, int width, int height
     }
 }
 
-void lib_render_building(const LibState *ls, uint32_t *pixels, int stride) {
+void lib_render_building(const LibState *ls, uint32_t *pixels, int width, int height) {
     if (ls->current_building < 0) return;
 
     const LibBuilding *b = &ls->city.buildings[ls->current_building];
     if (ls->player_floor >= b->num_floors) return;
     const LibFloor *fl = &b->floors[ls->player_floor];
 
-    int vp_w = CAPTIVE_VIEWPORT_WIDTH;
-    int vp_h = CAPTIVE_VIEWPORT_HEIGHT;
+    int vp_w = LIBERATION_VIEWPORT_WIDTH;
+    int vp_h = LIBERATION_VIEWPORT_HEIGHT;
 
     // Top-down minimap in viewport area
     int scale = 6;
-    int ox = (vp_w - LIB_FLOOR_WIDTH * scale) / 2;
-    int oy = (vp_h - LIB_FLOOR_HEIGHT * scale) / 2;
+    int ox = LIBERATION_VIEWPORT_X + (vp_w - LIB_FLOOR_WIDTH * scale) / 2;
+    int oy = LIBERATION_VIEWPORT_Y + (vp_h - LIB_FLOOR_HEIGHT * scale) / 2;
 
     for (int fy = 0; fy < LIB_FLOOR_HEIGHT; fy++) {
         for (int fx = 0; fx < LIB_FLOOR_WIDTH; fx++) {
@@ -379,8 +426,10 @@ void lib_render_building(const LibState *ls, uint32_t *pixels, int stride) {
                 for (int sx = 0; sx < scale; sx++) {
                     int px = ox + fx * scale + sx;
                     int py = oy + fy * scale + sy;
-                    if (px >= 0 && px < vp_w && py >= 0 && py < vp_h)
-                        pixels[py * stride + px] = color;
+                    if (px >= LIBERATION_VIEWPORT_X && px < LIBERATION_VIEWPORT_X + vp_w &&
+                        py >= LIBERATION_VIEWPORT_Y && py < LIBERATION_VIEWPORT_Y + vp_h &&
+                        px < width && py < height)
+                        pixels[py * width + px] = color;
                 }
         }
     }
@@ -390,7 +439,9 @@ void lib_render_building(const LibState *ls, uint32_t *pixels, int stride) {
         for (int sx = 0; sx < scale; sx++) {
             int px = ox + ls->player_bx * scale + sx;
             int py = oy + ls->player_by * scale + sy;
-            if (px >= 0 && px < vp_w && py >= 0 && py < vp_h)
-                pixels[py * stride + px] = 0xFFFFFFFF;
+            if (px >= LIBERATION_VIEWPORT_X && px < LIBERATION_VIEWPORT_X + vp_w &&
+                py >= LIBERATION_VIEWPORT_Y && py < LIBERATION_VIEWPORT_Y + vp_h &&
+                px < width && py < height)
+                pixels[py * width + px] = 0xFFFFFFFF;
         }
 }

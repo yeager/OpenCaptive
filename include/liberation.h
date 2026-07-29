@@ -14,6 +14,14 @@
 #define LIB_FLOOR_WIDTH  16
 #define LIB_FLOOR_HEIGHT 16
 
+/* Native PAL CD32 layout.  Keep this separate from Captive's 320x200
+ * viewport: Liberation's side droid bays and message log are part of its
+ * 320x256 presentation. */
+#define LIBERATION_VIEWPORT_X      88
+#define LIBERATION_VIEWPORT_Y      66
+#define LIBERATION_VIEWPORT_WIDTH  144
+#define LIBERATION_VIEWPORT_HEIGHT 104
+
 typedef enum {
     LIB_CELL_VOID = 0,
     LIB_CELL_STREET,
@@ -88,6 +96,6 @@ bool lib_change_floor(LibState *ls, int direction);
 bool lib_save_game(const LibState *ls, const char *path);
 bool lib_load_game(LibState *ls, const char *path);
 void lib_render_city(const LibState *ls, uint32_t *pixels, int width, int height);
-void lib_render_building(const LibState *ls, uint32_t *pixels, int stride);
+void lib_render_building(const LibState *ls, uint32_t *pixels, int width, int height);
 
 #endif

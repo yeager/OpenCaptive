@@ -33,7 +33,7 @@
 #include <windows.h>
 #endif
 
-static uint32_t framebuffer[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
+static uint32_t framebuffer[LIBERATION_SCREEN_WIDTH * LIBERATION_SCREEN_HEIGHT];
 
 static bool parse_int_option(const char *text, int minimum, int maximum, int *value) {
     if (!text || !value) return false;
@@ -378,22 +378,24 @@ static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
 }
 
 static void liberation_render_hud(const LibState *ls, uint32_t *fb, int pw, int ph) {
-    int panel_y = ph - 42;
-    draw_rect(fb, pw, ph, 0, panel_y, pw, 42, 0xFF101420);
-    draw_rect(fb, pw, ph, 0, panel_y, pw, 1, 0xFF55CCFF);
-    draw_simple_text(fb, pw, ph, 10, panel_y + 7, "LIBERATION", 0xFF55CCFF, 1);
-    draw_simple_text(fb, pw, ph, 10, panel_y + 19,
+    int panel_y = 176;
+    draw_rect(fb, pw, ph, 0, panel_y, pw, ph - panel_y, 0xFF100D25);
+    draw_rect(fb, pw, ph, 0, panel_y, pw, 2, 0xFF8065A9);
+    draw_rect(fb, pw, ph, 6, panel_y + 7, pw - 12, 20, 0xFF1D1939);
+    draw_rect(fb, pw, ph, 6, panel_y + 7, pw - 12, 1, 0xFF564676);
+    draw_simple_text(fb, pw, ph, 12, panel_y + 10, "LIBERATION // CITY NET", 0xFF99CCDD, 1);
+    draw_simple_text(fb, pw, ph, 12, panel_y + 34,
                      ls->mission_complete ? "TARGET COMPLETE" : "TARGET ACTIVE",
                      ls->mission_complete ? 0xFF55FF55 : 0xFFFFAA44, 1);
     if (ls->mode == LIB_MODE_CITY) {
-        draw_simple_text(fb, pw, ph, 160, panel_y + 7,
+        draw_simple_text(fb, pw, ph, 160, panel_y + 34,
                          "ARROWS MOVE", 0xFFCCDDEE, 1);
-        draw_simple_text(fb, pw, ph, 160, panel_y + 19,
+        draw_simple_text(fb, pw, ph, 12, panel_y + 47,
                          "F ENTER  F5 SAVE", 0xFF99AACC, 1);
     } else {
-        draw_simple_text(fb, pw, ph, 160, panel_y + 7,
+        draw_simple_text(fb, pw, ph, 160, panel_y + 34,
                          "ARROWS MOVE TURN", 0xFFCCDDEE, 1);
-        draw_simple_text(fb, pw, ph, 160, panel_y + 19,
+        draw_simple_text(fb, pw, ph, 12, panel_y + 47,
                          "F EXIT  DOT UP", 0xFF99AACC, 1);
     }
 }
@@ -1057,8 +1059,17 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        /* Liberation is a PAL CD32 presentation and therefore uses a taller
+         * canvas than Captive's 320x200 shell.  Switch at the game boundary,
+         * not by stretching one game's framebuffer into the other. */
+        int frame_width = CAPTIVE_ORIGINAL_WIDTH;
+        int frame_height = (gs.mode == STATE_GAME && gs.game_type == GAME_LIBERATION)
+            ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
+        if (renderer.canvas_width != frame_width || renderer.canvas_height != frame_height)
+            renderer_set_canvas(&renderer, frame_width, frame_height, &config);
+
         // Render
-        memset(framebuffer, 0, sizeof(framebuffer));
+        memset(framebuffer, 0, (size_t)frame_width * frame_height * sizeof(uint32_t));
 
         switch (gs.mode) {
             case STATE_MENU:
@@ -1100,15 +1111,15 @@ int main(int argc, char *argv[]) {
                      * to advance or end after its timer elapsed. */
                     if (lib_state.mode == LIB_MODE_CITY) {
                         lib_render_city(&lib_state, framebuffer,
-                                        CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                                        LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
                     } else {
-                        memset(framebuffer, 0, sizeof(framebuffer));
-                        lib_render_building(&lib_state,
-                            &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],
-                            CAPTIVE_ORIGINAL_WIDTH);
+                        lib_render_city(&lib_state, framebuffer,
+                                        LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
+                        lib_render_building(&lib_state, framebuffer,
+                                            LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
                     }
                     liberation_render_hud(&lib_state, framebuffer,
-                                          CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                                          LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
                 } else {
                     if (!runtime_popup.open && gs.tick % 4 == 0)
                         combat_tick(&creatures, &gs);

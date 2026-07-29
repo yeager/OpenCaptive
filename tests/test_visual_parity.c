@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define SCREEN_PIXELS (CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT)
+#define SCREEN_PIXELS (LIBERATION_SCREEN_WIDTH * LIBERATION_SCREEN_HEIGHT)
 #define VIEWPORT_PIXELS (CAPTIVE_VIEWPORT_WIDTH * CAPTIVE_VIEWPORT_HEIGHT)
 
 static uint64_t image_hash(const uint32_t *pixels, size_t count) {
@@ -56,9 +56,9 @@ static void test_liberation_city_snapshot(void) {
     static LibState state;
     memset(pixels, 0, sizeof(pixels));
     lib_init(&state, 42);
-    lib_render_city(&state, pixels, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+    lib_render_city(&state, pixels, LIBERATION_SCREEN_WIDTH, LIBERATION_SCREEN_HEIGHT);
     assert_snapshot("liberation city", pixels, SCREEN_PIXELS,
-                    UINT64_C(0x5345fa5dedde3ca5));
+                    UINT64_C(0x3bbf824571981588));
 }
 
 int main(void) {
