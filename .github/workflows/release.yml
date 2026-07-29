@@ -15,7 +15,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build rpm \
+          sudo apt-get install -y cmake ninja-build rpm librsvg2-bin \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
             libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev \
             libdecor-0-dev libegl-dev libgles-dev libgl-dev libdrm-dev \
@@ -42,6 +42,12 @@ jobs:
           cp build/opencaptive opencaptive-linux-x86_64/
           cp README.md LICENSE opencaptive-linux-x86_64/
           tar czf opencaptive-linux-x86_64.tar.gz opencaptive-linux-x86_64/
+      - name: Generate icons
+        run: |
+          for size in 16 32 48 64 128 256 512; do
+            mkdir -p icons/hicolor/${size}x${size}/apps
+            rsvg-convert -w $size -h $size assets/icon.svg -o icons/hicolor/${size}x${size}/apps/opencaptive.png
+          done
       - name: Build deb
         run: |
           PKG_VERSION=${{ steps.version.outputs.version }}
@@ -51,6 +57,7 @@ jobs:
           mkdir -p deb/usr/share/doc/opencaptive
           cp build/opencaptive deb/usr/bin/
           cp README.md LICENSE deb/usr/share/doc/opencaptive/
+          cp -r icons/hicolor deb/usr/share/icons/hicolor
           cat > deb/usr/share/applications/opencaptive.desktop <<'EOF'
           [Desktop Entry]
           Name=OpenCaptive
@@ -126,7 +133,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build file libfuse2 \
+          sudo apt-get install -y cmake ninja-build file libfuse2 librsvg2-bin \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
             libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev \
             libdecor-0-dev libegl-dev libgles-dev libgl-dev libdrm-dev \
@@ -154,7 +161,7 @@ jobs:
           Type=Application
           Categories=Game;
           EOF
-          convert -size 256x256 xc:black AppDir/usr/share/icons/hicolor/256x256/apps/opencaptive.png 2>/dev/null || true
+          rsvg-convert -w 256 -h 256 assets/icon.svg -o AppDir/usr/share/icons/hicolor/256x256/apps/opencaptive.png
       - name: Download linuxdeploy
         run: |
           wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
@@ -185,40 +192,30 @@ jobs:
       - name: Create app bundle
         run: |
           APP=OpenCaptive.app
+          VERSION=${GITHUB_REF_NAME#v}
           mkdir -p "$APP/Contents/MacOS"
           mkdir -p "$APP/Contents/Frameworks"
           mkdir -p "$APP/Contents/Resources"
+          cp assets/icon.icns "$APP/Contents/Resources/OpenCaptive.icns"
           cp build/opencaptive "$APP/Contents/MacOS/OpenCaptive"
           SDL3_DYLIB=$(brew --prefix sdl3)/lib/libSDL3.0.dylib
           cp "$SDL3_DYLIB" "$APP/Contents/Frameworks/"
-          install_name_tool -change "$(otool -L "$APP/Contents/MacOS/OpenCaptive" | grep libSDL3 | awk '{print $1}')" \
+          install_name_tool -id @executable_path/../Frameworks/libSDL3.0.dylib \
+            "$APP/Contents/Frameworks/libSDL3.0.dylib"
+          OLD_PATH=$(otool -L "$APP/Contents/MacOS/OpenCaptive" | grep libSDL3 | awk '{print $1}')
+          install_name_tool -change "$OLD_PATH" \
             @executable_path/../Frameworks/libSDL3.0.dylib "$APP/Contents/MacOS/OpenCaptive"
-          cat > "$APP/Contents/Info.plist" <<'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>CFBundleExecutable</key>
-            <string>OpenCaptive</string>
-            <key>CFBundleIdentifier</key>
-            <string>se.danielnylander.opencaptive</string>
-            <key>CFBundleName</key>
-            <string>OpenCaptive</string>
-            <key>CFBundleVersion</key>
-            <string>${GITHUB_REF_NAME#v}</string>
-            <key>CFBundleShortVersionString</key>
-            <string>${GITHUB_REF_NAME#v}</string>
-            <key>CFBundlePackageType</key>
-            <string>APPL</string>
-            <key>CFBundleInfoDictionaryVersion</key>
-            <string>6.0</string>
-            <key>LSMinimumSystemVersion</key>
-            <string>14.0</string>
-            <key>NSHighResolutionCapable</key>
-            <true/>
-          </dict>
-          </plist>
-          EOF
+          /usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string OpenCaptive" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string se.danielnylander.opencaptive" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleName string OpenCaptive" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string $VERSION" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundlePackageType string APPL" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleInfoDictionaryVersion string 6.0" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :LSMinimumSystemVersion string 14.0" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :NSHighResolutionCapable bool true" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string OpenCaptive" "$APP/Contents/Info.plist"
+          codesign --force --deep -s - "$APP"
       - name: Create DMG
         run: |
           hdiutil create -volname OpenCaptive -srcfolder OpenCaptive.app \
@@ -256,9 +253,11 @@ jobs:
           copy ${{ github.workspace }}\SDL3-install\bin\SDL3.dll dist\
           copy README.md dist\
           copy LICENSE dist\
+          copy assets\icon.ico dist\
           (
           echo [Setup]
           echo AppName=OpenCaptive
+          echo SetupIconFile=dist\icon.ico
           echo AppVersion=${{ steps.version.outputs.version }}
           echo AppPublisher=Daniel Nylander
           echo AppPublisherURL=https://github.com/yeager/OpenCaptive
@@ -275,10 +274,11 @@ jobs:
           echo Source: "dist\SDL3.dll"; DestDir: "{app}"; Flags: ignoreversion
           echo Source: "dist\README.md"; DestDir: "{app}"; Flags: ignoreversion
           echo Source: "dist\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+          echo Source: "dist\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
           echo [Icons]
-          echo Name: "{group}\OpenCaptive"; Filename: "{app}\opencaptive.exe"
+          echo Name: "{group}\OpenCaptive"; Filename: "{app}\opencaptive.exe"; IconFilename: "{app}\icon.ico"
           echo Name: "{group}\Uninstall OpenCaptive"; Filename: "{uninstallexe}"
-          echo Name: "{commondesktop}\OpenCaptive"; Filename: "{app}\opencaptive.exe"; Tasks: desktopicon
+          echo Name: "{commondesktop}\OpenCaptive"; Filename: "{app}\opencaptive.exe"; IconFilename: "{app}\icon.ico"; Tasks: desktopicon
           echo [Tasks]
           echo Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional icons:"
           echo [Run]
