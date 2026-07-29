@@ -377,6 +377,27 @@ static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
     draw_centered(fb, pw, ph, y + h - 14, "UP DOWN ENTER", 0xFF99AACC, 1);
 }
 
+static void liberation_render_hud(const LibState *ls, uint32_t *fb, int pw, int ph) {
+    int panel_y = ph - 42;
+    draw_rect(fb, pw, ph, 0, panel_y, pw, 42, 0xFF101420);
+    draw_rect(fb, pw, ph, 0, panel_y, pw, 1, 0xFF55CCFF);
+    draw_simple_text(fb, pw, ph, 10, panel_y + 7, "LIBERATION", 0xFF55CCFF, 1);
+    draw_simple_text(fb, pw, ph, 10, panel_y + 19,
+                     ls->mission_complete ? "TARGET COMPLETE" : "TARGET ACTIVE",
+                     ls->mission_complete ? 0xFF55FF55 : 0xFFFFAA44, 1);
+    if (ls->mode == LIB_MODE_CITY) {
+        draw_simple_text(fb, pw, ph, 160, panel_y + 7,
+                         "ARROWS MOVE", 0xFFCCDDEE, 1);
+        draw_simple_text(fb, pw, ph, 160, panel_y + 19,
+                         "F ENTER  F5 SAVE", 0xFF99AACC, 1);
+    } else {
+        draw_simple_text(fb, pw, ph, 160, panel_y + 7,
+                         "ARROWS MOVE TURN", 0xFFCCDDEE, 1);
+        draw_simple_text(fb, pw, ph, 160, panel_y + 19,
+                         "F EXIT  DOT UP", 0xFF99AACC, 1);
+    }
+}
+
 static void spawn_level_content(GameState *gs_ptr) {
     combat_init(&creatures);
     puzzle_init(&puzzles);
@@ -1073,12 +1094,13 @@ int main(int argc, char *argv[]) {
                         lib_render_city(&lib_state, framebuffer,
                                         CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                     } else {
+                        memset(framebuffer, 0, sizeof(framebuffer));
                         lib_render_building(&lib_state,
                             &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],
                             CAPTIVE_ORIGINAL_WIDTH);
-                        hud_render(&gs, framebuffer,
-                                   CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                     }
+                    liberation_render_hud(&lib_state, framebuffer,
+                                          CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 } else {
                     if (!runtime_popup.open && gs.tick % 4 == 0)
                         combat_tick(&creatures, &gs);

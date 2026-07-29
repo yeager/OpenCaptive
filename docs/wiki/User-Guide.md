@@ -51,6 +51,14 @@ Closed doors block movement and line of sight. Face a normal door and use `F`.
 Generators are mission objectives; destroying all generated generators advances
 the campaign. A direct attack or enemy shot cannot cross a wall or closed door.
 
+## Liberation controls
+
+In the city, use arrow keys or `WASD` to move and `F` or Enter to enter a
+building when standing on it. In an interior, arrow keys or `WASD` move and
+turn; `F` leaves through the ground-floor exit. Stand on an elevator and use
+`.` to go up or `,` to go down. F5 and F9 save and load Liberation's separate
+city-state save.
+
 ## Runtime options and cheats
 
 Press `F10` during either game to pause the live simulation and open the
