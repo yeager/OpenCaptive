@@ -412,6 +412,8 @@ int main(int argc, char *argv[]) {
         .contrast = 50,
         .fps_limit = 60,
     };
+    GameType requested_game = GAME_CAPTIVE;
+    bool start_directly = false;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
@@ -489,7 +491,17 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "--contrast") == 0 && i + 1 < argc) {
             config.contrast = atoi(argv[++i]);
         } else if (strcmp(argv[i], "--game") == 0 && i + 1 < argc) {
-            i++; // handled after menu
+            const char *game = argv[++i];
+            if (strcmp(game, "captive") == 0) {
+                requested_game = GAME_CAPTIVE;
+                start_directly = true;
+            } else if (strcmp(game, "liberation") == 0) {
+                requested_game = GAME_LIBERATION;
+                start_directly = true;
+            } else {
+                fprintf(stderr, "Unknown game: %s (expected captive or liberation)\n", game);
+                return 2;
+            }
         }
     }
 
@@ -559,6 +571,26 @@ int main(int argc, char *argv[]) {
     bool intro_loaded = false;
     int intro_frame = 0;
     uint32_t intro_last_tick = 0;
+
+    /* Keep command-line launches deterministic and useful for scripts and
+     * desktop shortcuts. The menu follows the same Captive initialisation
+     * path, but direct launch must not wait for a synthetic key event. */
+    if (start_directly && requested_game == GAME_CAPTIVE) {
+        if (!validate_data_path(&vfs)) {
+            show_missing_data_dialog(config.data_path);
+        } else {
+            gs.game_type = GAME_CAPTIVE;
+            game_state_new_mission(&gs, 1);
+            spawn_level_content(&gs);
+            music_play(&music_sys, MUSIC_BASE);
+        }
+    } else if (start_directly && requested_game == GAME_LIBERATION) {
+        gs.game_type = GAME_LIBERATION;
+        lib_init(&lib_state, 42);
+        game_state_new_mission(&gs, 1);
+        spawn_level_content(&gs);
+        music_play(&music_sys, MUSIC_BASE);
+    }
 
     bool running = true;
     SDL_Event event;

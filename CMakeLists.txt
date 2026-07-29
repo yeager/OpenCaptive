@@ -78,6 +78,14 @@ add_executable(test_map_gen
 target_include_directories(test_map_gen PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME map_gen COMMAND test_map_gen)
 
+add_executable(test_data_vfs
+    tests/test_data_vfs.c
+    src/data/data_vfs.c
+)
+target_include_directories(test_data_vfs PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_data_vfs PRIVATE ZLIB::ZLIB)
+add_test(NAME data_vfs COMMAND test_data_vfs)
+
 # --- Tools ---
 
 add_executable(pl5_to_bmp

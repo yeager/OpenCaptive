@@ -17,6 +17,11 @@
 #define ZIP_METHOD_STORE 0
 #define ZIP_METHOD_DEFLATE 8
 
+/* Archives are user supplied. Keep metadata and allocations bounded before
+ * using any value from an archive header. */
+#define ZIP_MAX_ENTRY_NAME 511
+#define ZIP_MAX_ENTRY_SIZE (256u * 1024u * 1024u)
+
 static uint16_t read_u16(const uint8_t *p) {
     return (uint16_t)(p[0] | (p[1] << 8));
 }
@@ -63,6 +68,7 @@ try_suffix:
 static uint8_t *zip_extract(const char *zip_path, const char *rel_path, size_t *out_size) {
     FILE *f = fopen(zip_path, "rb");
     if (!f) return NULL;
+    if (!out_size) { fclose(f); return NULL; }
 
     fseek(f, 0, SEEK_END);
     long zip_size = ftell(f);
@@ -97,7 +103,13 @@ static uint8_t *zip_extract(const char *zip_path, const char *rel_path, size_t *
     if (fread(eocd, 1, 22, f) != 22) { fclose(f); return NULL; }
 
     uint16_t num_entries = read_u16(eocd + 10);
+    uint32_t cd_size = read_u32(eocd + 12);
     uint32_t cd_offset = read_u32(eocd + 16);
+
+    if ((uint64_t)cd_offset + cd_size > (uint64_t)zip_size) {
+        fclose(f);
+        return NULL;
+    }
 
     // Read central directory
     fseek(f, cd_offset, SEEK_SET);
@@ -115,20 +127,29 @@ static uint8_t *zip_extract(const char *zip_path, const char *rel_path, size_t *
         uint16_t comment_len = read_u16(cd_hdr + 32);
         uint32_t local_offset = read_u32(cd_hdr + 42);
 
-        char name[512];
-        int read_len = name_len < 511 ? name_len : 511;
+        if (name_len == 0 || name_len > ZIP_MAX_ENTRY_NAME ||
+            comp_size > ZIP_MAX_ENTRY_SIZE || uncomp_size > ZIP_MAX_ENTRY_SIZE) {
+            fclose(f);
+            return NULL;
+        }
+
+        char name[ZIP_MAX_ENTRY_NAME + 1];
+        int read_len = name_len;
         if (fread(name, 1, name_len, f) != name_len) break;
         name[read_len] = '\0';
 
         // Skip extra + comment
+        long after_name = ftell(f);
+        if (after_name < 0 || (uint64_t)after_name + extra_len + comment_len >
+            (uint64_t)zip_size) break;
         fseek(f, extra_len + comment_len, SEEK_CUR);
-        long resume_pos = ftell(f);
 
-        if (name[name_len - 1] == '/') continue; // directory
+        if (name[read_len - 1] == '/') continue; // directory
 
         if (!path_matches(name, read_len, rel_path)) continue;
 
         // Found match — read from local file header
+        if ((uint64_t)local_offset + 30 > (uint64_t)zip_size) break;
         fseek(f, local_offset, SEEK_SET);
         uint8_t local_hdr[30];
         if (fread(local_hdr, 1, 30, f) != 30) break;
@@ -136,6 +157,9 @@ static uint8_t *zip_extract(const char *zip_path, const char *rel_path, size_t *
 
         uint16_t local_name_len = read_u16(local_hdr + 26);
         uint16_t local_extra_len = read_u16(local_hdr + 28);
+        long data_offset = ftell(f);
+        if (data_offset < 0 || (uint64_t)data_offset + local_name_len + local_extra_len + comp_size >
+            (uint64_t)zip_size) break;
         fseek(f, local_name_len + local_extra_len, SEEK_CUR);
 
         uint8_t *comp_data = malloc(comp_size);

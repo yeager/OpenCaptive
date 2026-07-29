@@ -32,7 +32,7 @@ jobs:
           cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release
           ninja -C build
       - name: Test
-        run: ctest --test-dir build -j4 --output-on-failure || true
+        run: ctest --test-dir build -j4 --output-on-failure
       - name: Get version
         id: version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
@@ -169,9 +169,9 @@ jobs:
           chmod +x linuxdeploy-x86_64.AppImage
       - name: Build AppImage
         run: |
-          ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage || true
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage
           mv OpenCaptive-*.AppImage opencaptive-x86_64.AppImage 2>/dev/null || \
-            mv *.AppImage opencaptive-x86_64.AppImage 2>/dev/null || true
+            mv *.AppImage opencaptive-x86_64.AppImage
       - uses: actions/upload-artifact@v4
         with:
           name: linux-appimage
@@ -189,7 +189,7 @@ jobs:
           cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release
           ninja -C build
       - name: Test
-        run: ctest --test-dir build -j4 --output-on-failure || true
+        run: ctest --test-dir build -j4 --output-on-failure
       - name: Create app bundle
         run: |
           APP=OpenCaptive.app
@@ -247,7 +247,7 @@ jobs:
           cmake -S . -B build -DCMAKE_PREFIX_PATH="${{ github.workspace }}/SDL3-install;${{ github.workspace }}/zlib-install" -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
       - name: Test
-        run: ctest --test-dir build -C Release -j4 --output-on-failure || true
+        run: ctest --test-dir build -C Release -j4 --output-on-failure
       - name: Get version
         id: version
         shell: bash
