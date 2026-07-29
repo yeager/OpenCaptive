@@ -72,6 +72,18 @@ static void test_mission_seed_formula(void) {
     assert(seed == 179);
 }
 
+static void test_architect_prng_regression(void) {
+    /* The seed used by map 17.3 in the original game must keep generating the
+     * same base; this digest-like sample catches accidental LCG substitutions. */
+    DungeonLevel base;
+    map_generate(&base, 179, 0);
+    unsigned long checksum = 0;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            checksum = checksum * 131u + base.cells[y][x].type;
+    assert(checksum == 9531787337675192601ul);
+}
+
 static void test_architect_base_layout(void) {
     DungeonLevel levels[MAX_LEVELS];
     int count = 0;
@@ -102,6 +114,7 @@ int main(void) {
     test_border_walls();
     test_has_generators();
     test_mission_seed_formula();
+    test_architect_prng_regression();
     test_architect_base_layout();
     printf("All map generator tests passed\n");
     return 0;

@@ -1,17 +1,22 @@
 #include "map_gen.h"
 #include <string.h>
 
-// Captive uses a simple LCG PRNG
-// Reference: captive.atari.org DevScapes documentation
-static uint32_t prng_state;
+/* Original Architect PRNG, recovered from the hash-identified fed_MapGen
+ * module in the Atari ST release.  The module keeps a 16-bit state, multiplies
+ * it by 1509, adds 41, rotates the result right by four bits and XORs bit 11. */
+static uint16_t prng_state;
 
-static uint32_t prng_next(void) {
-    prng_state = prng_state * 1103515245 + 12345;
-    return (prng_state >> 16) & 0x7FFF;
+static uint16_t ror16(uint16_t value, unsigned count) {
+    return (uint16_t)((value >> count) | (value << (16 - count)));
+}
+
+static uint16_t prng_next(void) {
+    prng_state = (uint16_t)(prng_state * 1509u + 41u);
+    return (uint16_t)(ror16(prng_state, 4) ^ 0x0800u);
 }
 
 static void prng_seed(uint32_t seed) {
-    prng_state = seed;
+    prng_state = (uint16_t)seed;
 }
 
 static void carve(DungeonLevel *level, int x, int y) {
