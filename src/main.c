@@ -305,6 +305,7 @@ static void spawn_level_content(GameState *gs_ptr) {
 }
 
 static void lib_handle_input(GameState *gs, LibState *ls, const SDL_Event *event) {
+    (void)gs;
     if (event->type != SDL_EVENT_KEY_DOWN) return;
 
     static const int dx[] = {0, 1, 0, -1};

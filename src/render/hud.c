@@ -141,8 +141,6 @@ static void draw_minimap(const GameState *gs, uint32_t *pixels, int w, int h,
     }
 }
 
-static const char *dir_names[] = { "N", "E", "S", "W" };
-
 void hud_render(const GameState *gs, uint32_t *pixels, int width, int height) {
     // HUD area: below viewport (y >= CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT)
     int hud_y = CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT + 4;

@@ -129,6 +129,7 @@ static int decode_huff(BitReader *br, HuffTable *ht) {
 }
 
 int rnc1_unpack(const uint8_t *src, int src_len, uint8_t *dst, int dst_len) {
+    if (!src || !dst || src_len < 18 || dst_len < 0) return -1;
     // Verify header
     uint32_t sig = ((uint32_t)src[0] << 24) | ((uint32_t)src[1] << 16) |
                    ((uint32_t)src[2] << 8) | src[3];

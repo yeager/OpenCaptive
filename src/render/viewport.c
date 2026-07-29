@@ -233,6 +233,7 @@ static const uint32_t creature_colors[] = {
 static void render_creatures(const GameState *gs, uint32_t *pixels, int stride,
                              int depth, const TextureAtlas *atlas,
                              const CreatureList *creatures) {
+    (void)atlas;
     if (!creatures) return;
 
     int fwd_x = dir_dx[gs->party_dir];

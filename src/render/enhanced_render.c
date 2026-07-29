@@ -18,14 +18,6 @@ static uint32_t blend_colors(uint32_t c1, uint32_t c2, float t) {
     return 0xFF000000 | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
 }
 
-static uint32_t smooth_darken(uint32_t color, float distance) {
-    float factor = 1.0f / (1.0f + distance * 0.3f);
-    uint8_t r = (uint8_t)(((color >> 16) & 0xFF) * factor);
-    uint8_t g = (uint8_t)(((color >> 8) & 0xFF) * factor);
-    uint8_t b = (uint8_t)((color & 0xFF) * factor);
-    return 0xFF000000 | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
-}
-
 void enhanced_render(EnhancedRenderer *er, const GameState *gs,
                      uint32_t *output, int stride,
                      const TextureAtlas *atlas, const CreatureList *creatures) {

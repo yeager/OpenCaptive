@@ -64,6 +64,7 @@ void terminal_init(TerminalState *ts, int level) {
 
 static void render_main(const TerminalState *ts, const GameState *gs,
                         uint32_t *fb, int w, int h, int px, int py) {
+    (void)gs;
     const char *options[] = {"1. MAP", "2. STATUS", "3. MISSION INFO", "4. EXIT"};
     for (int i = 0; i < 4; i++) {
         uint32_t col = (i == ts->cursor) ? 0xFF00FF00 : 0xFF00AA00;
@@ -74,6 +75,7 @@ static void render_main(const TerminalState *ts, const GameState *gs,
 
 static void render_map(const TerminalState *ts, const GameState *gs,
                        uint32_t *fb, int w, int h, int px, int py) {
+    (void)ts;
     draw_t(fb, w, h, px + 14, py + 24, "LEVEL MAP", 0xFF00FF00);
 
     const DungeonLevel *lvl = &gs->levels[gs->current_level];
@@ -108,6 +110,7 @@ static void render_map(const TerminalState *ts, const GameState *gs,
 
 static void render_status(const TerminalState *ts, const GameState *gs,
                           uint32_t *fb, int w, int h, int px, int py) {
+    (void)ts;
     draw_t(fb, w, h, px + 14, py + 24, "DROID STATUS", 0xFF00FF00);
 
     char buf[64];
@@ -121,6 +124,7 @@ static void render_status(const TerminalState *ts, const GameState *gs,
 
 static void render_mission(const TerminalState *ts, const GameState *gs,
                            uint32_t *fb, int w, int h, int px, int py) {
+    (void)ts;
     char buf[64];
     draw_t(fb, w, h, px + 14, py + 24, "MISSION BRIEFING", 0xFF00FF00);
 
