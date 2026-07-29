@@ -340,21 +340,44 @@ void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
             at = (at + 1) % section_count;
         section_floor[sections[at]] = i;
     }
-    for (int remaining = 0; remaining < section_count; remaining++) {
-        int s = sections[remaining];
-        if (section_floor[s] != -1) continue;
+    /* Grow outward from the assigned seeds.  Each physical section therefore
+     * belongs to one contiguous logical floor, matching Architect's walk from
+     * a section to an adjacent section during layout creation. */
+    int assigned = floors;
+    while (assigned < section_count) {
+        int frontier_sections[16], frontier_count = 0;
+        for (int i = 0; i < section_count; i++) {
+            int s = sections[i];
+            if (section_floor[s] != -1) continue;
+            int sx = s % 4, sy = s / 4;
+            for (int d = 0; d < 4; d++) {
+                int nx = sx + dx[d], ny = sy + dy[d];
+                if (nx >= 0 && nx < 4 && ny >= 0 && ny < 4 &&
+                    section_floor[ny * 4 + nx] >= 0) {
+                    frontier_sections[frontier_count++] = s;
+                    break;
+                }
+            }
+        }
+        /* All documented early-map masks are connected.  Keep a deterministic
+         * fallback for a malformed future mask rather than leaving a section
+         * unassigned. */
+        int s = frontier_count ? frontier_sections[prng_next() % frontier_count] : -1;
+        if (s < 0) {
+            for (int i = 0; i < section_count; i++)
+                if (section_floor[sections[i]] == -1) { s = sections[i]; break; }
+        }
         int candidates[4], count = 0;
         int sx = s % 4, sy = s / 4;
-        const int sd_x[] = {0, 1, 0, -1};
-        const int sd_y[] = {-1, 0, 1, 0};
         for (int d = 0; d < 4; d++) {
-            int nx = sx + sd_x[d], ny = sy + sd_y[d];
+            int nx = sx + dx[d], ny = sy + dy[d];
             if (nx >= 0 && nx < 4 && ny >= 0 && ny < 4) {
                 int adjacent = ny * 4 + nx;
                 if (section_floor[adjacent] >= 0) candidates[count++] = section_floor[adjacent];
             }
         }
-        section_floor[s] = count ? candidates[prng_next() % count] : (int)(prng_next() % floors);
+        section_floor[s] = count ? candidates[prng_next() % count] : 0;
+        assigned++;
     }
 
     for (int f = 0; f < floors; f++) {
