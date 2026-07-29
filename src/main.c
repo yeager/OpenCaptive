@@ -857,42 +857,11 @@ int main(int argc, char *argv[]) {
 
             case STATE_GAME: {
                 gs.tick++;
-                if (gs.tick % 4 == 0) combat_tick(&creatures, &gs);
-
-                // Check for game over (all droids destroyed)
-                bool all_dead = true;
-                for (int d = 0; d < 4; d++) {
-                    if (gs.droids[d].hp > 0) { all_dead = false; break; }
-                }
-                if (all_dead) {
-                    gs.mode = STATE_GAMEOVER;
-                    music_play(&music_sys, MUSIC_TRAPPED);
-                    break;
-                }
-
-                // Check for mission complete (generator destroyed = no active creatures)
-                bool mission_done = true;
-                for (int ci = 0; ci < creatures.num_creatures; ci++) {
-                    if (creatures.creatures[ci].active &&
-                        creatures.creatures[ci].level == gs.current_level) {
-                        mission_done = false; break;
-                    }
-                }
-                // Only on last level and after tick 200 (grace period)
-                if (mission_done && gs.current_level == gs.num_levels - 1 && gs.tick > 200) {
-                    if (gs.mission >= 10) {
-                        gs.mode = STATE_VICTORY;
-                        music_play(&music_sys, MUSIC_ESCAPE);
-                    } else {
-                        gs.mission++;
-                        game_state_new_mission(&gs, gs.mission);
-                        spawn_level_content(&gs);
-                    }
-                    break;
-                }
-
                 if (gs.game_type == GAME_LIBERATION) {
-                    // Liberation: city or building view
+                    /* Liberation has its own city/building loop.  Captive's
+                     * droid combat and generator completion conditions do not
+                     * apply here: running them caused an unattended city game
+                     * to advance or end after its timer elapsed. */
                     if (lib_state.mode == LIB_MODE_CITY) {
                         lib_render_city(&lib_state, framebuffer,
                                         CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
@@ -904,6 +873,40 @@ int main(int argc, char *argv[]) {
                                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                     }
                 } else {
+                    if (gs.tick % 4 == 0) combat_tick(&creatures, &gs);
+
+                    // Check for game over (all droids destroyed)
+                    bool all_dead = true;
+                    for (int d = 0; d < 4; d++) {
+                        if (gs.droids[d].hp > 0) { all_dead = false; break; }
+                    }
+                    if (all_dead) {
+                        gs.mode = STATE_GAMEOVER;
+                        music_play(&music_sys, MUSIC_TRAPPED);
+                        break;
+                    }
+
+                    // Check for mission complete (generator destroyed = no active creatures)
+                    bool mission_done = true;
+                    for (int ci = 0; ci < creatures.num_creatures; ci++) {
+                        if (creatures.creatures[ci].active &&
+                            creatures.creatures[ci].level == gs.current_level) {
+                            mission_done = false; break;
+                        }
+                    }
+                    // Only on last level and after tick 200 (grace period)
+                    if (mission_done && gs.current_level == gs.num_levels - 1 && gs.tick > 200) {
+                        if (gs.mission >= 10) {
+                            gs.mode = STATE_VICTORY;
+                            music_play(&music_sys, MUSIC_ESCAPE);
+                        } else {
+                            gs.mission++;
+                            game_state_new_mission(&gs, gs.mission);
+                            spawn_level_content(&gs);
+                        }
+                        break;
+                    }
+
                     // Captive: dungeon crawling
                     if (hud_bg) {
                         memcpy(framebuffer, hud_bg,

@@ -98,6 +98,10 @@ add_executable(test_iso9660_reader tests/test_iso9660_reader.c
 target_include_directories(test_iso9660_reader PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME iso9660_reader COMMAND test_iso9660_reader)
 
+add_executable(test_liberation tests/test_liberation.c src/engine/liberation.c)
+target_include_directories(test_liberation PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation COMMAND test_liberation)
+
 # --- Tools ---
 
 add_executable(pl5_to_bmp
