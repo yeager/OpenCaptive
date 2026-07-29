@@ -73,6 +73,35 @@ static int distance(int x1, int y1, int x2, int y2) {
     return (dx > dy) ? dx : dy; // Chebyshev distance
 }
 
+static bool blocks_movement_or_sight(CellType cell) {
+    return cell == CELL_WALL || cell == CELL_DOOR || cell == CELL_DOOR_LOCKED;
+}
+
+/* Both droids and enemies use the same grid visibility rule.  Range alone
+ * must not allow shots through a wall or a closed door. */
+static bool combat_has_line_of_sight(const GameState *gs,
+                                     int x0, int y0, int x1, int y1) {
+    if (!gs || gs->current_level < 0 || gs->current_level >= gs->num_levels)
+        return false;
+    int dx = x1 > x0 ? x1 - x0 : x0 - x1;
+    int sx = x0 < x1 ? 1 : -1;
+    int dy = y1 > y0 ? y0 - y1 : y1 - y0;
+    int sy = y0 < y1 ? 1 : -1;
+    int error = dx - dy;
+    int x = x0, y = y0;
+
+    while (x != x1 || y != y1) {
+        int twice_error = error * 2;
+        if (twice_error > -dy) { error -= dy; x += sx; }
+        if (twice_error < dx) { error += dx; y += sy; }
+        if (x == x1 && y == y1) break;
+        if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT ||
+            blocks_movement_or_sight(gs->levels[gs->current_level].cells[y][x].type))
+            return false;
+    }
+    return true;
+}
+
 void combat_tick(CreatureList *cl, GameState *gs) {
     for (int i = 0; i < cl->num_creatures; i++) {
         Creature *c = &cl->creatures[i];
@@ -87,7 +116,8 @@ void combat_tick(CreatureList *cl, GameState *gs) {
         // Cooldown
         if (c->cooldown > 0) { c->cooldown--; continue; }
 
-        if (dist <= c->range) {
+        if (dist <= c->range && combat_has_line_of_sight(gs, c->x, c->y,
+                                                          gs->party_x, gs->party_y)) {
             // Attack a random droid
             int target = combat_rand() % 4;
             Droid *d = &gs->droids[target];
@@ -107,7 +137,7 @@ void combat_tick(CreatureList *cl, GameState *gs) {
             int nx = c->x + move_dx;
             int ny = c->y + move_dy;
             if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT &&
-                gs->levels[gs->current_level].cells[ny][nx].type != CELL_WALL) {
+                !blocks_movement_or_sight(gs->levels[gs->current_level].cells[ny][nx].type)) {
                 c->x = nx;
                 c->y = ny;
             }
@@ -140,7 +170,8 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
         if (dot <= 0) continue;
 
         int dist = distance(c->x, c->y, gs->party_x, gs->party_y);
-        if (dist < best_dist && dist <= 6) {
+        if (dist < best_dist && dist <= 6 &&
+            combat_has_line_of_sight(gs, gs->party_x, gs->party_y, c->x, c->y)) {
             best_dist = dist;
             target = c;
         }

@@ -23,7 +23,42 @@ static void move_to_stair(GameState *gs, CellType stair) {
     assert(!"expected stair is missing");
 }
 
+static void test_combat_respects_closed_doors(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    gs.base_id = 3;
+    game_state_new_mission(&gs, 17);
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_DRONE, .hp = 30, .hp_max = 30,
+        .defense = 0, .range = 4, .x = 3, .y = 1,
+        .level = 0, .active = true,
+    };
+    assert(combat_droid_attack(&gs, &creatures, 0));
+
+    creatures.creatures[0].hp = 30;
+    gs.levels[0].cells[1][2].type = CELL_DOOR;
+    assert(!combat_droid_attack(&gs, &creatures, 0));
+
+    int hp_before = gs.droids[0].hp;
+    creatures.creatures[0].alerted = true;
+    creatures.creatures[0].cooldown = 0;
+    combat_tick(&creatures, &gs);
+    assert(gs.droids[0].hp == hp_before);
+}
+
 int main(void) {
+    test_combat_respects_closed_doors();
     GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
     gs.base_id = 3;
