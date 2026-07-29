@@ -6,6 +6,8 @@
 #include "hud.h"
 #include "anm_decoder.h"
 #include "pl5_decoder.h"
+#include "combat.h"
+#include "save_load.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
@@ -30,6 +32,8 @@ static bool load_intro_anm(const char *data_path, ANMAnimation *anim) {
     free(data);
     return ok;
 }
+
+static CreatureList creatures;
 
 static void game_handle_input(GameState *gs, const SDL_Event *event) {
     if (event->type != SDL_EVENT_KEY_DOWN) return;
@@ -71,6 +75,22 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_2: gs->selected_droid = 1; return;
         case SDLK_3: gs->selected_droid = 2; return;
         case SDLK_4: gs->selected_droid = 3; return;
+        case SDLK_SPACE:
+            combat_droid_attack(gs, &creatures, gs->selected_droid);
+            return;
+        case SDLK_F:
+            combat_interact(gs);
+            return;
+        case SDLK_F5:
+            save_game(gs, "opencaptive.sav");
+            return;
+        case SDLK_F9:
+            if (load_game(gs, "opencaptive.sav")) {
+                combat_init(&creatures);
+                for (int i = 0; i < gs->num_levels; i++)
+                    combat_spawn_for_level(&creatures, &gs->levels[i], i, gs->mission_seed);
+            }
+            return;
         case SDLK_PERIOD: // > stairs down
             if (lvl->cells[gs->party_y][gs->party_x].type == CELL_STAIRS_DOWN &&
                 gs->current_level + 1 < gs->num_levels) {
@@ -192,16 +212,24 @@ int main(int argc, char *argv[]) {
                                     intro_last_tick = SDL_GetTicks();
                                 }
                                 if (!intro_loaded) {
-                                    // Skip intro if no data
                                     game_state_new_mission(&gs, 1);
+                                    combat_init(&creatures);
+                                    for (int i = 0; i < gs.num_levels; i++)
+                                        combat_spawn_for_level(&creatures, &gs.levels[i], i, gs.mission_seed);
                                 }
                             } else {
                                 game_state_new_mission(&gs, 1);
+                                combat_init(&creatures);
+                                for (int i = 0; i < gs.num_levels; i++)
+                                    combat_spawn_for_level(&creatures, &gs.levels[i], i, gs.mission_seed);
                             }
                             break;
                         case MENU_RESULT_START_LIBERATION:
                             gs.game_type = GAME_LIBERATION;
                             game_state_new_mission(&gs, 1);
+                            combat_init(&creatures);
+                            for (int li = 0; li < gs.num_levels; li++)
+                                combat_spawn_for_level(&creatures, &gs.levels[li], li, gs.mission_seed);
                             break;
                         case MENU_RESULT_QUIT:
                             running = false;
@@ -212,8 +240,10 @@ int main(int argc, char *argv[]) {
                 }
                 case STATE_INTRO:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
-                        // Any key skips intro
                         game_state_new_mission(&gs, 1);
+                        combat_init(&creatures);
+                        for (int li = 0; li < gs.num_levels; li++)
+                            combat_spawn_for_level(&creatures, &gs.levels[li], li, gs.mission_seed);
                     }
                     break;
                 case STATE_GAME:
@@ -246,6 +276,9 @@ int main(int argc, char *argv[]) {
                         intro_last_tick = now;
                         if (intro_frame >= intro_anim.frame_count) {
                             game_state_new_mission(&gs, 1);
+                            combat_init(&creatures);
+                            for (int li = 0; li < gs.num_levels; li++)
+                                combat_spawn_for_level(&creatures, &gs.levels[li], li, gs.mission_seed);
                             break;
                         }
                     }
@@ -258,6 +291,8 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_GAME:
+                gs.tick++;
+                if (gs.tick % 4 == 0) combat_tick(&creatures, &gs);
                 // Viewport
                 viewport_render(&gs,
                     &framebuffer[CAPTIVE_VIEWPORT_Y * CAPTIVE_ORIGINAL_WIDTH + CAPTIVE_VIEWPORT_X],

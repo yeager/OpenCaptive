@@ -13,10 +13,14 @@ set(OPENCAPTIVE_SOURCES
     src/engine/engine.c
     src/engine/map_gen.c
     src/engine/start_menu.c
+    src/engine/combat.c
+    src/engine/save_load.c
     src/data/pl5_decoder.c
     src/data/anm_decoder.c
     src/data/rnc_decoder.c
     src/data/mid_loader.c
+    src/data/gfx_loader.c
+    src/audio/sound.c
     src/render/renderer.c
     src/render/viewport.c
     src/render/hud.c
