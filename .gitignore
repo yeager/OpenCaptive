@@ -1,0 +1,10 @@
+build/
+gamedata/
+*.DAT
+*.EXE
+*.exe
+*.st
+*.adf
+*.dsk
+*.zip
+.DS_Store
