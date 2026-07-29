@@ -263,3 +263,5 @@ target_link_libraries(amos_sprite_dump PRIVATE ZLIB::ZLIB)
 
 add_executable(st_list tools/st_list.c src/data/st_disk_reader.c src/data/sha256.c)
 target_include_directories(st_list PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+add_executable(visual_compare tools/visual_compare.c)

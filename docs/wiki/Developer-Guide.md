@@ -23,6 +23,21 @@ Run the same suite with `-DCMAKE_BUILD_TYPE=Release`. Test targets compile with
 assertions explicitly enabled, because test expressions use `assert()` for both
 execution and verification.
 
+## Native visual comparison
+
+Do not use a generated renderer hash as proof of parity. Capture an original
+frame and an OpenCaptive frame at the same native resolution, then compare them
+directly:
+
+```sh
+./build/visual_compare original.ppm opencaptive.ppm diff.ppm
+```
+
+The command reports exact-pixel coverage and mean absolute RGB error; its
+optional last path receives a red error heatmap. Keep captures outside the
+repository and record their SHA-256 digests in the test report. Compare only
+the same game, platform, scene and animation frame.
+
 ## State ownership
 
 - `DataVFS` owns archive indexing, not returned match buffers.
