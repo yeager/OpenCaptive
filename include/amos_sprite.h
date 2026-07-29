@@ -8,6 +8,7 @@
 typedef struct {
     uint16_t width, height, depth;
     uint16_t bytes_per_row;
+    bool has_mask;
     const uint8_t *planes; /* colour planes followed by a transparency mask */
     uint32_t palette[32];
 } AmosSprite;

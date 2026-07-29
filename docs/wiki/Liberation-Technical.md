@@ -65,6 +65,10 @@ stream, including the final entry, is now structurally decodable. The decoder
 remains an analysis tool until the runtime maps particular sprite hashes to
 particular game entities.
 
+The loader also tests the X-hotspot sign bit. A negative X hotspot adds one
+transparency-mask plane after the colour planes; a non-negative hotspot leaves
+the image unmasked. Both variants are now accepted by the decoder.
+
 ## CityGen observation log
 
 The city-generator payload selected by
