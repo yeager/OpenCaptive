@@ -35,7 +35,8 @@ No original payload is bundled or emitted by tooling.
 `liberation_inventory` is the discovery entry point for every remaining CD32
 resource. It recursively walks the verified ISO and emits only SHA-256 digest,
 byte length and container class (`IFF/ILBM`, `IFF/ANIM`, `RNC1`,
-`Amiga-HUNK` or raw). It intentionally neither displays nor accepts filenames:
+`Amiga-HUNK`, AMOS sprite/icon bank or raw). It intentionally neither displays
+nor accepts filenames:
 
 ```sh
 ./build/liberation_inventory /path/to/media
