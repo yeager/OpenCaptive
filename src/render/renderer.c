@@ -3,6 +3,7 @@
 
 static bool renderer_bilinear;
 static bool renderer_scanlines;
+static bool renderer_crt_curvature;
 static int renderer_brightness = 50;
 static int renderer_contrast = 50;
 
@@ -40,7 +41,7 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
     }
 
     SDL_SetTextureScaleMode(r->framebuffer, SDL_SCALEMODE_NEAREST);
-    renderer_set_effects(r, config->bilinear, config->scanlines,
+    renderer_set_effects(r, config->bilinear, config->scanlines, config->crt_curvature,
                          config->brightness, config->contrast);
     r->window_width = w;
     r->window_height = h;
@@ -49,10 +50,11 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
 }
 
 void renderer_set_effects(OpenCaptiveRenderer *r, bool bilinear, bool scanlines,
-                          int brightness, int contrast) {
+                          bool crt_curvature, int brightness, int contrast) {
     if (!r || !r->framebuffer) return;
     renderer_bilinear = bilinear;
     renderer_scanlines = scanlines;
+    renderer_crt_curvature = crt_curvature;
     renderer_brightness = brightness < 0 ? 0 : (brightness > 100 ? 100 : brightness);
     renderer_contrast = contrast < 0 ? 0 : (contrast > 100 ? 100 : contrast);
     SDL_SetTextureScaleMode(r->framebuffer,
@@ -63,10 +65,22 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
     if (pixels) {
         uint32_t processed[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
         const uint32_t *source = pixels;
-        if (renderer_scanlines || renderer_brightness != 50 || renderer_contrast != 50) {
+        if (renderer_scanlines || renderer_crt_curvature ||
+            renderer_brightness != 50 || renderer_contrast != 50) {
             for (int y = 0; y < CAPTIVE_ORIGINAL_HEIGHT; y++) {
                 for (int x = 0; x < CAPTIVE_ORIGINAL_WIDTH; x++) {
-                    uint32_t color = pixels[y * CAPTIVE_ORIGINAL_WIDTH + x];
+                    int sx = x, sy = y;
+                    if (renderer_crt_curvature) {
+                        float nx = (2.0f * x) / (CAPTIVE_ORIGINAL_WIDTH - 1) - 1.0f;
+                        float ny = (2.0f * y) / (CAPTIVE_ORIGINAL_HEIGHT - 1) - 1.0f;
+                        float curved_x = nx * (1.0f + 0.12f * ny * ny);
+                        float curved_y = ny * (1.0f + 0.12f * nx * nx);
+                        sx = (int)((curved_x + 1.0f) * (CAPTIVE_ORIGINAL_WIDTH - 1) / 2.0f);
+                        sy = (int)((curved_y + 1.0f) * (CAPTIVE_ORIGINAL_HEIGHT - 1) / 2.0f);
+                    }
+                    uint32_t color = (sx < 0 || sx >= CAPTIVE_ORIGINAL_WIDTH ||
+                                      sy < 0 || sy >= CAPTIVE_ORIGINAL_HEIGHT)
+                        ? 0xFF000000 : pixels[sy * CAPTIVE_ORIGINAL_WIDTH + sx];
                     uint8_t red = apply_channel((color >> 16) & 0xFF);
                     uint8_t green = apply_channel((color >> 8) & 0xFF);
                     uint8_t blue = apply_channel(color & 0xFF);

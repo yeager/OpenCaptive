@@ -136,6 +136,7 @@ static RuntimePopup runtime_popup;
 enum {
     POPUP_ENHANCED,
     POPUP_SCANLINES,
+    POPUP_CRT,
     POPUP_BILINEAR,
     POPUP_BRIGHTNESS,
     POPUP_INVULNERABLE,
@@ -244,6 +245,7 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
                 enhanced_init(&enhanced);
             break;
         case POPUP_SCANLINES: config->scanlines = !config->scanlines; break;
+        case POPUP_CRT: config->crt_curvature = !config->crt_curvature; break;
         case POPUP_BILINEAR: config->bilinear = !config->bilinear; break;
         case POPUP_BRIGHTNESS:
             config->brightness = config->brightness < 50 ? 50 :
@@ -261,13 +263,14 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
     }
     gs->config = *config;
     renderer_set_effects(renderer, config->bilinear, config->scanlines,
+                         config->crt_curvature,
                          config->brightness, config->contrast);
 }
 
 static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
     static const char *labels[POPUP_ITEMS] = {
-        "ENHANCED VIEW", "SCANLINES", "BILINEAR", "BRIGHTNESS",
-        "GOD MODE", "INFINITE ENERGY", "COMPLETE OBJECTIVE", "CLOSE",
+        "ENHANCED VIEW", "SCANLINES", "CRT CURVE", "BILINEAR",
+        "BRIGHTNESS", "GOD MODE", "INFINITE ENERGY", "COMPLETE OBJECTIVE", "CLOSE",
     };
     int x = 30, y = 18, w = pw - 60, h = 164;
     draw_rect(fb, pw, ph, x, y, w, h, 0xFF101420);
@@ -283,6 +286,7 @@ static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
         switch (i) {
             case POPUP_ENHANCED: value = popup_toggle(gs->config.render_mode == CAPTIVE_RENDER_ENHANCED); break;
             case POPUP_SCANLINES: value = popup_toggle(gs->config.scanlines); break;
+            case POPUP_CRT: value = popup_toggle(gs->config.crt_curvature); break;
             case POPUP_BILINEAR: value = popup_toggle(gs->config.bilinear); break;
             case POPUP_BRIGHTNESS: value = popup_brightness(gs->config.brightness); break;
             case POPUP_INVULNERABLE: value = popup_toggle(runtime_popup.invulnerable); break;
@@ -771,6 +775,7 @@ int main(int argc, char *argv[]) {
                             gs.config = config;
                             renderer_set_effects(&renderer, config.bilinear,
                                                  config.scanlines,
+                                                 config.crt_curvature,
                                                  config.brightness,
                                                  config.contrast);
                             if (config.render_mode == CAPTIVE_RENDER_ENHANCED &&
