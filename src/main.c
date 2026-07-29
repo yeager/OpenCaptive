@@ -110,6 +110,119 @@ static void spawn_level_content(GameState *gs_ptr) {
     }
 }
 
+static void lib_handle_input(GameState *gs, LibState *ls, const SDL_Event *event) {
+    if (event->type != SDL_EVENT_KEY_DOWN) return;
+
+    static const int dx[] = {0, 1, 0, -1};
+    static const int dy[] = {-1, 0, 1, 0};
+
+    if (ls->mode == LIB_MODE_CITY) {
+        int mx = 0, my = 0;
+        switch (event->key.key) {
+            case SDLK_W: case SDLK_UP:    my = -1; break;
+            case SDLK_S: case SDLK_DOWN:  my = 1; break;
+            case SDLK_A: case SDLK_LEFT:  mx = -1; break;
+            case SDLK_D: case SDLK_RIGHT: mx = 1; break;
+            case SDLK_RETURN:
+            case SDLK_F: {
+                // Enter building at current position
+                LibBuildingType bt = ls->city.grid[ls->player_cy][ls->player_cx];
+                if (bt != LIB_BUILDING_NONE) {
+                    for (int i = 0; i < ls->city.num_buildings; i++) {
+                        const LibBuilding *b = &ls->city.buildings[i];
+                        if (ls->player_cx >= b->city_x &&
+                            ls->player_cx < b->city_x + b->width &&
+                            ls->player_cy >= b->city_y &&
+                            ls->player_cy < b->city_y + b->height) {
+                            ls->current_building = i;
+                            ls->mode = LIB_MODE_BUILDING;
+                            ls->player_bx = LIB_FLOOR_WIDTH / 2;
+                            ls->player_by = LIB_FLOOR_HEIGHT - 2;
+                            ls->player_floor = 0;
+                            sfx_play(&sfx, SFX_DOOR_OPEN);
+                            break;
+                        }
+                    }
+                }
+                return;
+            }
+            default: return;
+        }
+        int nx = ls->player_cx + mx;
+        int ny = ls->player_cy + my;
+        if (nx >= 0 && nx < LIB_CITY_WIDTH && ny >= 0 && ny < LIB_CITY_HEIGHT) {
+            ls->player_cx = nx;
+            ls->player_cy = ny;
+            sfx_play(&sfx, SFX_STEP);
+        }
+    } else {
+        // Building interior
+        const LibBuilding *b = &ls->city.buildings[ls->current_building];
+        const LibFloor *fl = &b->floors[ls->player_floor];
+
+        switch (event->key.key) {
+            case SDLK_W: case SDLK_UP: {
+                int nx = ls->player_bx + dx[ls->player_dir];
+                int ny = ls->player_by + dy[ls->player_dir];
+                if (nx >= 0 && nx < LIB_FLOOR_WIDTH && ny >= 0 && ny < LIB_FLOOR_HEIGHT &&
+                    fl->cells[ny][nx] != LIB_CELL_WALL) {
+                    ls->player_bx = nx;
+                    ls->player_by = ny;
+                    sfx_play(&sfx, SFX_STEP);
+                }
+                break;
+            }
+            case SDLK_S: case SDLK_DOWN: {
+                int nx = ls->player_bx - dx[ls->player_dir];
+                int ny = ls->player_by - dy[ls->player_dir];
+                if (nx >= 0 && nx < LIB_FLOOR_WIDTH && ny >= 0 && ny < LIB_FLOOR_HEIGHT &&
+                    fl->cells[ny][nx] != LIB_CELL_WALL) {
+                    ls->player_bx = nx;
+                    ls->player_by = ny;
+                    sfx_play(&sfx, SFX_STEP);
+                }
+                break;
+            }
+            case SDLK_A: case SDLK_LEFT:
+                ls->player_dir = (ls->player_dir + 3) % 4;
+                break;
+            case SDLK_D: case SDLK_RIGHT:
+                ls->player_dir = (ls->player_dir + 1) % 4;
+                break;
+            case SDLK_F:
+                // Check if on elevator
+                if (fl->cells[ls->player_by][ls->player_bx] == LIB_CELL_ELEVATOR) {
+                    if (ls->player_floor + 1 < b->num_floors) {
+                        ls->player_floor++;
+                        sfx_play(&sfx, SFX_DOOR_OPEN);
+                    }
+                }
+                // Check if at exit door
+                if (ls->player_by == LIB_FLOOR_HEIGHT - 1 && ls->player_floor == 0) {
+                    ls->mode = LIB_MODE_CITY;
+                    ls->current_building = -1;
+                    sfx_play(&sfx, SFX_DOOR_OPEN);
+                }
+                break;
+            case SDLK_PERIOD:
+                if (fl->cells[ls->player_by][ls->player_bx] == LIB_CELL_ELEVATOR &&
+                    ls->player_floor + 1 < b->num_floors) {
+                    ls->player_floor++;
+                    sfx_play(&sfx, SFX_DOOR_OPEN);
+                }
+                break;
+            case SDLK_COMMA:
+                if (fl->cells[ls->player_by][ls->player_bx] == LIB_CELL_ELEVATOR &&
+                    ls->player_floor > 0) {
+                    ls->player_floor--;
+                    sfx_play(&sfx, SFX_DOOR_OPEN);
+                }
+                break;
+            default: break;
+        }
+    }
+}
+
 static void game_handle_input(GameState *gs, const SDL_Event *event) {
     if (event->type != SDL_EVENT_KEY_DOWN) return;
 
@@ -378,9 +491,17 @@ int main(int argc, char *argv[]) {
                 case STATE_GAME:
                     if (event.type == SDL_EVENT_KEY_DOWN &&
                         event.key.key == SDLK_ESCAPE) {
-                        gs.mode = STATE_MENU;
-                        start_menu_init(&menu);
-                        music_stop(&music_sys);
+                        if (gs.game_type == GAME_LIBERATION &&
+                            lib_state.mode == LIB_MODE_BUILDING) {
+                            lib_state.mode = LIB_MODE_CITY;
+                            lib_state.current_building = -1;
+                        } else {
+                            gs.mode = STATE_MENU;
+                            start_menu_init(&menu);
+                            music_stop(&music_sys);
+                        }
+                    } else if (gs.game_type == GAME_LIBERATION) {
+                        lib_handle_input(&gs, &lib_state, &event);
                     } else {
                         game_handle_input(&gs, &event);
                     }
