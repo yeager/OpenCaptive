@@ -7,7 +7,7 @@
 static const char cd32_track_sha256[] =
     "f807b1385c0996d54ed10afab271a7dd31d2c6dc6a18f13196ad2a79a0af8a80";
 static const char game_binary_sha256[] =
-    "9767c95dd0d134441d0de8906f9fbb8749f5b435e79a2ae5a021daf5b3337963";
+    "db61f7e39fd31ac19b82216ea963711728d25518454fae42fd89c5bab52f2215";
 
 bool liberation_data_open(LiberationData *data, const DataVFS *vfs) {
     memset(data, 0, sizeof(*data));

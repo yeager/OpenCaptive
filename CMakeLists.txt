@@ -119,5 +119,20 @@ target_include_directories(rnc_decode_tool PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_executable(iso_list
     tools/iso_list.c
     src/data/iso9660_reader.c
+    src/data/sha256.c
 )
 target_include_directories(iso_list PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+add_executable(hash_find tools/hash_find.c src/data/data_vfs.c src/data/sha256.c)
+target_include_directories(hash_find PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(hash_find PRIVATE ZLIB::ZLIB)
+
+add_executable(verify_liberation
+    tools/verify_liberation.c
+    src/data/liberation_data.c
+    src/data/iso9660_reader.c
+    src/data/data_vfs.c
+    src/data/sha256.c
+)
+target_include_directories(verify_liberation PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(verify_liberation PRIVATE ZLIB::ZLIB)

@@ -436,6 +436,7 @@ int main(int argc, char *argv[]) {
     };
     GameType requested_game = GAME_CAPTIVE;
     bool start_directly = false;
+    const char *verify_data = NULL;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
@@ -462,6 +463,7 @@ int main(int argc, char *argv[]) {
                 "  --brightness <n>      Brightness 0-100 (default 50)\n"
                 "  --contrast <n>        Contrast 0-100 (default 50)\n"
                 "  --game <name>         Start game directly: captive, liberation\n\n"
+                "  --verify-data <name>  Verify data by SHA-256: captive, liberation, all\n\n"
                 "Game data:\n"
                 "  Place original Captive game files (or ZIP archives containing them)\n"
                 "  in the data directory. Default location:\n"
@@ -524,7 +526,36 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "Unknown game: %s (expected captive or liberation)\n", game);
                 return 2;
             }
+        } else if (strcmp(argv[i], "--verify-data") == 0 && i + 1 < argc) {
+            verify_data = argv[++i];
+            if (strcmp(verify_data, "captive") != 0 &&
+                strcmp(verify_data, "liberation") != 0 &&
+                strcmp(verify_data, "all") != 0) {
+                fprintf(stderr, "Unknown data set: %s (expected captive, liberation or all)\n", verify_data);
+                return 2;
+            }
         }
+    }
+
+    if (verify_data) {
+        DataVFS verify_vfs;
+        LiberationData verify_liberation = {0};
+        bool ok = vfs_init(&verify_vfs, config.data_path);
+        bool check_captive = strcmp(verify_data, "liberation") != 0;
+        bool check_liberation = strcmp(verify_data, "captive") != 0;
+        if (check_captive) {
+            bool valid = ok && validate_data_path(&verify_vfs);
+            printf("Captive data: %s\n", valid ? "verified" : "not verified");
+            ok = ok && valid;
+        }
+        if (check_liberation) {
+            bool valid = ok && liberation_data_open(&verify_liberation, &verify_vfs);
+            printf("Liberation data: %s\n", valid ? "verified" : "not verified");
+            liberation_data_close(&verify_liberation);
+            ok = ok && valid;
+        }
+        vfs_free(&verify_vfs);
+        return ok ? 0 : 1;
     }
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
