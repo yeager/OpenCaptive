@@ -30,13 +30,13 @@ void game_state_new_mission(GameState *gs, int mission) {
     gs->mission_seed = ((mission - 1) * 11) + gs->base_id;
     gs->current_level = 0;
 
-    // Generate levels for this mission
-    gs->num_levels = 3 + (mission / 2);
-    if (gs->num_levels > MAX_LEVELS) gs->num_levels = MAX_LEVELS;
+    // Architect creates one flattened 64x32 base whose 16x8 sections are
+    // connected by stairs and elevators.  map_generate_base exposes those
+    // logical floors through levels[] for the current game-state API.
+    map_generate_base(gs->levels, &gs->num_levels, gs->mission_seed);
 
     gs->generators_total = 0;
     for (int i = 0; i < gs->num_levels; i++) {
-        map_generate(&gs->levels[i], gs->mission_seed, i);
         // Count generators
         for (int y = 0; y < MAP_HEIGHT; y++)
             for (int x = 0; x < MAP_WIDTH; x++)

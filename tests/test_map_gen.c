@@ -72,6 +72,29 @@ static void test_mission_seed_formula(void) {
     assert(seed == 179);
 }
 
+static void test_architect_base_layout(void) {
+    DungeonLevel levels[MAX_LEVELS];
+    int count = 0;
+    map_generate_base(levels, &count, 179);
+    assert(count >= 2 && count <= 5);
+    for (int level = 0; level < count; level++) {
+        int usable = 0;
+        for (int y = 0; y < MAP_HEIGHT; y++)
+            for (int x = 0; x < MAP_WIDTH; x++)
+                if (levels[level].cells[y][x].type != CELL_WALL) usable++;
+        assert(usable > 20);
+        if (level + 1 < count) {
+            int down = 0, up = 0;
+            for (int y = 0; y < MAP_HEIGHT; y++)
+                for (int x = 0; x < MAP_WIDTH; x++) {
+                    down += levels[level].cells[y][x].type == CELL_STAIRS_DOWN;
+                    up += levels[level + 1].cells[y][x].type == CELL_STAIRS_UP;
+                }
+            assert(down == 1 && up == 1);
+        }
+    }
+}
+
 int main(void) {
     test_deterministic();
     test_different_seeds();
@@ -79,6 +102,7 @@ int main(void) {
     test_border_walls();
     test_has_generators();
     test_mission_seed_formula();
+    test_architect_base_layout();
     printf("All map generator tests passed\n");
     return 0;
 }
