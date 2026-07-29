@@ -35,8 +35,16 @@ bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs) {
     atlas->gamescrn_sheet = gfx_load_pl5_hash(&atlas->gfx,
         "dfca77f0e219962242226f11f9697f580f92e8ad24786296a5b2571b20c2b707");
 
-    // At least one wall sheet must have loaded
-    atlas->loaded = (atlas->wall_sheets[0] >= 0);
+    /* Original-mode rendering is an all-or-nothing contract.  A partial
+       atlas used to be accepted as soon as the first wall sheet was present,
+       which could leave the real GAME SCRN shell next to missing view,
+       object, door, or roof layers.  Every lookup above is content-addressed
+       and hash-verified; require the complete set before exposing it. */
+    atlas->loaded = atlas->gamescrn_sheet >= 0 && atlas->roof_sheet >= 0 &&
+        atlas->door_sheet >= 0 && atlas->icon_sheet >= 0 &&
+        atlas->object_sheet >= 0;
+    for (int i = 0; i < 5; ++i)
+        atlas->loaded = atlas->loaded && atlas->wall_sheets[i] >= 0;
     return atlas->loaded;
 }
 
