@@ -13,6 +13,7 @@ set(OPENCAPTIVE_SOURCES
     src/engine/engine.c
     src/data/pl5_decoder.c
     src/data/anm_decoder.c
+    src/data/rnc_decoder.c
     src/data/mid_loader.c
     src/render/renderer.c
     src/render/viewport.c
@@ -51,3 +52,14 @@ add_executable(pl5_to_bmp
     src/data/pl5_decoder.c
 )
 target_include_directories(pl5_to_bmp PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+add_executable(anm_extract
+    tools/anm_extract.c
+    src/data/anm_decoder.c
+)
+target_include_directories(anm_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+add_executable(rnc_decode_tool
+    tools/rnc_decode.c
+)
+target_include_directories(rnc_decode_tool PRIVATE ${CMAKE_SOURCE_DIR}/include)

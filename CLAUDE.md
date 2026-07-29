@@ -55,7 +55,7 @@ gamedata/     - Original game data (gitignored)
 
 ### Captive (DOS)
 - **PL5**: Graphics (CAPICS/*.PL5) — 40000 bytes, 320x200, 32 colors (5-bit custom packing: 5 bytes → 8 pixels). The bit arrangement is non-standard — not a simple MSB/LSB bitstream.
-- **ANM**: Animations (ANIMS/*.ANM) — 768-byte VGA palette header (256 colors, 6-bit RGB) followed by compressed frame data. First 32 palette entries match the PL5 game palette.
+- **ANM**: Animations (ANIMS/*.ANM) — 768-byte VGA palette header (256 colors, 6-bit RGB), then LE word at 768 = cmd_end offset, then commands section, then frames stored backwards from EOF. Each frame ends with LE word = total size (including the 2-byte size field). Frame data is XOR-delta encoded (byte≠0 → XOR at pos; byte=0 → next byte is skip count, 0=end). Frame buffer is 64000 bytes (chunky 8-bit). First 32 palette entries match the PL5 game palette.
 - **MID**: Music (SOUND/*.MID) — standard MIDI sequences
 - **CTV**: Sound driver configs (SOUND/*.CTV)
 
