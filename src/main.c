@@ -55,6 +55,43 @@ static bool write_frame_ppm(const char *path, const uint32_t *pixels,
     return ok;
 }
 
+/* Hash the same P6 byte stream produced by the independent presentation
+ * capture tool.  This makes --verify-data test decoded source pixels, not
+ * merely the outer CD32 track and container boundaries. */
+static bool liberation_frame_matches_ppm_sha256(const LiberationAnimFrame *frame,
+                                                uint16_t expected_width,
+                                                uint16_t expected_height,
+                                                const char expected_sha256[65]) {
+    if (!frame || !frame->bitplanes || frame->width != expected_width ||
+        frame->height != expected_height || !expected_sha256) {
+        return false;
+    }
+    const size_t count = (size_t)frame->width * frame->height;
+    uint32_t *pixels = calloc(count, sizeof(*pixels));
+    if (!pixels) return false;
+    liberation_anim_blit(frame, pixels, frame->width, frame->height, 0, 0);
+
+    char header[32];
+    int header_size = snprintf(header, sizeof(header), "P6\n%u %u\n255\n",
+                               frame->width, frame->height);
+    SHA256Context hash;
+    uint8_t digest[32];
+    sha256_init(&hash);
+    if (header_size <= 0 || (size_t)header_size >= sizeof(header)) {
+        free(pixels);
+        return false;
+    }
+    sha256_update(&hash, (const uint8_t *)header, (size_t)header_size);
+    for (size_t i = 0; i < count; ++i) {
+        uint8_t rgb[3] = {(uint8_t)(pixels[i] >> 16),
+                          (uint8_t)(pixels[i] >> 8), (uint8_t)pixels[i]};
+        sha256_update(&hash, rgb, sizeof(rgb));
+    }
+    sha256_final(&hash, digest);
+    free(pixels);
+    return sha256_matches_hex(digest, expected_sha256);
+}
+
 static bool write_dos_vga_reference(const char *dump_path, const char *output_path) {
     FILE *file = fopen(dump_path, "rb");
     if (!file) {
@@ -833,11 +870,21 @@ int main(int argc, char *argv[]) {
             bool valid = vfs_ok && liberation_data_open(&verify_liberation, &verify_vfs);
             printf("Liberation data: %s\n", valid ? "verified" : "not verified");
             if (valid) {
+                bool intro_pixels = liberation_frame_matches_ppm_sha256(
+                    &verify_liberation.intro_frame, 320, 162,
+                    "c65df735ccd785dee5cbe118c3f51153f270f6260411d3e04c6ca278b2d6fab3");
+                bool city_pixels = liberation_frame_matches_ppm_sha256(
+                    &verify_liberation.city_frame, 320, 167,
+                    "b7c326d1cdd36bb3574b33add3d68cff9739e7a5e339d800f44af3c79f510bb1");
                 printf("Liberation presentation: intro=%s/%s city=%s/%s\n",
                        verify_liberation.intro_frame.bitplanes ? "decoded" : "unavailable",
                        verify_liberation.intro_script.bytes ? "SCPT" : "no-SCPT",
                        verify_liberation.city_frame.bitplanes ? "decoded" : "unavailable",
                        verify_liberation.city_script.bytes ? "SCPT" : "no-SCPT");
+                printf("Liberation first-frame pixels: intro=%s city=%s\n",
+                       intro_pixels ? "verified" : "not verified",
+                       city_pixels ? "verified" : "not verified");
+                valid = valid && intro_pixels && city_pixels;
             }
             liberation_data_close(&verify_liberation);
             ok = ok && valid;

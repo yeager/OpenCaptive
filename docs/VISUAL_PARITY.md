@@ -28,6 +28,11 @@ Kör lokalt med:
 ./build/opencaptive --verify-data all --data /path/to/media
 ```
 
+För Liberation omfattar verifieringen även PPM-hashen för de två avkodade
+första bildrutorna ovan. Den bekräftar alltså att originalets pixlar avkodas
+oförändrat; den säger fortfarande inget om senare animation, spelstate eller
+interaktion.
+
 Vid en avsiktlig visuell ändring ska den nya bilden granskas först. Uppdatera
 sedan endast den berörda referenshashen och dokumentera den synliga ändringen i
 samma ändring.
