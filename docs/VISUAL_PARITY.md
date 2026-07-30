@@ -6,12 +6,21 @@ Captive-korridor har tagits bort: en stabil hash av syntetiska pixlar är inte
 en paritetskontroll. Eftersom originalmedia inte ingår i källträdet körs den
 fulla visuella kontrollen lokalt mot användarens verifierade media.
 
-Liberation har dessutom en direkt verifierad originalregion: den första
-320×167-rutan ur den hashidentifierade CD32 `FORM/ANIM`-resursen avkodas till
-planar bild och jämförs med OpenCaptives fångade raster. Båda RGB-buffertarna
-har SHA-256 `c546bebd107928a5721cd1a33d7e458098b134d4cd86c48b6547f8b615abbdae`.
-Detta är bevis för den rutan, inte för hela Liberation-spelvyn eller dess
-animerade lager.
+Liberation har dessutom två direkt verifierade originalregioner. Första
+planarbilden ur den hashidentifierade CD32-resursen avkodas separat och
+jämförs sedan pixel för pixel med rätt rektangel i OpenCaptives native-fångst:
+
+| Presentation | FORM/ANIM SHA-256 | Region | Avvikande pixlar |
+| --- | --- | --- | --- |
+| Intro | `e7e35f1b491fafd95da260abcb1c1c402140601840c5f98ae7282069fd30b269` | 320×162 vid `(0,47)` | 0 av 51 840 |
+| Stad | `b94a450c12428af9a22b8bb8c31fca74cdc2b2bd3be3dc9c7a1eadd7e6576101` | 320×167 vid `(0,44)` | 0 av 53 440 |
+
+De direkt avkodade PPM-bilderna har SHA-256
+`c65df735ccd785dee5cbe118c3f51153f270f6260411d3e04c6ca278b2d6fab3`
+respektive
+`b7c326d1cdd36bb3574b33add3d68cff9739e7a5e339d800f44af3c79f510bb1`.
+Detta är bevis för just de första presentationrutorna, inte för hela
+Liberation-spelvyn, dess animerade lager eller spelstate.
 
 Kör lokalt med:
 
