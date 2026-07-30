@@ -56,6 +56,25 @@ flags exactly, preserve the original range adjustment and call order, then
 compare against DOS-VGA captures. The offsets alone do not license a guessed
 table or a synthetic scene.
 
+### Original runtime descriptor fixture
+
+The original one-megabyte DOS memory fixture has SHA-256
+`9003c4a8818cb97f8299ac90cfe51e90e535ab9a725545526fe75f14ddb8dd7e`.
+It captures a running DOS renderer, not an archive extraction. In that state
+the executable code is loaded at segment `0x0824`; MZ relocation changes the
+unexpanded table selector in the code to segment `0x2942`. The descriptor
+array begins at `0x2942:0x00c0` and has eight bytes per graphic ID. The common
+draw entry reads, in order, a little-endian source offset, a little-endian
+destination offset, width, height, flags and source-bank index.
+
+For example, graphic IDs `0x004`–`0x009` occupy source offsets near `0x6660`,
+have heights of 49 bytes and route through bank zero. The original code then
+resolves that bank through its relocated segment selector table before choosing
+the planar copy routine. This fixture makes the record layout, runtime
+relocation and source-bank indirection reproducible. It is an analysis oracle
+only: no dump bytes are embedded in OpenCaptive or used as a game-data
+substitute.
+
 The renderer samples a 19-cell trapezoid rather than a full 5×5 view: five
 cells at ranges four and three, three cells at ranges two and one, then the
 left/current/right cells at range zero. It rotates that sample from the party
