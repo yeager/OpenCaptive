@@ -45,6 +45,7 @@ set(OPENCAPTIVE_SOURCES
     src/audio/sfx.c
     src/render/renderer.c
     src/render/hud.c
+    src/render/captive_compositor.c
 )
 
 add_executable(opencaptive ${OPENCAPTIVE_SOURCES})
@@ -87,6 +88,11 @@ add_executable(test_captive_view_window tests/test_captive_view_window.c
     src/engine/captive_view_window.c)
 target_include_directories(test_captive_view_window PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME captive_view_window COMMAND test_captive_view_window)
+
+add_executable(test_captive_compositor tests/test_captive_compositor.c
+    src/render/captive_compositor.c)
+target_include_directories(test_captive_compositor PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME captive_compositor COMMAND test_captive_compositor)
 
 add_executable(test_data_vfs
     tests/test_data_vfs.c
@@ -154,7 +160,7 @@ function(opencaptive_enable_test_assertions target)
 endfunction()
 
 foreach(test_target IN ITEMS
-        test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_data_vfs
+        test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_captive_compositor test_data_vfs
         test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_amiga_planar test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
