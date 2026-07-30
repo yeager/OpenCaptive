@@ -51,6 +51,7 @@ extraherar VGA-bufferområdet `0xA0000..0xAFA00` som en 320×200 PPM-bild:
 
 ```sh
 ./build/opencaptive --extract-dos-vga /path/to/MEMDUMP.BIN /tmp/captive-original.ppm
+./build/opencaptive --compare-frames /tmp/captive-original.ppm /tmp/captive.ppm
 ```
 
 Den kända referensen med SHA-256
@@ -58,6 +59,9 @@ Den kända referensen med SHA-256
 genuin Captive-utomhusvy. OpenCaptives nuvarande Captive-fångst skiljer sig i
 10 558 av 16 128 pixlar i viewporten och i 8 376 av 47 872 pixlar utanför den.
 Siffrorna är ett aktivt felmått, inte ett godkänt paritetsresultat.
+`--compare-frames` returnerar noll endast när alla pixlar är identiska och ett
+när någon pixel avviker, vilket gör den lämplig som en lokal eller framtida
+CI-kontroll efter att originalbilderna har granskats.
 
 ## Captive-panelblad
 

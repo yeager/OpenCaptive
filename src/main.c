@@ -21,6 +21,7 @@
 #include "sha256.h"
 #include "liberation_data.h"
 #include "dos_vga_reference.h"
+#include "frame_compare.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <errno.h>
@@ -89,6 +90,60 @@ static bool write_dos_vga_reference(const char *dump_path, const char *output_pa
     if (ok)
         printf("DOS VGA reference SHA-256: %s\n", digest_text);
     return ok;
+}
+
+static uint32_t *read_ppm_frame(const char *path, int *out_width, int *out_height) {
+    FILE *file = fopen(path, "rb");
+    if (!file) return NULL;
+    char magic[3] = {0};
+    int width = 0, height = 0, maximum = 0;
+    if (fscanf(file, "%2s%d%d%d", magic, &width, &height, &maximum) != 4 ||
+        strcmp(magic, "P6") != 0 || width <= 0 || height <= 0 || maximum != 255 ||
+        fgetc(file) == EOF) {
+        fclose(file);
+        return NULL;
+    }
+    size_t count = (size_t)width * (size_t)height;
+    if (count > SIZE_MAX / sizeof(uint32_t) || count > SIZE_MAX / 3) {
+        fclose(file);
+        return NULL;
+    }
+    uint32_t *pixels = malloc(count * sizeof(*pixels));
+    if (!pixels) { fclose(file); return NULL; }
+    for (size_t i = 0; i < count; ++i) {
+        uint8_t rgb[3];
+        if (fread(rgb, 1, sizeof(rgb), file) != sizeof(rgb)) {
+            free(pixels); fclose(file); return NULL;
+        }
+        pixels[i] = 0xFF000000u | ((uint32_t)rgb[0] << 16) |
+            ((uint32_t)rgb[1] << 8) | rgb[2];
+    }
+    if (fgetc(file) != EOF || ferror(file) || fclose(file) != 0) {
+        free(pixels); return NULL;
+    }
+    *out_width = width;
+    *out_height = height;
+    return pixels;
+}
+
+static int compare_ppm_frames(const char *expected_path, const char *actual_path) {
+    int expected_width = 0, expected_height = 0, actual_width = 0, actual_height = 0;
+    uint32_t *expected = read_ppm_frame(expected_path, &expected_width, &expected_height);
+    uint32_t *actual = read_ppm_frame(actual_path, &actual_width, &actual_height);
+    if (!expected || !actual || expected_width != actual_width ||
+        expected_height != actual_height) {
+        fprintf(stderr, "PPM frames must be complete P6 images with equal dimensions\n");
+        free(expected); free(actual);
+        return 2;
+    }
+    FrameComparison result = frame_compare_argb(expected, actual,
+        (size_t)expected_width * (size_t)expected_height);
+    printf("Frame comparison: %zu/%zu pixels differ; channel difference=%llu; max=%u\n",
+           result.different_pixels, result.pixel_count,
+           (unsigned long long)result.total_channel_difference,
+           result.maximum_channel_difference);
+    free(expected); free(actual);
+    return result.different_pixels == 0 ? 0 : 1;
 }
 
 static bool parse_int_option(const char *text, int minimum, int maximum, int *value) {
@@ -579,6 +634,8 @@ int main(int argc, char *argv[]) {
     const char *capture_frame_path = NULL;
     const char *dos_vga_dump_path = NULL;
     const char *dos_vga_output_path = NULL;
+    const char *expected_frame_path = NULL;
+    const char *actual_frame_path = NULL;
     int exit_status = 0;
 
     for (int i = 1; i < argc; i++) {
@@ -609,6 +666,7 @@ int main(int argc, char *argv[]) {
                 "  --verify-data <name>  Verify data by SHA-256: captive, liberation, all\n\n"
                 "  --capture-frame <ppm> Save one unscaled native game frame, then exit\n\n"
                 "  --extract-dos-vga <dump> <ppm>  Extract a 320x200 DOS VGA reference frame\n\n"
+                "  --compare-frames <expected> <actual>  Compare two native PPM frames\n\n"
                 "  --skip-intro          Skip Liberation's original intro (automation only)\n\n"
                 "Game data:\n"
                 "  Place original Captive game files (or ZIP archives containing them)\n"
@@ -703,6 +761,9 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "--extract-dos-vga") == 0 && i + 2 < argc) {
             dos_vga_dump_path = argv[++i];
             dos_vga_output_path = argv[++i];
+        } else if (strcmp(argv[i], "--compare-frames") == 0 && i + 2 < argc) {
+            expected_frame_path = argv[++i];
+            actual_frame_path = argv[++i];
         } else if (strcmp(argv[i], "--skip-intro") == 0) {
             skip_liberation_intro_requested = true;
         } else {
@@ -713,6 +774,8 @@ int main(int argc, char *argv[]) {
 
     if (dos_vga_dump_path)
         return write_dos_vga_reference(dos_vga_dump_path, dos_vga_output_path) ? 0 : 1;
+    if (expected_frame_path)
+        return compare_ppm_frames(expected_frame_path, actual_frame_path);
 
     if (verify_data) {
         DataVFS verify_vfs;
