@@ -1,9 +1,9 @@
 #include "map_gen.h"
 #include <string.h>
 
-/* Deterministic implementation PRNG.  Its output keeps current saves and
- * tests stable, but it has not been validated against original Architect
- * output and must not be described as recovered MapGen code. */
+/* Exact 16-bit Architect PRNG recovered at offsets 0x44a0-0x44b8 in the
+ * hash-verified Amiga MapGen HUNK: state = state * 0x5e5 + 0x29; then
+ * ROR.W #4 and EORI.W #0x800. Map construction below remains incomplete. */
 static uint16_t prng_state;
 
 static uint16_t ror16(uint16_t value, unsigned count) {
@@ -17,6 +17,15 @@ static uint16_t prng_next(void) {
 
 static void prng_seed(uint32_t seed) {
     prng_state = (uint16_t)seed;
+}
+
+void mapgen_original_prng_sequence(uint16_t seed, uint16_t *out, size_t count) {
+    if (!out && count) return;
+    uint16_t state = seed;
+    for (size_t i = 0; i < count; ++i) {
+        state = (uint16_t)(state * 0x5e5u + 0x29u);
+        out[i] = (uint16_t)(ror16(state, 4) ^ 0x0800u);
+    }
 }
 
 static void carve(DungeonLevel *level, int x, int y) {

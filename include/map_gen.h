@@ -2,6 +2,7 @@
 #define MAP_GEN_H
 
 #include "game_state.h"
+#include <stddef.h>
 
 // Generate a dungeon level from a seed
 // Algorithm: random walk carving, 30 steps, seed = ((mission-1)*11) + base
@@ -13,5 +14,10 @@ void map_generate(DungeonLevel *level, uint32_t seed, int level_num);
  */
 void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
                        uint32_t seed);
+
+/* Exact 16-bit Architect PRNG recovered from the verified Amiga MapGen HUNK.
+ * Exposed as a sequence helper so ports can validate phase work before map
+ * output fixtures are available. */
+void mapgen_original_prng_sequence(uint16_t seed, uint16_t *out, size_t count);
 
 #endif

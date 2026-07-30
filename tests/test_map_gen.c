@@ -72,6 +72,16 @@ static void test_mission_seed_formula(void) {
     assert(seed == 179);
 }
 
+static void test_recovered_original_prng(void) {
+    static const uint16_t expected[] = {
+        0x89f4, 0x1e39, 0xe65d, 0xf75b, 0x40f0, 0xd82b, 0xaa43, 0xb0a0
+    };
+    uint16_t actual[sizeof(expected) / sizeof(expected[0])];
+    mapgen_original_prng_sequence(179, actual, sizeof(actual) / sizeof(actual[0]));
+    for (size_t i = 0; i < sizeof(actual) / sizeof(actual[0]); ++i)
+        assert(actual[i] == expected[i]);
+}
+
 static void test_first_base_start_matches_architect_special_case(void) {
     DungeonLevel levels[MAX_LEVELS];
     int count = 0;
@@ -225,6 +235,7 @@ int main(void) {
     test_border_walls();
     test_has_generators();
     test_mission_seed_formula();
+    test_recovered_original_prng();
     test_first_base_start_matches_architect_special_case();
     test_implementation_prng_regression();
     test_architect_base_layout();
