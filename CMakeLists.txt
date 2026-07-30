@@ -213,6 +213,11 @@ add_executable(hash_extract tools/hash_extract.c src/data/data_vfs.c src/data/sh
 target_include_directories(hash_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(hash_extract PRIVATE ZLIB::ZLIB)
 
+add_executable(liberation_cd32_cue tools/liberation_cd32_cue.c
+    src/data/data_vfs.c src/data/sha256.c)
+target_include_directories(liberation_cd32_cue PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(liberation_cd32_cue PRIVATE ZLIB::ZLIB)
+
 add_executable(amiga_ofs_extract tools/amiga_ofs_extract.c src/data/amiga_ofs.c
     src/data/data_vfs.c src/data/sha256.c)
 target_include_directories(amiga_ofs_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)

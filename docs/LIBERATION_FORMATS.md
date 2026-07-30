@@ -27,6 +27,19 @@ The data track uses standard ISO9660 with CDTV extended attributes. Primary Volu
 
 10 Red Book CD audio tracks providing the full in-game soundtrack. Can be extracted and played as standard WAV/FLAC.
 
+For FS-UAE or another CD32 emulator, mount all eleven tracks. Mounting just
+the data track can leave the original introduction waiting for the missing CD
+audio. `liberation_cd32_cue` writes a CUE and its sibling tracks using only
+their SHA-256 identities:
+
+```sh
+mkdir -p /tmp/liberation-cd32
+./build/liberation_cd32_cue /path/to/media /tmp/liberation-cd32
+```
+
+Mount `/tmp/liberation-cd32/liberation-cd32.cue`. The output names are SHA-256
+digests; source archive member names are never used as game-data identity.
+
 ## Identified data patterns
 
 - IFF FORM chunks for animations and graphics
