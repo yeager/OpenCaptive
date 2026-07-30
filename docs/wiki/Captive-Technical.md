@@ -35,6 +35,27 @@ placement. OpenCaptive therefore keeps the default dungeon viewport unpainted
 until those parts can be reproduced from original behaviour rather than an
 invented perspective approximation.
 
+### Recovered DOS dispatch boundary
+
+The LZEXE-expanded program has SHA-256
+`fa7d5ca76d26f614476ed41f27cf737084942e9216b20b4605734df9ede9aee4`.
+Offsets in this subsection are relative to that expanded load module, not a
+DOS segment address. The view path dispatches a sampled cell at `0x1fd1`.
+Its handlers select a graphic ID, then enter the range-aware helpers at
+`0x1ee4` and `0x1ef3`; those apply the original cell-depth adjustment before
+calling the common draw entry at `0x2bd7`.
+
+`0x2bd7` computes `0x00c0 + graphic_id × 8` in the original runtime's
+descriptor table. The descriptor supplies a source pointer, destination
+position, dimensions and blitter flags. The common path selects one of the
+planar copy routines at `0x37dd`, `0x393f`, `0x3c5f`, `0x3c62` or `0x3c65`.
+This is direct evidence that the projection is a table-driven sequence of
+masked panel copies, rather than texture mapping. It also gives concrete
+acceptance criteria for the native port: recover descriptor records and their
+flags exactly, preserve the original range adjustment and call order, then
+compare against DOS-VGA captures. The offsets alone do not license a guessed
+table or a synthetic scene.
+
 The renderer samples a 19-cell trapezoid rather than a full 5×5 view: five
 cells at ranges four and three, three cells at ranges two and one, then the
 left/current/right cells at range zero. It rotates that sample from the party
