@@ -103,7 +103,7 @@ offset; the ISO member name is neither queried nor used as an identity.
 `liberation_anim_blit()` renders planar pixels without interpolation. The
 native capture's 320×167 city region has been directly compared against an
 independent decoding of the same source bytes: both RGB buffers have SHA-256
-`c546bebd107928a5721cd1a33d7e458098b134d4cd86c48b6547f8b615abbdae`.
+`b7c326d1cdd36bb3574b33add3d68cff9739e7a5e339d800f44af3c79f510bb1`.
 This proves that particular original raster is rendered exactly. It does not
 yet prove parity for animated overlays, the in-game HUD, city state, or plot
 logic.
