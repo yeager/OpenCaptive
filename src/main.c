@@ -20,6 +20,7 @@
 #include "captive_amiga_data.h"
 #include "sha256.h"
 #include "liberation_data.h"
+#include "amos_sprite.h"
 #include "dos_vga_reference.h"
 #include "frame_compare.h"
 #include <SDL3/SDL.h>
@@ -354,7 +355,13 @@ static TerminalState terminal;
 static SfxSystem sfx;
 static LiberationData liberation_data;
 static bool liberation_intro_active;
+static bool liberation_mission_menu_active;
 static bool skip_liberation_intro_requested;
+static uint32_t *liberation_mission_menu_pixels;
+static uint16_t liberation_mission_menu_width;
+static uint16_t liberation_mission_menu_height;
+
+enum { LIBERATION_MISSION_MENU_Y = 56 };
 
 
 typedef struct {
@@ -559,6 +566,37 @@ static void start_liberation_session(GameState *gs_ptr) {
     gs_ptr->mode = STATE_GAME;
     liberation_intro_active = !skip_liberation_intro_requested &&
                               liberation_data.intro_frame.bitplanes != NULL;
+    /* --skip-intro remains an automation route to the verified city frame. */
+    liberation_mission_menu_active = false;
+}
+
+static bool load_liberation_mission_menu(void) {
+    free(liberation_mission_menu_pixels);
+    liberation_mission_menu_pixels = NULL;
+    liberation_mission_menu_width = 0;
+    liberation_mission_menu_height = 0;
+
+    size_t size = 0;
+    uint8_t *bytes = liberation_data_read(&liberation_data,
+                                           LIBERATION_RESOURCE_MISSION_MENU,
+                                           &size);
+    AmosSprite sprite = {0};
+    if (!bytes || !amos_sprite_get(bytes, size, 0, &sprite)) {
+        free(bytes);
+        return false;
+    }
+    size_t count = (size_t)sprite.width * sprite.height;
+    uint32_t *pixels = calloc(count, sizeof(*pixels));
+    bool ok = pixels && amos_sprite_decode_argb(&sprite, pixels, count);
+    free(bytes);
+    if (!ok) {
+        free(pixels);
+        return false;
+    }
+    liberation_mission_menu_pixels = pixels;
+    liberation_mission_menu_width = sprite.width;
+    liberation_mission_menu_height = sprite.height;
+    return true;
 }
 
 static void game_handle_input(GameState *gs, const SDL_Event *event) {
@@ -688,6 +726,7 @@ int main(int argc, char *argv[]) {
     };
     GameType requested_game = GAME_CAPTIVE;
     bool start_directly = false;
+    bool show_liberation_mission_menu_requested = false;
     const char *verify_data = NULL;
     const char *capture_frame_path = NULL;
     const char *dos_vga_dump_path = NULL;
@@ -730,6 +769,8 @@ int main(int argc, char *argv[]) {
                 "  --compare-frames-rect <expected> <actual> <x> <y> <w> <h>\n"
                 "                         Compare one native frame rectangle exactly\n\n"
                 "  --skip-intro          Skip Liberation's original intro (automation only)\n\n"
+                "  --show-liberation-mission-menu\n"
+                "                         Show the verified original Liberation menu (automation only)\n\n"
                 "Game data:\n"
                 "  Place original Captive game files (or ZIP archives containing them)\n"
                 "  in the data directory. Default location:\n"
@@ -839,6 +880,10 @@ int main(int argc, char *argv[]) {
             compare_rect_set = true;
         } else if (strcmp(argv[i], "--skip-intro") == 0) {
             skip_liberation_intro_requested = true;
+        } else if (strcmp(argv[i], "--show-liberation-mission-menu") == 0) {
+            requested_game = GAME_LIBERATION;
+            start_directly = true;
+            show_liberation_mission_menu_requested = true;
         } else {
             fprintf(stderr, "Unknown option: %s\n", argv[i]);
             return 2;
@@ -958,7 +1003,12 @@ int main(int argc, char *argv[]) {
         if (!liberation_data_open(&liberation_data, &vfs)) {
             show_missing_liberation_data_dialog(config.data_path);
         } else {
+            load_liberation_mission_menu();
             start_liberation_session(&gs);
+            if (show_liberation_mission_menu_requested) {
+                liberation_intro_active = false;
+                liberation_mission_menu_active = liberation_mission_menu_pixels != NULL;
+            }
             printf("Starting verified Liberation presentation\n");
         }
     }
@@ -1051,6 +1101,7 @@ int main(int argc, char *argv[]) {
                                 show_missing_liberation_data_dialog(config.data_path);
                                 break;
                             }
+                            load_liberation_mission_menu();
                             start_liberation_session(&gs);
                             break;
                         case MENU_RESULT_QUIT:
@@ -1071,6 +1122,8 @@ int main(int argc, char *argv[]) {
                         event.key.key == SDLK_ESCAPE) {
                         if (gs.game_type == GAME_LIBERATION && liberation_intro_active) {
                             liberation_intro_active = false;
+                            liberation_mission_menu_active =
+                                liberation_mission_menu_pixels != NULL;
                         } else {
                             gs.mode = STATE_MENU;
                             sync_menu_from_config(&menu, &config, music_sys.enabled,
@@ -1078,12 +1131,29 @@ int main(int argc, char *argv[]) {
                             music_stop(&music_sys);
                         }
                     } else if (gs.game_type == GAME_LIBERATION) {
-                        /* The verified ANIM presentation can advance from its
-                         * intro to the city frame.  Movement and building
-                         * entry remain disabled until their original CD32
-                         * game-state format is recovered. */
-                        if (event.type == SDL_EVENT_KEY_DOWN)
+                        if (liberation_intro_active && event.type == SDL_EVENT_KEY_DOWN) {
                             liberation_intro_active = false;
+                            liberation_mission_menu_active =
+                                liberation_mission_menu_pixels != NULL;
+                        } else if (liberation_mission_menu_active &&
+                                   event.type == SDL_EVENT_KEY_DOWN &&
+                                   (event.key.key == SDLK_RETURN || event.key.key == SDLK_SPACE)) {
+                            /* The original menu's Game on button is the only
+                             * implemented transition. City interaction stays
+                             * disabled until original state semantics exist. */
+                            liberation_mission_menu_active = false;
+                        } else if (liberation_mission_menu_active &&
+                                   event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
+                                   event.button.button == SDL_BUTTON_LEFT) {
+                            int ww = LIBERATION_SCREEN_WIDTH, wh = LIBERATION_SCREEN_HEIGHT;
+                            SDL_GetWindowSize(renderer.window, &ww, &wh);
+                            int x = (int)(event.button.x * LIBERATION_SCREEN_WIDTH / ww);
+                            int y = (int)(event.button.y * LIBERATION_SCREEN_HEIGHT / wh);
+                            int local_y = y - LIBERATION_MISSION_MENU_Y;
+                            if (x >= 89 && x < 233 &&
+                                local_y >= 89 && local_y < liberation_mission_menu_height)
+                                liberation_mission_menu_active = false;
+                        }
                     } /* Captive input remains disabled until the original
                          * map/state format is decoded. */
                     break;
@@ -1212,7 +1282,16 @@ int main(int argc, char *argv[]) {
                      * apply here: running them caused an unattended city game
                      * to advance or end after its timer elapsed. */
                     memset(framebuffer, 0, sizeof(framebuffer));
-                    if (liberation_data.city_frame.bitplanes) {
+                    if (liberation_mission_menu_active && liberation_mission_menu_pixels) {
+                        for (uint16_t y = 0; y < liberation_mission_menu_height; ++y) {
+                            if (y + LIBERATION_MISSION_MENU_Y >= LIBERATION_SCREEN_HEIGHT) break;
+                            memcpy(framebuffer + (size_t)(y + LIBERATION_MISSION_MENU_Y) *
+                                   LIBERATION_SCREEN_WIDTH,
+                                   liberation_mission_menu_pixels +
+                                   (size_t)y * liberation_mission_menu_width,
+                                   (size_t)liberation_mission_menu_width * sizeof(*framebuffer));
+                        }
+                    } else if (liberation_data.city_frame.bitplanes) {
                         const LiberationAnimFrame *frame = liberation_intro_active
                             ? &liberation_data.intro_frame : &liberation_data.city_frame;
                         int y = liberation_intro_active ? 47 : 44;
@@ -1326,6 +1405,7 @@ int main(int argc, char *argv[]) {
 
     vfs_free(&vfs);
     liberation_data_close(&liberation_data);
+    free(liberation_mission_menu_pixels);
     music_shutdown(&music_sys);
     sound_shutdown(&sound_sys);
     if (intro_loaded) anm_free(&intro_anim);

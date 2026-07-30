@@ -22,6 +22,13 @@ respektive
 Detta är bevis för just de första presentationrutorna, inte för hela
 Liberation-spelvyn, dess animerade lager eller spelstate.
 
+Den ursprungliga missionsmenyn avkodas också direkt från den hashverifierade
+AMOS-banken `d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2`.
+Bankens enda sprite är en femplanskomposition på 320×109 pixlar. OpenCaptive
+visar den mellan introt och den nuvarande stadsreferensen, och originalets
+`Game on...`-rektangel är klickbar. Detta verifierar menybilden, men inte
+originalspelets senare stadssimulering eller UI-state.
+
 Kör lokalt med:
 
 ```sh
