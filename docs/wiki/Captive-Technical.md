@@ -75,6 +75,24 @@ relocation and source-bank indirection reproducible. It is an analysis oracle
 only: no dump bytes are embedded in OpenCaptive or used as a game-data
 substitute.
 
+The captured selector table resolves the first seven source-bank slots to
+these DOS PL5 content hashes:
+
+| Bank | Hash |
+| ---: | --- |
+| 0 | `7edb8ee856a91e835ea86dda00af49fda3dae730d694bd7234b7fa96d711e296` |
+| 1 | `dec7143f063c98459ab2f267ed135204cdee1b521eda9810b219e8c10e05c7e8` |
+| 2 | `70e0b9bfbaa5dfd12643b50cbe10d0b664de2fb1106d8ff0f2fde1ce6f443bbe` |
+| 3 | `ce00ba2bc78f160b934486fe101a90264163356e02e7acbea2a41cf5d125b017` |
+| 4 | `fed16e510697e17123d474c08687de548076b26a55f08f1d00fd17e3fcdf9410` |
+| 5 | `21db7daf64cff3b0cae19c3e7eb2057762df9110055e7253175024ecb146fb6b` |
+| 6 | `63ffa6901b59d463b050088065503d386ca2f3813ed91d8e0833320f9df2fe11` |
+
+This relation was proven by comparing each relocated source segment to the
+corresponding full 40,000-byte hash-identified payload. It is a fixture for
+this verified renderer state, not a substitute for the original loader's
+asset-set selection.
+
 The renderer samples a 19-cell trapezoid rather than a full 5×5 view: five
 cells at ranges four and three, three cells at ranges two and one, then the
 left/current/right cells at range zero. It rotates that sample from the party
