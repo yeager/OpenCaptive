@@ -131,15 +131,25 @@ uint8_t *iso_read_file(const ISOImage *iso, uint32_t lba, uint32_t size) {
     return result;
 }
 
-uint8_t *iso_read_file_sha256(const ISOImage *iso, const char *expected_sha256,
-                              size_t *out_size) {
-    if (out_size) *out_size = 0;
-    if (!iso || !expected_sha256) return NULL;
-
+/* ISO directory traversal needs the current directory's extent.  Keep this
+ * separate from the public hash API so callers cannot accidentally fall back
+ * to path/name identity. */
+static uint8_t *iso_find_hash_in_dir(const ISOImage *iso, uint32_t dir_lba,
+                                     uint32_t dir_size,
+                                     const char *expected_sha256,
+                                     size_t *out_size, unsigned depth) {
+    if (depth > 16U) return NULL;
     ISOEntry entries[256];
-    int count = iso_list_root(iso, entries, 256);
+    int count = iso_list_dir(iso, dir_lba, dir_size, entries, 256);
     for (int i = 0; i < count; i++) {
-        if (entries[i].is_dir) continue;
+        if (entries[i].is_dir) {
+            uint8_t *nested = iso_find_hash_in_dir(iso, entries[i].lba,
+                                                   entries[i].size,
+                                                   expected_sha256, out_size,
+                                                   depth + 1U);
+            if (nested) return nested;
+            continue;
+        }
         uint8_t *file = iso_read_file(iso, entries[i].lba, entries[i].size);
         if (!file) continue;
 
@@ -152,4 +162,12 @@ uint8_t *iso_read_file_sha256(const ISOImage *iso, const char *expected_sha256,
         free(file);
     }
     return NULL;
+}
+
+uint8_t *iso_read_file_sha256(const ISOImage *iso, const char *expected_sha256,
+                              size_t *out_size) {
+    if (out_size) *out_size = 0;
+    if (!iso || !expected_sha256) return NULL;
+    return iso_find_hash_in_dir(iso, iso->root_lba, iso->root_size,
+                                expected_sha256, out_size, 0U);
 }

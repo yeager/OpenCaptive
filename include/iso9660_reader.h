@@ -31,9 +31,10 @@ int  iso_list_dir(const ISOImage *iso, uint32_t dir_lba, uint32_t dir_size,
 int  iso_list_root(const ISOImage *iso, ISOEntry *entries, int max_entries);
 uint8_t *iso_read_file(const ISOImage *iso, uint32_t lba, uint32_t size);
 
-/* Locate a root-level file by the SHA-256 of its contents.  The caller owns
- * the returned buffer.  Names are intentionally not part of this API: game
- * data is identified by content, which is stable across archive layouts. */
+/* Locate a file in the ISO directory tree by the SHA-256 of its contents.
+ * The caller owns the returned buffer. Names are intentionally not part of
+ * this API: game data is identified by content, which is stable across
+ * archive layouts. */
 uint8_t *iso_read_file_sha256(const ISOImage *iso, const char *expected_sha256,
                               size_t *out_size);
 
