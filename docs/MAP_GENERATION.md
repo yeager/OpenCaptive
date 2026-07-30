@@ -26,6 +26,23 @@ documented 12 289-move, 900-attempt, 300-attempt, 80-attempt and 50-cell
 limits. OpenCaptive verifies those bytes and HUNK shape during Amiga media
 verification, but does not execute or emulate this code at runtime.
 
+### Code observations
+
+Offsets below are relative to the start of the recovered 29 304-byte code
+segment, not an Amiga load address. They are reproducible checkpoints for a
+future port:
+
+| Code offset | Observed instruction/data behaviour | Constraint it establishes |
+| --- | --- | --- |
+| `0x4dd4` | Initializes a word to `300` before the bounded generation calls. | One original placement/search loop is capped at 300 attempts. |
+| `0x4dda` | Initializes a word to `900` in the same setup cluster. | A separate original search loop is capped at 900 attempts. |
+| `0x4e34` | Loads `99` and uses `DBRA`, producing exactly 100 iterations. | This cluster has an explicit 100-pass bound. |
+| `0x4f68`–`0x505c` | Stores up to six candidate coordinate records and rejects coordinates above `63` or `31`. | Candidate-space coordinates are constrained to the documented 64×32 map. |
+
+These observations establish control-flow facts only. They do not assign a
+specific game feature to each loop and must not be used to alter the C
+prototype until an original map output can confirm the associated phase.
+
 ## Seed formula
 
 ```
