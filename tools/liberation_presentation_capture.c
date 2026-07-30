@@ -33,9 +33,36 @@ static int write_ppm(const char *path, const LiberationAnimFrame *frame) {
     return fclose(out) == 0;
 }
 
+static int write_bytes(const char *path, const uint8_t *bytes, size_t size) {
+    if (!path || !bytes || !size) return 0;
+    FILE *out = fopen(path, "wb");
+    if (!out) return 0;
+    int ok = fwrite(bytes, 1, size, out) == size;
+    return fclose(out) == 0 && ok;
+}
+
+static int find_pack(const uint8_t *form, size_t form_size,
+                     const uint8_t **pack, size_t *pack_size) {
+    if (!form || !pack || !pack_size || form_size < 12U ||
+        memcmp(form, "FORM", 4) != 0 || memcmp(form + 8U, "ANIM", 4) != 0)
+        return 0;
+    for (size_t pos = 12U; pos + 8U <= form_size;) {
+        uint32_t chunk_size = read_be32(form + pos + 4U);
+        pos += 8U;
+        if (chunk_size > form_size - pos) return 0;
+        if (memcmp(form + pos - 8U, "PACK", 4) == 0) {
+            *pack = form + pos;
+            *pack_size = chunk_size;
+            return 1;
+        }
+        pos += chunk_size + (chunk_size & 1U);
+    }
+    return 0;
+}
+
 int main(int argc, char **argv) {
-    if (argc != 4) {
-        fprintf(stderr, "usage: %s <data-dir> <form-sha256> <output.ppm>\n", argv[0]);
+    if (argc != 4 && argc != 5) {
+        fprintf(stderr, "usage: %s <data-dir> <form-sha256> <output.ppm> [workspace.bin]\n", argv[0]);
         return 2;
     }
     DataVFS vfs;
@@ -64,8 +91,19 @@ int main(int argc, char **argv) {
         if (decoded == (int)raw_size) sha256_digest(form, raw_size, digest);
         if (decoded == (int)raw_size && sha256_matches_hex(digest, argv[2])) {
             LiberationAnimFrame frame = {0};
-            if (liberation_anim_decode_first_frame(form, raw_size, &frame) &&
-                write_ppm(argv[3], &frame)) result = 0;
+            int captured = liberation_anim_decode_first_frame(form, raw_size, &frame) &&
+                write_ppm(argv[3], &frame);
+            if (captured && argc == 5) {
+                const uint8_t *pack = NULL;
+                size_t pack_size = 0, workspace_size = 0;
+                uint8_t *workspace = NULL;
+                captured = find_pack(form, raw_size, &pack, &pack_size) &&
+                    liberation_pack_decode_workspace(pack, pack_size, &workspace,
+                                                      &workspace_size, NULL) &&
+                    write_bytes(argv[4], workspace, workspace_size);
+                free(workspace);
+            }
+            if (captured) result = 0;
             liberation_anim_frame_free(&frame);
             free(form);
             break;
