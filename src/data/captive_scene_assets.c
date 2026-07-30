@@ -19,4 +19,12 @@ const char *const captive_view_source_hashes[CAPTIVE_VIEW_SOURCE_COUNT] = {
     "dec7143f063c98459ab2f267ed135204cdee1b521eda9810b219e8c10e05c7e8",
     "d7338db4df839f0b1090234f6b3e30db1ab43c936be5479d007f865a0175cc32",
     "21db7daf64cff3b0cae19c3e7eb2057762df9110055e7253175024ecb146fb6b",
+    /* Remaining original surfaces may provide UI overlays, animated work
+       buffers or exterior/interior state variants.  Keep them available to
+       the compositor rather than guessing their role from archive names. */
+    "dfca77f0e219962242226f11f9697f580f92e8ad24786296a5b2571b20c2b707",
+    "ce00ba2bc78f160b934486fe101a90264163356e02e7acbea2a41cf5d125b017",
+    "4f05bad2a2b5d7474b0dc3735bbec4b5650110b5e79d6902c5536a556f8c27f5",
+    "6eb09e17fdd6b97bdef223b3ebab5c94f12010c8cba615536fd40bf1509299c0",
+    "70e0b9bfbaa5dfd12643b50cbe10d0b664de2fb1106d8ff0f2fde1ce6f443bbe",
 };

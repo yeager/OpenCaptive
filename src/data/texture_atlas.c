@@ -21,11 +21,9 @@ bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs) {
     for (int i = 0; i < 5; ++i) atlas->wall_sheets[i] = atlas->view_sheets[i];
     atlas->roof_sheet = atlas->view_sheets[14];
     atlas->door_sheet = atlas->view_sheets[15];
-    atlas->icon_sheet = gfx_load_pl5_hash(&atlas->gfx,
-        "ce00ba2bc78f160b934486fe101a90264163356e02e7acbea2a41cf5d125b017");
+    atlas->icon_sheet = atlas->view_sheets[19];
     atlas->object_sheet = atlas->view_sheets[17];
-    atlas->gamescrn_sheet = gfx_load_pl5_hash(&atlas->gfx,
-        "dfca77f0e219962242226f11f9697f580f92e8ad24786296a5b2571b20c2b707");
+    atlas->gamescrn_sheet = atlas->view_sheets[18];
 
     /* Original-mode rendering is an all-or-nothing contract.  A partial
        atlas used to be accepted as soon as the first wall sheet was present,
