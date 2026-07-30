@@ -15,6 +15,17 @@ Any parity implementation must be validated against a map emitted by the
 original MapGen executable or an independently reproducible original fixture;
 matching the prose below is not sufficient.
 
+## Recovered original module
+
+The verified Amiga medium contains the MapGen recovery payload with compressed
+SHA-256 `bb5a96b9041e98e5b65a36b5645f2bfe0cbecf68c07479d35f7b4f76ed191118`.
+RNC1 expansion has SHA-256
+`b746eb7619a7746eacab2d0a0b2b4b7c42ab34177a22974248d710acf3047ee0` and
+produces one 29 304-byte Amiga HUNK code segment. The module contains the
+documented 12 289-move, 900-attempt, 300-attempt, 80-attempt and 50-cell
+limits. OpenCaptive verifies those bytes and HUNK shape during Amiga media
+verification, but does not execute or emulate this code at runtime.
+
 ## Seed formula
 
 ```

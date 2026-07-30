@@ -39,6 +39,13 @@ the active renderer. Examples:
 | Wall texture A | `47ad15b4a593c37880d0306b6a0f51b7a9f20615cf6a188f23716d5b48315524` |
 | Object sheet | `21db7daf64cff3b0cae19c3e7eb2057762df9110055e7253175024ecb146fb6b` |
 | HUD sheet | `dfca77f0e219962242226f11f9697f580f92e8ad24786296a5b2571b20c2b707` |
+| Amiga MapGen recovery module | `bb5a96b9041e98e5b65a36b5645f2bfe0cbecf68c07479d35f7b4f76ed191118` |
+
+The MapGen module also has a pinned unpacked SHA-256,
+`b746eb7619a7746eacab2d0a0b2b4b7c42ab34177a22974248d710acf3047ee0`,
+and must parse as one 29 304-byte code HUNK. This protects the recovery work
+from accepting a same-sized but different payload. It is a verified original
+source artifact, not yet a claim of C implementation parity.
 
 Music is loaded the same way. The MIDI system owns each retrieved buffer for
 the lifetime of the selected track, preventing a use-after-free during track

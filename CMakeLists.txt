@@ -28,6 +28,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/anm_decoder.c
     src/data/rnc_decoder.c
     src/data/amiga_ofs.c
+    src/data/amiga_hunk.c
     src/data/amiga_planar.c
     src/data/captive_amiga_data.c
     src/data/liberation_anim.c
