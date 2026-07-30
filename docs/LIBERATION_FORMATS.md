@@ -55,3 +55,19 @@ The bank contains one five-plane, 320×109 sprite. Its pixels directly match
 the mission-selection scene observed from the verified CD32 original. The
 runtime manifest verifies this bank by SHA-256; it never identifies the asset
 through an ISO or archive filename.
+
+## O3DG city objects
+
+The CD32 data track also contains `FORM O3DG` containers. They are not ILBM
+bitmaps: the outer form starts with an `OFFS` block followed by nested `FORM
+VCDO` objects. Each inspected VCDO object contains `EXVL` and `PLST` blocks.
+For example, the hash-identified 24,702-byte resource
+`cd6ffc66eb2d535adc9124e7aa74013a704ba1fe9f2090e33c0b2d2a6fe19dd0`
+contains 34 such objects. This makes O3DG the current evidence-backed source
+format for the dynamic city geometry seen during a Liberation mission.
+
+`liberation_form_inventory` walks the verified ISO recursively and reports
+only SHA-256 identities, IFF form types, chunk layout and any standard ILBM
+bitmap headers. It is an analysis tool: EXVL and PLST semantics still need a
+renderer-level implementation before OpenCaptive can reproduce the original
+city view.

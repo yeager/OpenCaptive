@@ -276,6 +276,17 @@ add_executable(liberation_inventory
 target_include_directories(liberation_inventory PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(liberation_inventory PRIVATE ZLIB::ZLIB)
 
+add_executable(liberation_form_inventory
+    tools/liberation_form_inventory.c
+    src/data/data_vfs.c
+    src/data/iso9660_reader.c
+    src/data/liberation_data.c
+    src/data/liberation_anim.c
+    src/data/rnc_decoder.c
+    src/data/sha256.c)
+target_include_directories(liberation_form_inventory PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(liberation_form_inventory PRIVATE ZLIB::ZLIB)
+
 add_executable(liberation_presentation_inventory
     tools/liberation_presentation_inventory.c
     src/data/liberation_data.c
