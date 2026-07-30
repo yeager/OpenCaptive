@@ -9,8 +9,12 @@ static const char cd32_track_sha256[] =
     "f807b1385c0996d54ed10afab271a7dd31d2c6dc6a18f13196ad2a79a0af8a80";
 static const char presentation_bundle_sha256[] =
     "1d3a335d254c0eae919a712dd73bd41b24ed897bf145ed118ccf2277baa7a35f";
-#define CITY_ANIM_RNC_OFFSET 386824U
-#define INTRO_ANIM_RNC_OFFSET 590U
+/* These identify decompressed FORM/ANIM payloads, never their position in a
+   CD image or the name by which an archive happens to store them. */
+static const char intro_presentation_sha256[] =
+    "e7e35f1b491fafd95da260abcb1c1c402140601840c5f98ae7282069fd30b269";
+static const char city_presentation_sha256[] =
+    "b94a450c12428af9a22b8bb8c31fca74cdc2b2bd3be3dc9c7a1eadd7e6576101";
 static const char *const resource_sha256[LIBERATION_RESOURCE_COUNT] = {
     [LIBERATION_RESOURCE_GAME_BINARY] =
         "db61f7e39fd31ac19b82216ea963711728d25518454fae42fd89c5bab52f2215",
@@ -33,21 +37,25 @@ static uint32_t read_be32(const uint8_t *data) {
            ((uint32_t)data[2] << 8) | data[3];
 }
 
-static void load_optional_presentation_frame(const uint8_t *bundle, size_t bundle_size,
-                                             size_t offset, LiberationAnimFrame *frame,
+static void load_optional_presentation_frame(const uint8_t *rnc, size_t rnc_size,
+                                             const char expected_sha256[65],
+                                             LiberationAnimFrame *frame,
                                              LiberationAnimScript *script) {
-    if (!bundle || bundle_size < offset + 12U) return;
-    const uint8_t *rnc = bundle + offset;
+    if (!rnc || rnc_size < 12U || !expected_sha256 || !frame || !script) return;
     uint32_t raw_size = read_be32(rnc + 4U);
     uint32_t packed_size = read_be32(rnc + 8U);
     if (memcmp(rnc, "RNC\2", 4) != 0 || raw_size == 0U ||
         raw_size > 16U * 1024U * 1024U ||
-        packed_size > bundle_size - offset - 12U) return;
+        packed_size > rnc_size - 12U) return;
     uint8_t *form = malloc(raw_size);
     if (!form) return;
     if (rnc_decode(rnc, (int)(packed_size + 12U), form, (int)raw_size) == (int)raw_size) {
-        liberation_anim_decode_first_frame(form, raw_size, frame);
-        liberation_anim_extract_script(form, raw_size, script);
+        uint8_t digest[32];
+        sha256_digest(form, raw_size, digest);
+        if (sha256_matches_hex(digest, expected_sha256)) {
+            liberation_anim_decode_first_frame(form, raw_size, frame);
+            liberation_anim_extract_script(form, raw_size, script);
+        }
     }
     free(form);
 }
@@ -57,10 +65,26 @@ static void load_optional_presentation_frames(LiberationData *data) {
     uint8_t *bundle = iso_read_file_sha256(&data->iso, presentation_bundle_sha256,
                                             &bundle_size);
     if (!bundle) return;
-    load_optional_presentation_frame(bundle, bundle_size, INTRO_ANIM_RNC_OFFSET,
-                                     &data->intro_frame, &data->intro_script);
-    load_optional_presentation_frame(bundle, bundle_size, CITY_ANIM_RNC_OFFSET,
-                                     &data->city_frame, &data->city_script);
+    /* The original bundle is a byte stream of RNC2 resources.  Its physical
+       offsets vary between dump layouts, so scan it and accept only forms
+       whose decompressed SHA-256 equals our content identities. */
+    for (size_t offset = 0; offset + 12U <= bundle_size; ++offset) {
+        const uint8_t *rnc = bundle + offset;
+        if (memcmp(rnc, "RNC\2", 4) != 0) continue;
+        uint32_t packed_size = read_be32(rnc + 8U);
+        if (packed_size > bundle_size - offset - 12U) continue;
+        if (!data->intro_frame.bitplanes)
+            load_optional_presentation_frame(rnc, bundle_size - offset,
+                                             intro_presentation_sha256,
+                                             &data->intro_frame, &data->intro_script);
+        if (!data->city_frame.bitplanes)
+            load_optional_presentation_frame(rnc, bundle_size - offset,
+                                             city_presentation_sha256,
+                                             &data->city_frame, &data->city_script);
+        /* A valid RNC payload cannot contain a second top-level resource.
+           Skip past it rather than examining compression bytes as headers. */
+        offset += (size_t)packed_size + 11U;
+    }
     free(bundle);
 }
 
