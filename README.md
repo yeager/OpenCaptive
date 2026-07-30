@@ -22,7 +22,10 @@ The sequel expands the concept into a cyberpunk city setting. Developed by Byte 
 
 ## What is OpenCaptive?
 
-OpenCaptive is a modern C/SDL3 reimplementation project for both game engines. Captive has the broader playable implementation; Liberation currently plays only hash-verified original presentation frames while its original generator and plot code are being reverse-engineered. It aims to:
+OpenCaptive is a modern C/SDL3 reimplementation project for both game engines.
+It currently presents hash-verified original Captive and Liberation imagery;
+the original gameplay state, input commands and compositors are still being
+reverse-engineered. It aims to:
 
 - **Preserve the original experience** — pixel-perfect rendering, original game logic, and authentic gameplay using the original data files
 - **Enhance where it makes sense** — optional higher-resolution rendering, modern display scaling, and quality-of-life improvements while keeping the original mode as the default
@@ -134,7 +137,7 @@ docs/         Format documentation
 | Liberation: original city, plot and dialogue logic | In reverse engineering |
 | Liberation: city/building interaction | Not implemented from inferred state |
 | Generated enhanced dungeon rendering | Removed pending original compositor |
-| Procedural sound effects (10 types) | Done |
+| Procedural sound effects | Disabled; synthetic effects are not parity evidence |
 
 ## Game data formats
 

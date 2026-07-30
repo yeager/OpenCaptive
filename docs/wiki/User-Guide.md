@@ -31,57 +31,39 @@ Archives may be stored directly in the chosen directory. The loader scans
 archive entries and loose files by their bytes, so repacking or renaming media
 does not change its identity.
 
-## Captive controls
+## Captive status and controls
+
+The Captive runtime currently shows hash-verified original presentation data.
+Movement, combat, interaction, save/load and mission input are deliberately
+unavailable: the earlier generated state was not derived from original game
+logic and is therefore not shipped as a substitute.
 
 | Input | Action |
 | --- | --- |
-| W/S or arrows | Walk forward/back |
-| A/D or left/right | Turn |
-| Q/E | Strafe |
-| Space | Attack with selected droid |
-| F | Open/interact with the facing object |
-| 1–4 | Choose droid |
-| I / T / M | Inventory / terminal / map overlay |
-| `,` / `.` | Use up/down stairs |
-| F5 / F9 | Save / load Captive state |
-| F10 | Open runtime graphics and cheat options |
-| Escape | Return to menu |
-
-Closed doors block movement and line of sight. Face a normal door and use `F`.
-Generators are mission objectives; destroying all generated generators advances
-the campaign. A direct attack or enemy shot cannot cross a wall or closed door.
+| F10 | Open runtime display options when the host makes F10 available |
+| Escape | Return to the start menu |
 
 ## Liberation status and controls
 
 Verified CD32 presentation data is decoded for Liberation's opening and city
-frame. Press any key to advance from the opening to the city frame. The old
-procedural city/interior controls are not presented as a playable Liberation
-implementation: their generated logic is not the original game's logic and no
-longer produces substitute graphics. F10 still opens the runtime options.
+frame. The old procedural city/interior controls are not presented as a
+playable Liberation implementation: their generated logic is not the original
+game's logic and no longer produces substitute graphics. `Escape` returns to
+the start menu; F10 can open runtime display options when available.
 
 ## Runtime options and cheats
 
-Press `F10` during either game to pause the live simulation and open the
-runtime popup. It can switch scanlines, CRT curvature, bilinear output filtering,
-brightness, music and SFX immediately. Captive's viewport reconstruction is shown as
-**PENDING**: the former generated corridor is not used when verified original media is
-available. The same popup has explicit cheat
-switches for god mode, infinite energy and completing the current objective.
-`Escape` or `F10` closes it. The start-menu settings page also exposes music
-and SFX enablement for the next game session. Cheats are deliberately visible and opt-in; they
-are not activated by command-line defaults.
+Press `F10` during either presentation to open the runtime display popup when
+the operating system and host application pass the key through. It can adjust
+display-only settings such as scaling and filtering. It does not pause or alter
+a gameplay simulation: cheats, save/load commands and synthetic sound effects
+remain unavailable until they can be recovered from original behaviour.
 
 ## Saves
 
-Captive saves contain the map-cell state, droids, money, generator progress,
-creatures and puzzle state. Loading is transactional: malformed or truncated
-saves are rejected without overwriting the running game.
-
-The save format is intentionally versioned. Newer engine versions can reject
-old experimental saves rather than interpreting them incorrectly. Liberation
-uses a separate versioned save format for its city and interior state. Use
-**F5** and **F9** while playing Liberation; it does not reuse Captive's
-incompatible dungeon save format.
+Save and load are unavailable in the shipped presentations. Experimental state
+and save code remains outside the runtime until it can be validated against
+original game behaviour.
 
 ## Useful diagnostics
 
