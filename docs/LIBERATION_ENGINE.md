@@ -1,58 +1,55 @@
-# Liberation: Captive 2 Engine
+# Liberation: implementation status
 
-## Overview
+## What runs today
 
-The Liberation engine implements a cyberpunk city exploration game with procedural building generation, NPC encounters, and detective-style gameplay.
+Liberation currently opens only after the CD32 presentation track has been
+found by its SHA-256 digest and its presentation resources have been verified.
+It can display the first fully decoded frame of the original intro and city
+ANIM resources at their native 320×256 PAL resolution. Selecting a game, the
+intro-to-city transition and the F10 display/audio menu are intentionally
+limited to that presentation boundary.
 
-## City Generation
+This is not yet a playable reimplementation of Liberation: Captive 2. The
+runtime does not invent city movement, buildings, objectives, NPCs, interiors,
+saves or plot progression. Those earlier procedural substitutes were removed
+because they were neither decoded from the CD32 media nor visually or
+logically comparable with the original game.
 
-- 32x32 grid world
-- Buildings placed in 6x6 blocks with 2-wide streets
-- Each building: 3-4 cells wide/tall, 1-4 floors
-- 8 building types with distinct colors and contents
+## Verified media boundary
 
-### Building Types
+The CD32 track is selected by SHA-256:
 
-| Type | Color | Content |
-|------|-------|---------|
-| Residential | Blue-grey | Living quarters |
-| Commercial | Green-grey | NPCs, shops |
-| Industrial | Brown | Machinery |
-| Government | Blue | Terminals |
-| Prison | Red | Target buildings |
-| Hospital | Green | Medical |
-| Police | Dark blue | Security |
-| Shop | Yellow | NPCs, commerce |
+```text
+f807b1385c0996d54ed10afab271a7dd31d2c6dc6a18f13196ad2a79a0af8a80
+```
 
-## Building Interiors
+The presentation bundle is selected by SHA-256:
 
-Each floor is a 16x16 grid with:
-- Perimeter walls
-- 2-6 internal walls creating rooms
-- Doors at random positions in walls
-- Ground floor entrance at bottom center
-- Elevators in multi-floor buildings (top-right area)
-- Terminals in some rooms (green cells)
-- NPCs in commercial/shop buildings
+```text
+1d3a335d254c0eae919a712dd73bd41b24ed897bf145ed118ccf2277baa7a35f
+```
 
-## Navigation
+The loader does not use original filenames as fallbacks. ANIM resources are
+IFF `FORM` containers with `PALL`, `PACK` and `SCPT` chunks. The RNC method 2
+decoder has been verified for the first complete planar frame of the two
+known presentation forms. `SCPT` record boundaries are retained for analysis;
+their opcode meanings, timing model and the remaining packed delta/layer data
+are not yet decoded.
 
-### City Mode
-- WASD/arrows: move on city grid
-- Enter/F: enter building at current position
-- Overhead color-coded map view
-- Red marker shows mission target
+See [the technical notes](wiki/Liberation-Technical.md) for resource hashes,
+container observations and the exact current limitations.
 
-### Building Mode
-- WASD: direction-based movement (FPS style)
-- A/D: turn left/right
-- F: interact (elevator, exit)
-- ,/.: elevator up/down
-- Escape: exit to city
-- Top-down minimap rendering
+## Work required for playable parity
 
-## Mission System
+1. Recover the ANIM script interpreter, including every `SCPT` opcode and
+   packed delta/layer operation.
+2. Decode the original city and building state formats and the inputs/outputs
+   of the verified CityGen and PlotGen executables.
+3. Decode plot, dialogue and save-state records without flattening their
+   control streams into plain text.
+4. Build small parsers with original-output fixtures and pixel comparisons.
+5. Wire only verified state and rendering operations into the live runtime.
 
-- Random target building selected at initialization
-- Player must navigate city to find and enter target
-- Clue system (planned): terminals reveal target location
+Until then, screenshots of the first decoded city frame establish only that
+the source pixels and their placement are authentic; they do not establish
+gameplay or animation parity.

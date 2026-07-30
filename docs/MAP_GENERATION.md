@@ -2,6 +2,19 @@
 
 Reference: captive.atari.org Technical/MapGen
 
+## Implementation status
+
+This document records the observed **original** Architect algorithm. It is not
+a statement that the current C implementation reproduces every phase below.
+`map_generate_base()` currently keeps the 64×32 allocation, documented seed
+formula, early-map section restrictions and deterministic API, but its PRNG,
+floor assignment, digging and feature placement remain a research prototype.
+It is not used by the default Captive runtime.
+
+Any parity implementation must be validated against a map emitted by the
+original MapGen executable or an independently reproducible original fixture;
+matching the prose below is not sufficient.
+
 ## Seed formula
 
 ```
