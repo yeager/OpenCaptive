@@ -57,9 +57,11 @@ static void test_decode_known_pattern(void) {
 }
 
 static void test_palette_nonzero(void) {
-    assert(pl5_default_palette[17] == 0xFFFCFCFC); // white
+    assert(pl5_default_palette[17] == 0xFFFFFFFF); // white
     assert(pl5_default_palette[0] == 0xFF000000);   // black
-    assert(pl5_default_palette[6] == 0xFF50F050);   // bright green
+    assert(pl5_default_palette[6] == 0xFF51F351);   // bright green
+    assert(pl5_default_palette[1] == 0xFFB2B2F3);   // six-bit VGA expansion
+    assert(pl5_default_palette[26] == 0xFFC3C3C3);  // six-bit VGA expansion
 }
 
 int main(void) {

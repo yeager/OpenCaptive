@@ -13,8 +13,8 @@ int main(void) {
     memory[DOS_VGA_FRAME_OFFSET + DOS_VGA_FRAME_SIZE - 1] = 20;
     assert(dos_vga_reference_decode(memory, DOS_VGA_MEMORY_SIZE, pixels,
                                     DOS_VGA_FRAME_SIZE));
-    assert(pixels[0] == 0xFFFCFCFC);
-    assert(pixels[DOS_VGA_FRAME_SIZE - 1] == 0xFF805030);
+    assert(pixels[0] == 0xFFFFFFFF);
+    assert(pixels[DOS_VGA_FRAME_SIZE - 1] == 0xFF825130);
     assert(!dos_vga_reference_decode(memory, DOS_VGA_MEMORY_SIZE - 1, pixels,
                                      DOS_VGA_FRAME_SIZE));
     assert(!dos_vga_reference_decode(memory, DOS_VGA_MEMORY_SIZE, pixels,
