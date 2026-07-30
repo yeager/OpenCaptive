@@ -9,7 +9,8 @@ a statement that the current C implementation reproduces every phase below.
 `map_generate_base()` currently keeps the 64×32 allocation, documented seed
 formula, early-map section restrictions and the recovered original PRNG. Its
 floor assignment, digging and feature placement remain a research prototype.
-It is not used by the default Captive runtime.
+It currently supplies runtime navigation state, but it is not a visual or
+logical parity implementation of the original game.
 
 Any parity implementation must be validated against a map emitted by the
 original MapGen executable or an independently reproducible original fixture;
@@ -38,6 +39,8 @@ future port:
 | `0x4dda` | Initializes a word to `900` in the same setup cluster. | A separate original search loop is capped at 900 attempts. |
 | `0x4e34` | Loads `99` and uses `DBRA`, producing exactly 100 iterations. | This cluster has an explicit 100-pass bound. |
 | `0x4f68`–`0x505c` | Stores up to six candidate coordinate records and rejects coordinates above `63` or `31`. | Candidate-space coordinates are constrained to the documented 64×32 map. |
+| `0x0a28`–`0x0ae6` | Clears and fills the 16-byte physical-section layout, then selects the number of logical floors from the original PRNG. | The documented layout is an ordered original phase, not a later derived convenience. |
+| `0x0ae8`–`0x0b5a` | Finds successive logical-floor sections and writes differences scaled by 16 and 8. | Confirms the published horizontal and vertical floor-offset formula. |
 
 These observations establish control-flow facts only. They do not assign a
 specific game feature to each loop and must not be used to alter the C

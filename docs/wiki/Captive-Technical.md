@@ -137,13 +137,12 @@ or an independently reproducible reference before claiming parity.
 
 ## Current runtime boundary
 
-The former generated map, combat, mission, save and cheat implementation is
-not active in the runtime. Although it used plausible game rules, its state
-was not decoded from hash-verified Captive media and could not establish visual
-or logical parity with the original. The runtime currently displays verified
-intro/HUD data and keeps the viewport untouched until the original panel
-compositor and state format are recovered.
+Captive accepts movement, rotation, interaction, inventory, terminal, save and
+F10 runtime controls. These currently operate on OpenCaptive's provisional map
+state and must not be mistaken for an original-state recovery. The runtime
+displays verified intro/HUD data and keeps the viewport untouched until the
+original panel compositor and state format are recovered.
 
-The F10 menu is limited to display and audio options. Its game-affecting cheat
-commands remain visibly pending instead of mutating a generated substitute
-state.
+The F10 menu provides God Mode, Infinite Energy and Complete Objective for the
+active local Captive state. They are runtime conveniences, not original-game
+commands or evidence of gameplay parity.
