@@ -868,14 +868,14 @@ int main(int argc, char *argv[]) {
              * Captive in the menu; without this the prepared mission was
              * hidden behind the start screen. */
             gs.mode = STATE_GAME;
-            printf("Starting verified Captive game\n");
+            printf("Starting verified Captive presentation\n");
         }
     } else if (start_directly && requested_game == GAME_LIBERATION) {
         if (!liberation_data_open(&liberation_data, &vfs)) {
             show_missing_liberation_data_dialog(config.data_path);
         } else {
             start_liberation_session(&gs);
-            printf("Starting verified Liberation game\n");
+            printf("Starting verified Liberation presentation\n");
         }
     }
 
