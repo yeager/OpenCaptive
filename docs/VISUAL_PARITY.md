@@ -96,12 +96,13 @@ Siffrorna är ett aktivt felmått, inte ett godkänt paritetsresultat.
 när någon pixel avviker, vilket gör den lämplig som en lokal eller framtida
 CI-kontroll efter att originalbilderna har granskats.
 
-`captive_panel_match` använder samma hashidentifierade PL5-panelblad och en
-sådan 320×200-referensbild. Den söker utan filnamn efter exakta 8×8-regioner
-från viewporten `(32,55,144,112)` i originalpanelbladen och skriver både mål-
-och källkoordinat med respektive SHA-256. Mot referensen
+`captive_panel_match` använder hashidentifierade PL5-källblad för väggar,
+aliener, animationer, dörrar, tak och objekt samt en sådan 320×200-
+referensbild. Den söker utan filnamn efter exakta 8×8-regioner från viewporten
+`(32,55,144,112)` och skriver både mål- och källkoordinat med respektive
+SHA-256. Mot referensen
 `9003c4a8818cb97f8299ac90cfe51e90e535ab9a725545526fe75f14ddb8dd7e`
-återfinns 84 av 252 rutor direkt. Resterande rutor är överlappade eller
+återfinns 93 av 252 rutor direkt. Resterande rutor är överlappade eller
 kompositerade, vilket är förväntat för originalets panelblittrar och visar
 var den fortsatta rendereråtervinningen måste ske.
 

@@ -5,14 +5,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-enum { SCREEN_W = 320, SCREEN_H = 200, TILE = 8, SHEETS = 5 };
-static const char *const sheet_hashes[SHEETS] = {
+enum { SCREEN_W = 320, SCREEN_H = 200, TILE = 8 };
+static const char *const sheet_hashes[] = {
     "47ad15b4a593c37880d0306b6a0f51b7a9f20615cf6a188f23716d5b48315524",
     "43833e4a8df622f84d53698a76c6d18f910c1cca79c6b89cbfacc563f695356c",
     "8b7301fc6c302fd673a81d23e7a99d715aa02d5b404c1e1edea19ceccccc9681",
     "519d3ef4494f0e868479a90c8a47249b840598e382c7ba3272f417ce3daf5936",
     "7edb8ee856a91e835ea86dda00af49fda3dae730d694bd7234b7fa96d711e296",
+    /* The view is not limited to WALLA-E.  The original scene can layer
+       enemy, animation, door, roof and object sheets on top of a wall. */
+    "4a2bc840d184ff07657f56e630b0293f1d5d7cdbf1d00e4505a1a69dcf721667",
+    "2c8db6bfbec2b463856ab4cd9a313f9fbf20be408a2e278d94d498653562f754",
+    "0b0d6ee225493c92b534b50e893d9c27e423ce0a4298e1789682b8cf222b7adc",
+    "1f1b89e7692dc7c01f9d649677c820e79076304e8bc79835683e14484d68bb5b",
+    "fed16e510697e17123d474c08687de548076b26a55f08f1d00fd17e3fcdf9410",
+    "63ffa6901b59d463b050088065503d386ca2f3813ed91d8e0833320f9df2fe11",
+    "48df42e6906bfd167981f19e89149aa4c5791297b6e92f3a87470b59e8d0f1f3",
+    "303c540f9e88ca9a8e736541b3c6f9a9cb9817b8640b5133ca7721e6db667e1d",
+    "4edc60eb7d530ed6a7b11673d26831eb6701f131df3f9e291d882f5b78c2de25",
+    "978d18857d5ffcf6fb7b91fb22c02b85079db0171caeac3d290a69b276cf098f",
+    "dec7143f063c98459ab2f267ed135204cdee1b521eda9810b219e8c10e05c7e8",
+    "d7338db4df839f0b1090234f6b3e30db1ab43c936be5479d007f865a0175cc32",
+    "21db7daf64cff3b0cae19c3e7eb2057762df9110055e7253175024ecb146fb6b",
 };
+#define SHEETS ((int)(sizeof(sheet_hashes) / sizeof(sheet_hashes[0])))
 
 typedef struct { uint64_t hash; uint16_t x, y; uint8_t sheet; } TileRef;
 
