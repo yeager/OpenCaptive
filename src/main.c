@@ -1154,8 +1154,15 @@ int main(int argc, char *argv[]) {
                                 local_y >= 89 && local_y < liberation_mission_menu_height)
                                 liberation_mission_menu_active = false;
                         }
-                    } /* Captive input remains disabled until the original
-                         * map/state format is decoded. */
+                    } else {
+                        /* Keep the input/state loop live while the final
+                         * source-panel compositor is being recovered.  The
+                         * controls operate on the same game state consumed by
+                         * the 19-cell view window; disabling them made
+                         * Captive appear frozen even where its original-data
+                         * shell and verified map path were loaded. */
+                        game_handle_input(&gs, &event);
+                    }
                     break;
                 case STATE_TERMINAL:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
