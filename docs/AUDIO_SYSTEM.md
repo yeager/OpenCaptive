@@ -6,22 +6,11 @@ OpenCaptive has three audio subsystems: sound effects (SFX), 8SVX sample playbac
 
 ## Sound Effects (SFX)
 
-Procedurally generated at startup using sine waves, noise, and frequency sweeps:
-
-| Effect | Type | Parameters |
-|--------|------|-----------|
-| HIT | Noise burst | 150ms, fast decay |
-| SHOOT | Frequency sweep | 800→200 Hz, 200ms |
-| DOOR_OPEN | Frequency sweep | 100→400 Hz, 300ms |
-| DOOR_LOCKED | Tone | 150 Hz, 200ms |
-| STEP | Noise burst | 80ms, very fast decay |
-| BUTTON | Tone | 1200 Hz, 100ms |
-| PICKUP | Frequency sweep | 400→1200 Hz, 150ms |
-| DEATH | Frequency sweep | 600→50 Hz, 500ms |
-| LEVEL_UP | Frequency sweep | 300→900 Hz, 400ms |
-| GENERATOR | Noise | 400ms, moderate decay |
-
-All generated at 22050 Hz sample rate.
+Sound effects are currently silent. Earlier builds generated placeholder tones
+and noise at startup; that code is deliberately not used because it cannot be
+compared with the original effects. The media must be identified by SHA-256,
+then its effect format and playback semantics must be decoded before samples
+are enabled.
 
 ## 8SVX Sample Loader
 
