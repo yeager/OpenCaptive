@@ -7,8 +7,11 @@
 #include <string.h>
 
 enum { SCREEN_W = 320, SCREEN_H = 200, TILE = 8, SHEETS = CAPTIVE_VIEW_SOURCE_COUNT };
+enum { VIEW_X = 32, VIEW_Y = 55, VIEW_W = 144, VIEW_H = 112,
+       VIEW_COLS = VIEW_W / TILE, VIEW_ROWS = VIEW_H / TILE };
 
 typedef struct { uint64_t hash; uint16_t x, y; uint8_t sheet; } TileRef;
+typedef struct { int sheet, source_x, source_y; bool present, used; } MatchedTile;
 
 static uint64_t tile_hash(const uint32_t *pixels, int stride, int x, int y) {
     uint64_t hash = 1469598103934665603ULL;
@@ -57,6 +60,56 @@ static bool same_tile(const uint32_t *target, const uint32_t *sheet,
     return true;
 }
 
+/* Palette index zero is transparent in the original panel blitters.  A tile
+ * made almost entirely of it cannot establish a source rectangle: identical
+ * black areas occur in many sheets.  Require a meaningful number of opaque
+ * source pixels before treating an exact RGB hit as recovery evidence. */
+static bool tile_has_opaque_pixels(const PL5Image *image, int source_x, int source_y) {
+    unsigned opaque = 0;
+    for (int y = 0; y < TILE; ++y) for (int x = 0; x < TILE; ++x)
+        opaque += (image->pixel_data[(source_y + y) * SCREEN_W + source_x + x] & 31U) != 0;
+    return opaque >= 16;
+}
+
+static bool same_translation(const MatchedTile *tile, int sheet, int dx, int dy,
+                             int target_x, int target_y) {
+    return tile->present && tile->sheet == sheet &&
+        target_x - tile->source_x == dx && target_y - tile->source_y == dy;
+}
+
+/* A rectangle emitted here is stronger evidence than a palette-colour match:
+ * every included 8x8 tile has already been byte-compared with an original
+ * source surface and all tiles share one affine source-to-destination copy. */
+static void print_blit_candidates(MatchedTile matches[VIEW_ROWS][VIEW_COLS]) {
+    for (int row = 0; row < VIEW_ROWS; ++row) for (int col = 0; col < VIEW_COLS; ++col) {
+        MatchedTile *first = &matches[row][col];
+        if (!first->present || first->used) continue;
+        int target_x = VIEW_X + col * TILE, target_y = VIEW_Y + row * TILE;
+        int dx = target_x - first->source_x, dy = target_y - first->source_y;
+        int width = 1;
+        while (col + width < VIEW_COLS && !matches[row][col + width].used &&
+               same_translation(&matches[row][col + width], first->sheet, dx, dy,
+                                target_x + width * TILE, target_y)) ++width;
+        int height = 1;
+        bool row_matches = true;
+        while (row + height < VIEW_ROWS && row_matches) {
+            for (int x = 0; x < width; ++x)
+                if (matches[row + height][col + x].used ||
+                    !same_translation(&matches[row + height][col + x], first->sheet, dx, dy,
+                                      target_x + x * TILE, target_y + height * TILE)) {
+                    row_matches = false;
+                    break;
+                }
+            if (row_matches) ++height;
+        }
+        for (int y = 0; y < height; ++y) for (int x = 0; x < width; ++x)
+            matches[row + y][col + x].used = true;
+        printf("blit-candidate source=%s@%d,%d target=%d,%d size=%dx%d\n",
+               captive_view_source_hashes[first->sheet], first->source_x, first->source_y,
+               target_x, target_y, width * TILE, height * TILE);
+    }
+}
+
 int main(int argc, char **argv) {
     if (argc != 3) {
         fprintf(stderr, "usage: %s <data-dir> <hash-verified-dos-reference.ppm>\n", argv[0]);
@@ -98,8 +151,9 @@ int main(int argc, char **argv) {
             tiles[count++] = (TileRef){tile_hash(sheet_pixels[sheet], SCREEN_W, x, y), x, y, sheet};
     qsort(tiles, count, sizeof(*tiles), compare_tile_ref);
 
+    MatchedTile matches[VIEW_ROWS][VIEW_COLS] = {0};
     unsigned matched = 0, total = 0;
-    for (int y = 55; y < 55 + 112; y += TILE) for (int x = 32; x < 32 + 144; x += TILE) {
+    for (int y = VIEW_Y; y < VIEW_Y + VIEW_H; y += TILE) for (int x = VIEW_X; x < VIEW_X + VIEW_W; x += TILE) {
         ++total;
         TileRef key = {.hash = tile_hash(target, SCREEN_W, x, y)};
         TileRef *first = bsearch(&key, tiles, count, sizeof(*tiles), compare_tile_ref);
@@ -107,14 +161,18 @@ int main(int argc, char **argv) {
         while (first > tiles && (first - 1)->hash == key.hash) --first;
         TileRef *match = NULL;
         for (TileRef *candidate = first; candidate < tiles + count && candidate->hash == key.hash; ++candidate)
-            if (same_tile(target, sheet_pixels[candidate->sheet], x, y, candidate->x, candidate->y)) {
+            if (tile_has_opaque_pixels(&images[candidate->sheet], candidate->x, candidate->y) &&
+                same_tile(target, sheet_pixels[candidate->sheet], x, y, candidate->x, candidate->y)) {
                 match = candidate; break;
             }
         if (!match) { printf("target=%3d,%3d match=collision\n", x, y); continue; }
         ++matched;
+        matches[(y - VIEW_Y) / TILE][(x - VIEW_X) / TILE] =
+            (MatchedTile){match->sheet, match->x, match->y, true, false};
         printf("target=%3d,%3d source=%s@%u,%u\n", x, y,
                captive_view_source_hashes[match->sheet], match->x, match->y);
     }
+    print_blit_candidates(matches);
     printf("exact-tiles=%u/%u\n", matched, total);
     free(tiles);
     for (int i = 0; i < SHEETS; ++i) { pl5_free(&images[i]); free(sheet_pixels[i]); }
