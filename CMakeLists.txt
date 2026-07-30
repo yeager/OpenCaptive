@@ -31,6 +31,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/amiga_hunk.c
     src/data/amiga_planar.c
     src/data/captive_amiga_data.c
+    src/data/captive_scene_assets.c
     src/data/liberation_anim.c
     src/data/mid_loader.c
     src/data/data_vfs.c
@@ -209,6 +210,7 @@ add_executable(hash_find tools/hash_find.c src/data/data_vfs.c src/data/sha256.c
 target_include_directories(hash_find PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(hash_find PRIVATE ZLIB::ZLIB)
 
+
 add_executable(hash_extract tools/hash_extract.c src/data/data_vfs.c src/data/sha256.c)
 target_include_directories(hash_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(hash_extract PRIVATE ZLIB::ZLIB)
@@ -318,7 +320,7 @@ target_include_directories(amos_sprite_dump PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(amos_sprite_dump PRIVATE ZLIB::ZLIB)
 
 add_executable(captive_panel_match tools/captive_panel_match.c
-    src/data/pl5_decoder.c src/data/data_vfs.c src/data/sha256.c)
+    src/data/captive_scene_assets.c src/data/pl5_decoder.c src/data/data_vfs.c src/data/sha256.c)
 target_include_directories(captive_panel_match PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(captive_panel_match PRIVATE ZLIB::ZLIB)
 

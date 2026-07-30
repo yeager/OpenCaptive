@@ -2,10 +2,15 @@
 #define TEXTURE_ATLAS_H
 
 #include "gfx_loader.h"
+#include "captive_scene_assets.h"
 #include <stdbool.h>
 
 typedef struct {
     GfxData gfx;
+    /* All verified sources which can contribute pixels to the first-person
+       view.  The compositor refers to these by stable index in the content
+       identity table, never by archive filename. */
+    int     view_sheets[CAPTIVE_VIEW_SOURCE_COUNT];
     /* Hash-verified 320x200 panel sheets.  They contain overlapping,
        preprojected view fragments, not a regular texture-tile atlas. */
     int     wall_sheets[5];
