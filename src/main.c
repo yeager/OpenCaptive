@@ -461,9 +461,13 @@ static const char *popup_brightness(int value) {
 }
 
 static void popup_apply_cheats(GameState *gs) {
-    /* Captive's original save/state format has not been recovered.  A cheat
-       toggle must not silently mutate the old generated mission state. */
-    (void)gs;
+    if (!gs || gs->game_type != GAME_CAPTIVE) return;
+    if (runtime_popup.invulnerable) {
+        for (int i = 0; i < 4; ++i) gs->droids[i].hp = gs->droids[i].hp_max;
+    }
+    if (runtime_popup.infinite_energy) {
+        for (int i = 0; i < 4; ++i) gs->droids[i].energy = gs->droids[i].energy_max;
+    }
 }
 
 static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
@@ -504,10 +508,16 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
         case POPUP_MUSIC: music_set_enabled(&music_sys, !music_sys.enabled); break;
         case POPUP_SFX: sound_set_enabled(&sound_sys, !sound_sys.enabled); break;
         case POPUP_INVULNERABLE:
+            runtime_popup.invulnerable = !runtime_popup.invulnerable;
+            break;
         case POPUP_INFINITE_ENERGY:
+            runtime_popup.infinite_energy = !runtime_popup.infinite_energy;
+            break;
         case POPUP_COMPLETE_OBJECTIVE:
-            /* Keep the option visible, but do not fabricate an effect until
-             * the original game-state and command format is decoded. */
+            if (gs->game_type == GAME_CAPTIVE && gs->generators_total > 0) {
+                gs->generators_destroyed = gs->generators_total;
+                game_state_complete_mission(gs);
+            }
             break;
         case POPUP_CLOSE: runtime_popup.open = false; break;
     }
@@ -542,9 +552,9 @@ static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
             case POPUP_BRIGHTNESS: value = popup_brightness(gs->config.brightness); break;
             case POPUP_MUSIC: value = popup_toggle(music_sys.enabled); break;
             case POPUP_SFX: value = popup_toggle(sound_sys.enabled); break;
-            case POPUP_INVULNERABLE:
-            case POPUP_INFINITE_ENERGY:
-            case POPUP_COMPLETE_OBJECTIVE: value = "PENDING"; break;
+            case POPUP_INVULNERABLE: value = popup_toggle(runtime_popup.invulnerable); break;
+            case POPUP_INFINITE_ENERGY: value = popup_toggle(runtime_popup.infinite_energy); break;
+            case POPUP_COMPLETE_OBJECTIVE: value = "ACTIVATE"; break;
             default: break;
         }
         draw_simple_text(fb, pw, ph, x + w - 80, row_y, value, color, 1);
