@@ -11,6 +11,23 @@ The virtual filesystem (`src/data/data_vfs.c`) accepts directories and ZIP
 archives. `vfs_find_sha256()` streams candidate content and returns a matching
 buffer only when the requested digest matches. Callers own and free that buffer.
 
+## Read-only Amiga inventory
+
+`amiga_ofs_inventory` is the discovery entry point for an Amiga original
+medium. It first locates the ADF by its SHA-256, then emits only each
+reconstructed OFS payload's byte length, SHA-256 and container signature. It
+does not print or use filesystem member names, so a later decoder or manifest
+can be tied to a reproducible content identity rather than to a release's
+directory spelling.
+
+```sh
+./build/amiga_ofs_inventory /path/to/media <adf-sha256>
+```
+
+An inventory is evidence for research, not proof that an unknown payload has a
+particular game role. Establish that role independently before adding its hash
+to a runtime manifest.
+
 ## Captive manifest
 
 The current Captive startup manifest verifies the intro plus textures needed by

@@ -68,6 +68,12 @@ Never use original media filenames as identity. Introduce a resource with:
 4. a deterministic test or verifier, and
 5. no copied game payload in the repository.
 
+For Amiga OFS media, use `amiga_ofs_inventory <data-dir> <adf-sha256>` during
+discovery. It exposes byte count, SHA-256 and container signature only. Do not
+turn an inventory result into a resource role merely because its length or
+compressed form looks plausible; retain the digest and verify the role against
+an original trace or independently decoded output.
+
 ## Change checklist
 
 1. Preserve unrelated dirty work in the checkout.

@@ -217,6 +217,11 @@ add_executable(amiga_ofs_extract tools/amiga_ofs_extract.c src/data/amiga_ofs.c
 target_include_directories(amiga_ofs_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(amiga_ofs_extract PRIVATE ZLIB::ZLIB)
 
+add_executable(amiga_ofs_inventory tools/amiga_ofs_inventory.c src/data/amiga_ofs.c
+    src/data/data_vfs.c src/data/sha256.c)
+target_include_directories(amiga_ofs_inventory PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(amiga_ofs_inventory PRIVATE ZLIB::ZLIB)
+
 add_executable(verify_liberation
     tools/verify_liberation.c
     src/data/liberation_data.c

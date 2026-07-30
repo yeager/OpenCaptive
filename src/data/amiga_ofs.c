@@ -62,6 +62,28 @@ static uint8_t *read_file_chain(const uint8_t *adf, size_t block_count,
     return out;
 }
 
+int amiga_ofs_visit_file_hashes(const uint8_t *adf, size_t adf_size,
+                                AmigaOFSHashVisitor visitor, void *context) {
+    if (!adf || !visitor || !is_amiga_dos(adf, adf_size)) return 0;
+    size_t blocks = adf_size / ADF_BLOCK_SIZE;
+    int count = 0;
+    for (uint32_t block = 2U; block < blocks; ++block) {
+        const uint8_t *header = adf + (size_t)block * ADF_BLOCK_SIZE;
+        if (read_be32(header) != OFS_FILE_HEADER || read_be32(header + 4U) != block ||
+            read_be32(header + 508U) != OFS_FILE_SECONDARY) continue;
+        size_t size = 0;
+        uint8_t *file = read_file_chain(adf, blocks, block, &size);
+        if (!file) continue;
+        uint8_t digest[32];
+        sha256_digest(file, size, digest);
+        ++count;
+        int keep_going = visitor(file, size, digest, context);
+        free(file);
+        if (!keep_going) break;
+    }
+    return count;
+}
+
 uint8_t *amiga_ofs_find_file_sha256(const uint8_t *adf, size_t adf_size,
                                     const char expected_sha256[65],
                                     size_t *out_size) {

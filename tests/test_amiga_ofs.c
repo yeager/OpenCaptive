@@ -12,6 +12,25 @@ static void put_be32(unsigned char *at, unsigned value) {
     at[3] = (unsigned char)value;
 }
 
+typedef struct {
+    int count;
+    size_t size;
+    unsigned char first_byte;
+} VisitResult;
+
+static int capture_hash(const uint8_t *data, size_t size,
+                        const uint8_t digest[32], void *context) {
+    VisitResult *result = context;
+    static const uint8_t expected[32] = {
+        0x9f, 0x86, 0xd0, 0x81, 0x88, 0x4c, 0x7d, 0x65
+    };
+    assert(memcmp(digest, expected, 8) == 0);
+    result->count++;
+    result->size = size;
+    result->first_byte = data[0];
+    return 1;
+}
+
 int main(void) {
     unsigned char adf[6 * 512] = {0};
     memcpy(adf, "DOS\0", 4);
@@ -33,6 +52,9 @@ int main(void) {
     free(result);
     assert(!amiga_ofs_find_file_sha256(adf, sizeof(adf),
         "0000000000000000000000000000000000000000000000000000000000000000", &size));
+    VisitResult visited = {0};
+    assert(amiga_ofs_visit_file_hashes(adf, sizeof(adf), capture_hash, &visited) == 1);
+    assert(visited.count == 1 && visited.size == 4 && visited.first_byte == 't');
     puts("All Amiga OFS tests passed");
     return 0;
 }
