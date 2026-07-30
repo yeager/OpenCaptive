@@ -24,6 +24,8 @@ typedef enum {
     LIBERATION_RESOURCE_PLOT_TEXT,
     LIBERATION_RESOURCE_CITY_TEXT,
     LIBERATION_RESOURCE_DIALOGUE_TEXT,
+    /* 320x109 AMOS mission-selection composition, sprite index zero. */
+    LIBERATION_RESOURCE_MISSION_MENU,
     LIBERATION_RESOURCE_COUNT,
 } LiberationResource;
 

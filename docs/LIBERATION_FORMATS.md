@@ -45,3 +45,13 @@ digests; source archive member names are never used as game-data identity.
 - IFF FORM chunks for animations and graphics
 - RNC Method 1 compressed game data
 - Standard Amiga 8SVX audio samples within IFF containers
+
+## Mission selection composition
+
+The original mission-selection background, difficulty/strategy controls and
+start button are the first sprite in the hash-identified AMOS bank
+`d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2`.
+The bank contains one five-plane, 320×109 sprite. Its pixels directly match
+the mission-selection scene observed from the verified CD32 original. The
+runtime manifest verifies this bank by SHA-256; it never identifies the asset
+through an ISO or archive filename.

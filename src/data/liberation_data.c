@@ -24,6 +24,8 @@ static const char *const resource_sha256[LIBERATION_RESOURCE_COUNT] = {
         "99f7bd75794a7b4f3e94eeef9c61b756da938d862bb83339b140c18d02eb79c5",
     [LIBERATION_RESOURCE_DIALOGUE_TEXT] =
         "e154d250c1acdbed66835bb356a699efdb6f9f8b5e6d586ca07080414610a94c",
+    [LIBERATION_RESOURCE_MISSION_MENU] =
+        "d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2",
 };
 
 static uint32_t read_be32(const uint8_t *data) {
