@@ -12,6 +12,7 @@ bool gfx_init(GfxData *gfx, const DataVFS *vfs) {
 void gfx_free(GfxData *gfx) {
     for (int i = 0; i < gfx->num_textures; i++) {
         free(gfx->textures[i].pixels);
+        free(gfx->textures[i].indices);
     }
     memset(gfx, 0, sizeof(*gfx));
 }
@@ -39,7 +40,12 @@ int gfx_load_pl5_hash(GfxData *gfx, const char expected_sha256[65]) {
     Texture *tex = &gfx->textures[id];
 
     tex->pixels = malloc(PL5_PIXEL_COUNT * sizeof(uint32_t));
-    if (!tex->pixels) {
+    tex->indices = malloc(PL5_PIXEL_COUNT);
+    if (!tex->pixels || !tex->indices) {
+        free(tex->pixels);
+        free(tex->indices);
+        tex->pixels = NULL;
+        tex->indices = NULL;
         pl5_free(&img);
         gfx->num_textures--;
         return -1;
@@ -47,6 +53,7 @@ int gfx_load_pl5_hash(GfxData *gfx, const char expected_sha256[65]) {
 
     for (int i = 0; i < PL5_PIXEL_COUNT; i++) {
         uint8_t idx = img.pixel_data[i];
+        tex->indices[i] = idx;
         tex->pixels[i] = (idx < PL5_COLORS) ? img.palette[idx] : 0xFF000000;
     }
     pl5_free(&img);

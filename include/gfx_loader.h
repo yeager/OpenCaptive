@@ -9,6 +9,11 @@
 
 typedef struct {
     uint32_t *pixels;   // ARGB8888, 320x200
+    /* The original PL5 colour indices are retained as well as the expanded
+       pixels.  Captive's panel copies use colour zero as the transparent
+       background; compositor commands can therefore use this array directly
+       as a per-pixel mask without guessing from RGB values. */
+    uint8_t  *indices;  // Original palette indices, 320x200
     int       width;
     int       height;
     char      name[32];
