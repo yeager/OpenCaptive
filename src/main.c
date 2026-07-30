@@ -126,7 +126,8 @@ static uint32_t *read_ppm_frame(const char *path, int *out_width, int *out_heigh
     return pixels;
 }
 
-static int compare_ppm_frames(const char *expected_path, const char *actual_path) {
+static int compare_ppm_frames(const char *expected_path, const char *actual_path,
+                              const int *rect) {
     int expected_width = 0, expected_height = 0, actual_width = 0, actual_height = 0;
     uint32_t *expected = read_ppm_frame(expected_path, &expected_width, &expected_height);
     uint32_t *actual = read_ppm_frame(actual_path, &actual_width, &actual_height);
@@ -136,9 +137,29 @@ static int compare_ppm_frames(const char *expected_path, const char *actual_path
         free(expected); free(actual);
         return 2;
     }
-    FrameComparison result = frame_compare_argb(expected, actual,
-        (size_t)expected_width * (size_t)expected_height);
-    printf("Frame comparison: %zu/%zu pixels differ; channel difference=%llu; max=%u\n",
+    int x = 0, y = 0, width = expected_width, height = expected_height;
+    if (rect) {
+        x = rect[0]; y = rect[1]; width = rect[2]; height = rect[3];
+        if (x < 0 || y < 0 || width <= 0 || height <= 0 ||
+            width > expected_width - x || height > expected_height - y) {
+            fprintf(stderr, "Comparison rectangle is outside the frame\n");
+            free(expected); free(actual);
+            return 2;
+        }
+    }
+    FrameComparison result = {0};
+    for (int row = 0; row < height; ++row) {
+        FrameComparison line = frame_compare_argb(
+            expected + (size_t)(y + row) * expected_width + x,
+            actual + (size_t)(y + row) * actual_width + x, (size_t)width);
+        result.pixel_count += line.pixel_count;
+        result.different_pixels += line.different_pixels;
+        result.total_channel_difference += line.total_channel_difference;
+        if (line.maximum_channel_difference > result.maximum_channel_difference)
+            result.maximum_channel_difference = line.maximum_channel_difference;
+    }
+    printf("Frame comparison%s: %zu/%zu pixels differ; channel difference=%llu; max=%u\n",
+           rect ? " (rectangle)" : "",
            result.different_pixels, result.pixel_count,
            (unsigned long long)result.total_channel_difference,
            result.maximum_channel_difference);
@@ -636,6 +657,8 @@ int main(int argc, char *argv[]) {
     const char *dos_vga_output_path = NULL;
     const char *expected_frame_path = NULL;
     const char *actual_frame_path = NULL;
+    int compare_rect[4] = {0};
+    bool compare_rect_set = false;
     int exit_status = 0;
 
     for (int i = 1; i < argc; i++) {
@@ -666,7 +689,9 @@ int main(int argc, char *argv[]) {
                 "  --verify-data <name>  Verify data by SHA-256: captive, liberation, all\n\n"
                 "  --capture-frame <ppm> Save one unscaled native game frame, then exit\n\n"
                 "  --extract-dos-vga <dump> <ppm>  Extract a 320x200 DOS VGA reference frame\n\n"
-                "  --compare-frames <expected> <actual>  Compare two native PPM frames\n\n"
+                "  --compare-frames <expected> <actual>  Compare two native PPM frames\n"
+                "  --compare-frames-rect <expected> <actual> <x> <y> <w> <h>\n"
+                "                         Compare one native frame rectangle exactly\n\n"
                 "  --skip-intro          Skip Liberation's original intro (automation only)\n\n"
                 "Game data:\n"
                 "  Place original Captive game files (or ZIP archives containing them)\n"
@@ -764,6 +789,17 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "--compare-frames") == 0 && i + 2 < argc) {
             expected_frame_path = argv[++i];
             actual_frame_path = argv[++i];
+        } else if (strcmp(argv[i], "--compare-frames-rect") == 0 && i + 6 < argc) {
+            expected_frame_path = argv[++i];
+            actual_frame_path = argv[++i];
+            for (int field = 0; field < 4; ++field) {
+                if (!parse_int_option(argv[++i], field < 2 ? 0 : 1, INT_MAX,
+                                      &compare_rect[field])) {
+                    fprintf(stderr, "Comparison rectangle must use integer x y width height\n");
+                    return 2;
+                }
+            }
+            compare_rect_set = true;
         } else if (strcmp(argv[i], "--skip-intro") == 0) {
             skip_liberation_intro_requested = true;
         } else {
@@ -775,7 +811,8 @@ int main(int argc, char *argv[]) {
     if (dos_vga_dump_path)
         return write_dos_vga_reference(dos_vga_dump_path, dos_vga_output_path) ? 0 : 1;
     if (expected_frame_path)
-        return compare_ppm_frames(expected_frame_path, actual_frame_path);
+        return compare_ppm_frames(expected_frame_path, actual_frame_path,
+                                  compare_rect_set ? compare_rect : NULL);
 
     if (verify_data) {
         DataVFS verify_vfs;

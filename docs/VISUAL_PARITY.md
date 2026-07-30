@@ -54,6 +54,18 @@ extraherar VGA-bufferområdet `0xA0000..0xAFA00` som en 320×200 PPM-bild:
 ./build/opencaptive --compare-frames /tmp/captive-original.ppm /tmp/captive.ppm
 ```
 
+För delområden med egen paritetsgrind används samma exakta jämförelse med en
+rektangel. Den returnerar noll endast om samtliga pixlar inom rektangeln är
+identiska och två för en ogiltig rektangel:
+
+```sh
+./build/opencaptive --compare-frames-rect \
+  /tmp/captive-original.ppm /tmp/captive.ppm 32 55 144 112
+```
+
+Det gör att HUD, viewport och senare Liberation-lager kan mätas var för sig
+utan att ett känt oåterställt område döljer en förbättring i ett annat.
+
 Den kända referensen med SHA-256
 `9003c4a8818cb97f8299ac90cfe51e90e535ab9a725545526fe75f14ddb8dd7e` visar en
 genuin Captive-utomhusvy. OpenCaptives nuvarande Captive-fångst skiljer sig i
