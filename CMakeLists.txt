@@ -36,6 +36,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/sha256.c
     src/data/gfx_loader.c
     src/data/texture_atlas.c
+    src/data/dos_vga_reference.c
     src/data/adf_reader.c
     src/data/iso9660_reader.c
     src/data/liberation_data.c
@@ -93,6 +94,11 @@ add_executable(test_captive_compositor tests/test_captive_compositor.c
     src/render/captive_compositor.c)
 target_include_directories(test_captive_compositor PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME captive_compositor COMMAND test_captive_compositor)
+
+add_executable(test_dos_vga_reference tests/test_dos_vga_reference.c
+    src/data/dos_vga_reference.c src/data/pl5_decoder.c)
+target_include_directories(test_dos_vga_reference PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME dos_vga_reference COMMAND test_dos_vga_reference)
 
 add_executable(test_data_vfs
     tests/test_data_vfs.c
@@ -160,7 +166,7 @@ function(opencaptive_enable_test_assertions target)
 endfunction()
 
 foreach(test_target IN ITEMS
-        test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_captive_compositor test_data_vfs
+        test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_captive_compositor test_dos_vga_reference test_data_vfs
         test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_amiga_planar test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()

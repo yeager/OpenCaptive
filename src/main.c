@@ -20,6 +20,7 @@
 #include "captive_amiga_data.h"
 #include "sha256.h"
 #include "liberation_data.h"
+#include "dos_vga_reference.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <errno.h>
@@ -50,6 +51,43 @@ static bool write_frame_ppm(const char *path, const uint32_t *pixels,
         }
     }
     if (fclose(file) != 0) ok = false;
+    return ok;
+}
+
+static bool write_dos_vga_reference(const char *dump_path, const char *output_path) {
+    FILE *file = fopen(dump_path, "rb");
+    if (!file) {
+        fprintf(stderr, "Unable to open DOS VGA reference input\n");
+        return false;
+    }
+    uint8_t *memory = malloc(DOS_VGA_MEMORY_SIZE);
+    if (!memory) {
+        fclose(file);
+        return false;
+    }
+    size_t read = fread(memory, 1, DOS_VGA_MEMORY_SIZE, file);
+    int trailing = fgetc(file);
+    bool ok = read == DOS_VGA_MEMORY_SIZE && trailing == EOF;
+    if (fclose(file) != 0) ok = false;
+    if (!ok) {
+        fprintf(stderr, "DOS VGA reference must be exactly 1048576 bytes\n");
+        free(memory);
+        return false;
+    }
+
+    uint32_t pixels[DOS_VGA_FRAME_SIZE];
+    uint8_t digest[32];
+    char digest_text[65];
+    sha256_digest(memory, DOS_VGA_MEMORY_SIZE, digest);
+    for (size_t i = 0; i < sizeof(digest); ++i)
+        snprintf(digest_text + i * 2, 3, "%02x", digest[i]);
+    ok = dos_vga_reference_decode(memory, DOS_VGA_MEMORY_SIZE, pixels,
+                                  DOS_VGA_FRAME_SIZE) &&
+         write_frame_ppm(output_path, pixels, DOS_VGA_FRAME_WIDTH,
+                         DOS_VGA_FRAME_HEIGHT);
+    free(memory);
+    if (ok)
+        printf("DOS VGA reference SHA-256: %s\n", digest_text);
     return ok;
 }
 
@@ -539,6 +577,8 @@ int main(int argc, char *argv[]) {
     bool start_directly = false;
     const char *verify_data = NULL;
     const char *capture_frame_path = NULL;
+    const char *dos_vga_dump_path = NULL;
+    const char *dos_vga_output_path = NULL;
     int exit_status = 0;
 
     for (int i = 1; i < argc; i++) {
@@ -568,6 +608,7 @@ int main(int argc, char *argv[]) {
                 "  --game <name>         Start game directly: captive, liberation\n\n"
                 "  --verify-data <name>  Verify data by SHA-256: captive, liberation, all\n\n"
                 "  --capture-frame <ppm> Save one unscaled native game frame, then exit\n\n"
+                "  --extract-dos-vga <dump> <ppm>  Extract a 320x200 DOS VGA reference frame\n\n"
                 "  --skip-intro          Skip Liberation's original intro (automation only)\n\n"
                 "Game data:\n"
                 "  Place original Captive game files (or ZIP archives containing them)\n"
@@ -659,6 +700,9 @@ int main(int argc, char *argv[]) {
             }
         } else if (strcmp(argv[i], "--capture-frame") == 0 && i + 1 < argc) {
             capture_frame_path = argv[++i];
+        } else if (strcmp(argv[i], "--extract-dos-vga") == 0 && i + 2 < argc) {
+            dos_vga_dump_path = argv[++i];
+            dos_vga_output_path = argv[++i];
         } else if (strcmp(argv[i], "--skip-intro") == 0) {
             skip_liberation_intro_requested = true;
         } else {
@@ -666,6 +710,9 @@ int main(int argc, char *argv[]) {
             return 2;
         }
     }
+
+    if (dos_vga_dump_path)
+        return write_dos_vga_reference(dos_vga_dump_path, dos_vga_output_path) ? 0 : 1;
 
     if (verify_data) {
         DataVFS verify_vfs;

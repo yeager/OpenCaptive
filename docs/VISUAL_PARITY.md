@@ -39,12 +39,25 @@ före fönsterskalning, systemets färghantering och externa överlägg:
 ```
 
 Captive-fångsten kan jämföras med den hashidentifierade HUD-resursen utanför
-spelvyn. Med den verifierade referensresursen är den aktuella originalramen
-pixelidentisk i samtliga 47 872 pixlar utanför rektangeln `(32,55,144,112)`.
+spelvyn, men detta är inte en fullständig spelbildsjämförelse. En riktig
+spelframe ändrar även delar av monitorerna, kontrollerna och statusytan.
 I standardläget lämnas den dynamiska rektangeln `(32,55,144,112)` orörd tills
 originalrenderingen är återställd; den fylls alltså inte med syntetisk grafik.
-Det experimentella F10-läget kan fortfarande rita en förbättrad approximation,
-men räknas inte som visuell paritet.
+
+En DOSBox-dump från ett ägt original kan göras till en reproducerbar referens
+utan att spelmedia läggs i källträdet. Verktyget accepterar exakt den 1 MiB
+stora utdata som skapas av `MEMDUMPBIN 0 0 100000`, skriver dumpens SHA-256 och
+extraherar VGA-bufferområdet `0xA0000..0xAFA00` som en 320×200 PPM-bild:
+
+```sh
+./build/opencaptive --extract-dos-vga /path/to/MEMDUMP.BIN /tmp/captive-original.ppm
+```
+
+Den kända referensen med SHA-256
+`9003c4a8818cb97f8299ac90cfe51e90e535ab9a725545526fe75f14ddb8dd7e` visar en
+genuin Captive-utomhusvy. OpenCaptives nuvarande Captive-fångst skiljer sig i
+10 558 av 16 128 pixlar i viewporten och i 8 376 av 47 872 pixlar utanför den.
+Siffrorna är ett aktivt felmått, inte ett godkänt paritetsresultat.
 
 ## Captive-panelblad
 
