@@ -1,11 +1,13 @@
 #include "captive_dos_descriptor.h"
 
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 
 int main(void) {
-    uint8_t memory[1024 * 1024];
-    memset(memory, 0, sizeof(memory));
+    const size_t memory_size = 1024 * 1024;
+    uint8_t *memory = calloc(memory_size, 1);
+    assert(memory);
     const uint16_t descriptor_segment = 0x2942;
     const uint16_t code_segment = 0x0824;
     const uint16_t graphic_id = 4;
@@ -23,13 +25,14 @@ int main(void) {
     memory[bank + 1] = 0x55;
 
     CaptiveDosDescriptor result = {0};
-    assert(captive_dos_descriptor_read(memory, sizeof(memory), descriptor_segment,
+    assert(captive_dos_descriptor_read(memory, memory_size, descriptor_segment,
                                        code_segment, graphic_id, &result));
     assert(result.source_offset == 0x6662 && result.destination_offset == 0x1720);
     assert(result.width_bytes == 6 && result.height == 49 && result.flags == 6);
     assert(result.source_bank == 2 && result.source_segment == 0x55cf);
-    assert(!captive_dos_descriptor_read(memory, sizeof(memory) - 1,
+    assert(!captive_dos_descriptor_read(memory, memory_size - 1,
                                         descriptor_segment, code_segment,
                                         graphic_id, &result));
+    free(memory);
     return 0;
 }
