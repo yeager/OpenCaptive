@@ -93,11 +93,13 @@ a separately decoded local reference before using it for container analysis.
 
 The presentation bundle is selected from the verified ISO by SHA-256
 `1d3a335d254c0eae919a712dd73bd41b24ed897bf145ed118ccf2277baa7a35f`.
-Its byte offset `386824` is an old-RNC2 stream which expands to a `FORM/ANIM`
-container. The first `PACK` record declares a 320×167, six-bitplane image
-(`40 × 167 × 6 = 40,080` bytes) and is paired with the container's 32-colour
-`PALL` palette. Runtime selection is exclusively the bundle digest plus this
-offset; the ISO member name is neither queried nor used as an identity.
+OpenCaptive scans its RNC2 payloads and accepts the city form only when its
+*decompressed* SHA-256 is
+`b94a450c12428af9a22b8bb8c31fca74cdc2b2bd3be3dc9c7a1eadd7e6576101`.
+It therefore does not use a byte offset, ISO member name or archive filename
+as a content identity. The first `PACK` record declares a 320×167,
+six-bitplane image (`40 × 167 × 6 = 40,080` bytes) and is paired with the
+container's 32-colour `PALL` palette.
 
 `liberation_anim_decode_first_frame()` handles this verified record and
 `liberation_anim_blit()` renders planar pixels without interpolation. The
@@ -110,11 +112,15 @@ logic.
 
 The PACK stream is not a sequence of independently decodable full frames.
 The verified player first expands one bounded work area: in the city resource
-that area is 40,094 bytes (14-byte descriptor plus 40,080 planar bytes). The
-following bytes in the PACK chunk are not yet assigned a standalone record
-meaning. `liberation_pack_decode_workspace()` exposes only the bounded area;
-the stricter full-stream diagnostic intentionally reports the trailing format
-data as undecoded. This keeps the exact first raster available without
+that area is 40,094 bytes (14-byte descriptor plus 40,080 planar bytes). Its
+SHA-256 is
+`76daac4c89c209416d7a865d0d4e8ea4da116e4336dacfcffd63e1c48a4b6a70`.
+`liberation_presentation_capture` can write this workspace from a requested
+FORM hash, alongside its PPM, for reproducible decoder work. The following
+bytes in the PACK chunk are not yet assigned a standalone record meaning.
+`liberation_pack_decode_workspace()` exposes only the bounded area; the
+stricter full-stream diagnostic intentionally reports the trailing format data
+as undecoded. This keeps the exact first raster available without
 misrepresenting unknown animation layers as image data.
 
 The accompanying `SCPT` IFF chunk is now copied verbatim into
