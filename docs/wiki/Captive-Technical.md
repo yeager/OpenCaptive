@@ -93,6 +93,21 @@ corresponding full 40,000-byte hash-identified payload. It is a fixture for
 this verified renderer state, not a substitute for the original loader's
 asset-set selection.
 
+### Destination-buffer correction
+
+The descriptor's destination word is **not** an offset into a 200-byte-wide
+PL5 source sheet. In the native `0x3bc1` copy path, one five-byte source group
+is expanded to eight indexed output bytes and the destination row advance is
+`0x140` (320 bytes). The alternative path at `0x3d23` applies the original
+transparent-write rule. The low flag bit selects the mirrored variant.
+
+Consequently, a descriptor cannot be reproduced by decoding a source crop and
+placing it at `destination / 200`. That tempting shortcut yields plausible
+wall fragments but at incorrect positions and is not used by OpenCaptive.
+The remaining conversion from the intermediate buffer to the displayed VGA
+frame, plus the per-cell descriptor order, must be recovered before native
+view rendering can claim visual parity.
+
 The renderer samples a 19-cell trapezoid rather than a full 5×5 view: five
 cells at ranges four and three, three cells at ranges two and one, then the
 left/current/right cells at range zero. It rotates that sample from the party
