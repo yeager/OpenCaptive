@@ -1,79 +1,148 @@
-# User guide
+# User Guide
 
-## Build
+## System requirements
 
-OpenCaptive requires CMake 3.20+, a C17 compiler, SDL3 and zlib.
+- **OS**: Linux (x86_64), macOS 14+ (Apple Silicon), Windows 10+
+- **Dependencies**: SDL3, zlib (bundled in release builds)
+- **Game data**: original Captive and/or Liberation media files (not included)
+
+## Installation
+
+### From release packages
+
+Download from [GitHub Releases](https://github.com/yeager/OpenCaptive/releases):
+
+| Platform | Package |
+| --- | --- |
+| Linux (Debian/Ubuntu) | `opencaptive_X.Y.Z_amd64.deb` |
+| Linux (Fedora/RHEL) | `opencaptive-X.Y.Z.x86_64.rpm` |
+| Linux (universal) | `opencaptive-x86_64.AppImage` |
+| macOS (Apple Silicon) | `OpenCaptive-macos-arm64.dmg` |
+| Windows | `OpenCaptive-X.Y.Z-setup-x64.exe` |
+
+### Building from source
+
+Requires CMake 3.20+, a C17 compiler (clang or MSVC), SDL3, zlib and Ninja.
 
 ```sh
-cmake -S . -B build -G Ninja
-cmake --build build
-ctest --test-dir build --output-on-failure
+cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja
+ninja -C build
 ```
 
-Use a separate `build-release` directory with
-`-DCMAKE_BUILD_TYPE=Release` for a shipping-style test run. Tests explicitly
-keep assertions enabled in Release builds.
-
-## Launch and data checks
+Release build:
 
 ```sh
-./build/opencaptive --data /path/to/your/media --verify-data all
-./build/opencaptive --data /path/to/your/media --game captive
-./build/opencaptive --data /path/to/your/media --game liberation
+cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release
+ninja -C build
 ```
 
-`--verify-data captive`, `--verify-data liberation` and `--verify-data all`
-perform read-only SHA-256 verification. A successful check means that the
-known content required by the current loader was found; it does not claim that
-every original gameplay system is implemented.
+Run tests:
 
-Archives may be stored directly in the chosen directory. The loader scans
-archive entries and loose files by their bytes, so repacking or renaming media
-does not change its identity.
+```sh
+ctest --test-dir build -j4 --output-on-failure
+```
 
-## Captive status and controls
+## Game data setup
 
-The Captive runtime currently shows hash-verified original presentation data.
-Movement, combat, interaction, save/load and mission input are deliberately
-unavailable: the earlier generated state was not derived from original game
-logic and is therefore not shipped as a substitute.
+Place your original game files in a directory. OpenCaptive identifies files by SHA-256 content hash, so filenames and directory structure do not matter. ZIP archives are scanned transparently.
+
+Supported source media:
+
+| Game | Accepted formats |
+| --- | --- |
+| Captive | DOS files (PL5, ANM, MID), Amiga ADF disk images, Atari ST disk images, ZIP archives |
+| Liberation | CD32 raw BIN/CUE image (MODE1/2352), Amiga ADF disk images (5 disks) |
+
+## Launching
+
+```sh
+opencaptive --data /path/to/your/media
+opencaptive --data /path/to/your/media --game captive
+opencaptive --data /path/to/your/media --game liberation
+```
+
+### Data verification
+
+```sh
+opencaptive --data /path/to/media --verify-data all
+opencaptive --data /path/to/media --verify-data captive
+opencaptive --data /path/to/media --verify-data liberation
+```
+
+Performs read-only SHA-256 verification of all known resources.
+
+## Command-line flags
+
+### Game selection
+
+| Flag | Description |
+| --- | --- |
+| `--data <path>` | Path to game data directory |
+| `--game <name>` | Select game: `captive` or `liberation` |
+| `--verify-data <scope>` | Verify data integrity: `captive`, `liberation`, or `all` |
+
+### Display settings
+
+| Flag | Description |
+| --- | --- |
+| `--fullscreen` | Start in fullscreen mode |
+| `--scale <N>` | Window scale factor (1-8, default: 3) |
+| `--scanlines` | Enable scanline effect |
+| `--crt` | Enable CRT curvature effect |
+| `--bilinear` | Enable bilinear texture filtering |
+| `--integer-scaling` | Force integer scaling (default: on) |
+| `--no-integer-scaling` | Allow non-integer scaling |
+| `--vsync` | Enable vertical sync (default: on) |
+| `--no-vsync` | Disable vertical sync |
+| `--fps <N>` | FPS limit: 0 (unlimited), 30, 60, 120 (default: 60) |
+| `--brightness <N>` | Brightness level 0-100 (default: 50) |
+| `--contrast <N>` | Contrast level 0-100 (default: 50) |
+| `--renderer <mode>` | Render mode: `original` or `enhanced` |
+| `--platform <name>` | Platform variant: `dos`, `amiga`, or `atarist` |
+
+### Information
+
+| Flag | Description |
+| --- | --- |
+| `--help`, `-h` | Show all available options |
+| `--version`, `-v` | Show version and author |
+
+## Start menu
+
+The start menu provides access to all settings without CLI flags:
+
+1. **New Game** — start a new game session
+2. **Continue** — resume from last save (when available)
+3. **Settings** — 14-item scrollable settings panel:
+   - Renderer (Original / Enhanced)
+   - Scanlines, CRT Curvature, Bilinear Filtering
+   - Integer Scaling, Scale Factor
+   - Fullscreen, VSync, FPS Limit
+   - Brightness, Contrast
+   - Music Volume
+   - Data Path
+4. **Quit** — exit the application
+
+Navigate with arrow keys, Enter to select, Escape to go back.
+
+## Controls
 
 | Input | Action |
 | --- | --- |
-| F10 | Open runtime display options when the host makes F10 available |
-| Escape | Return to the start menu |
+| Arrow keys | Navigate menus |
+| Enter | Select / confirm |
+| Escape | Return to start menu |
+| F10 | Runtime display options (when available) |
 
-## Liberation status and controls
+Movement, combat, interaction, inventory and save/load are under active development. The runtime currently displays verified original presentation data (intro sequences, HUD, viewport frames).
 
-Verified CD32 presentation data is decoded for Liberation's opening and city
-frame. The old procedural city/interior controls are not presented as a
-playable Liberation implementation: their generated logic is not the original
-game's logic and no longer produces substitute graphics. `Escape` returns to
-the start menu; F10 can open runtime display options when available.
+## Diagnostics
 
-## Runtime options and cheats
-
-Press `F10` during either presentation to open the runtime display popup when
-the operating system and host application pass the key through. It can adjust
-display-only settings such as scaling and filtering. It does not pause or alter
-a gameplay simulation: cheats, save/load commands and synthetic sound effects
-remain unavailable until they can be recovered from original behaviour.
-
-## Saves
-
-Save and load are unavailable in the shipped presentations. Experimental state
-and save code remains outside the runtime until it can be validated against
-original game behaviour.
-
-## Useful diagnostics
-
-For a noninteractive smoke start on a Unix-like system:
+Headless smoke test (Unix):
 
 ```sh
 SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy \
-  timeout 5 ./build/opencaptive --data /path/to/your/media --game captive
+  timeout 5 ./build/opencaptive --data /path/to/media --game captive
 ```
 
-The expected result is a timeout after the game loop has started, with log lines
-for texture loading and verified game startup. It is not a gameplay-completion
-test.
+The expected result is a timeout exit after the game loop starts, with log lines for texture loading and verified startup.

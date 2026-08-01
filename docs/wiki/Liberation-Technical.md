@@ -217,6 +217,20 @@ verified. The runtime now has a narrow, explicit boundary: it displays the
 hash-verified intro and city ANIM first frames, can advance from intro to city,
 and does not invent movement, buildings, objectives or saves.
 
+## CD32 executable analysis
+
+The verified main executable (245,628 bytes) contains embedded game data. See [[Liberation Game Data]] for the full extraction:
+
+- **32 German city name syllables** for procedural place names
+- **20 street types** (Street, Avenue, Boulevard, Promenade, etc.)
+- **35 first names and 32 last names** for NPC generation
+- **8 NPC titles** (Governor, Pilot, Trader, etc.)
+- **9 shop types, 12 bar types, 11 business types, 12 industrial types**
+- **4 city visual variants** with matching x3g vectors, fonts and monsters
+- **File references** for all x3g, VGM, Img, FNT and spr assets
+
+The executable identifies itself as "Liberation : Ratt V2.02 : Wyvern V2.00c", where Ratt and Wyvern are internal engine/tool codenames.
+
 ## Reverse-engineering plan
 
 The next parity work is data-driven rather than visual:
@@ -225,7 +239,9 @@ The next parity work is data-driven rather than visual:
 2. Identify CityGen inputs, PRNG, output layout and persistent city state.
 3. Identify PlotGen’s building/interior format and plot progression state.
 4. Decode text table offsets, encoding and dialogue references.
-5. Add small independently testable parsers, golden hashes and structural
+5. Decode x3g 3D vector format for city/room/monster geometry.
+6. Decode VGM wall texture format.
+7. Add small independently testable parsers, golden hashes and structural
    invariants before wiring them into the live city loop.
 
 Until those steps are complete, do not describe the procedural city as a

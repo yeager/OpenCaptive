@@ -208,6 +208,20 @@ The technical reference used for this boundary is the documented
 and its linked stage pages. New MapGen work must add an original-output fixture
 or an independently reproducible reference before claiming parity.
 
+## DOS executable analysis
+
+The verified unpacked executable (144,556 bytes) contains the complete game data tables. See [[Captive Game Data]] for the full extraction:
+
+- **10 droid material grades** (SHIT through TITANIUX)
+- **10 combat skills** (Brawling through Energy Weapon)
+- **~40 items** with hex classification bytes
+- **48 name-generation syllables** (8 consonants x 6 vowels)
+- **14 music categories x 11 variations** (154 track slots)
+- **4 sound drivers** (AdLib, Roland, PC Speaker, Sound Blaster)
+- **16 ANM animation files** and **multiple PL5 graphics sheets**
+
+The executable structure, dispatch tables and descriptor format are documented above. The disassembly data provides ground truth for reimplementing item tables, shop pricing, combat formulas, and name generation without guessing.
+
 ## Current runtime boundary
 
 Captive accepts movement, rotation, interaction, inventory, terminal, save and
