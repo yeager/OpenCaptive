@@ -1,0 +1,310 @@
+======================================================================
+LIBERATION: CAPTIVE 2 (CD32) - DATA EXTRACTION
+Version: Ratt V2.02, Wyvern V2.00c
+======================================================================
+
+## VERSION
+  $VER: Liberation : Ratt V2.02 : Wyvern V2.00c
+  Platform: Amiga CD32
+  Binary size: 245,628 bytes
+
+## FILE REFERENCES
+  0x005257: :GameMenu.spr
+  0x01fa53: :backpack.img
+  0x02a4b4: :WALL*.VGM
+  0x02a4cd: :MainSP.Img
+  0x02a4da: :MainSP16.Img
+  0x02a4e9: :3dView.Img
+  0x02a4f6: :Taxi.Img
+  0x02a557: :0CityVectors.x3g
+  0x02a56a: :0RoomVectors.x3g
+  0x02a57d: :0BankVectors.x3g
+  0x02a590: :0BarVectors.x3g
+  0x02a5a2: :0ShopVectors.x3g
+  0x02a5b5: :PoliceVectors.x3g
+  0x02a643: :0Droids.x3g
+  0x02a651: :0CityMonsters.x3g
+  0x02a665: :Monsters2.x3g
+  0x02a675: :Monsters3.x3g
+  0x02a685: :Monsters4.x3g
+  0x02a695: :People.x3g
+  0x02a6a2: :Monsters.x3g
+  0x02a6b1: :Objects.x3g
+  0x02a6bf: :%Liberation.FNT
+  0x02a6d1: :Wall.Log
+
+## DATA FILES ON DISC
+  3D vector data (.x3g):
+    {N}CityVectors.x3g   - City 3D geometry (4 variants, N=0-3)
+    {N}RoomVectors.x3g   - Room/interior 3D geometry
+    {N}BankVectors.x3g   - Bank interior vectors
+    {N}BarVectors.x3g    - Bar interior vectors
+    {N}ShopVectors.x3g   - Shop interior vectors
+    {N}Droids.x3g        - Droid 3D models
+    {N}CityMonsters.x3g  - City monster models
+    PoliceVectors.x3g    - Police/guard models
+    Monsters{2,3,4}.x3g  - Additional monster sets
+    People.x3g           - NPC models
+    Objects.x3g          - Item/object models
+  Graphics:
+    WALL*.VGM            - Wall textures (VGM format)
+    MainSP.Img           - Main sprite sheet
+    MainSP16.Img         - 16-color sprite sheet
+    3dView.Img           - 3D viewport frame
+    Taxi.Img             - Taxi graphics
+    backpack.img         - Inventory/backpack UI
+    GameMenu.spr         - Game menu sprites
+  Data:
+    CityGen              - City generation data
+    BuildingGen          - Building generation data
+    {N}Liberation.FNT    - Font data (4 variants)
+    Wall.Log             - Wall texture log/mapping
+
+## PROCEDURAL CITY GENERATION
+  German-style place name parts:
+    Parts: gold, grun, braun, wein, eisen, ein, bieder, jaeger, tell, fern, hahn, stein, mann, berg, er, mensch, tod, fisch, rhein, kurz, laben, weg, wehr, kropf, esel, erz, fach, fuchs, schild, ort, paar, platz
+
+  Street types:
+    Street
+    Avenue
+    Road
+    Boulevard
+    Lane
+    Park
+    Gardens
+    Gate
+    Crescent
+    Mews
+    Terrace
+    Drive
+    Alley
+    Approach
+    Arcade
+    Buildings
+    Corner
+    Quadrant
+    Passage
+    Promenade
+
+  First names:
+    Max, Joe, Jack, Jim, Ed, Ann, June, Fred, Kiku, Art, John, Barbara, Steve, Rick, Mark, Barry, Deb, Malc, Tone, Pete, Alison, Maggi, Claire, Kim, Cass, Lynne, Mel, Gill, Cath, Ivor, Huw, Gwynn, Geraint, Narish, Rajiv
+
+  Last names:
+    featherstonehaugh, patel, smythe, singh, meridew, sagan, murray, cherryh, chambers, gaiman, cleese, simon, burkinshaw, forward, rector, alexy, jacobs, crowther, macleod, leary, crowley, gibson, floyd, whittle, pitt, heath, goodley, chapman, palin, gilliam, hake, turbot
+
+  NPC titles:
+    Governor
+    Councillor
+    Investment Counsellor
+    Engineer
+    Entrepreneur
+    Pilot
+    Trader
+    Merchant
+
+## SHOP TYPES
+  Emporium
+  Hardware
+  Pawnshop
+  Gunsmith
+  Jewellers
+  Store
+  Market
+  Newsagent
+  TriDee Rental
+
+## BAR TYPES
+  Bar
+  Boozerama
+  Diner
+  PopShop
+  Pub
+  Vinyard
+  Beer Hall
+  Pool Rooms
+  Speakeasy
+  Gin Palace
+  cha no mise
+  biru no mise
+
+## BUSINESS TYPES
+  Software
+  Insurance
+  Assurance
+  Bank
+  Accountants
+  Actuarial Services
+  Credit Control
+  Mercantile
+  Import/Export
+  Productions
+  Expediters
+
+## INDUSTRIAL TYPES
+  Engineering
+  Ceramics
+  Steel
+  Aluminium Corp.
+  Laser Systems
+  TeleCommunications
+  Plastics
+  Mouldings
+  Metals a.g.
+  Optik g.m.b.h
+  ParaGravitics
+  Noble Gasses
+
+## DISC STRUCTURE
+  Multi-disk: CaptiveII_Disk1 through CaptiveII_Disk4
+  Save directory: Lib-Saves
+  4 city variants (0-3) with matching vectors, monsters, droids, fonts
+
+## 3D RENDERING
+  Format: .x3g (3D vector graphics)
+  Wall textures: .VGM format (Video Graphics Mode?)
+  3D viewport: 3dView.Img (pre-rendered frame/border)
+  True 3D polygon renderer (not raycasting like Captive 1)
+
+## ALL STRINGS (filtered, game-relevant)
+  0x0000c1: $VER: Liberation : Ratt V2.02 : Wyvern V2.00c : 
+  0x001e3e: NuRAM:Game.DAT
+  0x00252e: $HJRg
+  0x0026b1: l$I"_O
+  0x002e60: JCj(aB`$?
+  0x00460e: XFNu$H
+  0x00476e: Nu$Qr
+  0x005139: 8$O0<L8a
+  0x00514e: $O0<L6a
+  0x005172: $O0<L5J-2
+  0x005192: $O0<L2Jm
+  0x0051be:  Oar$O0<L3Jm
+  0x005257: :GameMenu.spr
+  0x005770: HA`$"10
+  0x007d62: iBBmiD$mh
+  0x0094e6: ;_ZfNu$-u
+  0x009a88: Nu$-u
+  0x009e26: a$ _HGQ
+  0x00a05c: `$EndText
+  0x00a94a: $_Nu&mh
+  0x00ae7e: "t$_"H
+  0x00d3ee:  ++ Damaged ++ 
+  0x00d418: $Governor$Councillor$Investment Counsellor$Engineer$Entrepreneur$Pilot$Trader$Merchant$
+  0x00dffe: &_ _$_Nu;m
+  0x00e03a: af$_Q
+  0x00e09e: ,_Nu$o
+  0x00e68d: myJg$SB2(
+  0x0102d8: RA$HREA
+  0x010322: g$RGG
+  0x0103e8: gD$H'J
+  0x011577: -0v$m/
+  0x01242e: Eh$_A
+  0x013722: JmE\k6`$J--
+  0x013a2e:  PJBj$/
+  0x013a3e: "mW$N
+  0x014064: $_ _HEHG
+  0x014816: Nup^Nu{:|^/???????????????????????????????? i$$%Y:$"ca<'-r_o+23'up.,1o>423?AAAA~AA
+  0x014e72: gS$gS?hS
+  0x015090: $NHA2
+  0x0150a0: RB$W2
+  0x0155e2: wd$-x
+  0x015b5e: g$NuO
+  0x016748: Buildings - 
+  0x016a58:  PJBj$/
+  0x016a68: "mW$N
+  0x017572: $-Eta
+  0x017be7: $$-EP+mETEP
+  0x017c50: $m3|XJ/
+  0x017c74: $_Jm4
+  0x017c8a: njJBj$4-
+  0x0197ac: a$J-2
+  0x0197f0: ,p$m3ta
+  0x019814: ,|$m3xalA
+  0x019838: $m3|aJNu"m3tB
+  0x0198f2: $_NuC
+  0x019aed: $Jm3Nf
+  0x01a180: $zBm.
+  0x01c256: Nq$-~Zp
+  0x01c2c4: PB$LP
+  0x01c6a1: Xa$ -
+  0x01ca30: Nu$m~.E
+  0x01cc1a: f$QHQI"-
+  0x01d192: I M$m$k,k
+  0x01d33a: $KJPj
+  0x01da1c: Nu"E$)
+  0x01f49e: "m3t$m3x`
+  0x02046b: Cf$J,
+  0x020538: f$NuJ,
+  0x0205ea: a(a&a$(_Nu ,
+  0x020850: BF(H$Y
+  0x0208de: x?z$a
+  0x0209f6: XO$_C
+  0x020bba: x?z$a
+  0x02102f: n$P.S
+  0x0211ce: x?z$a
+  0x021660: x?z$a
+  0x021746: $Y&Y(Y"Q
+  0x02241e: SBk$I
+  0x022eee: B$NuJ-4
+  0x0230f9: -/RB-/RNu$HJXg
+  0x02516a: Nu$K Ka
+  0x025340: .H$Ip
+  0x027278: BZ"m-H$
+  0x02736a: $OBZTI YJPk
+  0x02754d: P-Nk$`.
+  0x027e44: NuNu$I
+  0x027eac: NuNu$I
+  0x02a48b: Liberation : Ratt V2.02 : Wyvern V2.00c
+  0x02a501: :CityGen
+  0x02a515: :BuildingGen
+  0x02a522: :backup/CityGen
+  0x02a542: :backup/BuildingGen
+  0x02a557: :0CityVectors.x3g
+  0x02a56a: :0RoomVectors.x3g
+  0x02a57d: :0BankVectors.x3g
+  0x02a590: :0BarVectors.x3g
+  0x02a5a2: :0ShopVectors.x3g
+  0x02a5b5: :PoliceVectors.x3g
+  0x02a5c8: CaptiveII
+  0x02a5d2: CaptiveII_Disk1
+  0x02a5e2: CaptiveII_Disk2
+  0x02a5f2: CaptiveII_Disk3
+  0x02a602: CaptiveII_Disk4
+  0x02a613: Lib-Saves
+  0x02a643: :0Droids.x3g
+  0x02a651: :0CityMonsters.x3g
+  0x02a665: :Monsters2.x3g
+  0x02a675: :Monsters3.x3g
+  0x02a685: :Monsters4.x3g
+  0x02a6a2: :Monsters.x3g
+  0x02a6b1: :Objects.x3g
+  0x02a6bf: :%Liberation.FNT
+  0x02a6d1: :Wall.Log
+  0x032573: d D+676=?1K$N
+  0x0327e4: k$k(0
+  0x0334ba: $_RHHF
+  0x033beb: $gold$grun$braun$wein$eisen$ein$bieder$jaeger$tell$fern$hahn$stein$mann$berg$er$mensch$tod$fisch$rhe
+  0x033c9a: $kan$se$sas$bin$tel$fog$ram$top$chi$ban$mac$tin$tac$mo$more$fu$ore$gon$ria$tor$roto$para$set$fan$pet
+  0x033d21: $bridge$ton$ford$field$town$wick$ham$
+  0x033d47:  City 
+  0x033d50: $featherstonehaugh$patel$smythe$singh$meridew$sagan$murray$cherryh$chambers$gaiman$cleese$simon$burk
+  0x033e44: $brew$dev$scann$cann$dann$has$ves$mann$van$han$hawk$evan$john$richard$smith$iron$young$ham$pether$
+  0x033eaa: $-Hammond$-Evans$-Smythe$stone$wick$er$ers$ing$ton$ston$ster$son$s$ly$let$lin$
+  0x033efc: $Info$Star$Mind$Para$Grav$Drive$Scan$Ion$Electro$Terra$Selen$Mar$Bio$Gene$
+  0x033f4a: $Tec$Light$Scape$nics$tics$sum$Technology$Logix$Land$Lon$Tron$Games$
+  0x033f92: $*Dog$Bush$*Parrot$Firkin$*Bull$Star$Frog$*Queen$*Aardvark$Peristalsis$&Black$&Green$King$Elephant$C
+  0x034014: $Max$Joe$Jack$Jim$Ed$Ann$June$Fred$Kiku$Art$John$Barbara$Steve$Rick$Mark$Barry$Deb$Malc$Tone$Pete$Al
+  0x0340cf: $*Emporium^1$*Hardware^2$*Pawnshop^3$*Gunsmith^4$*Jewellers^5$*Store^1$*Market^1$*Newsagent^6$*TriDe
+  0x034142: $*Bar^8$*Boozerama^8$*Diner^8$*PopShop^8$*Pub^8$*Vinyard^8$*Beer Hall^8$*Pool Rooms^8$*Speakeasy^8$*
+  0x0341d6: $Software^9$Insurance^10$Assurance^10$Bank^10$Accountants^10$Actuarial Services^10$Credit Control^10
+  0x03427b: $Engineering^13$Ceramics^14$Steel^13$Aluminium Corp.^13$Laser Systems^15$TeleCommunications^17$Plast
+  0x034338: $Street$Avenue$Road$Boulevard$Lane$Park$Gardens$Gate$Crescent$Mews$Terrace$Drive$Alley$Approach$Arca
+  0x034760: gtJ-0tg$
+  0x034889: ($F"GJ
+  0x034a2c: g$ @2--
+  0x034a78: k(a4f$A
+  0x034d7c: Bm0r$m~"p
+  0x035dfe: JFf$J
+  0x035fb6: $K_WG`K
+  0x035fcc: $K_WG
+  0x03672e: NuJ@k$H
+  0x036971: !a$d'g

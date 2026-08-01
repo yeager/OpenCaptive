@@ -1,0 +1,301 @@
+======================================================================
+CAPTIVE DOS v1.06 (Oct 7 1992) - COMPLETE DATA EXTRACTION
+PC Conversion by TAG 1992, Original by RATT 1990
+======================================================================
+
+## VERSION INFO
+  Version string: VERSION 1.06 OCT.07.92
+  Copyright: COPYRIGHT RATT 1990  CAPTIVE A MINDSCAPE PRODUCT  PC CONVERSION BY TAG 1992
+  Save file: CAPTIVE1.SAV
+
+## DROID MATERIALS (10 grades)
+  [0] SHIT
+  [1] 
+  [2] 
+  [3] 
+  [4] HUMAN
+  [5] TINDRON
+  [6] COPPATOR
+  [7] BRONZITE
+  [8] IRONIDE
+  [9] CROMIZE
+
+## COMBAT SKILLS
+  [0] ROBOTICS
+  [1] BRAWLING
+  [2] SWORDS
+  [3] HANDGUNS
+  [4] RIFLES
+  [5] AUTOMATICS
+  [6] LASERS
+  [7] CANNONS
+  [8] SPAYGUNS
+  [9] EXPERIENCE
+
+## DROID DEVICES (shop items)
+  [0] AG-SCAN
+  [1] ROOT-FINDER
+  [2] MAPPER
+  [3] RADAR
+  [4] MAGNA-SCAN
+  [5] BODY-SCAN
+  [6] VISION-CORRECTOR
+  [7] VISOR
+  [8] ANTI-GRAV
+  [9] SHIELD
+  [10] FIRE-SHIELD
+  [11] GREASER
+
+## BODY PARTS
+  HEAD
+  CHEST
+  ARM
+  LEG
+  FOOT
+  HAND
+
+## ITEMS (from item table)
+  0x019c90: [00 00 1e 22 28 2a 27 2e 32 0f 14 14 19 15 0a 0a 05] HEAD
+  0x019ca7: [00 27 05] CHEST
+  0x019cb1: [00 65 05] ARM
+  0x019cb9: [00 27 05] LEG
+  0x019cc1: [00 27 05] FOOT
+  0x019cca: [00 27 05] HAND
+  0x019cd3: [00 27 05] GOLD
+  0x019cdc: [00 08] BATTERY
+  0x019ce7: [60] EXPLOSIVES
+  0x019cf4: [00] DEV-SCAPE
+  0x019d00: [21] OPTIC
+  0x019d08: [21] CAMERA
+  0x019d11: [00] KNUCLE-DUSTER
+  0x019d21: [21] BATTLE-GLOVE
+  0x019d30: [21] WAR-BLADE
+  0x019d3c: [21] LIGHT-BLADE
+  0x019d4a: [21] FIRE-AXE
+  0x019d55: [21] PISTOL
+  0x019d5e: [30] COLT
+  0x019d65: [30] MAGNUM
+  0x019d6e: [30] RIFLE
+  0x019d76: [30] SHOTGUN
+  0x019d80: [30] HUNTER
+  0x019d89: [30] UZIE
+  0x019d90: [30] RAPEDO
+  0x019d99: [30] BOOSTER
+  0x019da3: [30] HAND-LASER
+  0x019db0: [30] LYTE-ZAPPER
+  0x019dbe: [30] ION-PULSE
+  0x019dca: [30] MONO-CANNON
+  0x019dd8: [30] A51-LAUNCHER
+  0x019de7: [30] TWIN-CANNON
+  0x019df5: [30] AIROSOLL
+  0x019e00: [30] ACID-DISPERSER
+  0x019e11: [30] FLAME-THROWER
+  0x019eb2: [30 04 2c 32 33 31 2d 00 30 04 2c] A12-
+  0x019ec2: [30 04 2c] L22-
+  0x019eca: [30 04 2c] X42-2-
+  0x019ed4: [30 32 30 04 25 00 10 34 35 04 25 00 10 35 30 04 25 00 10] CARTRIDGES
+  0x019ef3: [10 32 30 04 26 00 10 34 35 04 26 00 10 35 30 04 26 00 10] A51 MISSILES
+  0x019f14: [10] SHELLS
+  0x019f1d: [10] LASER PACK
+  0x019f2a: [10] SONIC PACK
+  0x019f37: [10] POISON
+  0x019f3f: [27 00 10] ACID
+  0x019f47: [27 00 10] FLAMBOS
+  0x019f52: [27 00 10] PLANET PROBE
+  0x019f63: [00 20] CLIPBOARD
+  0x019f70: [00 05 20] CLIPBOARD
+  0x019f7e: [00 00] MINE
+  0x019f86: [00] DIE
+  0x019f8c: [00] BALL
+  0x019f93: [00] SUPER BALL
+  0x019fa0: [00] MAP
+  0x019fa6: [20] DROID CHIP
+  0x019fb3: [00] CLIPBOARD
+  0x019fbf: [00] CLIPBOARD
+  0x019fcb: [00] MESSAGE FROM RATT
+  0x019fe4: [00 00 01 00 00 01 00 00 01 00 00 01 00 00 01 00 00 01 00 00 01 00 00 01 00 00 01 00 00] SHIT
+
+## MUSIC SYSTEM
+  Sound driver files:
+    NEW_ADL.BIN - AdLib driver
+    NEW_ROL.BIN - Roland driver
+    NEW_BEP.BIN - PC beeper driver
+    CAP_A.BIN  - AdLib instrument patches
+    CAP_R.BIN  - Roland instrument patches
+    _SBNEW.DAT - Sound Blaster driver
+    SB15.CTV   - SB 1.5 creative voice
+    SB20.CTV   - SB 2.0 creative voice
+    SBPRO.CTV  - SB Pro creative voice
+
+  Music tracks by category:
+    BATT: Battle tracks (BATT1-BATTB)
+    COMPROOM: Computer room
+    ESCAPED: Mission success
+    FCBASE: Fast combat base tracks (FCBASE1-FCBASEB)
+    FINAL2: Final mission / endgame
+    GENBASE: General base / exploration
+    HOLOMAP: Holamap navigation
+    LONGNT: Long night/exploration (LONGNT1-LONGNTB)
+    MAIN2: Main title screen
+    RUNNING: Chase / running sequence
+    SHOPKEEP: Shop interaction
+    TRAPPED: Game over / trapped
+    VCBASE: Vocal/varied combat base (VCBASE1-VCBASEB)
+    W: World/ambient tracks (W1-WB)
+
+  Track numbering: 0-9, A, B (11 variations per category)
+  Format: SOUND\{CATEGORY}{NUMBER}.MID
+
+## NAME GENERATION
+  48 syllables in 4-char slots:
+    [ 0] VI
+    [ 1] RUP
+    [ 2] YUL
+    [ 3] SCO
+    [ 4] PHY
+    [ 5] RAT
+    [ 6] QUE
+    [ 7] CHA
+    [ 8] SY
+    [ 9] POC
+    [10] E
+    [11] EX
+    [12] DE
+    [13] LAP
+    [14] EL
+    [15] MID
+    [16] SO
+    [17] SI
+    [18] LE
+    [19] NE
+    [20] SIC
+    [21] THA
+    [22] ENE
+    [23] INS
+    [24] OO
+    [25] ES
+    [26] GIN
+    [27] CEP
+    [28] LTE
+    [29] PE
+    [30] DER
+    [31] S
+    [32] DON
+    [33] S
+    [34] ING
+    [35] ST
+    [36] Y
+    [37] ED
+    [38] BERY
+    [39] SY
+    [40] LUME
+    [41] TON
+    [42] FAR
+    [43] HAM
+    [44] KAL
+    [45] APE
+    [46] BEE
+    [47] INK
+
+## PLANET NAME GENERATION
+  prefix: STATION
+  consonants: Z
+  vowels1: QUP
+  vowels2: TRSLM
+  vowels3: B
+  suffix1: GRL
+  suffix2: S
+
+## HOLAMAP SYSTEM
+  Version: HOLAMAP SYSTEM V5
+  Coordinates: CO-OD 150N-150W
+  Location types: PLANET, MOON, SPACE-STATION
+  Surface types: LAND-MISS, LAND-LEV0, LAND
+
+## GAME MESSAGES
+  "DESTROY THE GENERATORS."
+  "TOP-LEFT, BOTTOM-LEFT, TOP-RIGHT, BOTTOM-RIGHT."
+  "PUT PLANET-PROBE IN HOLAMAP."
+  "BASE HAS BEEN DESTROYED!"
+  "TRILL HAS BEEN RESCUED!"
+  "DROID'S HAVE FAILED!"
+  "TRILL HAS BEEN LEFT TO DIE."
+  "DROID'S ARE TO BE WASTED"
+  "TRILL HAS BE KILLED!"
+  "DROIDS BRUTALLY OUTWITTED"
+  "PRESS MOUSE TO CONTINUE"
+  "LET BATTLE COMMENCE"
+  "CAPTIVE MISSION 0001"
+  "LEGEND OF TRILL:"
+  "A SMALL PARTY OF FOUR"
+  "SWAN NOT YET IN ORBIT"
+  "LANDER NOT IN DOCK"
+  "LANDING SUCCESSFUL"
+  "DOCKING COMPLETE"
+  "LANDER LAUNCHED"
+  "FLIGHT PATH SET"
+  "ARRIVED AT DESTINATION"
+  "PROBE REVEALS A BASE"
+  "PROBE LAUNCHED"
+
+## SHOP SYSTEM
+  "WELCOME STRANGER TO MY"
+  "'HUMBLE SHOP"
+  "HOW MAY I BE OF ASSISTANCE"
+  "CALL AGAIN LATER"
+  "THIS WILL COST YOU"
+  "FOR NEXT LEVEL IN"
+  "YOU DO NOT HAVE ENOUGH!"
+  "ACCEPT"
+  "I DON'T STOCK THIS OBJECT"
+  "MODEL OF"
+  "PLEASE REMOVE"
+  "GRADE OF THE"
+  "REPAIR"
+
+## SAVE/LOAD SYSTEM
+  Save filename: CAPTIVE1.SAV
+  "RESTORE SAVED GAME"
+  "RE-LOAD"
+  "FILE EXISTS"
+  "SHALL I REPLACE FILE?"
+  "LOADING SAVED GAME"
+  "FILE ERROR"
+  "FILE NOT FOUND"
+  "LOADING"
+  "SAVING"
+  "FORMATTING"
+  "LOADING RESTRAINT"
+
+## GRAPHICS FILES
+  GAMESCRN.PL5: Main game screen / HUD background (320x200)
+  ROOFS.PL5: Ceiling/floor textures
+  WALLA.PL5: Wall texture set A
+  WALLB-WALLE.PL5: Wall texture sets B-E (procedurally selected)
+  DOORS1.PL5: Door textures
+  DOORS2.PL5: Alternative door textures
+  SHOP1.PL5: Shop background
+  SHOP2.PL5: Alternative shop background
+  ICONS.PL5: UI icons (inventory, HUD elements)
+  ALIEN1-ALIEN6.PL5: Creature/alien sprites (6 sets)
+  OBJECTS.PL5: Item/object sprites
+  ANIM1-ANIM3.PL5: Animation frames
+  KEYBOARD.PL5: On-screen keyboard graphic
+
+## ANIMATION FILES
+  TEST0-TEST15.ANM: 16 intro/cutscene animations
+
+## KEYBOARD LAYOUT (on-screen)
+  Row 1: QWERTYUIOP
+  Row 2: ASDFGHJKL
+  Row 3: ZXCVBNM=./
+
+## EXECUTABLE STRUCTURE
+  File size (compressed): 73,379 bytes
+  File size (unpacked): 144,556 bytes
+  Code+data: 143,532 bytes
+  Entry point: CS:IP = 0000:0000
+  Stack: SS:SP = 230B:0200
+  DOS API calls: 28 (file I/O, memory management)
+  Compression: LZEXE v0.91
+  Executables: CAPPO.EXE (main), GM.EXE (sound), INTRO.EXE (intro), FILEPLAY.EXE (utility)
