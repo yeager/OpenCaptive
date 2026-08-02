@@ -205,7 +205,9 @@ add_test(NAME adlib_data COMMAND test_adlib_data)
 
 add_executable(test_opl2_emu tests/test_opl2_emu.c src/audio/opl2_emu.c)
 target_include_directories(test_opl2_emu PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(test_opl2_emu PRIVATE m)
+if(UNIX)
+    target_link_libraries(test_opl2_emu PRIVATE m)
+endif()
 add_test(NAME opl2_emu COMMAND test_opl2_emu)
 
 add_executable(test_creature_stats tests/test_creature_stats.c
@@ -216,7 +218,9 @@ add_test(NAME creature_stats COMMAND test_creature_stats)
 add_executable(test_adlib_sfx tests/test_adlib_sfx.c
     src/audio/adlib_sfx.c src/audio/opl2_emu.c src/audio/adlib_data.c)
 target_include_directories(test_adlib_sfx PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(test_adlib_sfx PRIVATE m)
+if(UNIX)
+    target_link_libraries(test_adlib_sfx PRIVATE m)
+endif()
 add_test(NAME adlib_sfx COMMAND test_adlib_sfx)
 
 # The tests use assert() for both execution and verification.  Release builds
