@@ -6,7 +6,7 @@
 - [ ] Recover DOS descriptor table from 1MB memory dump (SHA-256 9003c4...)
 - [ ] Replace approximate viewport projection with exact panel coordinates
 - [ ] Verify panel compositing order against DOS VGA captures
-- [ ] Add creature sprite rendering (ALIEN1-6.PL5)
+- [x] Add creature sprite rendering (ALIEN1-6.PL5)
 - [ ] Add item/object rendering in viewport (OBJECTS.PL5)
 
 ### Combat

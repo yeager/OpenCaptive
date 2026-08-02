@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (creature sprites)
+
+### Creature sprite rendering
+- PL5 sprite sheet frame extractor (32×40 grid, 10×5 = 50 frames)
+- Scaled blitting with transparency (palette index 0 = transparent)
+- Frame validity detection (empty frames marked invalid)
+- Test suite: synthetic load, blit, scaled blit, null safety
+
 ## 2026-08-02 (holamap)
 
 ### Holamap display implementation
