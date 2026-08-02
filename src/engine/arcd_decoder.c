@@ -1,0 +1,228 @@
+#include "arcd_decoder.h"
+#include <string.h>
+
+typedef struct {
+    const uint8_t *src;
+    size_t src_len;
+    size_t pos;
+    uint32_t d6;
+    uint8_t d7;
+    uint8_t *dst;
+    size_t dst_pos;
+    size_t dst_len;
+    uint8_t tables[384];
+} ArcD;
+
+static uint8_t read_src_byte(ArcD *s) {
+    if (s->pos >= s->src_len) return 0;
+    return s->src[s->pos++];
+}
+
+static uint8_t refill(ArcD *s, uint8_t d1) {
+    s->d7 += d1;
+    s->d6 >>= s->d7;
+    d1 -= s->d7;
+    s->d7 = 16 - d1;
+    uint16_t lo = s->d6 & 0xFFFF;
+    uint16_t hi = (s->d6 >> 16) & 0xFFFF;
+    s->d6 = ((uint32_t)lo << 16) | hi;
+    uint8_t b0 = read_src_byte(s);
+    uint8_t b1 = read_src_byte(s);
+    s->d6 = (s->d6 & 0xFFFF0000u) | ((uint32_t)b0 << 8) | b1;
+    lo = s->d6 & 0xFFFF;
+    hi = (s->d6 >> 16) & 0xFFFF;
+    s->d6 = ((uint32_t)lo << 16) | hi;
+    return d1;
+}
+
+static uint16_t get_bits(ArcD *s, uint16_t mask, uint8_t count) {
+    uint16_t val = (uint16_t)(s->d6 & mask);
+    s->d7 -= count;
+    if (s->d7 & 0x80) {
+        count = refill(s, count);
+    }
+    s->d6 >>= count;
+    return val;
+}
+
+static void build_table(ArcD *s, uint8_t *tbl, uint16_t sc) {
+    if (sc == 0) return;
+    memset(tbl, 0, 128);
+    int n = sc - 1;
+
+    uint16_t d3 = 0;
+    uint8_t syms[32];
+    for (int i = 0; i <= n; i++) {
+        uint8_t sv = (uint8_t)get_bits(s, 0xF, 4);
+        d3 |= (1u << sv);
+        syms[i] = sv;
+    }
+
+    if (syms[n] == 0) {
+        tbl[64] = 0;
+        tbl[65] = (uint8_t)n;
+        uint16_t em = (n >= 2) ? ((1u << (n - 1)) - 1) : 0;
+        tbl[66] = (em >> 8) & 0xFF;
+        tbl[67] = em & 0xFF;
+        return;
+    }
+
+    int entry = 0;
+    uint16_t d4_hi = 2, d4_lo = 0;
+
+    for (int bl = 1; bl < 16; bl++) {
+        if (!(d3 & (1u << bl))) {
+            uint32_t d4_full = ((uint32_t)d4_hi << 16) | d4_lo;
+            d4_full <<= 1;
+            d4_hi = (d4_full >> 16) & 0xFFFF;
+            d4_lo = d4_full & 0xFFFF;
+            continue;
+        }
+        for (int si = 0; si <= n; si++) {
+            if (syms[si] != bl) continue;
+            uint16_t mask = d4_hi - 1;
+            uint16_t rev = 0;
+            uint16_t tmp = d4_lo;
+            for (int b = 0; b < bl; b++) {
+                rev = (rev << 1) | (tmp & 1);
+                tmp >>= 1;
+            }
+            tbl[entry * 4 + 0] = (mask >> 8) & 0xFF;
+            tbl[entry * 4 + 1] = mask & 0xFF;
+            tbl[entry * 4 + 2] = (rev >> 8) & 0xFF;
+            tbl[entry * 4 + 3] = rev & 0xFF;
+            tbl[64 + entry * 4 + 0] = (uint8_t)bl;
+            tbl[64 + entry * 4 + 1] = (uint8_t)si;
+            uint16_t em = (si >= 2) ? ((1u << (si - 1)) - 1) : 0;
+            tbl[64 + entry * 4 + 2] = (em >> 8) & 0xFF;
+            tbl[64 + entry * 4 + 3] = em & 0xFF;
+            entry++;
+            d4_lo++;
+        }
+        uint32_t d4_full = ((uint32_t)d4_hi << 16) | d4_lo;
+        d4_full <<= 1;
+        d4_hi = (d4_full >> 16) & 0xFFFF;
+        d4_lo = d4_full & 0xFFFF;
+    }
+}
+
+static int16_t huff_decode(ArcD *s, const uint8_t *tbl) {
+    for (int idx = 0; idx < 16; idx++) {
+        uint16_t mask = ((uint16_t)tbl[idx * 4] << 8) | tbl[idx * 4 + 1];
+        uint16_t match = ((uint16_t)tbl[idx * 4 + 2] << 8) | tbl[idx * 4 + 3];
+        if ((uint16_t)(s->d6 & mask) != match) continue;
+
+        uint8_t shift = tbl[64 + idx * 4];
+        uint8_t extra = tbl[64 + idx * 4 + 1];
+        uint16_t extra_mask = ((uint16_t)tbl[64 + idx * 4 + 2] << 8) | tbl[64 + idx * 4 + 3];
+
+        s->d7 -= shift;
+        if (s->d7 & 0x80) shift = refill(s, shift);
+        s->d6 >>= shift;
+
+        if (extra < 2) return (int16_t)extra;
+
+        uint8_t eb = extra - 1;
+        uint16_t d0 = (uint16_t)(s->d6 & extra_mask);
+        s->d7 -= eb;
+        if (s->d7 & 0x80) eb = refill(s, eb);
+        s->d6 >>= eb;
+        d0 |= (1u << (extra - 1));
+        return (int16_t)d0;
+    }
+    return -1;
+}
+
+size_t arcd_decompressed_size(const uint8_t *src, size_t src_size) {
+    if (src_size < 12) return 0;
+    uint32_t magic = ((uint32_t)src[0] << 24) | ((uint32_t)src[1] << 16) |
+                     ((uint32_t)src[2] << 8) | src[3];
+    if (magic != ARCD_MAGIC) return 0;
+    return ((uint32_t)src[4] << 24) | ((uint32_t)src[5] << 16) |
+           ((uint32_t)src[6] << 8) | src[7];
+}
+
+int arcd_decode(const uint8_t *src, size_t src_size,
+                uint8_t *dst, size_t dst_size) {
+    if (src_size < 12) return -1;
+
+    uint32_t magic = ((uint32_t)src[0] << 24) | ((uint32_t)src[1] << 16) |
+                     ((uint32_t)src[2] << 8) | src[3];
+    if (magic != ARCD_MAGIC) return -1;
+
+    size_t decomp_size = arcd_decompressed_size(src, src_size);
+    if (decomp_size == 0 || decomp_size > dst_size) return -1;
+
+    ArcD s;
+    s.src = src + 12;
+    s.src_len = src_size - 12;
+    s.pos = 0;
+    s.dst = dst;
+    s.dst_pos = 0;
+    s.dst_len = decomp_size;
+
+    s.d6 = ((uint32_t)read_src_byte(&s) << 8) | read_src_byte(&s);
+    s.d7 = 0;
+
+    while (s.dst_pos < decomp_size) {
+        uint16_t bc = get_bits(&s, 0xFFFF, 16);
+        if (bc == 0) break;
+        bc--;
+
+        uint16_t ot = get_bits(&s, 0x1F, 5);
+
+        if (ot == 31) {
+            for (uint16_t i = 0; i <= bc; i++) {
+                if (s.dst_pos < decomp_size)
+                    s.dst[s.dst_pos++] = read_src_byte(&s);
+            }
+            continue;
+        }
+
+        build_table(&s, s.tables + 256, ot);
+        uint16_t off_sc = get_bits(&s, 0x1F, 5);
+        build_table(&s, s.tables + 0, off_sc);
+        uint16_t len_sc = get_bits(&s, 0x1F, 5);
+        build_table(&s, s.tables + 128, len_sc);
+
+        int16_t lc = huff_decode(&s, s.tables + 256);
+        if (lc < 0) return -1;
+        lc--;
+        for (int i = 0; i <= lc; i++) {
+            if (s.dst_pos < decomp_size)
+                s.dst[s.dst_pos++] = read_src_byte(&s);
+        }
+
+        for (int bi = 0; bi < (int)bc; bi++) {
+            int16_t off = huff_decode(&s, s.tables + 0);
+            if (off < 0) return -1;
+            int16_t neg_off = -off;
+            size_t ref = (size_t)((int64_t)s.dst_pos + neg_off - 1);
+
+            if (neg_off <= -512) {
+                if (s.dst_pos < decomp_size)
+                    s.dst[s.dst_pos++] = s.dst[ref++];
+            }
+
+            int16_t ml = huff_decode(&s, s.tables + 128);
+            if (ml < 0) return -1;
+
+            if (s.dst_pos < decomp_size)
+                s.dst[s.dst_pos++] = s.dst[ref++];
+            for (int j = 0; j <= ml; j++) {
+                if (s.dst_pos < decomp_size)
+                    s.dst[s.dst_pos++] = s.dst[ref++];
+            }
+
+            lc = huff_decode(&s, s.tables + 256);
+            if (lc < 0) return -1;
+            lc--;
+            for (int i = 0; i <= lc; i++) {
+                if (s.dst_pos < decomp_size)
+                    s.dst[s.dst_pos++] = read_src_byte(&s);
+            }
+        }
+    }
+
+    return (int)s.dst_pos;
+}

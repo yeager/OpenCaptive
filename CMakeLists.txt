@@ -27,6 +27,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/pl5_decoder.c
     src/data/anm_decoder.c
     src/data/rnc_decoder.c
+    src/engine/arcd_decoder.c
     src/data/amiga_ofs.c
     src/data/amiga_hunk.c
     src/data/amiga_planar.c
@@ -98,6 +99,13 @@ add_executable(test_anm_decoder
 )
 target_include_directories(test_anm_decoder PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME anm_decoder COMMAND test_anm_decoder)
+
+add_executable(test_arcd_decoder
+    tests/test_arcd_decoder.c
+    src/engine/arcd_decoder.c
+)
+target_include_directories(test_arcd_decoder PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME arcd_decoder COMMAND test_arcd_decoder)
 
 add_executable(test_map_gen
     tests/test_map_gen.c

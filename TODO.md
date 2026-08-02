@@ -77,9 +77,10 @@
 - [ ] Implement remaining subroutines (0x7D2, 0x97A, 0xA80, 0xECC, 0x1352, 0x1766)
 
 ### PlotGen
-- [ ] Disassemble PlotGen executable (12,388 bytes code)
-- [ ] Recover building interior format
-- [ ] Recover plot progression state machine
+- [x] Disassemble ArcD decompressor from PlotGen (offsets 0x302-0x520)
+- [x] Implement ArcD Huffman+LZSS decoder with full parity (arcd_decoder.c)
+- [x] Verify decompression against all three text files (PGE.txt, DTE.txt, CTE.txt)
+- [ ] Disassemble PlotGen main algorithm (building interiors, plot state machine)
 - [ ] Decode text table opcodes and dialogue branching
 
 ### 3D rendering

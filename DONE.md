@@ -1,5 +1,24 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (ArcD compression decoder — Liberation PlotGen)
+
+### ArcD Huffman+LZSS decompressor with full parity
+- Disassembled PlotGen 68k decompressor at offsets 0x302-0x520 (12,388 byte executable from Liberation Disk 3)
+- Built minimal 68k emulator to run the original binary and verify bit-exact output
+- Format: 4-byte magic "ArcD" (0x41726344) + 4-byte decompressed size (BE32) + 4-byte compressed size (BE32)
+- Bit buffer model: 32-bit register (d6), 8-bit byte counter (d7), bits consumed LSB-first from 16-bit big-endian words
+- Three Huffman tables per block: lit_count (a3+256), match_offset (a3+0), match_length (a3+128)
+- Each table: 128 bytes = 16 × (mask:16, match:16) + 16 × (shift:8, symbol:8, extra_mask:16)
+- Canonical Huffman codes with bit-reversed match values and variable-length integer encoding
+- Symbols 0-1 are literal values; symbol k≥2 reads k-1 extra bits from the stream
+- Table reuse: when symbol count is 0, the previous block's table persists (not zeroed)
+- Back-reference: offset + optional extra byte (offset ≥ 512) + mandatory byte + match_length+1 bytes
+- Block structure: 16-bit block_count, then lit_count-1 main loop iterations with interleaved literal runs
+- Verified bit-exact decompression against all three Liberation text files:
+  - PGE.txt: 7,085 → 16,304 bytes (2 blocks)
+  - DTE.txt: 5,323 → 14,136 bytes (2 blocks)
+  - CTE.txt: 8,230 → 17,809 bytes (2 blocks)
+
 ## 2026-08-02 (Liberation CityGen grid disassembly)
 
 ### 64×64 city grid generation from CityGen 1.12 Amiga HUNK executable

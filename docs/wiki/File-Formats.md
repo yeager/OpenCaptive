@@ -84,6 +84,68 @@ The `iso9660_reader` module validates directory records, extents and file sizes 
 
 FAT12 disk image. The BIOS parameter block begins at offset 11. Used for the Atari ST release of Captive.
 
+## ArcD — Liberation Huffman+LZSS compression
+
+Used by the PlotGen executable on Liberation Disk 3 to compress text data files (PGE.txt, DTE.txt, CTE.txt). The decompressor lives at offsets 0x302-0x520 in the PlotGen 68k binary.
+
+### Header (12 bytes)
+
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | 4 | Magic: `ArcD` (0x41726344) |
+| 4 | 4 | Decompressed size (big-endian) |
+| 8 | 4 | Compressed size (big-endian) |
+
+### Bit buffer
+
+- 32-bit register (d6), 8-bit available counter (d7)
+- Bits consumed LSB-first from 16-bit big-endian words loaded from the source
+- Initial state: load first 2 bytes into d6, d7 = 0
+- Refill: when d7 goes negative (unsigned > 127), shift out remaining old bits, swap halves, load 2 new bytes into low word, swap back
+
+### Block structure
+
+Each block begins with a 16-bit block_count read from the bit stream. If block_count == 0, decompression is done. Otherwise:
+
+1. Read 5-bit ot value. If ot == 31, the next block_count bytes are raw literals (not Huffman-coded).
+2. Build three Huffman tables from the bit stream:
+   - **lit_count** table (at a3+256): ot symbols
+   - **offset** table (at a3+0): own 5-bit symbol count
+   - **length** table (at a3+128): own 5-bit symbol count
+3. Decode initial literal run from lit_count table
+4. Repeat block_count - 1 times:
+   a. Decode offset from offset table. Negate to get back-reference distance.
+   b. If offset >= 512, copy 1 extra byte from back-reference.
+   c. Decode match length from length table.
+   d. Copy 1 mandatory byte + (match_length + 1) bytes from back-reference.
+   e. Decode literal count from lit_count table. Copy (literal_count - 1) raw bytes.
+
+### Huffman table format (128 bytes per table)
+
+Each table is stored as a flat array:
+- Bytes 0-63: up to 16 entries of (mask:16, match:16)
+- Bytes 64-127: up to 16 entries of (shift:8, symbol:8, extra_mask:16)
+
+Canonical Huffman codes with bit-reversed match values. The code counter starts at 0 for each bit length and doubles between lengths (like canonical Huffman). Match values are the bit-reversal of the code counter to the code length.
+
+### Symbol decoding
+
+The decoded symbol index determines the output value:
+- Symbol 0 or 1: value = symbol (literal 0 or 1)
+- Symbol k >= 2: read (k-1) extra bits from stream, set bit (k-1), giving values in range [2^(k-1), 2^k - 1]
+
+### Table reuse
+
+When a table's symbol count is 0, the previous block's table is reused (the 68k code does not zero or rebuild the table).
+
+### Known compressed files
+
+| File | Compressed | Decompressed | Blocks |
+| --- | --- | --- | --- |
+| PGE.txt | 7,085 | 16,304 | 2 |
+| DTE.txt | 5,323 | 14,136 | 2 |
+| CTE.txt | 8,230 | 17,809 | 2 |
+
 ## x3g — Liberation 3D vector graphics
 
 Liberation uses true 3D polygon rendering (not raycasting). Vector data is stored in `.x3g` files:
