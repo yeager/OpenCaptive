@@ -41,16 +41,17 @@ typedef struct {
     uint8_t  id;
     ItemCategory category;
     char     name[24];
+    uint8_t  type_code;   // original DOS prefix byte (0x00/0x08/0x21/0x27/0x30/0x60)
     int16_t  damage_min;
     int16_t  damage_max;
     int16_t  defense;
     uint8_t  range;
-    uint8_t  tier;        // 0-7 quality tier
+    uint8_t  tier;
     uint16_t ammo;
     uint16_t ammo_max;
     uint16_t price;
     float    weight;
-    uint8_t  skill_req;   // skill points needed
+    uint8_t  skill_req;
 } Item;
 
 #define MAX_ITEM_DEFS 128
