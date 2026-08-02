@@ -1,5 +1,17 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (AdLib MIDI playback)
+
+### OPL2-based MIDI player
+- Rewrote MIDI player from sine/square synthesis to real OPL2 FM synthesis
+- Uses Captive's 26 instrument patches from CAP_A.BIN for all MIDI programs
+- 9-voice OPL2 polyphony with oldest-voice stealing
+- MIDI program change maps to Captive patch index
+- Tempo tracking from MIDI meta events, tick-accurate rendering
+- Standard MIDI format 0 and 1 parsing (64 .MID files in game data)
+- Loop mode for background music
+- Test suite: load, parse, render, stop, loop
+
 ## 2026-08-02 (XP and level-up formulas)
 
 ### XP/level system from CAPPO.EXE disassembly

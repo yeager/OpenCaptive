@@ -212,6 +212,14 @@ if(UNIX)
 endif()
 add_test(NAME opl2_emu COMMAND test_opl2_emu)
 
+add_executable(test_midi_player tests/test_midi_player.c
+    src/audio/midi_player.c src/audio/opl2_emu.c src/audio/adlib_data.c)
+target_include_directories(test_midi_player PRIVATE ${CMAKE_SOURCE_DIR}/include)
+if(UNIX)
+    target_link_libraries(test_midi_player PRIVATE m)
+endif()
+add_test(NAME midi_player COMMAND test_midi_player)
+
 add_executable(test_creature_stats tests/test_creature_stats.c
     src/engine/creature_stats.c)
 target_include_directories(test_creature_stats PRIVATE ${CMAKE_SOURCE_DIR}/include)

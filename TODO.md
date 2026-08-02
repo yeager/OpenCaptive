@@ -41,7 +41,7 @@
 - [x] Wire AdLib SFX player into game runtime
 - [x] Fully reverse-engineer SFX bytecode interpreter from CAP_A.BIN driver code
 - [x] Map SFX sequence indices to game events (disassembled INT 61h call sites)
-- [ ] Implement AdLib MIDI playback (OPL2 instrument bank for MIDI)
+- [x] Implement AdLib MIDI playback (OPL2 instrument bank for MIDI)
 
 ### Save/load
 - [ ] Verify save format against original CAPTIVE1.SAV binary layout

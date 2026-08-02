@@ -1,16 +1,16 @@
 #ifndef MIDI_PLAYER_H
 #define MIDI_PLAYER_H
 
+#include "opl2_emu.h"
+#include "adlib_data.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 
-#define MIDI_MAX_TRACKS 16
+#define MIDI_MAX_TRACKS   16
 #define MIDI_MAX_CHANNELS 16
-#define MIDI_MAX_NOTES 128
-#define MIDI_SAMPLE_RATE 22050
+#define OPL2_VOICE_COUNT  9
 
-// MIDI event types
 typedef enum {
     MIDI_NOTE_OFF     = 0x80,
     MIDI_NOTE_ON      = 0x90,
@@ -33,40 +33,32 @@ typedef struct {
 } MIDITrack;
 
 typedef struct {
-    float    phase;
-    float    freq;
-    float    velocity;
-    float    env;       // envelope (0-1)
-    float    env_rate;  // release rate
-    uint8_t  note;
-    bool     active;
-    bool     releasing;
-} MIDIVoice;
-
-typedef struct {
     uint8_t  program;
     uint8_t  volume;
-    uint8_t  pan;
-    uint16_t pitch_bend;
 } MIDIChannelState;
 
 typedef struct {
-    MIDITrack   tracks[MIDI_MAX_TRACKS];
-    int         num_tracks;
-    uint16_t    ticks_per_beat;
-    uint32_t    tempo;           // microseconds per beat
-    uint32_t    current_tick;
-    float       tick_accum;
-    float       ticks_per_sample;
+    int     midi_channel;
+    uint8_t note;
+    bool    active;
+    uint32_t age;
+} OPL2VoiceAlloc;
 
+typedef struct {
+    OPL2          opl;
+    MIDITrack     tracks[MIDI_MAX_TRACKS];
+    int           num_tracks;
     MIDIChannelState channels[MIDI_MAX_CHANNELS];
-    MIDIVoice   voices[32];      // polyphony limit
-
-    bool        playing;
-    bool        looping;
-    float       volume;
-
-    // Original data for restart
+    OPL2VoiceAlloc voices[OPL2_VOICE_COUNT];
+    uint16_t      ticks_per_beat;
+    uint32_t      tempo;
+    uint32_t      current_tick;
+    int           samples_per_tick;
+    int           tick_remainder;
+    int           tick_frac;
+    int           sample_rate;
+    bool          playing;
+    bool          looping;
     const uint8_t *file_data;
     size_t         file_size;
 } MIDIPlayer;
