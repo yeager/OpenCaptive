@@ -122,3 +122,45 @@ static const char *const graphics_files[] = {
 };
 const char *const *captive_graphics_files_ptr = graphics_files;
 const int captive_graphics_file_count = sizeof(graphics_files) / sizeof(graphics_files[0]);
+
+/* Planet name generation tables from the DOS executable.
+ * The original builds names like "STATION ZQTR" from these character sets. */
+static const char planet_consonants[] = "Z";
+static const char planet_vowels1[]    = "QUP";
+static const char planet_vowels2[]    = "TRSLM";
+static const char planet_vowels3[]    = "B";
+static const char planet_suffix1[]    = "GRL";
+static const char planet_suffix2[]    = "S";
+
+void captive_generate_planet_name(uint32_t *prng_state, char *buf, int bufsize) {
+    if (!buf || bufsize < 1) return;
+    const char *prefix = "STATION ";
+    int pos = 0;
+    for (int i = 0; prefix[i] && pos < bufsize - 1; i++)
+        buf[pos++] = prefix[i];
+
+    int suffix_len = 3 + (captive_prng(prng_state) % 3);
+    for (int i = 0; i < suffix_len && pos < bufsize - 1; i++) {
+        const char *set;
+        int set_len;
+        switch (i % 4) {
+        case 0: set = planet_consonants; set_len = (int)sizeof(planet_consonants) - 1; break;
+        case 1: set = planet_vowels1;    set_len = (int)sizeof(planet_vowels1) - 1;    break;
+        case 2: set = planet_vowels2;    set_len = (int)sizeof(planet_vowels2) - 1;    break;
+        default: set = planet_vowels3;   set_len = (int)sizeof(planet_vowels3) - 1;    break;
+        }
+        if (set_len > 0)
+            buf[pos++] = set[captive_prng(prng_state) % set_len];
+    }
+    if (captive_prng(prng_state) % 2 && pos < bufsize - 1) {
+        int s1_len = (int)sizeof(planet_suffix1) - 1;
+        if (s1_len > 0)
+            buf[pos++] = planet_suffix1[captive_prng(prng_state) % s1_len];
+    }
+    if (captive_prng(prng_state) % 3 == 0 && pos < bufsize - 1) {
+        int s2_len = (int)sizeof(planet_suffix2) - 1;
+        if (s2_len > 0)
+            buf[pos++] = planet_suffix2[captive_prng(prng_state) % s2_len];
+    }
+    buf[pos] = '\0';
+}

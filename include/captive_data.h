@@ -54,4 +54,8 @@ extern const char *const captive_music_categories[CAPTIVE_MUSIC_CATEGORY_COUNT];
 extern const char *const *captive_graphics_files_ptr;
 extern const int captive_graphics_file_count;
 
+/* Planet/station name generation from the DOS executable.
+ * Format: "STATION " + generated suffix from consonant/vowel tables. */
+void captive_generate_planet_name(uint32_t *prng_state, char *buf, int bufsize);
+
 #endif
