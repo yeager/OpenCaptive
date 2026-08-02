@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (Liberation save system — v1.1.23)
+
+### LSAV binary save/load format
+- Big-endian serialization: seeds, difficulty, mission, gold, tick, city position, facing
+- Droid state: 4 droids × (name, HP, energy, level, 8 skills, 8 equipment slots)
+- 256-mission completion bitmap (32 bytes)
+- Generator progress (destroyed/total)
+- Magic/version validation on load
+- `lib_save_from_state()` convenience builder from live CityNavState
+
 ## 2026-08-02 (ArcD compression decoder — Liberation PlotGen)
 
 ### ArcD Huffman+LZSS decompressor with full parity

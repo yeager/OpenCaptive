@@ -109,4 +109,4 @@
 - [x] Implement city navigation (grid-based movement, collision, smooth interpolation, wall rendering)
 - [ ] Implement shop/bar/business interaction
 - [ ] Implement NPC dialogue system
-- [ ] Implement save system (Lib-Saves directory)
+- [x] Implement save system (LSAV binary format, roundtrip, mission bitmap)

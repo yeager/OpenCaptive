@@ -1,5 +1,16 @@
 # OpenCaptive Release Notes
 
+## v1.1.23 (2026-08-02)
+
+### Liberation: Save/load system
+- LSAV binary format with big-endian serialization
+- Full game state roundtrip: seeds, difficulty, mission, gold, tick, position, facing
+- Up to 4 droids with name, HP, energy, level, 8 skills, 8 equipment slots
+- 256-mission completion bitmap
+- Generator progress tracking (destroyed/total)
+- `lib_save_from_state()` convenience builder from live game state
+- Magic/version validation on load, rejects bad files
+
 ## v1.1.22 (2026-08-02)
 
 ### Liberation: City navigation system

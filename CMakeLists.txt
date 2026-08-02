@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.22 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.23 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -49,6 +49,9 @@ set(OPENCAPTIVE_SOURCES
     src/data/liberation_fnt.c
     src/data/liberation_img.c
     src/game/liberation_city_nav.c
+    src/game/liberation_dialogue.c
+    src/game/liberation_shop.c
+    src/game/liberation_save.c
     src/render/liberation_viewport_3d.c
     src/data/liberation_vgm.c
     src/data/liberation_x3g.c
@@ -218,6 +221,18 @@ add_executable(test_liberation_city_nav tests/test_liberation_city_nav.c
 target_include_directories(test_liberation_city_nav PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_liberation_city_nav m)
 add_test(NAME liberation_city_nav COMMAND test_liberation_city_nav)
+
+add_executable(test_liberation_dialogue_shop tests/test_liberation_dialogue_shop.c
+    src/game/liberation_dialogue.c src/game/liberation_shop.c)
+target_include_directories(test_liberation_dialogue_shop PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation_dialogue_shop COMMAND test_liberation_dialogue_shop)
+
+add_executable(test_liberation_save tests/test_liberation_save.c
+    src/game/liberation_save.c src/game/liberation_city_nav.c
+    src/render/liberation_viewport_3d.c)
+target_include_directories(test_liberation_save PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_liberation_save m)
+add_test(NAME liberation_save COMMAND test_liberation_save)
 
 add_executable(test_liberation_x3g tests/test_liberation_x3g.c
     src/data/liberation_x3g.c)
