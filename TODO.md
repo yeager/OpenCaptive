@@ -48,7 +48,7 @@
 
 ### Planet/Holamap
 - [x] Implement planet name generation from disassembled algorithm
-- [ ] Implement holamap display using real coordinate system
+- [x] Implement holamap display using real coordinate system
 
 ## Liberation parity
 

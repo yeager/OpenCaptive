@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (holamap)
+
+### Holamap display implementation
+- 256×128 planet surface map with 5 terrain types (water to mountain)
+- Base placement using mission PRNG with terrain constraints
+- Reveal mechanic for PLANET PROBE item usage
+- Crosshair cursor and base markers (red=active, grey=destroyed)
+- STATE_HOLAMAP game mode added
+- Test suite: init, determinism, reveal, render, surface variety
+
 ## 2026-08-02 (damage formula)
 
 ### Combat damage formula implementation

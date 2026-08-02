@@ -53,6 +53,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/ctv_decoder.c
     src/render/renderer.c
     src/render/hud.c
+    src/render/holamap.c
     src/render/captive_compositor.c
     src/render/frame_compare.c
     src/render/viewport.c
@@ -180,6 +181,11 @@ add_executable(test_save_load tests/test_save_load.c
 target_include_directories(test_save_load PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME save_load COMMAND test_save_load)
 
+add_executable(test_holamap tests/test_holamap.c
+    src/render/holamap.c src/engine/captive_data.c)
+target_include_directories(test_holamap PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME holamap COMMAND test_holamap)
+
 add_executable(test_adlib_data tests/test_adlib_data.c src/audio/adlib_data.c)
 target_include_directories(test_adlib_data PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME adlib_data COMMAND test_adlib_data)
@@ -207,7 +213,7 @@ endfunction()
 
 foreach(test_target IN ITEMS
         test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_captive_compositor test_dos_vga_reference test_captive_dos_descriptor test_frame_compare test_data_vfs
-        test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_amiga_planar test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load test_ctv_decoder test_adlib_data test_opl2_emu test_adlib_sfx)
+        test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_amiga_planar test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load test_ctv_decoder test_holamap test_adlib_data test_opl2_emu test_adlib_sfx)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
 
