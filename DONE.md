@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (item database)
+
+### Item type codes from DOS executable
+- Decoded type_code prefix bytes for all items from unpacked CAPPO.EXE (0x1a090)
+- Record format: 00 type_code [grade] NAME 0x20
+- Nine type codes: 0x00=misc, 0x08=consumable, 0x10=ammo, 0x20=chip,
+  0x21=equipment, 0x27=body part, 0x30=ranged, 0x60=explosive, 0x65=body variant
+- Fixed item categories (ARM, GOLD, BATTERY, EXPLOSIVES, automatics, utilities)
+- Discovered weapon variant/upgrade tier format at 0x1a220 with ASCII prices
+- Documented item record format in wiki
+
 ## 2026-08-02 (continued)
 
 ### AdLib sound effect data recovery

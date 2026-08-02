@@ -22,7 +22,9 @@
 - [ ] Verify exterior generation stage
 
 ### Items
-- [ ] Decode hex prefix bytes in item table (flags, class, stat modifiers)
+- [x] Decode type code prefix bytes in item table (0x00/0x08/0x10/0x20/0x21/0x27/0x30/0x60/0x65)
+- [ ] Recover item stat computation formulas (procedural from type_code + grade)
+- [ ] Decode weapon variant/upgrade tier price format (0x1a220+ region)
 - [ ] Recover item pricing formula
 - [ ] Recover weapon damage/range/ammo stats from binary
 
@@ -32,8 +34,10 @@
 - [x] Extract OPL2 frequency table from CAP_A.BIN
 - [x] Map all 63 MIDI files to 14 music categories with SHA-256
 - [x] Implement variant selection with game PRNG
-- [ ] Implement OPL2 emulator to render SFX sequences to PCM
-- [ ] Reverse-engineer SFX bytecode interpreter from CAP_A.BIN driver code
+- [x] Implement OPL2 emulator (YM3812 FM synthesis, 9 channels, envelopes)
+- [x] Implement SFX bytecode interpreter (4 simultaneous voices, 70 Hz tick)
+- [x] Wire AdLib SFX player into game runtime
+- [ ] Fully reverse-engineer SFX bytecode interpreter from CAP_A.BIN driver code
 - [ ] Map SFX sequence indices to game events (combat hit, door, step, etc.)
 - [ ] Implement AdLib MIDI playback (OPL2 instrument bank for MIDI)
 
