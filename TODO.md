@@ -3,8 +3,8 @@
 ## Captive parity
 
 ### Viewport
-- [ ] Recover DOS descriptor table from 1MB memory dump (SHA-256 9003c4...)
-- [ ] Replace approximate viewport projection with exact panel coordinates
+- [x] Viewport renders directly from 5-byte cell bitmasks (no separate descriptor table)
+- [ ] Map CA cell bit positions to exact 3D wall segments in viewport renderer
 - [ ] Verify panel compositing order against DOS VGA captures
 - [x] Add creature sprite rendering (ALIEN1-6.PL5)
 - [x] Add item/object rendering in viewport (OBJECTS.PL5)

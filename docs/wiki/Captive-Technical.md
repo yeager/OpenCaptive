@@ -690,6 +690,25 @@ After map generation loop, generators are placed:
 3. Marker byte `0x1A` written to map buffer cells
 4. Level counter `[0x8D7F]` decremented per level
 
+### Cell bit-to-wall mapping (viewport renderer at 0x4560)
+
+Each 5-byte cell maps to an 8-pixel-wide column in the viewport. The renderer
+writes to VGA offsets [di+3] through [di+7], with row stride 0xA0 (160 bytes).
+
+| Byte | Bit | Wall segment |
+|------|-----|-------------|
+| 0 | 0x10 | Right wall (N/S) |
+| 1 | 0x10 | Right-center |
+| 2 | 0x08 | Center (door position) |
+| 3 | 0x80 | Left-center (ornament) |
+| 4 | 0x10 | Left wall |
+
+CA rule output values control wall thickness:
+- `0x10`: standard 1-pixel wall
+- `0x18`: wide 2-pixel wall
+- `0x80`: perpendicular cross wall
+- `0xC0`: thick 3-pixel wall
+
 ### Feature pipeline (0x3309)
 
 Post-mapgen feature placement calls:

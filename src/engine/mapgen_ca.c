@@ -213,7 +213,9 @@ void ca_apply_rules(CAMap *map, CAMapType type) {
 bool ca_cell_is_wall(const CAMap *map, int x, int y) {
     if (x < 0 || x >= CA_WIDTH || y < 0 || y >= CA_HEIGHT) return true;
     const uint8_t *c = map->cells[y][x];
-    return (c[0] & 0x10) != 0;
+    /* A cell is wall if any of its 5 wall segment bits are set */
+    return ((c[0] & 0x10) | (c[1] & 0x10) | (c[2] & 0x08) |
+            (c[3] & 0x80) | (c[4] & 0x10)) != 0;
 }
 
 uint8_t ca_cell_wall_flags(const CAMap *map, int x, int y) {
