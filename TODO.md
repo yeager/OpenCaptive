@@ -18,9 +18,11 @@
 - [x] Verify spawn placement algorithm against original
 
 ### Map generation
-- [ ] Implement all 30 documented Architect stages
+- [x] Recover cellular automaton rule types from 0x39CC-0x3C21 (maze/rooms/open/mixed)
+- [x] Recover generator placement algorithm from 0x1C3C
+- [ ] Wire CA map output to DungeonLevel conversion (10×56 → 64×32 cells)
+- [ ] Implement feature placement pipeline from 0x33D7 (doors, puzzles, traps)
 - [ ] Validate MapGen output against original dumps
-- [ ] Recover feature placement (generators, doors, puzzles, traps)
 - [ ] Verify exterior generation stage
 
 ### Items

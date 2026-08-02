@@ -13,6 +13,21 @@
 - Combat system updated to use real spawn placement instead of placeholder
 - Test suite: tables, subcell lookup, HP computation, spawn counts
 
+## 2026-08-02 (MapGen cellular automaton)
+
+### Cellular automaton map rules from CAPPO.EXE
+- 4 map types recovered from 0x39CC–0x3C21:
+  - Type 0 (maze): bit tests 0x101/0x808, output 0x10
+  - Type 1 (rooms): bit tests 0x202/0x404, output 0x10
+  - Type 2 (open): bit tests 0x101/0x404, output 0x18 (wider)
+  - Type 3 (mixed): like open with shr+or for denser walls
+- 5-byte cell format matching original 10×56 grid
+- MapGen DOS PRNG at 0x3D54: mul 0x5E5 + add 0x29, no ROR
+- Pattern generation via rotated PRNG bitmasks
+- Generator placement: count = (PRNG & 7) + 1, random position
+- Feature placement pipeline identified at 0x33D7 (partial)
+- Test suites: CA init, pattern, determinism, rule types, boundaries
+
 ## 2026-08-02 (item pricing and availability)
 
 ### Item pricing formula from CAPPO.EXE disassembly
