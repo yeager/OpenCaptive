@@ -396,6 +396,57 @@ at 0x5E38:
 The combat PRNG at 0x9812 uses the weaker ror-2 variant without XOR, making
 combat sequences more predictable than general game randomness.
 
+## Creature stat tables
+
+Creature stats recovered from CAPPO.EXE DS:0xA1BF (file offset 0x189AF).
+Each creature type has a 4-byte entry: `min_hp` (word), `max_hp` (word).
+25 creature types total, grouped into 8 categories (3 types each, plus 1 extra).
+
+**HP formula** (0x9B12):
+
+```
+base = min + ((max - min) * difficulty) / 8
+hp = ((base * 2 * creature_modifier) >> 8) + 6
+```
+
+Where `difficulty` = dungeon level capped at 0-7, `creature_modifier` = byte
+from creature spawn data at [di+9].
+
+| Type | HP min | HP max | Cat | Speed | Sprite |
+|------|--------|--------|-----|-------|--------|
+| 1 | 10 | 150 | 0 | 0 | 0x67 |
+| 2 | 200 | 400 | 0 | 5 | 0x67 |
+| 3 | 400 | 600 | 0 | 7 | 0x67 |
+| 4 | 600 | 800 | 1 | 10 | 0x67 |
+| 5 | 800 | 1000 | 1 | 16 | 0x67 |
+| 6 | 1000 | 1500 | 1 | 20 | 0x67 |
+| 7 | 1000 | 1700 | 2 | 30 | 0x6A |
+| 8 | 1700 | 2400 | 2 | 20 | 0x6A |
+| 9 | 2400 | 3000 | 2 | 22 | 0x6A |
+| 10 | 3000 | 3700 | 3 | 24 | 0x6A |
+| 11 | 3700 | 4400 | 3 | 24 | 0x6A |
+| 12 | 4000 | 4900 | 3 | 40 | 0x6A |
+| 13 | 3000 | 3700 | 4 | 32 | 0x6A |
+| 14 | 3700 | 4400 | 4 | 36 | 0x6A |
+| 15 | 4400 | 5700 | 4 | 46 | 0x6A |
+| 16 | 9000 | 10000 | 5 | 56 | 0x6B |
+| 17 | 10000 | 12000 | 5 | 20 | 0x6B |
+| 18 | 12000 | 15000 | 5 | 24 | 0x6B |
+| 19 | 15000 | 17000 | 6 | 26 | 0x6C |
+| 20 | 17000 | 19000 | 6 | 25 | 0x6B |
+| 21 | 19000 | 22000 | 6 | 30 | 0x6C |
+| 22 | 1000 | 3000 | 7 | 40 | 0x6D |
+| 23 | 3000 | 5000 | 7 | 25 | 0x6D |
+| 24 | 5000 | 7000 | 7 | 30 | 0x6E |
+| 25 | 1000 | 1100 | 0 | 30 | 0x60 |
+
+Category table at DS:0x9A42 (file 0x18232): groups creature types into 8
+categories (0-7), 3 types per category. Speed values at DS:0xA1A4 (file
+0x18994). Sprite assignments at DS:0xA16E (file 0x1895E): graphic_id maps
+to ALIEN PL5 sheets, frame_index selects the animation variant.
+
+DS segment base = 0x0E3F (file offset = 0xE7F0 + DS_offset).
+
 ## VGA palette
 
 The 32-color VGA palette is set via INT handler at 0x9F2, loading from

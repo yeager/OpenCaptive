@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (creature stat tables)
+
+### Creature stat tables from CAPPO.EXE disassembly
+- HP table at DS:0xA1BF (file 0x189AF): 25 creature types with min/max HP
+- Category table at DS:0x9A42 (file 0x18232): 8 categories, 3 types each
+- Speed table at DS:0xA1A4 (file 0x18994): movement speed per type
+- Sprite map at DS:0xA16E (file 0x1895E): graphic_id + frame_index
+- HP formula: base interpolation by difficulty, modifier scaling, cap at 255
+- DS segment base discovery: 0x0E3F → file offset 0xE7F0 + DS_offset
+- Test suite: table integrity, HP formula, bounds, sprite map, categories
+
 ## 2026-08-02 (object sprites)
 
 ### Object sprite rendering (OBJECTS.PL5)

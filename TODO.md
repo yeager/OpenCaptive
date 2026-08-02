@@ -12,7 +12,7 @@
 ### Combat
 - [x] Disassemble combat formula section of CAPPO.EXE (hit check, damage calc, scaling)
 - [x] Recover combat PRNG variant (ror 2, no XOR at 0x9815)
-- [ ] Recover real creature stat tables (lookup at [BX+0x9C90])
+- [x] Recover real creature stat tables (DS:0xA1BF, 25 types, HP/category/speed/sprite)
 - [x] Implement damage formula: lo*hi byte encoding, shift-left scaling
 - [ ] Recover real level-up and XP formulas
 - [ ] Verify spawn placement algorithm against original

@@ -56,6 +56,7 @@ set(OPENCAPTIVE_SOURCES
     src/render/holamap.c
     src/render/creature_sprite.c
     src/render/object_sprite.c
+    src/engine/creature_stats.c
     src/render/captive_compositor.c
     src/render/frame_compare.c
     src/render/viewport.c
@@ -206,6 +207,11 @@ add_executable(test_opl2_emu tests/test_opl2_emu.c src/audio/opl2_emu.c)
 target_include_directories(test_opl2_emu PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_opl2_emu PRIVATE m)
 add_test(NAME opl2_emu COMMAND test_opl2_emu)
+
+add_executable(test_creature_stats tests/test_creature_stats.c
+    src/engine/creature_stats.c)
+target_include_directories(test_creature_stats PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME creature_stats COMMAND test_creature_stats)
 
 add_executable(test_adlib_sfx tests/test_adlib_sfx.c
     src/audio/adlib_sfx.c src/audio/opl2_emu.c src/audio/adlib_data.c)
