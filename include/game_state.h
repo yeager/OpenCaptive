@@ -71,6 +71,7 @@ typedef struct {
     uint8_t items[10];       // inventory slots
     uint8_t level;
     uint16_t xp;
+    uint16_t weapon_damage;  // lo*hi encoding from 0x97F4
 } Droid;
 
 typedef enum {

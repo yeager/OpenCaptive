@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (damage formula)
+
+### Combat damage formula implementation
+- Implemented lo*hi byte damage encoding from CAPPO.EXE at 0x97F4
+- Shift-left scaling (×2/×4/×8) based on droid level, capped at 0xFFFD
+- Added weapon_damage field to Droid struct (lo*hi encoded uint16_t)
+
 ## 2026-08-02 (viewport & palette)
 
 ### Viewport and HUD verification

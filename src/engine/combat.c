@@ -173,7 +173,19 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
 
     if (!target) return false;
 
-    int base_damage = 10 + (combat_rand() % 11);
+    /* Damage formula from CAPPO.EXE at 0x97F4:
+     * ax = [di+6] (weapon damage word); al * ah = base damage.
+     * Then shift left up to 3 times (×2/×4/×8) based on level scaling.
+     * Overflow sentinel 0xFFFD caps the result. */
+    uint16_t dmg_word = d->weapon_damage;
+    uint8_t lo = dmg_word & 0xFF;
+    uint8_t hi = (dmg_word >> 8) & 0xFF;
+    int base_damage = (int)lo * (int)hi;
+    if (base_damage == 0) base_damage = 5;
+    int shift = d->level / 3;
+    if (shift > 3) shift = 3;
+    base_damage <<= shift;
+    if (base_damage > 0xFFFD) base_damage = 0xFFFD;
     int damage = base_damage - target->defense / 2;
     if (damage < 1) damage = 1;
 
