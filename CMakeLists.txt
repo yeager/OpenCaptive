@@ -48,6 +48,8 @@ set(OPENCAPTIVE_SOURCES
     src/audio/sound.c
     src/audio/sfx.c
     src/audio/adlib_data.c
+    src/audio/opl2_emu.c
+    src/audio/adlib_sfx.c
     src/data/ctv_decoder.c
     src/render/renderer.c
     src/render/hud.c
@@ -182,6 +184,17 @@ add_executable(test_adlib_data tests/test_adlib_data.c src/audio/adlib_data.c)
 target_include_directories(test_adlib_data PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME adlib_data COMMAND test_adlib_data)
 
+add_executable(test_opl2_emu tests/test_opl2_emu.c src/audio/opl2_emu.c)
+target_include_directories(test_opl2_emu PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_opl2_emu PRIVATE m)
+add_test(NAME opl2_emu COMMAND test_opl2_emu)
+
+add_executable(test_adlib_sfx tests/test_adlib_sfx.c
+    src/audio/adlib_sfx.c src/audio/opl2_emu.c src/audio/adlib_data.c)
+target_include_directories(test_adlib_sfx PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_adlib_sfx PRIVATE m)
+add_test(NAME adlib_sfx COMMAND test_adlib_sfx)
+
 # The tests use assert() for both execution and verification.  Release builds
 # define NDEBUG, which would otherwise turn those test expressions into no-ops.
 function(opencaptive_enable_test_assertions target)
@@ -194,7 +207,7 @@ endfunction()
 
 foreach(test_target IN ITEMS
         test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_captive_compositor test_dos_vga_reference test_captive_dos_descriptor test_frame_compare test_data_vfs
-        test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_amiga_planar test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load test_ctv_decoder test_adlib_data)
+        test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_amiga_planar test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load test_ctv_decoder test_adlib_data test_opl2_emu test_adlib_sfx)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
 
