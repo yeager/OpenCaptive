@@ -1,23 +1,10 @@
 #include "combat.h"
 #include "captive_data.h"
+#include "creature_stats.h"
+#include "spawn.h"
 #include "xp_level.h"
 #include <stdlib.h>
 #include <string.h>
-
-/* Placeholder creature stats indexed by type.
- * Format: {hp, damage_min, damage_max, defense, speed, range}.
- * These values are NOT recovered from the original executable —
- * they are functional placeholders until the combat formula code
- * section of CAPPO.EXE is disassembled. */
-static const int16_t creature_stats[CREATURE_COUNT][6] = {
-    [CREATURE_NONE]   = {0,0,0,0,0,0},
-    [CREATURE_ALIEN1] = {30,  5, 15, 2, 8, 4},
-    [CREATURE_ALIEN2] = {60, 10, 25, 5, 6, 3},
-    [CREATURE_ALIEN3] = {80, 15, 30, 8, 10, 6},
-    [CREATURE_ALIEN4] = {120, 20, 40, 10, 5, 2},
-    [CREATURE_ALIEN5] = {200, 30, 60, 15, 4, 3},
-    [CREATURE_ALIEN6] = {500, 50,100, 25, 3, 4},
-};
 
 static uint32_t combat_seed;
 
@@ -33,37 +20,53 @@ void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
                             int level_num, uint32_t seed) {
     combat_seed = seed + level_num * 3571;
 
-    int num_to_spawn = 3 + level_num * 2;
-    if (num_to_spawn > 20) num_to_spawn = 20;
+    int difficulty = level_num;
+    if (difficulty > 8) difficulty = 8;
+    int num_groups = 3 + level_num;
+    if (num_groups > 12) num_groups = 12;
 
-    for (int i = 0; i < num_to_spawn; i++) {
+    for (int g = 0; g < num_groups; g++) {
         if (cl->num_creatures >= MAX_CREATURES) break;
 
         int attempts = 100;
         while (attempts-- > 0) {
             int x = 1 + (combat_rand() % (MAP_WIDTH - 2));
             int y = 1 + (combat_rand() % (MAP_HEIGHT - 2));
-            if (lvl->cells[y][x].type == CELL_FLOOR) {
+            if (lvl->cells[y][x].type != CELL_FLOOR) continue;
+
+            int category = combat_rand() % SPAWN_CATEGORY_COUNT;
+            uint8_t direction = combat_rand() % 4;
+            uint8_t position = (uint8_t)(x & 0x0F);
+
+            SpawnResult sr = spawn_creatures(category, difficulty, direction,
+                                             position, &combat_seed);
+
+            for (int s = 0; s < sr.count; s++) {
+                if (cl->num_creatures >= MAX_CREATURES) break;
+                SpawnEntry *se = &sr.entries[s];
                 Creature *c = &cl->creatures[cl->num_creatures++];
                 memset(c, 0, sizeof(*c));
 
-                int max_type = 1 + level_num / 2;
-                if (max_type >= CREATURE_COUNT) max_type = CREATURE_COUNT - 1;
-                c->type = 1 + (combat_rand() % max_type);
-
-                c->hp = creature_stats[c->type][0] + level_num * 5;
-                c->hp_max = c->hp;
-                c->damage_min = creature_stats[c->type][1] + level_num * 2;
-                c->damage_max = creature_stats[c->type][2] + level_num * 3;
-                c->defense = creature_stats[c->type][3] + level_num;
-                c->speed = creature_stats[c->type][4];
-                c->range = creature_stats[c->type][5];
-                c->x = x;
-                c->y = y;
+                c->type = (se->creature_type < CREATURE_COUNT)
+                    ? (CreatureType)se->creature_type : CREATURE_ALIEN1;
+                c->hp = se->hp;
+                c->hp_max = se->hp;
+                if (se->creature_type < CREATURE_TYPE_COUNT) {
+                    const CreatureTypeDef *def = &creature_types[se->creature_type];
+                    c->speed = def->speed;
+                }
+                c->damage_min = 5 + level_num * 2;
+                c->damage_max = 15 + level_num * 3;
+                c->defense = 2 + level_num;
+                c->range = 4;
+                c->x = x + (s % 2);
+                c->y = y + (s / 2);
+                if (c->x >= MAP_WIDTH) c->x = MAP_WIDTH - 1;
+                if (c->y >= MAP_HEIGHT) c->y = MAP_HEIGHT - 1;
                 c->level = level_num;
                 c->active = true;
-                break;
             }
+            break;
         }
     }
 }

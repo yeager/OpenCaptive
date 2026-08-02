@@ -1,5 +1,18 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (spawn placement algorithm)
+
+### Spawn placement from CAPPO.EXE disassembly
+- Full spawn flow at 0x9987–0x9AA7 with creature type routing
+- 8 creature categories (DS:0x9A42), 3 types per category
+- Type-based placement: singles, flagged pairs, trios, directional groups
+- Subcell positioning from two 16-byte tables (DS:0x9BD8, DS:0x9BE8)
+- Direction modifiers: opposite (XOR 2), perpendicular (NOT & 1)
+- Modifier table (DS:0x9AB7) and difficulty offset table (DS:0x9A5A)
+- HP formula integrated: min + (range * difficulty / 8), modifier scaling, cap 255
+- Combat system updated to use real spawn placement instead of placeholder
+- Test suite: tables, subcell lookup, HP computation, spawn counts
+
 ## 2026-08-02 (item pricing and availability)
 
 ### Item pricing formula from CAPPO.EXE disassembly

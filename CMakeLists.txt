@@ -59,6 +59,7 @@ set(OPENCAPTIVE_SOURCES
     src/engine/creature_stats.c
     src/engine/xp_level.c
     src/engine/item_price.c
+    src/engine/spawn.c
     src/render/captive_compositor.c
     src/render/frame_compare.c
     src/render/viewport.c
@@ -235,6 +236,11 @@ add_executable(test_item_price tests/test_item_price.c
     src/engine/item_price.c)
 target_include_directories(test_item_price PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME item_price COMMAND test_item_price)
+
+add_executable(test_spawn tests/test_spawn.c
+    src/engine/spawn.c src/engine/creature_stats.c src/engine/captive_data.c)
+target_include_directories(test_spawn PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME spawn COMMAND test_spawn)
 
 add_executable(test_adlib_sfx tests/test_adlib_sfx.c
     src/audio/adlib_sfx.c src/audio/opl2_emu.c src/audio/adlib_data.c)

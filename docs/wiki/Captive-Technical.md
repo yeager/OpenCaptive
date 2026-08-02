@@ -586,3 +586,54 @@ sheets with approximate projection geometry.
 The F10 menu provides God Mode, Infinite Energy and Complete Objective for the
 active local Captive state. They are runtime conveniences, not original-game
 commands or evidence of gameplay parity.
+
+## Spawn placement algorithm
+
+Recovered from CAPPO.EXE at 0x9987–0x9AA7. The spawn system places creatures
+into dungeon cells based on creature type, party direction, and cell position.
+
+### Entry point (0x9987)
+
+1. Difficulty is read from the spawn record `[di+1]`, capped at 8, decremented
+2. Category index selects creature type via `spawn_select_type()`
+3. `0x9BB3` selects a creature type from the category table using PRNG
+4. HP is computed: `base = min + (range * difficulty / 8); hp = (base * 2 * modifier >> 8) + 6; cap 255`
+
+### Type routing
+
+| Type range | Placement | Count |
+|-----------|-----------|-------|
+| < 0x0A | Single `place()` | 1 |
+| 0x0A–0x0B | Single `place_flagged()` (subcell OR 0x20) | 1 |
+| 0x0C | Two `place_flagged()` with increment | 2 |
+| 0x0D–0x0E | Three `place()` with increments | 3 |
+| 0x0F | `place()` + opposite direction + perpendicular direction | 3 |
+| 0x15 | `place()` + `place_flagged()` | 2 |
+| other | Single `place()` | 1 |
+
+### Subcell positioning (0x9A04)
+
+Direction-based subcell lookup uses two 16-byte tables at DS:0x9BD8 and DS:0x9BE8:
+
+- Direction 0–1: `table1[(direction << 2) + (position & 3)]`
+- Direction 2–3: `table2[position]`
+
+Table 1 (DS:0x9BD8): `00 06 08 02 02 00 06 08 06 08 02 00 08 02 00 06`
+Table 2 (DS:0x9BE8): `01 03 07 05 00 01 03 04 01 02 04 05 03 04 06 07`
+
+### Direction modifiers (0x99E9, 0x99F2)
+
+- Opposite: `direction XOR 2`
+- Perpendicular: `NOT direction AND 1`
+
+### Category table (DS:0x9A42)
+
+8 categories × 3 types each. PRNG selects which type from the category.
+
+### Modifier table (DS:0x9AB7)
+
+16 entries: `2, 4, 12, 30, 23, 60, 110, 90, 16, 18, 16, 12, 10, 12, 4, 0`
+
+### Difficulty offset table (DS:0x9A5A)
+
+16 entries: `7, 0, 8, 16, 0, 8, 16, 0, 8, 16, 0, 8, 16, 0, 8, 16`

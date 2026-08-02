@@ -15,7 +15,7 @@
 - [x] Recover real creature stat tables (DS:0xA1BF, 25 types, HP/category/speed/sprite)
 - [x] Implement damage formula: lo*hi byte encoding, shift-left scaling
 - [x] Recover real level-up and XP formulas
-- [ ] Verify spawn placement algorithm against original
+- [x] Verify spawn placement algorithm against original
 
 ### Map generation
 - [ ] Implement all 30 documented Architect stages
