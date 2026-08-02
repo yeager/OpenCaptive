@@ -299,6 +299,41 @@ The CTV files (`SB15.CTV`, `SB20.CTV`, `SBPRO.CTV`) are CT-VOICE driver files
 for Sound Blaster DSP, not Creative Voice (VOC) audio samples. They contain
 executable code for DMA-based PCM playback but no sound data.
 
+## Item database
+
+Item records are stored in the unpacked CAPPO.EXE at offset 0x1a090. The first
+item (HEAD) has a unique 16-byte prefix containing body part armor values for
+all six material grades. Subsequent records follow the format:
+
+    00 type_code [grade_byte] NAME 0x20
+
+Type codes recovered from the binary:
+
+| Code | Meaning | Examples |
+|------|---------|----------|
+| 0x00 | Misc / no class | DEV-SCAPE, KNUCLE-DUSTER, MINE, DIE, BALL, MAP |
+| 0x08 | Consumable | BATTERY |
+| 0x10 | Ammo | CARTRIDGES, SHELLS, LASER PACK, SONIC PACK |
+| 0x20 | Chip | DROID CHIP |
+| 0x21 | Equipment | OPTIC, CAMERA, BATTLE-GLOVE, WAR-BLADE, PISTOL |
+| 0x27 | Body part (standard) | HEAD, CHEST, LEG, FOOT, HAND, GOLD |
+| 0x30 | Ranged weapon | COLT, MAGNUM, RIFLE, all automatics/energy/heavy |
+| 0x60 | Explosive | EXPLOSIVES |
+| 0x65 | Body part (variant) | ARM |
+
+Body parts carry a grade byte (always 0x05 in the base table). POISON, ACID,
+and FLAMBOS use `04 27` as a terminator instead of 0x20, marking them as
+special ammo sub-types.
+
+The weapon variant section at 0x1a220 contains upgrade tier records in the
+format `00 type_code 04 2c PRICE_STRING 2d` where the price string is ASCII
+decimal (e.g. "1.9", "14A", "165.8"). These encode shop upgrade costs.
+
+Item stats (damage, range, ammo capacity, price, weight) are **not** stored as
+lookup tables. The original game computes them procedurally from the type code
+and material grade. The stat computation formulas remain to be recovered from
+the code section of the executable.
+
 ## Current runtime boundary
 
 Captive accepts movement, rotation, interaction, inventory, terminal, save and
