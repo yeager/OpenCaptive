@@ -2,6 +2,7 @@
 #define SFX_H
 
 #include "sound.h"
+#include "adlib_sfx.h"
 
 typedef enum {
     SFX_HIT,
@@ -18,13 +19,15 @@ typedef enum {
 } SfxType;
 
 typedef struct {
-    int sample_ids[SFX_COUNT];
+    AdlibSfxPlayer adlib;
     SoundSystem *sound;
-    bool loaded;
+    int sfx_map[SFX_COUNT];
+    bool enabled;
 } SfxSystem;
 
 bool sfx_init(SfxSystem *sfx, SoundSystem *snd);
-bool sfx_load_ctv(SfxSystem *sfx, const uint8_t *data, uint32_t size);
 void sfx_play(SfxSystem *sfx, SfxType type);
+void sfx_update(SfxSystem *sfx);
+void sfx_set_enabled(SfxSystem *sfx, bool enabled);
 
 #endif

@@ -1408,6 +1408,7 @@ int main(int argc, char *argv[]) {
         }
 
         music_update(&music_sys);
+        sfx_update(&sfx);
         sound_mix(&sound_sys);
         renderer_present(&renderer, framebuffer);
         if (config.fps_limit > 0) {

@@ -1,56 +1,59 @@
 #include "sfx.h"
-#include "ctv_decoder.h"
 #include <string.h>
-#include <stdlib.h>
 
-/* Sound Blaster CTV files contain the digitized sound effects.
- * SB20.CTV is the primary target (Sound Blaster 2.0 version).
- * The sound effects are stored as sequential entries in the CTV file;
- * this mapping is based on the order they appear in the original file. */
-static const char *ctv_hashes[] = {
-    "SB20.CTV", NULL,
+/* SFX type to CAP_A.BIN sequence index mapping.
+ * These assignments are provisional — the exact mapping between game events
+ * and the 49 SFX sequences needs verification against the original game.
+ * Indices chosen based on sequence characteristics (length, pitch patterns). */
+static const int sfx_sequence_map[SFX_COUNT] = {
+    [SFX_HIT]         = 5,   // short percussive hit
+    [SFX_SHOOT]       = 13,  // multi-tone attack sequence
+    [SFX_DOOR_OPEN]   = 4,   // sustained tone
+    [SFX_DOOR_LOCKED] = 7,   // brief alert
+    [SFX_STEP]        = 11,  // short click
+    [SFX_BUTTON]      = 9,   // interface click
+    [SFX_PICKUP]      = 10,  // pickup chime
+    [SFX_DEATH]       = 6,   // descending tone
+    [SFX_LEVEL_UP]    = 8,   // ascending tone
+    [SFX_GENERATOR]   = 3,   // sustained rumble
 };
 
 bool sfx_init(SfxSystem *sfx, SoundSystem *snd) {
     if (!sfx) return false;
     memset(sfx, 0, sizeof(*sfx));
     sfx->sound = snd;
+    sfx->enabled = true;
+
+    int rate = 22050;
+    adlib_sfx_init(&sfx->adlib, rate);
 
     for (int i = 0; i < SFX_COUNT; i++)
-        sfx->sample_ids[i] = -1;
+        sfx->sfx_map[i] = sfx_sequence_map[i];
 
     return true;
 }
 
-bool sfx_load_ctv(SfxSystem *sfx, const uint8_t *data, uint32_t size) {
-    if (!sfx || !sfx->sound || !data) return false;
+void sfx_play(SfxSystem *sfx, SfxType type) {
+    if (!sfx || !sfx->enabled) return;
+    if (type < 0 || type >= SFX_COUNT) return;
 
-    CtvFile ctv;
-    if (!ctv_decode(&ctv, data, size)) return false;
-
-    /* Map CTV entries to SFX types in the order they appear.
-     * The exact mapping depends on the specific CTV file; this is a
-     * sequential assignment that will be refined once the CTV contents
-     * are verified against the original game's sound trigger points. */
-    int count = ctv.count < SFX_COUNT ? ctv.count : SFX_COUNT;
-    for (int i = 0; i < count; i++) {
-        int id = sound_load_raw(sfx->sound,
-                                ctv.entries[i].samples,
-                                ctv.entries[i].length,
-                                ctv.entries[i].sample_rate);
-        if (id >= 0)
-            sfx->sample_ids[i] = id;
-    }
-
-    ctv_free(&ctv);
-    sfx->loaded = (count > 0);
-    return sfx->loaded;
+    adlib_sfx_play(&sfx->adlib, sfx->sfx_map[type]);
 }
 
-void sfx_play(SfxSystem *sfx, SfxType type) {
-    if (!sfx || !sfx->loaded || !sfx->sound) return;
-    if (type < 0 || type >= SFX_COUNT) return;
-    if (sfx->sample_ids[type] < 0) return;
+void sfx_update(SfxSystem *sfx) {
+    if (!sfx || !sfx->enabled || !sfx->sound) return;
+    if (!adlib_sfx_is_playing(&sfx->adlib)) return;
 
-    sound_play(sfx->sound, sfx->sample_ids[type], 1.0f, 1.0f);
+    int16_t buffer[1024];
+    adlib_sfx_render(&sfx->adlib, buffer, 1024);
+
+    if (sfx->sound->stream) {
+        SDL_PutAudioStreamData(sfx->sound->stream, buffer, sizeof(buffer));
+    }
+}
+
+void sfx_set_enabled(SfxSystem *sfx, bool enabled) {
+    if (!sfx) return;
+    sfx->enabled = enabled;
+    if (!enabled) adlib_sfx_stop_all(&sfx->adlib);
 }
