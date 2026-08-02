@@ -164,11 +164,37 @@ Liberation uses true 3D polygon rendering (not raycasting). Vector data is store
 | `People.x3g` | NPC models |
 | `Objects.x3g` | Item/object models |
 
-The internal binary format of x3g files is under analysis.
+### x3g binary format
+
+IFF container: `FORM O3DG`
+
+```
+FORM O3DG
+  OFFS          — object count (uint16) + offset table (uint32 per object)
+  FORM VCDO     — one per object
+    EXVL        — vertex list: uint16 count, then 16 bytes per vertex:
+                    int16 x, y, z, group, reserved[4]
+    PLST        — polygon list: variable-size records (format TBD)
+```
+
+Verified against `Objects.x3g` (3 objects), `people.x3g` (4 objects), `0CityVectors.x3g` (33 objects).
 
 ## VGM — Liberation wall textures
 
-Wall textures in Liberation use the `.VGM` format (referenced as `WALL*.VGM`). Internal structure is under analysis. Loaded via the wildcard pattern in the executable.
+Wall textures in Liberation use the `.VGM` format. 71 files (`Wall01.VGM`–`Wall71.VGM`), each exactly 167,766 bytes.
+
+Each VGM file contains 4 concatenated **AmSp** (AMOS Sprite Bank) banks:
+
+| Bank | Sprites | Purpose |
+| --- | --- | --- |
+| 0 | 42 | Primary wall faces |
+| 1 | 45 | Alternate angles / details |
+| 2 | 24 | Overlay elements |
+| 3 | 41 | Additional variants |
+
+Total: 152 sprites per file. All sprites are 4bpp (16 colors) with mask. Each bank has its own 64-byte palette at the end.
+
+The AmSp format is the standard AMOS Professional Sprite Bank — the same decoder used for Captive sprite data works here.
 
 ## Img — Liberation graphics
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.15 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.16 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -46,6 +46,8 @@ set(OPENCAPTIVE_SOURCES
     src/data/liberation_data.c
     src/data/liberation_string_tables.c
     src/data/amos_sprite.c
+    src/data/liberation_vgm.c
+    src/data/liberation_x3g.c
     src/data/st_disk_reader.c
     src/audio/sound.c
     src/audio/sfx.c
@@ -176,6 +178,16 @@ add_test(NAME amiga_planar COMMAND test_amiga_planar)
 add_executable(test_amos_sprite tests/test_amos_sprite.c src/data/amos_sprite.c)
 target_include_directories(test_amos_sprite PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME amos_sprite COMMAND test_amos_sprite)
+
+add_executable(test_liberation_vgm tests/test_liberation_vgm.c
+    src/data/liberation_vgm.c src/data/amos_sprite.c)
+target_include_directories(test_liberation_vgm PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation_vgm COMMAND test_liberation_vgm)
+
+add_executable(test_liberation_x3g tests/test_liberation_x3g.c
+    src/data/liberation_x3g.c)
+target_include_directories(test_liberation_x3g PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation_x3g COMMAND test_liberation_x3g)
 
 add_executable(test_liberation_anim tests/test_liberation_anim.c
     src/data/liberation_anim.c)

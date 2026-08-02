@@ -92,14 +92,16 @@
 - [ ] Decode text table opcodes and dialogue branching
 
 ### 3D rendering
-- [ ] Decode x3g vector format (city, room, bank, bar, shop, police, droids, monsters, people, objects)
-- [ ] Decode VGM wall texture format
+- [x] Decode VGM wall texture format (4 concatenated AmSp banks, 152 sprites per file, 71 wall sets)
+- [x] Decode x3g vector format header (IFF FORM O3DG, OFFS, VCDO objects with EXVL vertices + PLST polygons)
+- [ ] Decode x3g polygon record format (variable-size records in PLST, vertex indices, texture/color refs)
 - [ ] Implement 3D viewport renderer
 
 ### Assets
 - [ ] Decode Img format (MainSP, 3dView, Taxi, backpack)
 - [ ] Decode FNT font format (4 variants)
 - [ ] Decode spr format (GameMenu)
+- [ ] Extract and verify all 71 VGM wall texture sets from CD32 disc image
 
 ### Runtime
 - [ ] Implement city navigation

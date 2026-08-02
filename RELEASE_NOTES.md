@@ -1,5 +1,19 @@
 # OpenCaptive Release Notes
 
+## v1.1.16 (2026-08-02)
+
+### Liberation: VGM wall texture decoder
+- Decoded VGM format: 4 concatenated AmSp (AMOS Sprite Bank) banks per file
+- 152 total sprites per VGM file (42+45+24+41 across banks), 4bpp with mask
+- 71 wall texture sets (Wall01–Wall71.VGM, each 167,766 bytes)
+- Delegates per-sprite decoding to existing AmSp decoder
+
+### Liberation: x3g 3D vector format parser
+- Decoded IFF FORM O3DG container: OFFS header (object count + offsets), VCDO sub-forms
+- EXVL vertex lists: 16 bytes per vertex (x, y, z, group, 4 reserved int16s)
+- PLST polygon list data preserved as raw buffer (record format TBD)
+- Tested against Objects.x3g (3 objects), people.x3g (4), 0CityVectors.x3g (33)
+
 ## v1.1.15 (2026-08-02)
 
 ### Liberation: CityGen grid — remaining subroutines
