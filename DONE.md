@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (viewport & palette)
+
+### Viewport and HUD verification
+- Verified viewport 144×112 at (32,55) from VGA blit at 0x485F
+- Recovered 9 HUD panel blit rectangles with exact screen coordinates
+- Verified VGA palette at file offset 0xEFCE matches existing pl5_default_palette
+- Rendered ALIEN1.PL5 sprite sheet with real palette (creature frames confirmed)
+
 ## 2026-08-02 (combat & PRNG)
 
 ### PRNG correction from disassembly

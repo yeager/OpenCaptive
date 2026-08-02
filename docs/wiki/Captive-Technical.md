@@ -373,6 +373,24 @@ at 0x5E38:
 The combat PRNG at 0x9812 uses the weaker ror-2 variant without XOR, making
 combat sequences more predictable than general game randomness.
 
+## VGA palette
+
+The 32-color VGA palette is set via INT handler at 0x9F2, loading from
+DS=0x0E3F:0x7DE (file offset 0xEFCE). Each entry is 3 bytes of 6-bit VGA
+values (0-63). The palette has been verified to match the existing
+`pl5_default_palette` in the codebase. Notable entries:
+
+- Colors 0-5: black to gray ramp (monochrome shading)
+- Colors 6-7: green tones (vegetation, status)
+- Colors 8-9: red tones (damage, alerts)
+- Colors 10-15: yellow, pink, magenta, orange (effects, UI)
+- Color 16: black (duplicate of 0, used as separate layer)
+- Color 17: white
+- Colors 19-23: brown ramp (wood, earth textures)
+- Color 24: bright red
+- Colors 27-29: blue ramp (sky, water, energy)
+- Colors 30-31: green tones (different from 6-7)
+
 ## HUD panel layout
 
 The following blit rectangles were recovered from the VGA copy routines in
