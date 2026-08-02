@@ -2,11 +2,14 @@
 
 ## Current boundary
 
-OpenCaptive currently verifies and opens the known CD32 data track, reads its
+OpenCaptive verifies and opens the known CD32 data track, reads its
 ISO9660 filesystem by content hash, and presents verified original ANIM frames.
-It does **not** yet reproduce the original CityGen/PlotGen game
-logic. The verified payloads are preserved as a reverse-engineering boundary,
-not silently substituted for original behaviour.
+CityGen (64×64 grid) and BuildingGen (building placement, road graph, naming)
+have been fully disassembled and reimplemented with test suites. The ArcD
+Huffman+LZSS decompressor from PlotGen has been recovered with bit-exact parity,
+enabling decompression of all three text data files (PGE.txt, DTE.txt, CTE.txt).
+The PlotGen main algorithm (building interiors, plot state machine, text opcodes)
+remains under reverse engineering.
 
 ## CD32 data track
 
@@ -233,16 +236,18 @@ The executable identifies itself as "Liberation : Ratt V2.02 : Wyvern V2.00c", w
 
 ## Reverse-engineering plan
 
-The next parity work is data-driven rather than visual:
+Progress on the data-driven parity work:
 
-1. Decode executable container/relocation records without distributing code.
-2. Identify CityGen inputs, PRNG, output layout and persistent city state.
-3. Identify PlotGen’s building/interior format and plot progression state.
-4. Decode text table offsets, encoding and dialogue references.
-5. Decode x3g 3D vector format for city/room/monster geometry.
-6. Decode VGM wall texture format.
-7. Add small independently testable parsers, golden hashes and structural
+1. ~~Decode executable container/relocation records without distributing code.~~ **Done** — Amiga HUNK parser validates headers, code, BSS, RELOC32.
+2. ~~Identify CityGen inputs, PRNG, output layout and persistent city state.~~ **Done** — 64×64 grid, 8×8 meta-grid, 13 tile templates, 3 planes, difficulty-gated phases.
+3. ~~Identify BuildingGen inputs, building types, road graph, naming.~~ **Done** — 9 building types, road connections, city/building name generation.
+4. ~~Recover ArcD compression format from PlotGen.~~ **Done** — Huffman+LZSS with bit-exact parity against all three text files.
+5. Identify PlotGen’s building/interior format and plot progression state. **In progress**
+6. Decode text table opcodes and dialogue branching. **In progress**
+7. Decode x3g 3D vector format for city/room/monster geometry.
+8. Decode VGM wall texture format.
+9. Add small independently testable parsers, golden hashes and structural
    invariants before wiring them into the live city loop.
 
-Until those steps are complete, do not describe the procedural city as a
+Until steps 5–9 are complete, do not describe the procedural city as a
 faithful reproduction of Liberation’s original story, population or plot logic.

@@ -13,7 +13,7 @@ The project targets source-level accuracy against the original DOS, Amiga, Atari
 ## For developers
 
 - [[Developer Guide]] — Code layout, build/test contract, contribution workflow
-- [[File Formats]] — PL5, ANM, RNC, ADF, ISO9660, x3g, VGM, 8SVX, MIDI
+- [[File Formats]] — PL5, ANM, RNC, ADF, ISO9660, ArcD, CTV, AmSp, x3g, VGM, 8SVX, MIDI
 
 ## Game reference
 

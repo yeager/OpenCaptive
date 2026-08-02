@@ -157,9 +157,22 @@ All 3D models are stored in `.x3g` format with 4 city variants:
 | File | Size | Content |
 | --- | --- | --- |
 | `CityGen` | 10,896 bytes | City layout generator (AmigaOS executable, v1.12, built 1994-01-03) |
-| `BuildingGen` | — | Building interior generator |
+| `BuildingGen` | 23,252 bytes code + 3,956 BSS | Building/road/naming generator |
+| `PlotGen` | 12,388 bytes code + 27,016 BSS | Plot/interior generator with ArcD decompressor |
 
-CityGen is a relocatable AmigaOS `loadseg()` executable. It receives a parameter block, clears a 12,288-byte work area and generates a 64x64 city grid.
+CityGen is a relocatable AmigaOS `loadseg()` executable. It receives a parameter block, clears a 12,288-byte work area and generates a 64×64 city grid.
+
+BuildingGen generates the building placement graph with 9 types, road connections, city names (German syllables + Greek suffix) and building names from type-specific string tables.
+
+PlotGen contains the ArcD Huffman+LZSS decompressor (offsets 0x302–0x520) used to decompress three text data files:
+
+| File | Compressed | Decompressed | Content |
+| --- | --- | --- | --- |
+| PGE.txt | 7,085 bytes | 16,304 bytes | Plot/game event text |
+| DTE.txt | 5,323 bytes | 14,136 bytes | Dialogue text |
+| CTE.txt | 8,230 bytes | 17,809 bytes | City text (location descriptions) |
+
+The ArcD format uses canonical Huffman codes with three tables per block (literal count, match offset, match length) and LZSS back-references. See [[File Formats]] for full format documentation.
 
 ## Graphics assets
 

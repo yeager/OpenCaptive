@@ -59,9 +59,10 @@ Point OpenCaptive at your game data directory:
 | F10 | Runtime display options; cheat commands are pending original state recovery |
 | Escape | Return to menu |
 
-Movement, combat, saves and mission commands are intentionally disabled. The
-previous implementation generated its own Captive state and was not derived
-from verified original data.
+Movement, combat, inventory, terminal, save/load and F10 runtime controls are
+available for the current Captive state. The viewport uses real PL5 panel sheets
+with approximate projection geometry; the original panel compositor is still
+being recovered from the DOS executable.
 
 ### Command-line options
 
@@ -107,37 +108,87 @@ docs/         Format documentation
 
 ## Status
 
+### Core engine
+
 | Feature | Status |
 |---------|--------|
 | SDL3 renderer + framebuffer | Done |
+| Start menu (game selection, settings) | Done |
+| CI/CD (Linux, macOS, Windows) | Done |
+| GitHub Actions release workflow | Done |
+
+### Captive — format decoders
+
+| Feature | Status |
+|---------|--------|
 | PL5 graphics decoder (32-color, 5-bit packing) | Done |
 | ANM animation decoder (XOR delta, LE frame sizes) | Done |
 | RNC Method 1 decompressor | Done |
-| Start menu (game selection) | Done |
-| Original Captive viewport visibility analysis | Done; original panel compositor remains unrecovered |
-| Verified original Captive HUD shell | Done |
-| Generated map, combat, inventory and shop prototypes | Kept out of runtime; not parity evidence |
-| Sound engine (8SVX, 8-channel mixer) | Done |
-| Save/load game state | Done |
+| CTV/VOC decoder (Creative Voice File) | Done |
 | Atari ST disk reader (FAT12) | Done |
 | Amiga ADF reader (OFS/FFS) | Done |
-| ISO9660 reader (CD32 BIN/CUE) | Done |
 | PL5 texture loading from game data | Done |
 | Intro cutscene playback (ANM) | Done |
-| CI/CD (Linux, macOS, Windows) | Done |
-| GitHub Actions release workflow | Done |
-| Liberation: Captive 2 hash verification and format analysis | Done |
-| MIDI music (software synth, 32-voice) | Done |
-| Original Captive map, state and input command decoding | In reverse engineering |
-| Original Captive viewport compositor | In reverse engineering |
-| Original Captive encounters in viewport | In reverse engineering |
-| Captive generated map/combat/shop/save implementation | Disabled pending original state recovery |
-| Settings menu (graphics, audio, scale) | Done |
-| Liberation: Captive 2 original presentation playback | Verified first frames |
-| Liberation: original city, plot and dialogue logic | In reverse engineering |
-| Liberation: city/building interaction | Not implemented from inferred state |
-| Generated enhanced dungeon rendering | Removed pending original compositor |
-| Procedural sound effects | Disabled; synthetic effects are not parity evidence |
+
+### Captive — reverse engineering
+
+| Feature | Status |
+|---------|--------|
+| PRNG recovery (4 variants from CAPPO.EXE) | Done |
+| Combat system (hit check, damage formula, scaling) | Done |
+| Creature stat tables (25 types, HP/speed/sprite) | Done |
+| Weapon damage tables (18 melee, 20 ranged entries) | Done |
+| Spawn placement algorithm (8 categories, subcell positioning) | Done |
+| XP/level-up formulas (per-skill thresholds, caps) | Done |
+| Item database (type codes, variant tiers, pricing) | Done |
+| MapGen cellular automaton (4 rule types from CAPPO.EXE) | Done |
+| Generator placement algorithm | Done |
+| Viewport 19-cell trapezoid + HUD panel layout (9 blit rects) | Done |
+| VGA palette verification | Done |
+| Creature sprite rendering (ALIEN1-6.PL5) | Done |
+| Object sprite rendering (OBJECTS.PL5) | Done |
+| Holamap display (planet surface, base markers) | Done |
+| Planet name generation | Done |
+
+### Captive — sound
+
+| Feature | Status |
+|---------|--------|
+| MIDI music (63 tracks, 14 categories, OPL2 FM synthesis) | Done |
+| AdLib instrument patches (26 patches from CAP_A.BIN) | Done |
+| SFX bytecode interpreter (13 opcodes, 4 voices) | Done |
+| SFX event mapping (INT 61h call sites) | Done |
+| Sound engine (8SVX, 8-channel mixer) | Done |
+| Save/load game state | Done |
+
+### Captive — remaining work
+
+| Feature | Status |
+|---------|--------|
+| Original viewport panel compositor | In reverse engineering |
+| Feature placement pipeline (doors, puzzles, traps) | In reverse engineering |
+| MapGen byte-identical parity | In reverse engineering |
+| Save format verification | In reverse engineering |
+
+### Liberation: Captive 2
+
+| Feature | Status |
+|---------|--------|
+| ISO9660 reader (CD32 BIN/CUE) | Done |
+| Hash verification and format analysis | Done |
+| Original presentation playback (intro + city ANIM) | Done — pixel-perfect |
+| AMOS sprite bank decoder (AmSp) | Done |
+| RNC Method 2 decompressor | Done |
+| Amiga HUNK executable parser | Done |
+| CD32 executable string tables (cities, NPCs, buildings) | Done |
+| BuildingGen disassembly (23,252 bytes, PRNG, grid, 9 building types) | Done |
+| CityGen grid disassembly (64×64 grid, 8×8 meta-grid, 13 tile templates) | Done |
+| ArcD Huffman+LZSS decoder (PlotGen text compression) | Done |
+| PlotGen text decompression (PGE.txt, DTE.txt, CTE.txt) | Done |
+| PlotGen main algorithm (building interiors, plot state) | In reverse engineering |
+| x3g 3D vector format | In reverse engineering |
+| VGM wall texture format | In reverse engineering |
+| City navigation and interaction | Not implemented |
 
 ## Game data formats
 

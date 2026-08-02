@@ -206,7 +206,7 @@ Sound Blaster Creative Voice files: `SB15.CTV`, `SB20.CTV`, `SBPRO.CTV`.
 
 Track filename pattern: `SOUND\{CATEGORY}{NUMBER}.MID`
 
-OpenCaptive identifies 8 MIDI tracks by SHA-256 and plays them through a 32-voice square-wave synthesizer with ADSR envelope.
+OpenCaptive identifies all 63 MIDI tracks by SHA-256 and plays them through OPL2 FM synthesis using the 26 instrument patches from CAP_A.BIN. Categories with multiple variants are selected randomly using the game PRNG.
 
 ## Name generation
 
