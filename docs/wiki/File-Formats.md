@@ -153,3 +153,26 @@ Captive DOS uses standard MIDI files for music. Eight tracks identified by SHA-2
 ## 8SVX — Amiga audio samples
 
 IFF 8SVX format for audio samples. Contains VHDR (voice header), BODY (sample data). Used for Amiga sound effects. OpenCaptive's 8-channel mixer with channel stealing handles playback.
+
+## CTV/VOC — Creative Voice File
+
+Captive DOS ships Sound Blaster effects in Creative Voice format (`.CTV` extension, same as `.VOC`):
+
+| File | Version |
+| --- | --- |
+| SB15.CTV | Sound Blaster 1.5 |
+| SB20.CTV | Sound Blaster 2.0 |
+| SBPRO.CTV | Sound Blaster Pro |
+
+Format structure:
+- Header: `Creative Voice File\x1a` (20 bytes)
+- 2-byte data offset, 2-byte version, 2-byte version check
+- Data blocks with type byte:
+  - Type 0: terminator
+  - Type 1: sound data (3-byte length, sample rate code, codec, PCM)
+  - Type 2: sound continue (appends to previous block)
+  - Type 3: silence
+  - Type 8: extended format (new sample rate for subsequent blocks)
+  - Type 9: new format sound data (VOC 1.20+)
+
+Sample rate from type 1: `1000000 / (256 - sr_code)`. Only unsigned 8-bit PCM (codec 0) is used by Captive. OpenCaptive's CTV decoder extracts all PCM entries for playback through the sound mixer.

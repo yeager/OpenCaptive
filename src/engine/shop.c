@@ -1,24 +1,37 @@
 #include "shop.h"
+#include "captive_data.h"
 #include <string.h>
 #include <stdio.h>
 
-static uint32_t shop_prng;
-static uint32_t shop_rand(void) {
-    shop_prng = shop_prng * 1103515245 + 12345;
-    return (shop_prng >> 16) & 0x7FFF;
-}
+/* Original shop strings from CAPPO.EXE:
+ *   "WELCOME STRANGER TO MY"
+ *   "'HUMBLE SHOP"
+ *   "HOW MAY I BE OF ASSISTANCE"
+ *   "CALL AGAIN LATER"
+ *   "THIS WILL COST YOU"
+ *   "FOR NEXT LEVEL IN"
+ *   "YOU DO NOT HAVE ENOUGH!"
+ *   "ACCEPT"
+ *   "I DON'T STOCK THIS OBJECT"
+ *   "MODEL OF"
+ *   "PLEASE REMOVE"
+ *   "GRADE OF THE"
+ *   "REPAIR"
+ */
+
+static uint32_t shop_seed;
 
 void shop_init(ShopState *shop, const ItemDatabase *db, int level, uint32_t seed) {
     memset(shop, 0, sizeof(*shop));
     shop->active = true;
-    shop_prng = seed + level * 997;
+    shop_seed = seed + level * 997;
 
     // Stock varies by level — higher levels have better items
     int max_tier = 1 + level / 2;
     if (max_tier > 7) max_tier = 7;
 
     for (int i = 0; i < db->num_defs && shop->num_items < SHOP_MAX_ITEMS; i++) {
-        if (db->defs[i].tier <= max_tier && shop_rand() % 3 == 0) {
+        if (db->defs[i].tier <= max_tier && captive_prng(&shop_seed) % 3 == 0) {
             shop->item_ids[shop->num_items++] = db->defs[i].id;
         }
     }
