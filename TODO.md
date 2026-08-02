@@ -106,7 +106,7 @@
 - [ ] Extract and verify all 71 VGM wall texture sets from CD32 disc image
 
 ### Runtime
-- [ ] Implement city navigation
+- [x] Implement city navigation (grid-based movement, collision, smooth interpolation, wall rendering)
 - [ ] Implement shop/bar/business interaction
 - [ ] Implement NPC dialogue system
 - [ ] Implement save system (Lib-Saves directory)

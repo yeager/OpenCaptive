@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.21 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.22 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -48,6 +48,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/amos_sprite.c
     src/data/liberation_fnt.c
     src/data/liberation_img.c
+    src/game/liberation_city_nav.c
     src/render/liberation_viewport_3d.c
     src/data/liberation_vgm.c
     src/data/liberation_x3g.c
@@ -211,6 +212,12 @@ add_executable(test_liberation_viewport_3d tests/test_liberation_viewport_3d.c
 target_include_directories(test_liberation_viewport_3d PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_liberation_viewport_3d m)
 add_test(NAME liberation_viewport_3d COMMAND test_liberation_viewport_3d)
+
+add_executable(test_liberation_city_nav tests/test_liberation_city_nav.c
+    src/game/liberation_city_nav.c src/render/liberation_viewport_3d.c)
+target_include_directories(test_liberation_city_nav PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_liberation_city_nav m)
+add_test(NAME liberation_city_nav COMMAND test_liberation_city_nav)
 
 add_executable(test_liberation_x3g tests/test_liberation_x3g.c
     src/data/liberation_x3g.c)

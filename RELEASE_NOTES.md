@@ -1,5 +1,16 @@
 # OpenCaptive Release Notes
 
+## v1.1.22 (2026-08-02)
+
+### Liberation: City navigation system
+- Grid-based movement on CityGen 64×64 layout with wall collision
+- Forward/backward movement, 90° turns, 180° turn-around
+- Smooth position interpolation for animated movement between cells
+- 3D wall rendering from grid data: visible faces only, per-cell color variation
+- Building entrance detection (cell type 0x0A)
+- x3g object placement at building entrances
+- 8-cell view range with frustum culling via viewport renderer
+
 ## v1.1.21 (2026-08-02)
 
 ### Liberation: 3D viewport renderer
