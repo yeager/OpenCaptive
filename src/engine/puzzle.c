@@ -100,6 +100,166 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
         }
     }
 
+    // Place bars puzzles (number-matching, from level 3+)
+    if (level_num >= 3) {
+        int num_bars = 1 + level_num / 5;
+        if (num_bars > 4) num_bars = 4;
+        for (int i = 0; i < num_bars; i++) {
+            if (pl->num_puzzles >= MAX_PUZZLES) break;
+            int attempts = 60;
+            while (attempts-- > 0) {
+                int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
+                int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
+                if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                for (int d = 0; d < 4; d++) {
+                    if (lvl->cells[ry + dy[d]][rx + dx[d]].type == CELL_WALL) {
+                        Puzzle *p = &pl->puzzles[pl->num_puzzles++];
+                        p->type = PUZZLE_BARS;
+                        p->x = rx; p->y = ry;
+                        p->level = level_num; p->face = d;
+                        p->state = 0;
+                        p->solution = (uint8_t)(1 + captive_prng(&puzzle_seed) % 15);
+                        p->solved = false;
+                        p->target_x = -1; p->target_y = -1;
+                        for (int sy = 1; sy < MAP_HEIGHT - 1; sy++)
+                            for (int sx = 1; sx < MAP_WIDTH - 1; sx++)
+                                if (lvl->cells[sy][sx].type == CELL_DOOR_LOCKED) {
+                                    p->target_x = sx; p->target_y = sy;
+                                    goto bars_placed;
+                                }
+                        bars_placed:
+                        lvl->cells[ry][rx].ornament[d] = ORNAMENT_SCREEN;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    // Place button combos (8 blue buttons, from level 4+)
+    if (level_num >= 4) {
+        int num_combos = 1 + level_num / 6;
+        if (num_combos > 3) num_combos = 3;
+        for (int i = 0; i < num_combos; i++) {
+            if (pl->num_puzzles >= MAX_PUZZLES) break;
+            int attempts = 60;
+            while (attempts-- > 0) {
+                int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
+                int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
+                if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                for (int d = 0; d < 4; d++) {
+                    if (lvl->cells[ry + dy[d]][rx + dx[d]].type == CELL_WALL) {
+                        Puzzle *p = &pl->puzzles[pl->num_puzzles++];
+                        p->type = PUZZLE_BUTTON_COMBO;
+                        p->x = rx; p->y = ry;
+                        p->level = level_num; p->face = d;
+                        p->state = 0;
+                        p->solution = (uint8_t)(captive_prng(&puzzle_seed) & 0xFF);
+                        p->solved = false;
+                        p->target_x = -1; p->target_y = -1;
+                        for (int sy = 1; sy < MAP_HEIGHT - 1; sy++)
+                            for (int sx = 1; sx < MAP_WIDTH - 1; sx++)
+                                if (lvl->cells[sy][sx].type == CELL_DOOR_LOCKED) {
+                                    p->target_x = sx; p->target_y = sy;
+                                    goto combo_placed;
+                                }
+                        combo_placed:
+                        lvl->cells[ry][rx].ornament[d] = ORNAMENT_PANEL;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    // Place hidden buttons in grates (from level 2+)
+    if (level_num >= 2) {
+        int num_hidden = 1 + level_num / 4;
+        if (num_hidden > 4) num_hidden = 4;
+        for (int i = 0; i < num_hidden; i++) {
+            if (pl->num_puzzles >= MAX_PUZZLES) break;
+            int attempts = 60;
+            while (attempts-- > 0) {
+                int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
+                int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
+                if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                for (int d = 0; d < 4; d++) {
+                    if (lvl->cells[ry + dy[d]][rx + dx[d]].type == CELL_WALL) {
+                        Puzzle *p = &pl->puzzles[pl->num_puzzles++];
+                        p->type = PUZZLE_HIDDEN_BUTTON;
+                        p->x = rx; p->y = ry;
+                        p->level = level_num; p->face = d;
+                        p->state = 0;
+                        p->solved = false;
+                        p->target_x = -1; p->target_y = -1;
+                        for (int sy = 1; sy < MAP_HEIGHT - 1; sy++)
+                            for (int sx = 1; sx < MAP_WIDTH - 1; sx++)
+                                if (lvl->cells[sy][sx].type == CELL_DOOR_LOCKED) {
+                                    p->target_x = sx; p->target_y = sy;
+                                    goto hidden_placed;
+                                }
+                        hidden_placed:
+                        lvl->cells[ry][rx].ornament[d] = ORNAMENT_VENT;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    // Place floor traps (from level 3+)
+    if (level_num >= 3) {
+        int num_traps = 2 + level_num / 3;
+        if (num_traps > 10) num_traps = 10;
+        for (int i = 0; i < num_traps; i++) {
+            if (pl->num_puzzles >= MAX_PUZZLES) break;
+            int attempts = 40;
+            while (attempts-- > 0) {
+                int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
+                int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
+                if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                Puzzle *p = &pl->puzzles[pl->num_puzzles++];
+                p->type = PUZZLE_FLOOR_TRAP;
+                p->x = rx; p->y = ry;
+                p->level = level_num;
+                p->face = 0;
+                p->state = (uint8_t)(10 + captive_prng(&puzzle_seed) % 30);
+                p->solved = false;
+                p->target_x = -1; p->target_y = -1;
+                break;
+            }
+        }
+    }
+
+    // Place teleporter traps (from level 5+)
+    if (level_num >= 5) {
+        int num_tele = 1 + level_num / 5;
+        if (num_tele > 4) num_tele = 4;
+        for (int i = 0; i < num_tele; i++) {
+            if (pl->num_puzzles >= MAX_PUZZLES) break;
+            int attempts = 40;
+            while (attempts-- > 0) {
+                int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
+                int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
+                if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                Puzzle *p = &pl->puzzles[pl->num_puzzles++];
+                p->type = PUZZLE_TELEPORTER_TRAP;
+                p->x = rx; p->y = ry;
+                p->level = level_num;
+                p->face = 0;
+                p->state = 0;
+                p->solved = false;
+                int tx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
+                int ty = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
+                p->target_x = tx; p->target_y = ty;
+                break;
+            }
+        }
+    }
+
     // Place power sockets (one per level from level 2+)
     if (level_num >= 2 && pl->num_puzzles < MAX_PUZZLES) {
         int attempts = 100;
@@ -168,6 +328,52 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                     }
                 }
                 return true;
+
+            case PUZZLE_BARS:
+                p->state = (p->state + 1) % 16;
+                if (p->state == p->solution) {
+                    p->solved = true;
+                    if (p->target_x >= 0 && p->target_y >= 0)
+                        lvl->cells[p->target_y][p->target_x].type = CELL_DOOR;
+                }
+                return true;
+
+            case PUZZLE_BUTTON_COMBO:
+                p->state ^= (1 << (face % 8));
+                if (p->state == p->solution) {
+                    p->solved = true;
+                    if (p->target_x >= 0 && p->target_y >= 0)
+                        lvl->cells[p->target_y][p->target_x].type = CELL_DOOR;
+                }
+                return true;
+
+            case PUZZLE_HIDDEN_BUTTON:
+                if (!p->solved) {
+                    p->solved = true;
+                    if (p->target_x >= 0 && p->target_y >= 0) {
+                        MapCell *cell = &lvl->cells[p->target_y][p->target_x];
+                        if (cell->type == CELL_DOOR_LOCKED)
+                            cell->type = CELL_DOOR;
+                    }
+                }
+                return true;
+
+            case PUZZLE_FLOOR_TRAP: {
+                Droid *d = &gs->droids[gs->selected_droid];
+                d->hp -= p->state;
+                if (d->hp < 0) d->hp = 0;
+                return true;
+            }
+
+            case PUZZLE_TELEPORTER_TRAP:
+                if (p->target_x >= 0 && p->target_y >= 0) {
+                    gs->party_x = p->target_x;
+                    gs->party_y = p->target_y;
+                }
+                return true;
+
+            case PUZZLE_LASER_CODE:
+                return false;
 
             case PUZZLE_POWER_SOCKET:
                 if (p->state > 0) {

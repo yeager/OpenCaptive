@@ -244,17 +244,27 @@ void ca_to_dungeon_level(const CAMap *map, DungeonLevel *level, int level_num) {
             int ca_x = (dx2 * CA_WIDTH) / MAP_WIDTH;
             if (ca_x >= CA_WIDTH) ca_x = CA_WIDTH - 1;
 
-            if (ca_cell_is_wall(map, ca_x, ca_y)) {
-                level->cells[dy][dx2].type = CELL_WALL;
+            MapCell *mc = &level->cells[dy][dx2];
+            uint8_t seg = ca_cell_wall_flags(map, ca_x, ca_y);
+            mc->ca_segments = seg;
+
+            const uint8_t *c = map->cells[ca_y][ca_x];
+            uint8_t thickness = 0;
+            if (c[0] & 0x18) thickness = c[0] & 0x18;
+            else if (c[3] & 0xC0) thickness = c[3] & 0xC0;
+            mc->ca_thickness = thickness;
+
+            if (seg != 0) {
+                mc->type = CELL_WALL;
             } else {
-                level->cells[dy][dx2].type = CELL_FLOOR;
+                mc->type = CELL_FLOOR;
             }
 
             uint8_t base_tex = (uint8_t)(level_num % 4);
             for (int d = 0; d < 4; d++)
-                level->cells[dy][dx2].wall_tex[d] = base_tex;
-            level->cells[dy][dx2].floor_tex = base_tex;
-            level->cells[dy][dx2].ceil_tex = base_tex;
+                mc->wall_tex[d] = base_tex;
+            mc->floor_tex = base_tex;
+            mc->ceil_tex = base_tex;
         }
     }
 

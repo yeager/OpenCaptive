@@ -1,5 +1,17 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (CA wall segments + feature pipeline — v1.1.25)
+
+### CA cell-to-viewport wall segment mapping
+- 5-byte CA cells now preserve per-segment wall bits in MapCell.ca_segments
+- Viewport draws partial walls: 5 column segments per cell with thickness codes
+- Matches disassembled renderer at 0x4560: byte→bit mapping from Captive-Technical.md
+
+### Full feature placement pipeline
+- Bars, button combos, hidden buttons, floor traps, teleporter traps
+- All interaction handlers implemented in puzzle_interact()
+- Progressive difficulty: traps appear from level 3+, teleporters from level 5+
+
 ## 2026-08-02 (Textured 3D viewport + CI fix — v1.1.24)
 
 ### Perspective-correct textured polygon rendering

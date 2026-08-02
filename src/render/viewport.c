@@ -239,11 +239,39 @@ void viewport_render(const CaptiveViewWindow *window,
         int cell_right = cell_left + cell_w - 1;
 
         if (cell->type == CELL_WALL) {
-            /* Front-facing wall */
-            draw_wall(framebuffer, fb_width, fb_height, atlas,
-                      cell_left, rp->top_y, cell_w, rp->wall_height,
-                      vp_x, vp_y, cell->wall_tex[0], range);
+            uint8_t seg = cell->ca_segments;
+            if (seg == 0 || seg == 0x1F) {
+                /* Full wall or no segment data — draw solid */
+                draw_wall(framebuffer, fb_width, fb_height, atlas,
+                          cell_left, rp->top_y, cell_w, rp->wall_height,
+                          vp_x, vp_y, cell->wall_tex[0], range);
+            } else {
+                /* Partial wall: draw only the active CA segments.
+                 * 5 segments divide the cell width into 5 columns:
+                 *   bit 4=left, bit 3=left-center, bit 2=center,
+                 *   bit 1=right-center, bit 0=right */
+                int seg_w = cell_w / 5;
+                if (seg_w < 1) seg_w = 1;
 
+                /* Thickness: 0x10=1px, 0x18=2px, 0x80/0xC0=wider */
+                int thick = 1;
+                if (cell->ca_thickness >= 0x80) thick = 3;
+                else if (cell->ca_thickness >= 0x18) thick = 2;
+                int draw_w = seg_w * thick;
+                if (draw_w > cell_w) draw_w = cell_w;
+
+                for (int s = 0; s < 5; s++) {
+                    if (!(seg & (1 << s))) continue;
+                    int sx = cell_left + (4 - s) * seg_w;
+                    int sw = (thick > 1) ? draw_w / 5 + 1 : seg_w;
+                    if (sw < 1) sw = 1;
+                    draw_wall(framebuffer, fb_width, fb_height, atlas,
+                              sx, rp->top_y, sw, rp->wall_height,
+                              vp_x, vp_y, cell->wall_tex[0], range);
+                }
+            }
+
+            /* Ornament on center segment (bit 3 = left-center/ornament) */
             if (cell->ornament[0] != ORNAMENT_NONE) {
                 int orn_w = cell_w / 3;
                 int orn_h = rp->wall_height / 4;

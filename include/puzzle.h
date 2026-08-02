@@ -14,6 +14,8 @@ typedef enum {
     PUZZLE_LASER_CODE,    // Laser door password
     PUZZLE_POWER_SOCKET,  // Recharges droids
     PUZZLE_HIDDEN_BUTTON, // Hidden in grate
+    PUZZLE_FLOOR_TRAP,    // Damage trap tile
+    PUZZLE_TELEPORTER_TRAP, // Random teleport trap
 } PuzzleType;
 
 typedef struct {

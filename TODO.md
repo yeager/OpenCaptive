@@ -4,7 +4,7 @@
 
 ### Viewport
 - [x] Viewport renders directly from 5-byte cell bitmasks (no separate descriptor table)
-- [ ] Map CA cell bit positions to exact 3D wall segments in viewport renderer
+- [x] Map CA cell bit positions to exact 3D wall segments in viewport renderer
 - [ ] Verify panel compositing order against DOS VGA captures
 - [x] Add creature sprite rendering (ALIEN1-6.PL5)
 - [x] Add item/object rendering in viewport (OBJECTS.PL5)
@@ -21,7 +21,7 @@
 - [x] Recover cellular automaton rule types from 0x39CC-0x3C21 (maze/rooms/open/mixed)
 - [x] Recover generator placement algorithm from 0x1C3C
 - [x] Wire CA map output to DungeonLevel conversion (10×56 → 64×32 cells)
-- [ ] Implement feature placement pipeline from 0x33D7 (doors, puzzles, traps)
+- [x] Implement feature placement pipeline from 0x33D7 (doors, puzzles, traps)
 - [ ] Validate MapGen output against original dumps
 - [ ] Verify exterior generation stage
 

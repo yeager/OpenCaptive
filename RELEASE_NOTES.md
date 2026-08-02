@@ -1,5 +1,20 @@
 # OpenCaptive Release Notes
 
+## v1.1.25 (2026-08-02)
+
+### Captive: CA cell-to-wall segment mapping + full feature pipeline
+- Map 5-byte CA cell bits to 5 viewport wall segments per cell
+- `ca_segments` and `ca_thickness` fields in MapCell preserve original wall data
+- Viewport renders partial walls using per-segment column drawing
+- Wall thickness from CA rules: 1px (0x10), 2px (0x18), 3px (0x80/0xC0)
+- Full puzzle/trap feature pipeline:
+  - Bars puzzles (number-matching, level 3+)
+  - Button combos (8 blue buttons, level 4+)
+  - Hidden buttons in grates (level 2+)
+  - Floor damage traps (level 3+)
+  - Teleporter traps (level 5+)
+  - Interaction handlers for all new types
+
 ## v1.1.24 (2026-08-02)
 
 ### Liberation: Textured 3D viewport + missing modules

@@ -51,6 +51,13 @@ typedef struct {
     uint8_t  item_id;        // item on floor (0 = none)
     uint8_t  creature_id;    // creature in cell (0 = none)
     uint8_t  flags;          // misc flags
+    uint8_t  ca_segments;    // 5-bit CA wall segments from original 5-byte cell:
+                             // bit 0: right wall (byte 0 & 0x10)
+                             // bit 1: right-center (byte 1 & 0x10)
+                             // bit 2: center/door (byte 2 & 0x08)
+                             // bit 3: left-center/ornament (byte 3 & 0x80)
+                             // bit 4: left wall (byte 4 & 0x10)
+    uint8_t  ca_thickness;   // wall thickness code from CA rules (0x10/0x18/0x80/0xC0)
 } MapCell;
 
 typedef struct {
