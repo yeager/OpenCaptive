@@ -1,5 +1,16 @@
 # OpenCaptive Release Notes
 
+## v1.1.21 (2026-08-02)
+
+### Liberation: 3D viewport renderer
+- Software 3D renderer with perspective projection and z-buffer
+- Triangle fan rasterizer for convex x3g polygons (3–8 vertices)
+- Normal-based flat shading with directional light
+- Painter's algorithm z-sorting + per-pixel z-buffer for correct overlap
+- Camera transform with yaw rotation, near-plane culling
+- 256×160 viewport with sky/ground split, blit to destination framebuffer
+- Tested: triangle rendering, z-sorting, camera rotation, behind-camera culling
+
 ## v1.1.20 (2026-08-02)
 
 ### Liberation: FNT font decoder + wiki updates

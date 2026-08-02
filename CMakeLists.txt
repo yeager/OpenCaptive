@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.20 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.21 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -48,6 +48,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/amos_sprite.c
     src/data/liberation_fnt.c
     src/data/liberation_img.c
+    src/render/liberation_viewport_3d.c
     src/data/liberation_vgm.c
     src/data/liberation_x3g.c
     src/data/st_disk_reader.c
@@ -204,6 +205,12 @@ add_executable(test_liberation_fnt tests/test_liberation_fnt.c
     src/data/liberation_fnt.c)
 target_include_directories(test_liberation_fnt PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME liberation_fnt COMMAND test_liberation_fnt)
+
+add_executable(test_liberation_viewport_3d tests/test_liberation_viewport_3d.c
+    src/render/liberation_viewport_3d.c)
+target_include_directories(test_liberation_viewport_3d PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_liberation_viewport_3d m)
+add_test(NAME liberation_viewport_3d COMMAND test_liberation_viewport_3d)
 
 add_executable(test_liberation_x3g tests/test_liberation_x3g.c
     src/data/liberation_x3g.c)

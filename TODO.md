@@ -95,7 +95,9 @@
 - [x] Decode VGM wall texture format (4 concatenated AmSp banks, 152 sprites per file, 71 wall sets)
 - [x] Decode x3g vector format header (IFF FORM O3DG, OFFS, VCDO objects with EXVL vertices + PLST polygons)
 - [x] Decode x3g polygon record format (38-byte fixed header + variable vertex refs as byte offsets/16, closing ref)
-- [ ] Implement 3D viewport renderer
+- [x] Implement 3D viewport renderer (perspective projection, z-buffer, flat-shaded polygon rasterizer)
+- [ ] Add textured polygon rendering (VGM wall textures mapped via UV coords)
+- [ ] Wire viewport into city navigation loop
 
 ### Assets
 - [x] Decode Img format (MainSP 158, 3dView 23×6 multi-frame, Taxi 4, backpack 176)
