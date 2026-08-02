@@ -418,6 +418,41 @@ at 0x5E38:
 4. **Damage application** (0x8DAE): `[di+6]` damage value added to accumulator
    at `[0x8D81]` when creature type byte equals 0x72.
 
+### XP and level-up system
+
+XP is a 32-bit accumulator at droid struct offset 0x22 (low word) and 0x24
+(high word), capped at 0xF8FFFFFF.
+
+**XP award** (0x9621): on creature kill, each living droid receives:
+```
+xp_base = creature_xp_value + 3 + min(difficulty, 100)
+xp_gain = droid_skill_byte * xp_base * 12
+```
+where `droid_skill_byte` is `[di+0x0B]` in the droid struct.
+
+**Display level** (0xB142): `level = xp >> 10`. So 1024 XP = level 1.
+
+**XP threshold per skill** (0xAB92): each of 10 skills has a base XP value
+from a table at DS:0xB708 (file 0x19EF8):
+
+| Skill | Base | Growth | Max level |
+|-------|------|--------|-----------|
+| ROBOTICS | 10 | +12.5% + 8 per level | 66 |
+| BRAWLING | 8 | +6.25% (rounded) | 24 |
+| SWORDS | 30 | +6.25% (rounded) | 24 |
+| HANDGUNS | 72 | +6.25% (rounded) | 24 |
+| RIFLES | 216 | +6.25% (rounded) | 24 |
+| AUTOMATICS | 648 | +6.25% (rounded) | 24 |
+| LASERS | 1944 | +6.25% (rounded) | 24 |
+| CANNONS | 3888 | +6.25% (rounded) | 24 |
+| SPAYGUNS | 7776 | +6.25% (rounded) | 24 |
+| EXPERIENCE | 7960 | +6.25% (rounded) | 24 |
+
+All skills cap at threshold 0x8A47 (35,399) at their respective max level.
+
+**XP overflow protection** (0x87EC): if high word ≥ 0xF8FF, no more XP is
+added. The `or cl, 0x01` ensures at least 1 XP per award.
+
 ### Weapon damage tables
 
 Weapon damage encoding recovered from file offset 0x1A006.

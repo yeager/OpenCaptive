@@ -57,6 +57,7 @@ set(OPENCAPTIVE_SOURCES
     src/render/creature_sprite.c
     src/render/object_sprite.c
     src/engine/creature_stats.c
+    src/engine/xp_level.c
     src/render/captive_compositor.c
     src/render/frame_compare.c
     src/render/viewport.c
@@ -170,7 +171,7 @@ add_test(NAME start_menu COMMAND test_start_menu)
 
 add_executable(test_game_state tests/test_game_state.c
     src/engine/engine.c src/engine/map_gen.c src/engine/combat.c
-    src/engine/captive_data.c)
+    src/engine/captive_data.c src/engine/xp_level.c)
 target_include_directories(test_game_state PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME game_state COMMAND test_game_state)
 
@@ -180,7 +181,8 @@ add_test(NAME ctv_decoder COMMAND test_ctv_decoder)
 
 add_executable(test_save_load tests/test_save_load.c
     src/engine/save_load.c src/engine/engine.c src/engine/map_gen.c
-    src/engine/combat.c src/engine/puzzle.c src/engine/captive_data.c)
+    src/engine/combat.c src/engine/puzzle.c src/engine/captive_data.c
+    src/engine/xp_level.c)
 target_include_directories(test_save_load PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME save_load COMMAND test_save_load)
 
@@ -214,6 +216,11 @@ add_executable(test_creature_stats tests/test_creature_stats.c
     src/engine/creature_stats.c)
 target_include_directories(test_creature_stats PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME creature_stats COMMAND test_creature_stats)
+
+add_executable(test_xp_level tests/test_xp_level.c
+    src/engine/xp_level.c)
+target_include_directories(test_xp_level PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME xp_level COMMAND test_xp_level)
 
 add_executable(test_adlib_sfx tests/test_adlib_sfx.c
     src/audio/adlib_sfx.c src/audio/opl2_emu.c src/audio/adlib_data.c)

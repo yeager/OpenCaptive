@@ -1,5 +1,19 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (XP and level-up formulas)
+
+### XP/level system from CAPPO.EXE disassembly
+- XP award formula (0x9621): `skill * (creature_xp + 3 + difficulty) * 12`
+- Per-skill base XP table at DS:0xB708 (file 0x19EF8): 10 entries
+- XP threshold function (0xAB92): compound growth per level
+  - ROBOTICS (skill 0): +12.5% + 8 per level, caps at level 66
+  - Other skills: +6.25% (rounded) per level, caps at level 24
+  - Max threshold: 0x8A47 (35,399)
+- Display level = XP >> 10 (from display code at 0xB142)
+- XP overflow protection (0x87EC): cap at 0xF8FFFFFF, minimum +1
+- 32-bit XP accumulator replaces old 16-bit field in Droid struct
+- Test suite: threshold growth, caps, award formula, display, overflow
+
 ## 2026-08-02 (SFX bytecode interpreter — full 13 opcodes)
 
 ### Complete SFX bytecode interpreter from CAP_A.BIN disassembly

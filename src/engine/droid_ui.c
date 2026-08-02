@@ -1,4 +1,5 @@
 #include "droid_ui.h"
+#include "xp_level.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -91,8 +92,9 @@ void droid_ui_render(const DroidUIState *ui, const GameState *gs,
     snprintf(buf, sizeof(buf), "DROID %d: %s", ui->droid_idx + 1, d->name);
     draw_txt(pixels, width, height, px + 8, py + 4, buf, 0xFFFFAA00);
 
-    snprintf(buf, sizeof(buf), "HP:%d/%d  EN:%d/%d  LV:%d  XP:%d",
-             d->hp, d->hp_max, d->energy, d->energy_max, d->level, d->xp);
+    snprintf(buf, sizeof(buf), "HP:%d/%d  EN:%d/%d  LV:%u  XP:%u",
+             d->hp, d->hp_max, d->energy, d->energy_max,
+             (unsigned)xp_to_display_level(d->xp), (unsigned)d->xp);
     draw_txt(pixels, width, height, px + 8, py + 14, buf, 0xFFAAAAFF);
 
     // Equipment section

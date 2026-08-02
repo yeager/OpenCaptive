@@ -14,7 +14,7 @@
 - [x] Recover combat PRNG variant (ror 2, no XOR at 0x9815)
 - [x] Recover real creature stat tables (DS:0xA1BF, 25 types, HP/category/speed/sprite)
 - [x] Implement damage formula: lo*hi byte encoding, shift-left scaling
-- [ ] Recover real level-up and XP formulas
+- [x] Recover real level-up and XP formulas
 - [ ] Verify spawn placement algorithm against original
 
 ### Map generation

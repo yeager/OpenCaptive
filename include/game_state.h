@@ -69,9 +69,9 @@ typedef struct {
     uint8_t body_parts[6];   // head, torso, l_arm, r_arm, l_leg, r_leg
     uint8_t weapons[2];      // left/right hand weapon ID
     uint8_t items[10];       // inventory slots
-    uint8_t level;
-    uint16_t xp;
-    uint16_t weapon_damage;  // lo*hi encoding from 0x9BF4
+    uint8_t skill_levels[10]; // per-skill level (0x00-0xFF)
+    uint32_t xp;              // 32-bit XP accumulator (max 0xF8FFFFFF)
+    uint16_t weapon_damage;   // lo*hi encoding from 0x9BF4
 } Droid;
 
 typedef enum {

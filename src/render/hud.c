@@ -1,5 +1,6 @@
 #include "hud.h"
 #include "opencaptive.h"
+#include "xp_level.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -194,7 +195,7 @@ void hud_render(const GameState *gs, uint32_t *pixels, int width, int height) {
 
         // Level
         draw_number(pixels, width, height, px + 40, py + 20,
-                    gs->droids[i].level, 0xFFAAAA00);
+                    xp_to_display_level(gs->droids[i].xp), 0xFFAAAA00);
 
         // Droid number
         draw_number(pixels, width, height, px + 4, py + 30,

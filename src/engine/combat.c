@@ -1,5 +1,6 @@
 #include "combat.h"
 #include "captive_data.h"
+#include "xp_level.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -193,14 +194,17 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     target->hp -= damage;
     if (target->hp <= 0) {
         target->active = false;
-        d->xp += target->hp_max / 10;
+        d->xp = xp_add(d->xp, target->hp_max / 10);
         gs->gold += target->hp_max / 5 + 1;
-        if (d->xp >= d->level * 100) {
-            d->level++;
-            d->hp_max += 10;
-            d->hp = d->hp_max;
-            d->energy_max += 5;
-            d->energy = d->energy_max;
+        {
+            uint16_t old_lvl = xp_to_display_level(d->xp - target->hp_max / 10);
+            uint16_t new_lvl = xp_to_display_level(d->xp);
+            if (new_lvl > old_lvl) {
+                d->hp_max += 10;
+                d->hp = d->hp_max;
+                d->energy_max += 5;
+                d->energy = d->energy_max;
+            }
         }
     }
 
