@@ -637,3 +637,63 @@ Table 2 (DS:0x9BE8): `01 03 07 05 00 01 03 04 01 02 04 05 03 04 06 07`
 ### Difficulty offset table (DS:0x9A5A)
 
 16 entries: `7, 0, 8, 16, 0, 8, 16, 0, 8, 16, 0, 8, 16, 0, 8, 16`
+
+## Map generation (Architect)
+
+Recovered from CAPPO.EXE at 0x3933–0x3FB3 and related functions.
+
+### Architecture
+
+The map buffer lives at segment 0x1BAA. Each cell is 5 bytes of wall/floor
+bitmask flags. The map is 10 cells wide × 56 rows tall, with a row stride of
+10×5 + 150 = 200 bytes. The buffer is initialized (zeroed) at 0x3EB4.
+
+### PRNG
+
+MapGen uses the DOS variant PRNG at 0x3D54: `state = state * 0x5E5 + 0x29`
+(no ROR, no XOR). State stored at `[0x12DE]`. This is distinct from the main
+game PRNG at 0x8E78 (which uses ROR 3 + XOR 0x800).
+
+### Pattern generation (0x3F10)
+
+Generates 32-bit bitmask patterns from PRNG output, rotated by varying amounts
+(low nibble, high nibble of PRNG output). Creates 8 pattern rows stored at
+segment 0x1BAA:0x4600+.
+
+### Cell rendering (0x3D54)
+
+Reads two pattern bytes per cell and applies wall connectivity via 8-bit
+bitmask tests. Each of 8 bit positions controls a wall segment direction.
+
+### Map types (0x399E dispatch)
+
+4 cellular automaton rule sets selected by `cl`:
+
+| cl | Address | Description |
+|----|---------|-------------|
+| 0 | 0x3AAA | Maze — wall connectivity propagation |
+| 1 | 0x3B67 | Rooms — open area generation |
+| 2 | 0x3C21 | Open — wide corridor layout |
+| 3+ | 0x39CC | Mixed — combined wall/room rules |
+
+### Templates
+
+4 rectangular sub-region templates at DS:0x5CD6, 0x5CE4, 0x5CF2, 0x5D00
+(14 bytes each). Applied after pattern generation via 0x3981. Each template
+has a random style byte `(PRNG & 0xC0) + 0x0C`.
+
+### Generator placement (0x1C3C–0x1D0F)
+
+After map generation loop, generators are placed:
+1. Count = `(PRNG & 7) + 1` (1–8 generators per level)
+2. Position: random x (0–111, capped at 63), random width (1–8)
+3. Marker byte `0x1A` written to map buffer cells
+4. Level counter `[0x8D7F]` decremented per level
+
+### Feature pipeline (0x3309)
+
+Post-mapgen feature placement calls:
+1. 0x1D1C — position calculation
+2. 0x2025 — processing stage
+3. 0x33D7 — feature placement (called 2+ times with different parameters)
+4. Loop over 8-byte structures at DS:0x5B82–0x5CB2 (6 entries)

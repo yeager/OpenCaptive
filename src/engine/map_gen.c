@@ -133,15 +133,21 @@ void map_generate(DungeonLevel *level, uint32_t seed, int level_num) {
         }
     }
 
-    // Place generators (mission objectives)
-    int gens_to_place = 1 + (level_num / 3);
-    for (int g = 0; g < gens_to_place && g < placed; g++) {
-        int ri = placed - 1 - g;
-        if (ri <= 0) ri = 1;
-        int gx = room_cx[ri] + (prng_next() % 3) - 1;
-        int gy = room_cy[ri] + (prng_next() % 3) - 1;
-        if (in_bounds(gx, gy) && level->cells[gy][gx].type == CELL_FLOOR) {
-            level->cells[gy][gx].type = CELL_GENERATOR;
+    /* Generator placement from CAPPO.EXE at 0x1C3C:
+     * count = (PRNG & 7) + 1, position = PRNG & 0x7F (cap 0x6F),
+     * width = (PRNG & 7) + 1, placed as rectangular patches */
+    int gen_count = (prng_next() & 7) + 1;
+    for (int g = 0; g < gen_count; g++) {
+        int gx = prng_next() & 0x7F;
+        if (gx > 0x6F) gx &= 0x3F;
+        int gw = (prng_next() & 7) + 1;
+        if (gx + gw > MAP_WIDTH - 1) gw = MAP_WIDTH - 1 - gx;
+        for (int dx2 = 0; dx2 < gw; dx2++) {
+            int x = gx + dx2;
+            int y = 1 + (prng_next() % (MAP_HEIGHT - 2));
+            if (in_bounds(x, y) && level->cells[y][x].type == CELL_FLOOR) {
+                level->cells[y][x].type = CELL_GENERATOR;
+            }
         }
     }
 
