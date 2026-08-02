@@ -68,6 +68,55 @@ static bool parse_vcdo(X3gObject *obj, const uint8_t *data, size_t size) {
         }
     }
 
+    if (obj->polygons.data && obj->polygons.size >= 4) {
+        const uint8_t *p = obj->polygons.data;
+        unsigned psz = obj->polygons.size;
+        unsigned count = 0;
+        unsigned off = 0;
+        while (off + 4 <= psz) {
+            uint16_t rsz = be16(p + off + 2);
+            if (be16(p + off) == 0 && rsz == 0) break;
+            if (rsz < 38 || off + rsz > psz) break;
+            count++;
+            off += rsz;
+        }
+        if (count > 0 && count <= X3G_MAX_POLYGONS) {
+            obj->parsed_polys = calloc(count, sizeof(X3gPolygon));
+            if (obj->parsed_polys) {
+                obj->polygon_count = count;
+                off = 0;
+                for (unsigned i = 0; i < count; i++) {
+                    X3gPolygon *pg = &obj->parsed_polys[i];
+                    pg->type = be16(p + off);
+                    pg->record_size = be16(p + off + 2);
+                    pg->w2 = bes16(p + off + 4);
+                    pg->w3 = bes16(p + off + 6);
+                    pg->w4 = bes16(p + off + 8);
+                    pg->w5 = bes16(p + off + 10);
+                    pg->w6 = bes16(p + off + 12);
+                    pg->w7 = bes16(p + off + 14);
+                    pg->normal_x = bes16(p + off + 16);
+                    pg->normal_y = bes16(p + off + 18);
+                    pg->flags = be16(p + off + 20);
+                    pg->color = be16(p + off + 22);
+                    pg->uv_left = be16(p + off + 24);
+                    pg->uv_top = be16(p + off + 26);
+                    pg->uv_right = be16(p + off + 28);
+                    pg->uv_bottom = be16(p + off + 30);
+                    pg->w16 = be16(p + off + 32);
+                    unsigned nv = (pg->record_size - 38) / 2;
+                    if (nv > X3G_MAX_POLY_VERTS) nv = X3G_MAX_POLY_VERTS;
+                    pg->vertex_count = (uint8_t)nv;
+                    for (unsigned v = 0; v < nv; v++) {
+                        uint16_t vref = be16(p + off + 36 + v * 2);
+                        pg->vertex_indices[v] = (uint8_t)(vref / 16);
+                    }
+                    off += pg->record_size;
+                }
+            }
+        }
+    }
+
     return obj->vertex_count > 0;
 }
 
@@ -110,7 +159,9 @@ bool x3g_open(X3gFile *x3g, const uint8_t *data, size_t size) {
 
 void x3g_close(X3gFile *x3g) {
     if (!x3g) return;
-    for (unsigned i = 0; i < x3g->object_count; i++)
+    for (unsigned i = 0; i < x3g->object_count; i++) {
         free(x3g->objects[i].vertices);
+        free(x3g->objects[i].parsed_polys);
+    }
     memset(x3g, 0, sizeof(*x3g));
 }

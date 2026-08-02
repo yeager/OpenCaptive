@@ -174,8 +174,28 @@ FORM O3DG
   FORM VCDO     — one per object
     EXVL        — vertex list: uint16 count, then 16 bytes per vertex:
                     int16 x, y, z, group, reserved[4]
-    PLST        — polygon list: variable-size records (format TBD)
+    PLST        — polygon list: variable-size records, terminated by 4 zero bytes
 ```
+
+#### PLST polygon record format
+
+Each record is self-sized (uint16 at offset 2). Fixed 36-byte header + variable vertex refs:
+
+| Offset | Type | Field |
+| --- | --- | --- |
+| 0 | uint16 | Type (always 0 observed) |
+| 2 | uint16 | Record size in bytes |
+| 4–11 | int16×4 | w2–w5 (flags/parameters) |
+| 12–15 | int16×2 | w6, w7 (shading parameters) |
+| 16–19 | int16×2 | Normal X, Normal Y |
+| 20–21 | uint16 | Render flags (0x1700 = filled, 0x1304/0x1101 = other modes) |
+| 22–23 | uint16 | Color/texture index |
+| 24–31 | uint16×4 | UV rect (left, top, right, bottom) |
+| 32–33 | uint16 | w16 |
+| 34–35 | uint16 | Vertex count (N) |
+| 36+ | uint16×(N+1) | Vertex refs as EXVL byte offsets (÷16 = index), last repeats first (closing) |
+
+Record size = 38 + 2×N. Common sizes: 40 (1 vertex), 44 (triangle), 46 (quad).
 
 Verified against `Objects.x3g` (3 objects), `people.x3g` (4 objects), `0CityVectors.x3g` (33 objects).
 

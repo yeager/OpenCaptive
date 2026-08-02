@@ -1,5 +1,14 @@
 # OpenCaptive Release Notes
 
+## v1.1.17 (2026-08-02)
+
+### Liberation: x3g polygon record format decoded
+- 36-byte fixed header: type, record size, normals, render flags, color/texture, UV rect
+- Variable vertex refs as EXVL byte offsets (÷16 = vertex index), with closing ref
+- Record sizes: 40 (point/sprite), 44 (triangle), 46 (quad)
+- Full X3gPolygon struct with parsed fields (normals, flags, color, UV, vertex indices)
+- Verified against all 3 x3g test files (Objects, people, 0CityVectors)
+
 ## v1.1.16 (2026-08-02)
 
 ### Liberation: VGM wall texture decoder

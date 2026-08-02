@@ -94,7 +94,7 @@
 ### 3D rendering
 - [x] Decode VGM wall texture format (4 concatenated AmSp banks, 152 sprites per file, 71 wall sets)
 - [x] Decode x3g vector format header (IFF FORM O3DG, OFFS, VCDO objects with EXVL vertices + PLST polygons)
-- [ ] Decode x3g polygon record format (variable-size records in PLST, vertex indices, texture/color refs)
+- [x] Decode x3g polygon record format (38-byte fixed header + variable vertex refs as byte offsets/16, closing ref)
 - [ ] Implement 3D viewport renderer
 
 ### Assets
