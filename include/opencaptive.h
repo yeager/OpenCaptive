@@ -17,9 +17,8 @@
 #define LIBERATION_SCREEN_WIDTH  320
 #define LIBERATION_SCREEN_HEIGHT 256
 
-/* Captive's original GAME SCRN shell reserves a 144x112 dungeon window at
- * these coordinates.  The earlier 256x136 rectangle covered the status
- * monitors, controls and message panel in the hash-verified source frame. */
+/* Viewport verified from CAPPO.EXE blit at 0x485F: di=0x44E0 (55*320+32),
+ * bp=0x70 (112 lines), cx=0x48 words (144 bytes/line), dx=0xB0 (320-144). */
 #define CAPTIVE_VIEWPORT_WIDTH  144
 #define CAPTIVE_VIEWPORT_HEIGHT 112
 #define CAPTIVE_VIEWPORT_X      32

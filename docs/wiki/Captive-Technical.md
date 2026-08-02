@@ -373,6 +373,28 @@ at 0x5E38:
 The combat PRNG at 0x9812 uses the weaker ror-2 variant without XOR, making
 combat sequences more predictable than general game randomness.
 
+## HUD panel layout
+
+The following blit rectangles were recovered from the VGA copy routines in
+CAPPO.EXE. Each is defined by a linear VGA offset (`mov di`), line count
+(`mov bp`), and bytes-per-line (`mov cx` or `rep movsw` count):
+
+| File offset | Screen (x,y) | Height | Description |
+|-------------|--------------|--------|-------------|
+| 0x485F | (32, 55) | 112 | 3D viewport (144×112, confirmed) |
+| 0x4839 | (32, 170) | 28 | Message/text area below viewport |
+| 0x0615 | (28, 3) | 32 | Top-left panel (droid status) |
+| 0x0DCA | (220, 4) | 37 | Top-right panel |
+| 0x3AD8 | (190, 15) | 30 | Right status panel |
+| 0xD41D | (210, 157) | 56 | Bottom-right panel |
+| 0xDC92 | (80, 120) | 49 | Center-bottom panel |
+| 0xDD47 | (0, 119) | 99 | Left panel (inventory) |
+| 0x1F48 | (293, 76) | 99 | Right edge panel |
+
+The viewport blit at 0x485F copies 72 words (144 bytes) per line with a source
+skip of 16 bytes and destination stride of 176 (320−144), confirming the
+viewport fills exactly 144×112 pixels.
+
 ## Current runtime boundary
 
 Captive accepts movement, rotation, interaction, inventory, terminal, save and
