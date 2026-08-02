@@ -210,7 +210,7 @@ The verified player reads big-endian 16-bit record sizes from SCPT, advancing by
 
 ## MIDI — Captive music
 
-Captive DOS uses standard MIDI files for music. Eight tracks identified by SHA-256. Supports AdLib, Roland MT-32, PC speaker and Sound Blaster output in the original (OpenCaptive uses a built-in 32-voice square-wave synthesizer with ADSR envelope).
+Captive DOS uses 63 standard MIDI files (format 1) organized into 14 categories with up to 11 variations each (154 total track slots). All files are identified by SHA-256. The original supports AdLib, Roland MT-32, PC speaker and Sound Blaster output. OpenCaptive plays through OPL2 FM synthesis using the 26 instrument patches from CAP_A.BIN.
 
 ## 8SVX — Amiga audio samples
 
