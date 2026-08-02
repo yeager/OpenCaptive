@@ -1,5 +1,23 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (combat & PRNG)
+
+### PRNG correction from disassembly
+- Fixed main PRNG: ror 3 + xor 0x0800 (was incorrectly ror 4)
+- Changed to 16-bit arithmetic matching original x86 MUL/ADD
+- Documented all 4 PRNG variants in the executable
+
+### Combat system disassembly
+- Recovered hit check function at 0x97D9 (creature target list lookup)
+- Recovered damage formula: lo_byte * hi_byte encoding at [di+6]
+- Recovered damage scaling: shift-left up to ×8 with overflow sentinel
+- Combat loop: 4 droid slots, struct size 0x10E, base 0x8DC7
+
+### SFX event mapping from disassembly
+- Disassembled INT 61h AH=0x40 call sites for real SFX indices
+- Mapped 7 static game events to driver sequences
+- Identified variable weapon-type and action-type SFX dispatch
+
 ## 2026-08-02 (item database)
 
 ### Item type codes from DOS executable
