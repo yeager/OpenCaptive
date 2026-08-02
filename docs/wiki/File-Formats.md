@@ -218,15 +218,41 @@ The AmSp format is the standard AMOS Professional Sprite Bank — the same decod
 
 ## Img — Liberation graphics
 
-Pre-rendered graphics in Liberation's Amiga image format:
+Pre-rendered graphics in Liberation's Amiga image format. Magic `ImgA` + uint16 sprite count + uint32 offset table.
 
-| File | Content |
-| --- | --- |
-| `MainSP.Img` | Main sprite sheet |
-| `MainSP16.Img` | 16-colour sprite sheet |
-| `3dView.Img` | 3D viewport frame/border |
-| `Taxi.Img` | Taxi graphics |
-| `backpack.img` | Inventory/backpack UI |
+| File | Content | Sprites |
+| --- | --- | --- |
+| `MainSP.Img` | Main sprite sheet | 158 simple |
+| `3dView.Img` | 3D viewport frame/border | 23 multi-frame (6 LOD frames each) |
+| `Taxi.Img` | Taxi graphics | 4 simple |
+| `backpack.img` | Inventory/backpack UI | 176 simple |
+
+### Img sprite record format (simple, flags=0)
+
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | uint16 | Flags (0 = simple sprite) |
+| 2 | uint16 | Width in pixels |
+| 4 | uint16 | Height in pixels |
+| 6 | uint8 | Format tag (always 0x06) |
+| 7 | uint8 | Reserved (0) |
+| 8 | uint16 | Data size (bytes from here to end of color planes) |
+| 10 | uint16×6 | Plane offset table (from byte 8, zero = sequential/unused) |
+| 22 | var | Color bitplane data (1–6 planes, planar Amiga layout) |
+| 22+color | plane_size | Mask bitplane (1-bit transparency) |
+
+`plane_size = ceil(width/16) × 2 × height`. Total sprite = 8 + data_size + plane_size.
+
+Color depth varies per sprite: 1–6 bitplanes (2–64 colors). The number of color planes = `(data_size - 14) / plane_size`.
+
+### Multi-frame sprites (flags > 0)
+
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | uint16 | Frame count |
+| 2 | uint16×N | Frame offsets (from byte 0 of sprite record) |
+
+Each frame is a sub-sprite identical to the simple format but without the 2-byte flags field (header starts at width). Used by 3dView.Img for distance-LOD viewport frames.
 
 ## AmSp — AMOS sprite bank
 
@@ -238,11 +264,11 @@ Records are word-aligned: odd total payload is followed by one padding byte.
 
 ## FNT — Liberation fonts
 
-Font data stored as `{N}Liberation.FNT` with 4 variants (N=0-3). Format under analysis.
+Font data stored as `{N}Liberation.FNT` (2 variants found: N=0,1). `CHAR` magic, 1836 bytes each, 114 glyphs at 16 bytes per glyph (8px wide, 2-plane bitmap). Format partially decoded.
 
 ## spr — Liberation sprites
 
-Game menu sprites stored as `GameMenu.spr`. Format under analysis.
+`GameMenu.spr` is a standard AmSp (AMOS Sprite Bank) — same format as VGM banks. See AmSp section.
 
 ## IFF ANIM — Amiga animation
 

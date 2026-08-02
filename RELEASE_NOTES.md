@@ -1,5 +1,15 @@
 # OpenCaptive Release Notes
 
+## v1.1.19 (2026-08-02)
+
+### Liberation: Img sprite format decoded
+- `ImgA` container: uint16 sprite count + uint32 offset table
+- Simple sprites: width, height, 1–6 color bitplanes (planar Amiga layout) + mask plane
+- Multi-frame sprites: frame count + offset table, each frame a sub-sprite (LOD variants)
+- Verified all 361 sprites across 4 files: MainSp (158), backpack (176), taxi (4), 3dView (23 multi×6 frames)
+- FNT font format identified: `CHAR` magic, 114 glyphs × 16 bytes, 8px wide 2-plane bitmap
+- gamemenu.spr confirmed as standard AmSp bank (already decoded)
+
 ## v1.1.18 (2026-08-02)
 
 ### Custom features system
