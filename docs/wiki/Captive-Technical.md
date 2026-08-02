@@ -334,6 +334,45 @@ lookup tables. The original game computes them procedurally from the type code
 and material grade. The stat computation formulas remain to be recovered from
 the code section of the executable.
 
+## PRNG
+
+Captive uses multiple PRNG variants, all based on the same linear congruential
+core (`state = state * 0x5E5 + 0x29`) but with different post-processing:
+
+| Location | Rotation | XOR | Usage |
+|----------|----------|-----|-------|
+| 0x8A8E | ror 3 | xor ah,0x08 | Main game PRNG |
+| 0x9815 | ror 2 | none | Combat randomness |
+| 0x9FBA | ror 3 | and 0x0F (mask) | Name/map generation |
+| 0xDAB6 | none | xchg al,ah | Map seed chaining (3 iterations) |
+
+The main PRNG state is stored at `[0x9308]` (combat) and `[0x92F8]` (general).
+All operate on 16-bit values.
+
+## Combat system
+
+Combat is processed at 0x8D66 in the unpacked CAPPO.EXE. The system iterates
+over 4 droid slots (struct size 0x10E bytes, base 0x8DC7) from the droid array
+at 0x5E38:
+
+1. **Hit check** (0x97D9): Looks up attacker's target list in a creature table
+   indexed by CH. Walks the list comparing each entry to AL (target ID).
+   Increments hit counter (DL) on match.
+
+2. **Damage calculation** (0x97F4): `damage = lo_byte([di+6]) * hi_byte([di+6])`.
+   The two bytes at offset 6 in the combat struct encode base damage and
+   multiplier.
+
+3. **Damage scaling** (0x97FC): Shifts damage left up to 3 times (×2, ×4, ×8),
+   checking for signed overflow at each step. Returns 0xFFFD (-3) as an
+   overflow sentinel.
+
+4. **Damage application** (0x8DAE): `[di+6]` damage value added to accumulator
+   at `[0x8D81]` when creature type byte equals 0x72.
+
+The combat PRNG at 0x9812 uses the weaker ror-2 variant without XOR, making
+combat sequences more predictable than general game randomness.
+
 ## Current runtime boundary
 
 Captive accepts movement, rotation, interaction, inventory, terminal, save and

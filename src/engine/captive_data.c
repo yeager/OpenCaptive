@@ -33,9 +33,9 @@ const char *const captive_name_syllables[CAPTIVE_SYLLABLE_COUNT] = {
 };
 
 uint32_t captive_prng(uint32_t *state) {
-    uint32_t s = *state;
-    s = s * 0x5e5 + 0x29;
-    s = (s >> 4) | (s << 28);
+    uint16_t s = (uint16_t)*state;
+    s = (uint16_t)(s * 0x5e5 + 0x29);
+    s = (s >> 3) | (s << 13);
     s ^= 0x0800;
     *state = s;
     return s;
