@@ -89,6 +89,15 @@ static const Item item_defs[] = {
     {56, ITEM_MAP,       "MESSAGE FROM RATT",  0x00, 0,0,0,0,0,0,0,   0, 0.1f, 0},
 };
 
+const UpgradeTier upgrade_tiers[UPGRADE_TIER_COUNT] = {
+    {0x30, "1.9"},   {0x21, "2"},     {0x21, "3C"},    {0x21, "5"},
+    {0x21, "7"},     {0x21, "14A"},   {0x30, "14B"},   {0x30, "27"},
+    {0x30, "23"},    {0x30, "33.1"},  {0x30, "56"},    {0x30, "78"},
+    {0x30, "99"},    {0x30, "111"},   {0x30, "141"},   {0x30, "165.8"},
+    {0x30, "180"},   {0x30, "200"},   {0x30, "211"},   {0x30, "231"},
+    {0x30, "A12"},   {0x30, "L22"},   {0x30, "X42"},
+};
+
 void item_db_init(ItemDatabase *db) {
     memset(db, 0, sizeof(*db));
     int n = sizeof(item_defs) / sizeof(item_defs[0]);

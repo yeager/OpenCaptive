@@ -26,7 +26,7 @@
 ### Items
 - [x] Decode type code prefix bytes in item table (0x00/0x08/0x10/0x20/0x21/0x27/0x30/0x60/0x65)
 - [ ] Recover item stat computation formulas (procedural from type_code + grade)
-- [ ] Decode weapon variant/upgrade tier price format (0x1a220+ region)
+- [x] Decode weapon variant/upgrade tier price format (0x1a220+ region)
 - [ ] Recover item pricing formula
 - [ ] Recover weapon damage/range/ammo stats from binary
 

@@ -61,6 +61,18 @@ typedef struct {
     int  num_defs;
 } ItemDatabase;
 
+/* Weapon upgrade tier prices from CAPPO.EXE at 0x1A220.
+ * Format in binary: 00 type_code 04 2C price_ascii 2D.
+ * 23 entries: type 0x21=melee, 0x30=ranged. */
+#define UPGRADE_TIER_COUNT 23
+
+typedef struct {
+    uint8_t type_code;
+    const char *price_str;
+} UpgradeTier;
+
+extern const UpgradeTier upgrade_tiers[UPGRADE_TIER_COUNT];
+
 void item_db_init(ItemDatabase *db);
 const Item *item_db_get(const ItemDatabase *db, uint8_t id);
 int  item_db_find_by_category(const ItemDatabase *db, ItemCategory cat,
