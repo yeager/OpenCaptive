@@ -1,4 +1,5 @@
 #include "map_gen.h"
+#include "mapgen_ca.h"
 #include <string.h>
 
 /* Exact 16-bit Architect PRNG recovered at offsets 0x44a0-0x44b8 in the
@@ -68,12 +69,17 @@ void map_generate(DungeonLevel *level, uint32_t seed, int level_num) {
     level->level = level_num;
     level->seed = seed;
 
-    prng_seed(seed + level_num * 7919);
+    /* Use original CA map generation from CAPPO.EXE.
+     * Map type is derived from seed bits, matching the original dispatch. */
+    CAMap ca;
+    ca_init(&ca);
+    uint16_t ca_state = (uint16_t)(seed + level_num * 7919);
+    ca_generate_pattern(&ca, &ca_state);
+    CAMapType type = (CAMapType)((seed + level_num) & 3);
+    ca_apply_rules(&ca, type);
+    ca_to_dungeon_level(&ca, level, level_num);
 
-    // Start with all walls
-    for (int y = 0; y < MAP_HEIGHT; y++)
-        for (int x = 0; x < MAP_WIDTH; x++)
-            level->cells[y][x].type = CELL_WALL;
+    prng_seed(seed + level_num * 7919);
 
     // Place rooms (Captive typically has 8-20 rooms per level)
     int num_rooms = 8 + (prng_next() % 13);

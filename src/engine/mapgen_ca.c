@@ -1,5 +1,6 @@
 #include "mapgen_ca.h"
 #include <string.h>
+#include "game_state.h"
 
 static uint16_t ca_prng(uint16_t *state) {
     *state = (uint16_t)(*state * 0x5E5u + 0x29u);
@@ -225,4 +226,43 @@ uint8_t ca_cell_wall_flags(const CAMap *map, int x, int y) {
     if (c[3] & 0x80) flags |= 0x08;
     if (c[4] & 0x10) flags |= 0x10;
     return flags;
+}
+
+void ca_to_dungeon_level(const CAMap *map, DungeonLevel *level, int level_num) {
+    memset(level, 0, sizeof(*level));
+    level->level = level_num;
+
+    /* The CA grid is 10×56 cells. The DungeonLevel is 64×32 cells.
+     * Scale: each CA cell maps to ~6×1 dungeon cells horizontally,
+     * and the 56 CA rows map to 32 dungeon rows (skip every other + trim). */
+    for (int dy = 0; dy < MAP_HEIGHT; dy++) {
+        int ca_y = (dy * CA_HEIGHT) / MAP_HEIGHT;
+        if (ca_y >= CA_HEIGHT) ca_y = CA_HEIGHT - 1;
+        for (int dx2 = 0; dx2 < MAP_WIDTH; dx2++) {
+            int ca_x = (dx2 * CA_WIDTH) / MAP_WIDTH;
+            if (ca_x >= CA_WIDTH) ca_x = CA_WIDTH - 1;
+
+            if (ca_cell_is_wall(map, ca_x, ca_y)) {
+                level->cells[dy][dx2].type = CELL_WALL;
+            } else {
+                level->cells[dy][dx2].type = CELL_FLOOR;
+            }
+
+            uint8_t base_tex = (uint8_t)(level_num % 4);
+            for (int d = 0; d < 4; d++)
+                level->cells[dy][dx2].wall_tex[d] = base_tex;
+            level->cells[dy][dx2].floor_tex = base_tex;
+            level->cells[dy][dx2].ceil_tex = base_tex;
+        }
+    }
+
+    /* Border walls */
+    for (int x = 0; x < MAP_WIDTH; x++) {
+        level->cells[0][x].type = CELL_WALL;
+        level->cells[MAP_HEIGHT-1][x].type = CELL_WALL;
+    }
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        level->cells[y][0].type = CELL_WALL;
+        level->cells[y][MAP_WIDTH-1].type = CELL_WALL;
+    }
 }

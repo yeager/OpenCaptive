@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "game_state.h"
 
 #define CA_WIDTH  10
 #define CA_HEIGHT 56
@@ -24,5 +25,6 @@ void ca_generate_pattern(CAMap *map, uint16_t *prng_state);
 void ca_apply_rules(CAMap *map, CAMapType type);
 bool ca_cell_is_wall(const CAMap *map, int x, int y);
 uint8_t ca_cell_wall_flags(const CAMap *map, int x, int y);
+void ca_to_dungeon_level(const CAMap *map, DungeonLevel *level, int level_num);
 
 #endif
