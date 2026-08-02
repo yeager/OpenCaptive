@@ -98,6 +98,21 @@ const UpgradeTier upgrade_tiers[UPGRADE_TIER_COUNT] = {
     {0x30, "A12"},   {0x30, "L22"},   {0x30, "X42"},
 };
 
+const MeleeDamageEntry melee_damage[MELEE_DAMAGE_COUNT] = {
+    {0x04, 0x21}, {0x04, 0x2A}, {0x04, 0x33}, {0x04, 0x3C},
+    {0x4C, 0x21}, {0x4C, 0x2A}, {0x4C, 0x33}, {0x4C, 0x3C},
+    {0x15, 0x21}, {0x12, 0x2A}, {0x0E, 0x33}, {0x0F, 0x3C}, {0x13, 0x45},
+    {0x5A, 0x21}, {0x5A, 0x2A}, {0x57, 0x33}, {0x52, 0x3C}, {0x59, 0x45},
+};
+
+const RangedDamageEntry ranged_damage[RANGED_DAMAGE_COUNT] = {
+    {72, 45, 1}, {88, 45, 1}, {104, 45, 1}, {120, 45, 0},
+    {72, 35, 1}, {88, 35, 1}, {104, 35, 1}, {120, 35, 0},
+    {72, 25, 1}, {88, 25, 1}, {104, 25, 1}, {120, 25, 0},
+    {72, 15, 1}, {88, 15, 1}, {104, 15, 1}, {120, 15, 0},
+    {72,  5, 0}, {88,  5, 0}, {104,  5, 0}, {120,  5, 0},
+};
+
 void item_db_init(ItemDatabase *db) {
     memset(db, 0, sizeof(*db));
     int n = sizeof(item_defs) / sizeof(item_defs[0]);

@@ -393,6 +393,28 @@ at 0x5E38:
 4. **Damage application** (0x8DAE): `[di+6]` damage value added to accumulator
    at `[0x8D81]` when creature type byte equals 0x72.
 
+### Weapon damage tables
+
+Weapon damage encoding recovered from file offset 0x1A006.
+
+**Melee weapons** (18 entries, 2 bytes each: lo, hi):
+
+| # | lo | hi | Damage (lo×hi) | Notes |
+|---|----|----|----------------|-------|
+| 0-3 | 0x04 | 0x21-0x3C | 132-240 | Starter weapon, 4 grades |
+| 4-7 | 0x4C | 0x21-0x3C | 2508-4560 | Heavy melee, 4 grades |
+| 8-12 | varies | 0x21-0x45 | 693-1311 | Medium melee, 5 grades |
+| 13-17 | varies | 0x21-0x45 | 2970-6141 | Elite melee, 5 grades |
+
+Grade progression uses hi bytes: 0x21(33), 0x2A(42), 0x33(51), 0x3C(60), 0x45(69)
+— increments of 9.
+
+**Ranged weapons** (20 entries, 4 bytes each: base, modifier, flag, 0x00):
+
+5 tiers × 4 levels. Base values: 72, 88, 104, 120 (increment 16).
+Modifier values: 45, 35, 25, 15, 5 (decrement 10 per tier).
+Flag: 1 for upgradeable, 0 for max-tier or base tier.
+
 The combat PRNG at 0x9812 uses the weaker ror-2 variant without XOR, making
 combat sequences more predictable than general game randomness.
 

@@ -28,7 +28,7 @@
 - [ ] Recover item stat computation formulas (procedural from type_code + grade)
 - [x] Decode weapon variant/upgrade tier price format (0x1a220+ region)
 - [ ] Recover item pricing formula
-- [ ] Recover weapon damage/range/ammo stats from binary
+- [x] Recover weapon damage stats from binary (melee 18 entries, ranged 20 entries at 0x1A006)
 
 ### Sound
 - [x] Extract OPL2 instrument patches from CAP_A.BIN (26 patches)

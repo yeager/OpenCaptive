@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (weapon damage tables)
+
+### Weapon damage encoding from CAPPO.EXE
+- Melee: 18 entries at file 0x1A006 (lo,hi pairs → lo×hi base damage)
+- Ranged: 20 entries at file 0x1A02A (base, modifier, flag, 0 records)
+- Grade progression: hi bytes 33,42,51,60,69 (increment 9)
+- Ranged tiers: base 72-120 (×16), modifier 45→5 (÷10 per tier)
+
 ## 2026-08-02 (creature stat tables)
 
 ### Creature stat tables from CAPPO.EXE disassembly

@@ -73,6 +73,27 @@ typedef struct {
 
 extern const UpgradeTier upgrade_tiers[UPGRADE_TIER_COUNT];
 
+/* Weapon damage encoding table from CAPPO.EXE at file 0x1A006.
+ * Melee: 18 entries (2 bytes each: lo, hi → damage = lo × hi).
+ * Ranged: 20 entries (4 bytes each: base, modifier, flag, 0).
+ * See combat formula at 0x9BF4 for how these are applied. */
+#define MELEE_DAMAGE_COUNT  18
+#define RANGED_DAMAGE_COUNT 20
+
+typedef struct {
+    uint8_t lo;
+    uint8_t hi;
+} MeleeDamageEntry;
+
+typedef struct {
+    uint8_t base;
+    uint8_t modifier;
+    uint8_t flag;
+} RangedDamageEntry;
+
+extern const MeleeDamageEntry melee_damage[MELEE_DAMAGE_COUNT];
+extern const RangedDamageEntry ranged_damage[RANGED_DAMAGE_COUNT];
+
 void item_db_init(ItemDatabase *db);
 const Item *item_db_get(const ItemDatabase *db, uint8_t id);
 int  item_db_find_by_category(const ItemDatabase *db, ItemCategory cat,
