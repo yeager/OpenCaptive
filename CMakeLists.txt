@@ -47,6 +47,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/st_disk_reader.c
     src/audio/sound.c
     src/audio/sfx.c
+    src/data/ctv_decoder.c
     src/render/renderer.c
     src/render/hud.c
     src/render/captive_compositor.c
@@ -166,6 +167,10 @@ add_executable(test_game_state tests/test_game_state.c
 target_include_directories(test_game_state PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME game_state COMMAND test_game_state)
 
+add_executable(test_ctv_decoder tests/test_ctv_decoder.c src/data/ctv_decoder.c)
+target_include_directories(test_ctv_decoder PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME ctv_decoder COMMAND test_ctv_decoder)
+
 add_executable(test_save_load tests/test_save_load.c
     src/engine/save_load.c src/engine/engine.c src/engine/map_gen.c
     src/engine/combat.c src/engine/puzzle.c src/engine/captive_data.c)
@@ -184,7 +189,7 @@ endfunction()
 
 foreach(test_target IN ITEMS
         test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_captive_compositor test_dos_vga_reference test_captive_dos_descriptor test_frame_compare test_data_vfs
-        test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_amiga_planar test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load)
+        test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_amiga_planar test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load test_ctv_decoder)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
 

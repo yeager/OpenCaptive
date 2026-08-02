@@ -24,6 +24,7 @@ typedef struct {
 } SfxSystem;
 
 bool sfx_init(SfxSystem *sfx, SoundSystem *snd);
+bool sfx_load_ctv(SfxSystem *sfx, const uint8_t *data, uint32_t size);
 void sfx_play(SfxSystem *sfx, SfxType type);
 
 #endif
