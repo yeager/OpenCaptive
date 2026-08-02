@@ -40,7 +40,7 @@ static void test_combat_respects_closed_doors(void) {
 
     creatures.num_creatures = 1;
     creatures.creatures[0] = (Creature){
-        .type = CREATURE_DRONE, .hp = 30, .hp_max = 30,
+        .type = CREATURE_ALIEN1, .hp = 30, .hp_max = 30,
         .defense = 0, .range = 4, .x = 3, .y = 1,
         .level = 0, .active = true,
     };

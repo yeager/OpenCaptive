@@ -24,7 +24,7 @@ static void test_round_trip(void) {
     saved.generators_destroyed = 1;
     saved_creatures.num_creatures = 1;
     saved_creatures.creatures[0] = (Creature){
-        .type = CREATURE_DRONE, .hp = 0, .hp_max = 30,
+        .type = CREATURE_ALIEN1, .hp = 0, .hp_max = 30,
         .x = 12, .y = 7, .level = 0, .active = false,
     };
     saved_puzzles.num_puzzles = 1;

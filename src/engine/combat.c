@@ -1,23 +1,27 @@
 #include "combat.h"
+#include "captive_data.h"
 #include <stdlib.h>
 #include <string.h>
 
-// Creature stat tables (hp, damage_min, damage_max, defense, speed, range)
+/* Placeholder creature stats indexed by type.
+ * Format: {hp, damage_min, damage_max, defense, speed, range}.
+ * These values are NOT recovered from the original executable —
+ * they are functional placeholders until the combat formula code
+ * section of CAPPO.EXE is disassembled. */
 static const int16_t creature_stats[CREATURE_COUNT][6] = {
-    [CREATURE_NONE]     = {0,0,0,0,0,0},
-    [CREATURE_DRONE]    = {30,  5, 15, 2, 8, 4},
-    [CREATURE_GUARD]    = {60, 10, 25, 5, 6, 3},
-    [CREATURE_TURRET]   = {80, 15, 30, 8, 10, 6},
-    [CREATURE_ROBOT]    = {120, 20, 40, 10, 5, 2},
-    [CREATURE_ENFORCER] = {200, 30, 60, 15, 4, 3},
-    [CREATURE_BOSS]     = {500, 50,100, 25, 3, 4},
+    [CREATURE_NONE]   = {0,0,0,0,0,0},
+    [CREATURE_ALIEN1] = {30,  5, 15, 2, 8, 4},
+    [CREATURE_ALIEN2] = {60, 10, 25, 5, 6, 3},
+    [CREATURE_ALIEN3] = {80, 15, 30, 8, 10, 6},
+    [CREATURE_ALIEN4] = {120, 20, 40, 10, 5, 2},
+    [CREATURE_ALIEN5] = {200, 30, 60, 15, 4, 3},
+    [CREATURE_ALIEN6] = {500, 50,100, 25, 3, 4},
 };
 
-static uint32_t combat_prng;
+static uint32_t combat_seed;
 
 static uint32_t combat_rand(void) {
-    combat_prng = combat_prng * 1103515245 + 12345;
-    return (combat_prng >> 16) & 0x7FFF;
+    return captive_prng(&combat_seed);
 }
 
 void combat_init(CreatureList *cl) {
@@ -26,7 +30,7 @@ void combat_init(CreatureList *cl) {
 
 void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
                             int level_num, uint32_t seed) {
-    combat_prng = seed + level_num * 3571;
+    combat_seed = seed + level_num * 3571;
 
     int num_to_spawn = 3 + level_num * 2;
     if (num_to_spawn > 20) num_to_spawn = 20;
@@ -34,7 +38,6 @@ void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
     for (int i = 0; i < num_to_spawn; i++) {
         if (cl->num_creatures >= MAX_CREATURES) break;
 
-        // Find a floor cell
         int attempts = 100;
         while (attempts-- > 0) {
             int x = 1 + (combat_rand() % (MAP_WIDTH - 2));
@@ -43,7 +46,6 @@ void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
                 Creature *c = &cl->creatures[cl->num_creatures++];
                 memset(c, 0, sizeof(*c));
 
-                // Type scales with level
                 int max_type = 1 + level_num / 2;
                 if (max_type >= CREATURE_COUNT) max_type = CREATURE_COUNT - 1;
                 c->type = 1 + (combat_rand() % max_type);
@@ -70,15 +72,13 @@ static int distance(int x1, int y1, int x2, int y2) {
     int dy = y1 - y2;
     if (dx < 0) dx = -dx;
     if (dy < 0) dy = -dy;
-    return (dx > dy) ? dx : dy; // Chebyshev distance
+    return (dx > dy) ? dx : dy;
 }
 
 static bool blocks_movement_or_sight(CellType cell) {
     return cell == CELL_WALL || cell == CELL_DOOR || cell == CELL_DOOR_LOCKED;
 }
 
-/* Both droids and enemies use the same grid visibility rule.  Range alone
- * must not allow shots through a wall or a closed door. */
 static bool combat_has_line_of_sight(const GameState *gs,
                                      int x0, int y0, int x1, int y1) {
     if (!gs || gs->current_level < 0 || gs->current_level >= gs->num_levels)
@@ -109,16 +109,13 @@ void combat_tick(CreatureList *cl, GameState *gs) {
 
         int dist = distance(c->x, c->y, gs->party_x, gs->party_y);
 
-        // Alert if player is nearby
         if (dist <= c->range + 2) c->alerted = true;
         if (!c->alerted) continue;
 
-        // Cooldown
         if (c->cooldown > 0) { c->cooldown--; continue; }
 
         if (dist <= c->range && combat_has_line_of_sight(gs, c->x, c->y,
                                                           gs->party_x, gs->party_y)) {
-            // Attack a random droid
             int target = combat_rand() % 4;
             Droid *d = &gs->droids[target];
             int damage = c->damage_min +
@@ -127,7 +124,6 @@ void combat_tick(CreatureList *cl, GameState *gs) {
             if (d->hp < 0) d->hp = 0;
             c->cooldown = c->speed;
         } else {
-            // Move toward player
             int move_dx = 0, move_dy = 0;
             if (c->x < gs->party_x) move_dx = 1;
             else if (c->x > gs->party_x) move_dx = -1;
@@ -151,7 +147,6 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     Droid *d = &gs->droids[droid_idx];
     if (d->hp <= 0) return false;
 
-    // Find closest creature in front of party within range
     int fwd_x = (int[]){0,1,0,-1}[gs->party_dir];
     int fwd_y = (int[]){-1,0,1,0}[gs->party_dir];
 
@@ -165,7 +160,6 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
         int dx = c->x - gs->party_x;
         int dy = c->y - gs->party_y;
 
-        // Check if roughly in front
         int dot = dx * fwd_x + dy * fwd_y;
         if (dot <= 0) continue;
 
@@ -179,7 +173,6 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
 
     if (!target) return false;
 
-    // Calculate damage (base 10-20 for basic weapon)
     int base_damage = 10 + (combat_rand() % 11);
     int damage = base_damage - target->defense / 2;
     if (damage < 1) damage = 1;
@@ -202,7 +195,6 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
 }
 
 void combat_interact(GameState *gs) {
-    // Interact with cell in front of party
     int fwd_x = (int[]){0,1,0,-1}[gs->party_dir];
     int fwd_y = (int[]){-1,0,1,0}[gs->party_dir];
     int tx = gs->party_x + fwd_x;
@@ -215,17 +207,13 @@ void combat_interact(GameState *gs) {
 
     switch (cell->type) {
         case CELL_DOOR:
-            cell->type = CELL_FLOOR; // open door
+            cell->type = CELL_FLOOR;
             break;
         case CELL_DOOR_LOCKED:
-            // Need key or brute force
             break;
         case CELL_GENERATOR:
             cell->type = CELL_FLOOR;
             gs->generators_destroyed++;
-            if (gs->generators_destroyed >= gs->generators_total) {
-                // Mission complete — would trigger victory sequence
-            }
             break;
         case CELL_SHOP:
             gs->mode = STATE_SHOP;

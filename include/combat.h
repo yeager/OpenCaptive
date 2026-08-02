@@ -3,15 +3,17 @@
 
 #include "game_state.h"
 
-// Creature types matching Captive's encounter system
+/* Captive has 6 alien sprite sets (ALIEN1-ALIEN6.PL5).
+ * The exact creature stats and combat formulas are not yet recovered
+ * from the DOS executable. All stat values below are placeholders. */
 typedef enum {
     CREATURE_NONE = 0,
-    CREATURE_DRONE,
-    CREATURE_GUARD,
-    CREATURE_TURRET,
-    CREATURE_ROBOT,
-    CREATURE_ENFORCER,
-    CREATURE_BOSS,
+    CREATURE_ALIEN1,
+    CREATURE_ALIEN2,
+    CREATURE_ALIEN3,
+    CREATURE_ALIEN4,
+    CREATURE_ALIEN5,
+    CREATURE_ALIEN6,
     CREATURE_COUNT,
 } CreatureType;
 
@@ -22,11 +24,11 @@ typedef struct {
     int16_t damage_min;
     int16_t damage_max;
     int16_t defense;
-    uint8_t speed;      // attack cooldown in ticks
-    uint8_t range;      // attack range in cells
-    int     x, y;       // map position
-    int     level;      // dungeon level
-    uint8_t cooldown;   // current attack cooldown
+    uint8_t speed;
+    uint8_t range;
+    int     x, y;
+    int     level;
+    uint8_t cooldown;
     bool    active;
     bool    alerted;
 } Creature;
