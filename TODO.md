@@ -25,9 +25,9 @@
 
 ### Items
 - [x] Decode type code prefix bytes in item table (0x00/0x08/0x10/0x20/0x21/0x27/0x30/0x60/0x65)
-- [ ] Recover item stat computation formulas (procedural from type_code + grade)
+- [x] Recover item stat computation formulas (procedural from type_code + grade)
 - [x] Decode weapon variant/upgrade tier price format (0x1a220+ region)
-- [ ] Recover item pricing formula
+- [x] Recover item pricing formula
 - [x] Recover weapon damage stats from binary (melee 18 entries, ranged 20 entries at 0x1A006)
 
 ### Sound

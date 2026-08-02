@@ -373,9 +373,15 @@ SHELLS, LASER PACK, SONIC PACK, and the three grenade types.
 
 The weapon variant section at 0x1a220 contains 23 upgrade tier records in the
 format `00 type_code 04 2c PRICE_STRING 2d` where the price string is ASCII
-decimal. Tier 0 (0x30): 1.9. Tiers 1-5 (0x21/melee): 2, 3C, 5, 7, 14A.
-Tiers 6-19 (0x30/ranged): 14B, 27, 23, 33.1, 56, 78, 99, 111, 141, 165.8,
-180, 200, 211, 231. Named variant prefixes: A12, L22, X42.
+decimal. Suffix letters (A/B/C) distinguish same-price items. Gold cap is 200
+(`[0x8D81]` capped at 0xC8 in bar renderer at 0x1AE7).
+
+| Tier | Type | Price | Notes |
+|------|------|-------|-------|
+| 0 | 0x30 ranged | 1.9 | Base ranged |
+| 1-5 | 0x21 melee | 2, 3, 5, 7, 14 | Melee progression |
+| 6-19 | 0x30 ranged | 14, 27, 23, 33, 56, 78, 99, 111, 141, 165, 180, 200, 211, 231 | Ranged progression |
+| 20-22 | 0x30 ranged | A12, L22, X42 | Named variant prefixes |
 
 Item stats (damage, range, ammo capacity, price, weight) are **not** stored as
 lookup tables. The original game computes them procedurally from the type code

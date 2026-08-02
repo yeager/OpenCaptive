@@ -1,5 +1,19 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (item pricing and availability)
+
+### Item pricing formula from CAPPO.EXE disassembly
+- Price computation at 0xBB63: rol16-based scaling with game level + difficulty
+- Early game (level <= 5): fixed base price 128
+- Normal: ((level_hi <<< 4) + level_lo + base + shop_tier) <<< 4 + difficulty
+- Item availability check at 0xB8D6: grade/material gating against difficulty
+- 23 weapon variant tiers with ASCII prices decoded from 0x1A220
+- Melee tiers: 2, 3, 5, 7, 14 gold
+- Ranged tiers: 14-231 gold (14 tiers with increasing prices)
+- Named variants: A12, L22, X42
+- Gold cap: 200 (0xC8) at gold bar renderer (0x1AE7)
+- Test suite: variant table, pricing, availability
+
 ## 2026-08-02 (AdLib MIDI playback)
 
 ### OPL2-based MIDI player
