@@ -203,6 +203,23 @@ byte-identical implementation** of those 30 stages. In particular, the
 current PRNG arithmetic and feature placement must not be treated as recovered
 original code until they are validated against original MapGen output.
 
+### DOS MapGen disassembly (partial)
+
+The DOS generator entry at 0x1C3C in the unpacked CAPPO.EXE operates on a
+bitmask buffer (20 bytes per row, stride 0xA0 in viewport mode). Key stages:
+
+1. **Random rectangle carving** (0x1C4B): Decrements iteration counter
+   `[0x8D7F]`, generates random position (AND 0x7F, max 0x6F) and size
+   (AND 0x7, INC → 1-8), writes wall data via bitmask OR/AND.
+2. **Boundary cleanup** (0x1D1C): Scans 3×3 neighborhoods around each cell
+   comparing against threshold 0x18. Fills border cells with 0x20 (floor).
+3. **Cell type assignment** (0x1E50): Converts bitmask to cell records (8 bytes
+   each). Values: 0x00=wall, 0x20=floor, 0x44=door. Checks grid boundaries
+   at CX=0x40 (width 64) and BX=0x20 (height 32).
+
+The PRNG at 0x8E78 is the DOS variant: `state = state * 0x5E5 + 0x29` (no
+rotation or XOR), stored at `[0x12DE]`.
+
 The technical reference used for this boundary is the documented
 [MapGen introduction](https://captive.atari.org/Technical/MapGen/Introduction.php)
 and its linked stage pages. New MapGen work must add an original-output fixture
