@@ -5,9 +5,6 @@
 #include "adlib_data.h"
 #include <stdbool.h>
 
-/* AdLib SFX player: interprets the bytecode sequences from CAP_A.BIN
- * and drives the OPL2 emulator to render sound effects to PCM. */
-
 #define ADLIB_SFX_MAX_ACTIVE 4
 
 typedef struct {
@@ -17,6 +14,14 @@ typedef struct {
     int delay;
     int channel;
     bool active;
+    uint8_t note_offset;
+    bool key_playing;
+    uint8_t current_note;
+    size_t loop_table_ptr;
+    int loop_counter;
+    bool in_subroutine;
+    size_t return_addr;
+    uint16_t prng_state;
 } AdlibSfxVoice;
 
 typedef struct {

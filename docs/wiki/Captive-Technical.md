@@ -309,8 +309,33 @@ samples. The `CAP_A.BIN` file (5,426 bytes) is a loadable x86 driver containing:
    SL/RR, waveform, feedback/connection)
 
 The SFX sequences, instrument patches, and frequency table have been extracted
-to `adlib_data.c` with a verification test suite. Full OPL2 emulation for
-rendering these sequences to PCM is a future task.
+to `adlib_data.c` with a verification test suite.
+
+#### SFX bytecode interpreter (13 opcodes)
+
+The interpreter loop at offset 0x734 in CAP_A.BIN runs 4 voices simultaneously
+at ~70 Hz (DOS timer tick). Voice state is a 0x1C-byte struct with PC, delay
+counter, note offset, loop table pointer, subroutine return address, and PRNG.
+
+| Opcode | Size | Action |
+|--------|------|--------|
+| 0x80 | 3 | Key on: note = operand1 + note_offset, delay = operand2 |
+| 0x81 | 2 | Set delay counter |
+| 0x82 | 2 | Set OPL2 volume register |
+| 0x83 | 2 | Set note offset (added to all subsequent notes) |
+| 0x84 | 2 | Load instrument patch by index |
+| 0x85 | 2 | Set delay (variant, jumps to delay path) |
+| 0x86 | 3 | Call subroutine (saves return address) |
+| 0x87 | 1 | Return from subroutine |
+| 0x88 | 2 | Key on with PRNG-generated note, delay = operand |
+| 0x89 | 2 | Set delay to (PRNG & operand) + 1 |
+| 0x8A | 3 | Jump to absolute address |
+| 0xC8 | 1 | Key off |
+| 0xFF | - | End/loop: decrement loop counter, advance loop table pointer |
+
+Opcodes 0x88 and 0x89 use a per-voice xorshift PRNG for randomized pitch and
+timing effects (explosion rumble, ambient noise). Opcode 0x86/0x87 implement
+single-level subroutine calls for sequence reuse within SFX programs.
 
 The CTV files (`SB15.CTV`, `SB20.CTV`, `SBPRO.CTV`) are CT-VOICE driver files
 for Sound Blaster DSP, not Creative Voice (VOC) audio samples. They contain

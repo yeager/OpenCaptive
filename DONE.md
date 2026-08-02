@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (SFX bytecode interpreter — full 13 opcodes)
+
+### Complete SFX bytecode interpreter from CAP_A.BIN disassembly
+- Implemented all 13 opcodes (was 5): 0x80-0x8A, 0xC8, 0xFF
+- New opcodes: 0x81 (delay), 0x82 (volume), 0x83 (note offset), 0x85 (delay variant),
+  0x86 (call subroutine), 0x87 (return), 0x88 (PRNG note), 0x89 (PRNG delay), 0x8A (jump)
+- Voice struct extended: note_offset, key_playing, current_note, loop table, subroutine support, PRNG state
+- Fixed opcode semantics: 0x80 is key-on (not delay), 0x82 is volume (not pitch), 0x83 is note offset (not key-on/off)
+
 ## 2026-08-02 (weapon damage tables)
 
 ### Weapon damage encoding from CAPPO.EXE

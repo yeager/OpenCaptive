@@ -39,7 +39,7 @@
 - [x] Implement OPL2 emulator (YM3812 FM synthesis, 9 channels, envelopes)
 - [x] Implement SFX bytecode interpreter (4 simultaneous voices, 70 Hz tick)
 - [x] Wire AdLib SFX player into game runtime
-- [ ] Fully reverse-engineer SFX bytecode interpreter from CAP_A.BIN driver code
+- [x] Fully reverse-engineer SFX bytecode interpreter from CAP_A.BIN driver code
 - [x] Map SFX sequence indices to game events (disassembled INT 61h call sites)
 - [ ] Implement AdLib MIDI playback (OPL2 instrument bank for MIDI)
 
