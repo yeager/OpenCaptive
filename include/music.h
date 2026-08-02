@@ -5,6 +5,7 @@
 #include "sound.h"
 #include "data_vfs.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef enum {
     MUSIC_NONE,
@@ -16,6 +17,13 @@ typedef enum {
     MUSIC_ESCAPE,
     MUSIC_FINAL,
     MUSIC_TRAPPED,
+    MUSIC_FCBASE,
+    MUSIC_VCBASE,
+    MUSIC_LONGNT,
+    MUSIC_W,
+    MUSIC_COMPROOM,
+    MUSIC_RUNNING,
+    MUSIC_TRACK_COUNT,
 } MusicTrack;
 
 typedef struct {
@@ -25,6 +33,7 @@ typedef struct {
     MusicTrack  requested_track;
     const DataVFS *vfs;
     uint8_t     *owned_data;
+    uint32_t    prng_state;
     bool        enabled;
 } MusicSystem;
 

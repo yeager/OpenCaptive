@@ -247,6 +247,58 @@ Until that table is fully recovered, the current renderer approximates the
 projection geometry from documented view dimensions rather than using the
 original per-descriptor coordinates.
 
+## Sound system
+
+### MIDI music
+
+The DOS release includes 63 standard MIDI files (format 1) organized into 14
+categories matching the music_categories table from the executable:
+
+| Category | Variants | Use |
+|----------|----------|-----|
+| MAIN2 | 1 | Title screen |
+| GENBASE | 1 | Generator base exploration |
+| BATT | 11 | Combat encounters |
+| SHOPKEEP | 1 | Shop interaction |
+| HOLOMAP | 1 | Holamap screen |
+| ESCAPED | 1 | Escape sequence |
+| FINAL2 | 1 | Final mission |
+| TRAPPED | 1 | Trapped state |
+| FCBASE | 11 | FC base exploration |
+| VCBASE | 11 | VC base exploration |
+| LONGNT | 11 | Long night ambient |
+| W | 11 | Walking/exploration |
+| COMPROOM | 1 | Computer room |
+| RUNNING | 1 | Running/chase |
+
+Categories with multiple variants are selected randomly using the game PRNG.
+All 63 files are identified by SHA-256 content hash. The MIDI player renders
+through a software synthesizer at 22050 Hz.
+
+### AdLib sound effects
+
+Sound effects are generated via AdLib OPL2 FM synthesis, not stored as PCM
+samples. The `CAP_A.BIN` file (5,426 bytes) is a loadable x86 driver containing:
+
+1. **x86 driver code** (0x000–0x3BF): AdLib I/O port programming and SFX
+   interpreter loop
+2. **9 channel descriptors** (0x3C0–0x46F): OPL2 channel-to-register mapping
+3. **Amplitude decay table** (0x470–0x4FF): 128 descending values for envelope
+4. **OPL2 F-number table** (0x530–0x5CF): 128 frequency values for note pitch
+5. **49 SFX sequences** (0x0A6A–0x138F): bytecode programs that write OPL2
+   registers to produce sound effects, each terminated by `0xFF` + `pend`
+6. **26 instrument patches** (0x1390–0x1532): 16 bytes each containing the
+   11 OPL2 register values per voice (AM/VIB/EG/KSR/MULT, KSL/TL, AR/DR,
+   SL/RR, waveform, feedback/connection)
+
+The SFX sequences, instrument patches, and frequency table have been extracted
+to `adlib_data.c` with a verification test suite. Full OPL2 emulation for
+rendering these sequences to PCM is a future task.
+
+The CTV files (`SB15.CTV`, `SB20.CTV`, `SBPRO.CTV`) are CT-VOICE driver files
+for Sound Blaster DSP, not Creative Voice (VOC) audio samples. They contain
+executable code for DMA-based PCM playback but no sound data.
+
 ## Current runtime boundary
 
 Captive accepts movement, rotation, interaction, inventory, terminal, save and

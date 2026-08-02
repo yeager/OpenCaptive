@@ -1,5 +1,24 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (continued)
+
+### AdLib sound effect data recovery
+- Extracted 26 OPL2 instrument patches from CAP_A.BIN (AdLib driver)
+- Extracted 49 SFX bytecode sequences (2,132 bytes total)
+- Extracted 128-entry OPL2 frequency number table
+- Created adlib_data.c/h with full patch and sequence data
+- Test suite verifying patch count, SFX termination, frequency table
+
+### Music system expansion
+- Added all 63 MIDI file SHA-256 hashes (was 8, now 63)
+- Added 6 new music categories: FCBASE, VCBASE, LONGNT, W, COMPROOM, RUNNING
+- Implemented PRNG-based variant selection for categories with 11 variants
+- Music system now matches original game's random track selection behavior
+
+### Planet name generation
+- Implemented captive_generate_planet_name() from DOS disassembly
+- Uses consonant/vowel character tables to generate "STATION XXXX" names
+
 ## 2026-08-02
 
 ### Captive game data recovery

@@ -27,16 +27,21 @@
 - [ ] Recover weapon damage/range/ammo stats from binary
 
 ### Sound
-- [ ] Obtain CTV/VOC files and verify SHA-256 hashes
-- [ ] Map CTV entries to game sound events
-- [ ] Implement AdLib OPL2 emulation for FM synthesis effects (alternative)
-- [ ] Music track category-to-game-event mapping
+- [x] Extract OPL2 instrument patches from CAP_A.BIN (26 patches)
+- [x] Extract SFX sequences from CAP_A.BIN (49 sequences)
+- [x] Extract OPL2 frequency table from CAP_A.BIN
+- [x] Map all 63 MIDI files to 14 music categories with SHA-256
+- [x] Implement variant selection with game PRNG
+- [ ] Implement OPL2 emulator to render SFX sequences to PCM
+- [ ] Reverse-engineer SFX bytecode interpreter from CAP_A.BIN driver code
+- [ ] Map SFX sequence indices to game events (combat hit, door, step, etc.)
+- [ ] Implement AdLib MIDI playback (OPL2 instrument bank for MIDI)
 
 ### Save/load
 - [ ] Verify save format against original CAPTIVE1.SAV binary layout
 
 ### Planet/Holamap
-- [ ] Implement planet name generation from disassembled algorithm
+- [x] Implement planet name generation from disassembled algorithm
 - [ ] Implement holamap display using real coordinate system
 
 ## Liberation parity
