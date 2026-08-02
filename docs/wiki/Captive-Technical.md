@@ -323,11 +323,17 @@ Type codes recovered from the binary:
 
 Body parts carry a grade byte (always 0x05 in the base table). POISON, ACID,
 and FLAMBOS use `04 27` as a terminator instead of 0x20, marking them as
-special ammo sub-types.
+special ammo sub-types (grenade-like items that deal body-part damage).
 
-The weapon variant section at 0x1a220 contains upgrade tier records in the
+Ammo items (type 0x10) include caliber price entries: CARTRIDGES with prices
+20/45/50 (using `%` and `&` delimiters for two price tiers), A51 MISSILES,
+SHELLS, LASER PACK, SONIC PACK, and the three grenade types.
+
+The weapon variant section at 0x1a220 contains 23 upgrade tier records in the
 format `00 type_code 04 2c PRICE_STRING 2d` where the price string is ASCII
-decimal (e.g. "1.9", "14A", "165.8"). These encode shop upgrade costs.
+decimal. Type 0x21 tiers (melee): 1.9, 2, 3C, 5, 7. Type 0x30 tiers (ranged):
+14A, 14B, 27, 23, 33.1, 56, 78, 99, 111, 141, 165.8, 180, 200, 211-B, 231.
+Named variant prefixes: A12, L22, X42-2.
 
 Item stats (damage, range, ammo capacity, price, weight) are **not** stored as
 lookup tables. The original game computes them procedurally from the type code
