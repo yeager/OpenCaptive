@@ -101,7 +101,7 @@ static void test_implementation_prng_regression(void) {
     for (int y = 0; y < MAP_HEIGHT; y++)
         for (int x = 0; x < MAP_WIDTH; x++)
             checksum = checksum * 131u + base.cells[y][x].type;
-    assert(checksum == UINT64_C(9531787337675192601));
+    assert(checksum == UINT64_C(5746367494216273039));
 }
 
 static void test_architect_base_layout(void) {

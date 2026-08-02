@@ -716,3 +716,79 @@ Post-mapgen feature placement calls:
 2. 0x2025 — processing stage
 3. 0x33D7 — feature placement (called 2+ times with different parameters)
 4. Loop over 8-byte structures at DS:0x5B82–0x5CB2 (6 entries)
+
+## Liberation: BuildingGen (city generation)
+
+### Executable format
+
+BuildingGen is an Amiga HUNK executable on Liberation Disk 3:
+- HUNK_CODE: 23,252 bytes (one hunk)
+- HUNK_BSS: 3,956 bytes
+- HUNK_RELOC32 for code→BSS fixups
+
+### PRNG
+
+Same formula as Captive MapGen:
+```
+state = (state * 0x5E5 + 0x29) & 0xFFFF
+```
+State stored at a5+0x20.
+
+### Grid parameters (0x548–0x68A)
+
+Computed from seed and level number:
+
+| Parameter | Formula | Range |
+|-----------|---------|-------|
+| density | level × 5 + 15 + (PRNG_roll & 7) | 15–100 |
+| num_columns | (level >> 4) + 6 + (seed_roll & 3) − 2 | 4–15 |
+| num_roads | 2 + (seed_ror & 3) − (level >> 3); min 1; if level=0 then 5 | 1–5 |
+| num_cross_roads | (seed_ror & 1) + (level >> 3) + 1 | 1–5 |
+
+Derived: road_buildings = cross_roads/2, side_buildings = min(roads×2, 5),
+buildings_per_segment = columns/2.
+
+### Building record (36 bytes)
+
+| Offset | Size | Field |
+|--------|------|-------|
+| 0 | 1 | Building type (0–8, PRNG % 9) |
+| 1 | 1 | Sequential ID |
+| 2 | 1 | Name seed |
+| 3 | 1 | Flags: bits 0–1 = connection count, bits 2–5 = category<<2, bit 6 = dead end, bit 7 = disabled |
+| 4–5 | 2 | Link word |
+| 6–7 | 2 | Connection 0 marker (0xAAAA=forward, 0xBBBB=backward) |
+| 10–11 | 2 | Connection 0 target building index |
+| 12–19 | 8 | Connection 1 (same layout) |
+| 20–27 | 8 | Connection 2 (same layout) |
+
+### Building types
+
+| Index | Type | Name source |
+|-------|------|-------------|
+| 0 | Shop | last_name + shop_type (9 types) |
+| 1 | Bar | bar_type (12 types) |
+| 2 | Business | last_name + business_type (11 types) |
+| 3 | Industrial | industrial_type (12 types) |
+| 4 | Residence | "Private Residence" |
+| 5 | Library | "Library" |
+| 6 | Police | "Police Station" |
+| 7 | Records | "City Records Office" |
+| 8 | Special | first_name + last_name |
+
+### City names
+
+German syllable pairs (32 syllables: gold, grun, braun, wein, eisen, …, platz)
+concatenated, capitalized, followed by Greek letter suffix based on level
+(Alpha, Beta, Gamma, Delta, Epsilon, Zeta, Eta, Theta, Kappa).
+
+### String tables in BuildingGen binary
+
+| Offset | Content |
+|--------|---------|
+| 0x2EE8 | Newspaper names ($-delimited, 16 entries) |
+| 0x2F6F | TV station names ($-delimited, 9 entries) |
+| 0x2FD7 | NPC titles ($-delimited, 8 entries) |
+| 0x302F | Greek letter suffixes (null-terminated, 9 entries) |
+| 0x1A09 | Character set (62 chars + $) |
+| 0x288A | Building type names (Library, Police Station, Private Residence, City Records Office) |

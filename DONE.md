@@ -1,5 +1,19 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (Liberation BuildingGen disassembly)
+
+### City generation from BuildingGen Amiga HUNK executable
+- Extracted BuildingGen (23,252 bytes code + 3,956 BSS) and PlotGen (12,388 bytes code + 27,016 BSS) from Disk 3
+- PRNG: state = state * 0x5E5 + 0x29 (identical to Captive MapGen)
+- Grid parameter computation from seed/level: density, columns, roads, cross-roads
+- Building record structure: 36 bytes (type, id, name_seed, flags, 3 connections)
+- Road connection graph: forward (0xAAAA) / backward (0xBBBB) markers
+- 9 building types: shop, bar, business, industrial, residence, library, police, records, special
+- City names: German syllable pairs (32 syllables) + Greek letter suffix by level
+- Building names: type-specific from real string tables (shop/bar/business/industrial names)
+- String tables extracted to separate compilation unit for test isolation
+- Fixed pre-existing link errors in test_map_gen, test_game_state, test_save_load
+
 ## 2026-08-02 (spawn placement algorithm)
 
 ### Spawn placement from CAPPO.EXE disassembly

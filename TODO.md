@@ -20,7 +20,7 @@
 ### Map generation
 - [x] Recover cellular automaton rule types from 0x39CC-0x3C21 (maze/rooms/open/mixed)
 - [x] Recover generator placement algorithm from 0x1C3C
-- [ ] Wire CA map output to DungeonLevel conversion (10×56 → 64×32 cells)
+- [x] Wire CA map output to DungeonLevel conversion (10×56 → 64×32 cells)
 - [ ] Implement feature placement pipeline from 0x33D7 (doors, puzzles, traps)
 - [ ] Validate MapGen output against original dumps
 - [ ] Verify exterior generation stage
@@ -54,11 +54,16 @@
 
 ## Liberation parity
 
-### CityGen
-- [ ] Disassemble CityGen 1.12 Amiga executable (10,896 bytes)
-- [ ] Recover 64x64 grid generation algorithm
-- [ ] Recover city name generation from syllable table
-- [ ] Implement street layout and building placement
+### CityGen (BuildingGen)
+- [x] Disassemble BuildingGen Amiga executable (23,252 bytes code)
+- [x] Recover PRNG (state * 0x5E5 + 0x29, same as Captive MapGen)
+- [x] Recover grid parameter computation (density, columns, roads, cross-roads)
+- [x] Recover building placement and road connection algorithm
+- [x] Recover building type assignment (9 types: shop/bar/business/industrial/residence/library/police/records/special)
+- [x] Recover city name generation (German syllable pairs + Greek letter suffix)
+- [x] Recover building name generation (type-specific name tables)
+- [ ] Verify grid topology against original game saves
+- [ ] Implement street layout rendering from grid connections
 
 ### PlotGen
 - [ ] Disassemble PlotGen executable (12,388 bytes code)
