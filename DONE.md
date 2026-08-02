@@ -1,5 +1,24 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (Liberation CityGen grid disassembly)
+
+### 64×64 city grid generation from CityGen 1.12 Amiga HUNK executable
+- Extracted CityGen (10,824 bytes code + 4,888 BSS) from Liberation Disk 3
+- Version string: "CityGen 1.12 (CaptiveII : Monday 03-Jan-94 02:17:04)"
+- PRNG: state * 0x5E5 + 0x29 (identical to BuildingGen and Captive MapGen)
+- 8×8 meta-grid with 4-bit direction bitmask per cell (N/E/S/W connections)
+- Road corners at (3,0), (6,3), (3,6), (0,3) — road availability per seed
+- Road walking with PRNG-biased direction selection and boundary clamping
+- 13 tile templates (4×4 bytes each) at 0x2958 for meta-grid expansion
+- Expansion from 8×8 meta-grid to 64×64 tile grid via template lookup
+- 3 grid planes: plane0 (cell type), plane1 (road ID), plane2 (building ID)
+- 2 block template sets: template A (6 cells, road blocks) and B (7 cells, features)
+- Block placement with random position search and road adjacency check (types 18-21)
+- Difficulty-gated phases: borders (≥0), features (≥2), road blocks (≥3)
+- Data tables recovered: direction table (0x2830), road availability (0x2694),
+  road counts (0x2890/0x2899), block templates (0x28B4/0x28F8)
+- Test suite: PRNG, init, determinism, different seeds, borders, road cells, meta connections
+
 ## 2026-08-02 (Liberation BuildingGen disassembly)
 
 ### City generation from BuildingGen Amiga HUNK executable

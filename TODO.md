@@ -65,6 +65,17 @@
 - [ ] Verify grid topology against original game saves
 - [ ] Implement street layout rendering from grid connections
 
+### CityGen grid (64×64)
+- [x] Disassemble CityGen 1.12 Amiga executable (10,824 bytes code)
+- [x] Recover PRNG (state * 0x5E5 + 0x29, same as BuildingGen/MapGen)
+- [x] Recover 8×8 meta-grid road generation (4 corners, direction bitmasks)
+- [x] Recover 4×4 tile template expansion (13 templates from 0x2958)
+- [x] Recover block placement with road adjacency check (templates A and B)
+- [x] Recover difficulty-gated generation phases (0-4+)
+- [x] Recover border wall placement and grid plane structure (3 planes)
+- [ ] Verify grid output against original game saves
+- [ ] Implement remaining subroutines (0x7D2, 0x97A, 0xA80, 0xECC, 0x1352, 0x1766)
+
 ### PlotGen
 - [ ] Disassemble PlotGen executable (12,388 bytes code)
 - [ ] Recover building interior format

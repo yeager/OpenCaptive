@@ -63,6 +63,7 @@ set(OPENCAPTIVE_SOURCES
     src/engine/spawn.c
     src/engine/mapgen_ca.c
     src/engine/liberation_citygen.c
+    src/engine/liberation_citygen_grid.c
     src/render/captive_compositor.c
     src/render/frame_compare.c
     src/render/viewport.c
@@ -260,6 +261,11 @@ add_executable(test_liberation_citygen tests/test_liberation_citygen.c
     src/engine/liberation_citygen.c src/data/liberation_string_tables.c)
 target_include_directories(test_liberation_citygen PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME liberation_citygen COMMAND test_liberation_citygen)
+
+add_executable(test_liberation_citygen_grid tests/test_liberation_citygen_grid.c
+    src/engine/liberation_citygen_grid.c)
+target_include_directories(test_liberation_citygen_grid PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation_citygen_grid COMMAND test_liberation_citygen_grid)
 
 add_executable(test_adlib_sfx tests/test_adlib_sfx.c
     src/audio/adlib_sfx.c src/audio/opl2_emu.c src/audio/adlib_data.c)

@@ -792,3 +792,97 @@ concatenated, capitalized, followed by Greek letter suffix based on level
 | 0x302F | Greek letter suffixes (null-terminated, 9 entries) |
 | 0x1A09 | Character set (62 chars + $) |
 | 0x288A | Building type names (Library, Police Station, Private Residence, City Records Office) |
+
+## Liberation: CityGen (64×64 grid generation)
+
+CityGen is a separate Amiga HUNK executable on Liberation Disk 3:
+
+- **File**: CityGen (10,896 bytes file, 10,824 bytes code, 4,888 bytes BSS)
+- **Version**: "CityGen 1.12 (CaptiveII : Monday 03-Jan-94 02:17:04)"
+- **PRNG**: `state = state * 0x5E5 + 0x29` (identical to BuildingGen and Captive MapGen)
+
+### Grid structure
+
+The city is a 64×64 grid with 3 planes (12,288 bytes total):
+
+| Plane | Purpose |
+|-------|---------|
+| 0 | Cell type (wall=0x00, road=0x0D, border=0xFF, building types) |
+| 1 | Road/feature ID |
+| 2 | Building ID (bit 7 = origin marker) |
+
+### Meta-grid (8×8)
+
+Before the 64×64 grid is generated, an 8×8 meta-grid is constructed. Each meta-cell stores a 4-bit direction bitmask:
+
+| Bit | Direction | dx | dy | Grid offset |
+|-----|-----------|----|----|-------------|
+| 0 | North | 0 | -1 | -64 |
+| 1 | East | +1 | 0 | +1 |
+| 2 | South | 0 | +1 | +64 |
+| 3 | West | -1 | 0 | -1 |
+
+### Road corners
+
+Four entry points connect roads from the grid edges:
+
+| Direction | Corner (x,y) |
+|-----------|-------------|
+| North | (3, 0) |
+| East | (6, 3) |
+| South | (3, 6) |
+| West | (0, 3) |
+
+Road availability is determined by `seed_lo` via a 36-byte lookup table at 0x2694.
+
+### Generation phases
+
+The generation is gated by difficulty level (0x2C8 initializes to 127):
+
+| Phase | Difficulty | Subroutine | Description |
+|-------|-----------|------------|-------------|
+| Count roads | always | 0x1B40 | Count available road directions from seed |
+| Generate roads | always | 0x1CE8 | Walk roads on meta-grid with PRNG-biased turns |
+| Extra connections | always | 0x1B6C | Connect isolated road segments |
+| Expand to grid | always | 0x1DE4 | 8×8 meta → 64×64 using 4×4 tile templates |
+| Set borders | ≥ 0 | 0x1BE8 | Mark edges as walls (0xFF), save to plane1 |
+| Place features | ≥ 1 | 0x1F1A | Feature placement with retry |
+| Place feature blocks | ≥ 2 | 0x2E4 | Template B blocks (7 cells) near roads |
+| Place road blocks | ≥ 3 | 0x330 | Template A blocks (6 cells) near roads |
+| Building shapes | ≥ 3 | 0x7D2+ | Various building/structure subroutines |
+| Advanced features | ≥ 4 | 0xA80+ | Higher-difficulty features |
+| Finalize | always | 0x24B8 | Grid post-processing |
+
+### Block templates
+
+Two template sets are used for building placement:
+
+**Template A** (0x28B4): 4 rotations × 6 cells + 2 adjacency checks = 16 bytes per entry.
+Represents a 2×3 building footprint.
+
+**Template B** (0x28F8): 4 rotations × 7 cells + 2 adjacency checks = 20 bytes per entry.
+Represents a 3×3 building footprint.
+
+Placement requires all template cells to be empty (0x00) and at least one adjacency cell
+to contain a road-type value (types 18-21 after masking with 0x3F).
+
+### Tile templates (0x2958)
+
+13 tile templates of 4×4 bytes each control how meta-grid cells expand to the 64×64 grid.
+The template index is derived from the meta-cell's direction bitmask value.
+
+### Data tables
+
+| Offset | Size | Description |
+|--------|------|-------------|
+| 0x2694 | 36 bytes | Road availability per seed (4 bytes × 9 entries) |
+| 0x26B8 | 8 bytes | Road corner positions (x,y pairs × 4) |
+| 0x26C0 | 16 bytes | Road direction deltas (dx,dy words × 4) |
+| 0x2830 | 16 bytes | Grid direction table (dx,dy,offset × 4) |
+| 0x2890 | 9 bytes | Road count per seed level |
+| 0x2899 | 9 bytes | Block count per seed level |
+| 0x28B4 | 68 bytes | Block template A (4 × 16 bytes + header) |
+| 0x28F8 | 84 bytes | Block template B (4 × 20 bytes + header) |
+| 0x294C | 238 bytes | BLOC structure (tile/building data) |
+| 0x2958 | 208 bytes | 13 tile templates (4×4 bytes each) |
+| 0x2478 | 18 bytes | PRNG subroutine |
