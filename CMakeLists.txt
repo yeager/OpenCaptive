@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.17 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.18 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -71,6 +71,15 @@ set(OPENCAPTIVE_SOURCES
     src/render/frame_compare.c
     src/render/viewport.c
     src/engine/captive_data.c
+    src/custom/custom_features.c
+    src/custom/upscale_xbrz.c
+    src/custom/minimap.c
+    src/custom/debug_hud.c
+    src/custom/automap.c
+    src/custom/audio_reverb.c
+    src/custom/replay.c
+    src/custom/lighting.c
+    src/custom/cross_save.c
 )
 
 add_executable(opencaptive ${OPENCAPTIVE_SOURCES})
@@ -193,6 +202,14 @@ add_executable(test_liberation_anim tests/test_liberation_anim.c
     src/data/liberation_anim.c)
 target_include_directories(test_liberation_anim PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME liberation_anim COMMAND test_liberation_anim)
+
+add_executable(test_custom_features tests/test_custom_features.c
+    src/custom/custom_features.c src/custom/upscale_xbrz.c
+    src/custom/minimap.c src/custom/debug_hud.c src/custom/automap.c
+    src/custom/audio_reverb.c src/custom/replay.c src/custom/lighting.c
+    src/custom/cross_save.c)
+target_include_directories(test_custom_features PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME custom_features COMMAND test_custom_features)
 
 add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c)
 target_include_directories(test_start_menu PRIVATE ${CMAKE_SOURCE_DIR}/include)

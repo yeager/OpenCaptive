@@ -1,5 +1,26 @@
 # OpenCaptive Release Notes
 
+## v1.1.18 (2026-08-02)
+
+### Custom features system
+All features behind flags, parity mode stays pristine. Enable individually or `--all-features`.
+
+- **HD upscaling**: xBRZ 2x/3x/4x edge-aware pixel art upscaler (`--hd-upscale`, `--upscale-factor`)
+- **Widescreen viewport**: extended viewport width beyond original bounds (`--widescreen`)
+- **Multi-slot quicksave**: 10 save slots, F5 save, F6 cycle slot, F9 load (`--quicksave`)
+- **Minimap overlay**: real-time minimap with configurable size/opacity, F8 toggle (`--minimap`)
+- **Mouse-look**: FPS-style mouse turning with configurable sensitivity (`--mouse-look`)
+- **Debug HUD**: cell type, position, direction, droid stats, PRNG seed, F7 toggle (`--debug-hud`)
+- **Speed control**: adjustable game speed 0.25x–4x, numpad +/- (`--speed`)
+- **Fast travel**: skip traversal in cities (`--fast-travel`)
+- **Automap**: permanently reveals visited cells on minimap (`--automap`)
+- **Dynamic lighting**: distance and normal-based per-pixel shading (`--dynamic-lighting`)
+- **Audio reverb**: 4-tap delay reverb on dungeon audio (`--reverb`)
+- **Replay system**: record and playback input sequences (`--replay-record`, `--replay-play`)
+- **Cross-save**: portable binary save format for cross-platform transfer (`--cross-save-export`)
+- **Texture filtering**: bilinear filtering on wall textures (`--bilinear`)
+- **Config persistence**: save/load feature settings from file (`--features-config`)
+
 ## v1.1.17 (2026-08-02)
 
 ### Liberation: x3g polygon record format decoded

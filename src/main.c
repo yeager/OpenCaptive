@@ -25,6 +25,7 @@
 #include "amos_sprite.h"
 #include "dos_vga_reference.h"
 #include "frame_compare.h"
+#include "custom_features.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <errno.h>
@@ -611,7 +612,17 @@ static bool load_liberation_mission_menu(void) {
     return true;
 }
 
+static int quicksave_slot = 0;
+static CustomFeatures *custom_feat_ptr = NULL;
+
 static void game_handle_input(GameState *gs, const SDL_Event *event) {
+    if (event->type == SDL_EVENT_MOUSE_MOTION && custom_feat_ptr &&
+        custom_feat_ptr->mouse_look && gs->mode == STATE_GAME) {
+        float dx = event->motion.xrel * custom_feat_ptr->mouse_sensitivity;
+        if (dx > 5.0f) gs->party_dir = (gs->party_dir + 1) % 4;
+        else if (dx < -5.0f) gs->party_dir = (gs->party_dir + 3) % 4;
+        return;
+    }
     if (event->type != SDL_EVENT_KEY_DOWN) return;
 
     const DungeonLevel *lvl = &gs->levels[gs->current_level];
@@ -687,10 +698,51 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             return;
         }
         case SDLK_F5:
-            save_game(gs, &creatures, &puzzles, "opencaptive.sav");
+            if (custom_feat_ptr && custom_feat_ptr->quicksave) {
+                char path[64];
+                snprintf(path, sizeof(path), "opencaptive_slot%d.sav", quicksave_slot);
+                save_game(gs, &creatures, &puzzles, path);
+            } else {
+                save_game(gs, &creatures, &puzzles, "opencaptive.sav");
+            }
+            return;
+        case SDLK_F6:
+            if (custom_feat_ptr && custom_feat_ptr->quicksave) {
+                quicksave_slot = (quicksave_slot + 1) % 10;
+            }
             return;
         case SDLK_F9:
-            load_game(gs, &creatures, &puzzles, "opencaptive.sav");
+            if (custom_feat_ptr && custom_feat_ptr->quicksave) {
+                char path[64];
+                snprintf(path, sizeof(path), "opencaptive_slot%d.sav", quicksave_slot);
+                load_game(gs, &creatures, &puzzles, path);
+            } else {
+                load_game(gs, &creatures, &puzzles, "opencaptive.sav");
+            }
+            return;
+        case SDLK_F7:
+            if (custom_feat_ptr) {
+                custom_feat_ptr->debug_hud = !custom_feat_ptr->debug_hud;
+            }
+            return;
+        case SDLK_F8:
+            if (custom_feat_ptr) {
+                custom_feat_ptr->minimap = !custom_feat_ptr->minimap;
+            }
+            return;
+        case SDLK_KP_PLUS:
+            if (custom_feat_ptr && custom_feat_ptr->speed_control) {
+                custom_feat_ptr->game_speed *= 1.5f;
+                if (custom_feat_ptr->game_speed > 4.0f)
+                    custom_feat_ptr->game_speed = 4.0f;
+            }
+            return;
+        case SDLK_KP_MINUS:
+            if (custom_feat_ptr && custom_feat_ptr->speed_control) {
+                custom_feat_ptr->game_speed /= 1.5f;
+                if (custom_feat_ptr->game_speed < 0.25f)
+                    custom_feat_ptr->game_speed = 0.25f;
+            }
             return;
         case SDLK_PERIOD: // > stairs down
             game_state_change_floor(gs, 1);
@@ -736,6 +788,13 @@ int main(int argc, char *argv[]) {
         .contrast = 50,
         .fps_limit = 60,
     };
+    CustomFeatures custom;
+    custom_features_defaults(&custom);
+    Automap automap_state;
+    automap_init(&automap_state);
+    ReplaySystem replay;
+    replay_init(&replay);
+
     GameType requested_game = GAME_CAPTIVE;
     bool start_directly = false;
     bool show_liberation_mission_menu_requested = false;
@@ -774,6 +833,24 @@ int main(int argc, char *argv[]) {
                 "  --brightness <n>      Brightness 0-100 (default 50)\n"
                 "  --contrast <n>        Contrast 0-100 (default 50)\n"
                 "  --game <name>         Start game directly: captive, liberation\n\n"
+                "Custom features:\n"
+                "  --all-features        Enable all custom features\n"
+                "  --hd-upscale          HD texture upscaling (xBRZ)\n"
+                "  --upscale-factor <n>  Upscale factor: 2, 3, or 4 (default 2)\n"
+                "  --widescreen          Widescreen viewport\n"
+                "  --quicksave           Multi-slot quicksave (F5/F6/F9)\n"
+                "  --minimap             Persistent minimap overlay (F8 toggle)\n"
+                "  --mouse-look          FPS-style mouse control\n"
+                "  --debug-hud           Debug overlay (F7 toggle)\n"
+                "  --reverb              Audio reverb effect\n"
+                "  --automap             Remember visited cells\n"
+                "  --dynamic-lighting    Distance-based lighting\n"
+                "  --speed <n>           Game speed multiplier (default 1.0)\n"
+                "  --fast-travel         Enable fast travel in cities\n"
+                "  --replay-record       Record inputs for replay\n"
+                "  --replay-play <file>  Play back a recorded replay\n"
+                "  --cross-save-export   Enable portable save export\n"
+                "  --features-config <f> Load features from config file\n\n"
                 "  --verify-data <name>  Verify data by SHA-256: captive, liberation, all\n\n"
                 "  --capture-frame <ppm> Save one unscaled native game frame, then exit\n\n"
                 "  --extract-dos-vga <dump> <ppm>  Extract a 320x200 DOS VGA reference frame\n\n"
@@ -851,6 +928,59 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "--contrast must be an integer from 0 to 100\n");
                 return 2;
             }
+        } else if (strcmp(argv[i], "--hd-upscale") == 0) {
+            custom.hd_upscale = true;
+        } else if (strcmp(argv[i], "--upscale-factor") == 0 && i + 1 < argc) {
+            custom.upscale_factor = atoi(argv[++i]);
+            if (custom.upscale_factor < 2) custom.upscale_factor = 2;
+            if (custom.upscale_factor > 4) custom.upscale_factor = 4;
+            custom.hd_upscale = true;
+        } else if (strcmp(argv[i], "--widescreen") == 0) {
+            custom.widescreen = true;
+        } else if (strcmp(argv[i], "--quicksave") == 0) {
+            custom.quicksave = true;
+        } else if (strcmp(argv[i], "--minimap") == 0) {
+            custom.minimap = true;
+        } else if (strcmp(argv[i], "--mouse-look") == 0) {
+            custom.mouse_look = true;
+        } else if (strcmp(argv[i], "--debug-hud") == 0) {
+            custom.debug_hud = true;
+        } else if (strcmp(argv[i], "--reverb") == 0) {
+            custom.audio_reverb = true;
+        } else if (strcmp(argv[i], "--automap") == 0) {
+            custom.automap = true;
+        } else if (strcmp(argv[i], "--dynamic-lighting") == 0) {
+            custom.dynamic_lighting = true;
+        } else if (strcmp(argv[i], "--speed") == 0 && i + 1 < argc) {
+            custom.game_speed = (float)atof(argv[++i]);
+            custom.speed_control = true;
+        } else if (strcmp(argv[i], "--fast-travel") == 0) {
+            custom.fast_travel = true;
+            custom.speed_control = true;
+        } else if (strcmp(argv[i], "--replay-record") == 0) {
+            custom.replay_record = true;
+            replay.recording = true;
+        } else if (strcmp(argv[i], "--replay-play") == 0 && i + 1 < argc) {
+            if (replay_load(&replay, argv[++i])) {
+                custom.replay_playback = true;
+            } else {
+                fprintf(stderr, "Failed to load replay: %s\n", argv[i]);
+                return 2;
+            }
+        } else if (strcmp(argv[i], "--cross-save-export") == 0) {
+            custom.cross_save = true;
+        } else if (strcmp(argv[i], "--features-config") == 0 && i + 1 < argc) {
+            custom_features_load(&custom, argv[++i]);
+        } else if (strcmp(argv[i], "--all-features") == 0) {
+            custom.hd_upscale = true;
+            custom.quicksave = true;
+            custom.minimap = true;
+            custom.debug_hud = true;
+            custom.audio_reverb = true;
+            custom.automap = true;
+            custom.dynamic_lighting = true;
+            custom.speed_control = true;
+            custom.texture_filter = true;
         } else if (strcmp(argv[i], "--game") == 0 && i + 1 < argc) {
             const char *game = argv[++i];
             if (strcmp(game, "captive") == 0) {
@@ -1024,6 +1154,10 @@ int main(int argc, char *argv[]) {
             printf("Starting verified Liberation presentation\n");
         }
     }
+
+    custom_feat_ptr = &custom;
+    if (custom.mouse_look)
+        SDL_SetWindowRelativeMouseMode(renderer.window, true);
 
     bool running = true;
     SDL_Event event;
@@ -1391,6 +1525,25 @@ int main(int argc, char *argv[]) {
                 break;
 
             default: break;
+        }
+
+        if (gs.mode == STATE_GAME) {
+            if (custom.automap)
+                automap_mark(&automap_state, gs.current_level, gs.party_x, gs.party_y);
+
+            if (custom.minimap) {
+                const DungeonLevel *mlvl = &gs.levels[gs.current_level];
+                minimap_render(framebuffer, frame_width, frame_height,
+                               mlvl, gs.party_x, gs.party_y, gs.party_dir,
+                               custom.automap ? automap_state.visited : NULL,
+                               &custom);
+            }
+
+            if (custom.debug_hud)
+                debug_hud_render(framebuffer, frame_width, frame_height, &gs, &custom);
+
+            if (custom.replay_record)
+                replay.seed = gs.mission_seed;
         }
 
         if (runtime_popup.open && gs.mode == STATE_GAME)
