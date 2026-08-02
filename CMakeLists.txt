@@ -51,6 +51,8 @@ set(OPENCAPTIVE_SOURCES
     src/render/hud.c
     src/render/captive_compositor.c
     src/render/frame_compare.c
+    src/render/viewport.c
+    src/engine/captive_data.c
 )
 
 add_executable(opencaptive ${OPENCAPTIVE_SOURCES})
@@ -159,13 +161,14 @@ target_link_libraries(test_start_menu PRIVATE SDL3::SDL3)
 add_test(NAME start_menu COMMAND test_start_menu)
 
 add_executable(test_game_state tests/test_game_state.c
-    src/engine/engine.c src/engine/map_gen.c src/engine/combat.c)
+    src/engine/engine.c src/engine/map_gen.c src/engine/combat.c
+    src/engine/captive_data.c)
 target_include_directories(test_game_state PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME game_state COMMAND test_game_state)
 
 add_executable(test_save_load tests/test_save_load.c
     src/engine/save_load.c src/engine/engine.c src/engine/map_gen.c
-    src/engine/combat.c src/engine/puzzle.c)
+    src/engine/combat.c src/engine/puzzle.c src/engine/captive_data.c)
 target_include_directories(test_save_load PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME save_load COMMAND test_save_load)
 

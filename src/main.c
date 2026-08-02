@@ -8,6 +8,8 @@
 #include "combat.h"
 #include "save_load.h"
 #include "texture_atlas.h"
+#include "viewport.h"
+#include "captive_view_window.h"
 #include "music.h"
 #include "puzzle.h"
 #include "sound.h"
@@ -1326,26 +1328,21 @@ int main(int argc, char *argv[]) {
                     if (hud_bg) {
                         memcpy(framebuffer, hud_bg,
                                CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
-                        /* GAME SCRN is a title/menu source frame; its dungeon
-                         * rectangle contains a Captive logo, not an in-game
-                         * view.  Once a game is selected, the original
-                         * renderer replaces this exact interior.  Clear it
-                         * until that renderer is recovered rather than
-                         * passing title pixels off as a game scene. */
-                        for (int y = 0; y < CAPTIVE_VIEWPORT_HEIGHT; ++y) {
-                            uint32_t *row = framebuffer +
-                                (CAPTIVE_VIEWPORT_Y + y) * CAPTIVE_ORIGINAL_WIDTH +
-                                CAPTIVE_VIEWPORT_X;
-                            memset(row, 0, CAPTIVE_VIEWPORT_WIDTH * sizeof(*row));
+                        if (gs.mode == STATE_GAME && textures_loaded) {
+                            CaptiveViewWindow vw;
+                            captive_view_window_build(&gs, &vw);
+                            viewport_render(&vw, &atlas, framebuffer,
+                                            CAPTIVE_ORIGINAL_WIDTH,
+                                            CAPTIVE_ORIGINAL_HEIGHT);
+                        } else {
+                            for (int y = 0; y < CAPTIVE_VIEWPORT_HEIGHT; ++y) {
+                                uint32_t *row = framebuffer +
+                                    (CAPTIVE_VIEWPORT_Y + y) * CAPTIVE_ORIGINAL_WIDTH +
+                                    CAPTIVE_VIEWPORT_X;
+                                memset(row, 0, CAPTIVE_VIEWPORT_WIDTH * sizeof(*row));
+                            }
                         }
                     }
-                    /* The original GAME SCRN frame is decoded from verified
-                     * media.  Until the original viewport compositor is
-                     * reconstructed, leave its dungeon window untouched.
-                     * The former F10 path drew a generated corridor, lighting
-                     * and substitute creature shapes from inferred state; it
-                     * is deliberately not invoked when original data exists. */
-                    (void)textures_loaded;
                     /* The original GAME SCRN resource already contains the
                      * complete control and status-panel shell.  Do not paint
                      * the replacement HUD over it in original-render mode. */

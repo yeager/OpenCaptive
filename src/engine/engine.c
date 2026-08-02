@@ -1,31 +1,29 @@
 #include "game_state.h"
+#include "captive_data.h"
 #include "map_gen.h"
 #include <string.h>
-
-static const char *droid_names[4] = { "DORIS", "DONNA", "DOLLY", "DIANA" };
 
 void game_state_init(GameState *gs, GameType type, int mission) {
     memset(gs, 0, sizeof(*gs));
     gs->game_type = type;
     gs->mode = STATE_MENU;
     gs->mission = mission;
-    /* Architect's first base is map/seed zero.  Its sparse section mask and
-     * player column are explicit original special cases, handled by
-     * map_generate_base(). */
     gs->base_id = 0;
     gs->selected_droid = 0;
     gs->party_dir = DIR_NORTH;
     gs->gold = 100;
 
+    uint32_t name_seed = 42;
     for (int i = 0; i < 4; i++) {
-        strncpy(gs->droids[i].name, droid_names[i], 15);
+        captive_generate_name(&name_seed, gs->droids[i].name,
+                              sizeof(gs->droids[i].name));
         gs->droids[i].hp = 100;
         gs->droids[i].hp_max = 100;
         gs->droids[i].energy = 100;
         gs->droids[i].energy_max = 100;
         gs->droids[i].level = 1;
         for (int p = 0; p < 6; p++)
-            gs->droids[i].body_parts[p] = 1; // basic parts
+            gs->droids[i].body_parts[p] = 1;
     }
 }
 

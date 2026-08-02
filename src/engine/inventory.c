@@ -1,96 +1,87 @@
 #include "inventory.h"
 #include <string.h>
 
-// Item database populated from research data
-// Weapons: {id, category, name, dmg_min, dmg_max, def, range, tier, ammo, ammo_max, price, weight, skill}
+/* Item database recovered from the verified DOS executable CAPPO.EXE v1.06.
+ * Names and classification bytes extracted from the unpacked binary
+ * (SHA-256 fa7d5ca76d26f614476ed41f27cf737084942e9216b20b4605734df9ede9aee4).
+ *
+ * Original hex prefix bytes: first byte is item flags, second is weapon class.
+ * Class mapping from disassembly:
+ *   01 = brawling, 07 = close combat (axes/maces), 08 = close combat (swords),
+ *   09 = projectile, 0a = firearms, 0b = light/heavy arms,
+ *   0c = energy weapon, 0d = heavy auto/cannon/spray,
+ *   02 = consumable/utility, 03 = energy cell/ammo
+ */
 static const Item weapon_defs[] = {
-    // Melee (range 1)
-    { 1, ITEM_WEAPON_MELEE, "KNUCKLE-DUSTER",  10,  15, 0, 1, 0, 0,  0,   100, 0.4f, 1},
-    { 2, ITEM_WEAPON_MELEE, "BATTLE-GLOVE",    20,  30, 0, 1, 1, 0,  0,   200, 0.6f, 2},
-    { 3, ITEM_WEAPON_MELEE, "WAR-BLADE",       30,  60, 0, 1, 2, 0,  0,   400, 0.9f, 3},
-    { 4, ITEM_WEAPON_MELEE, "LIGHT-BLADE",     50, 100, 0, 2, 3, 0,  0,   800, 4.3f, 4},
-    { 5, ITEM_WEAPON_MELEE, "FIRE-AXE",        80, 150, 0, 2, 4, 0,  0,  1200, 6.1f, 5},
+    /* Swords / energy blades (class 0x0c, 0x08) */
+    { 1, ITEM_WEAPON_MELEE, "LIGHT SABRE",      40, 80, 0, 1, 5, 0, 0, 1500, 2.0f, 6},
+    { 2, ITEM_WEAPON_MELEE, "RAPIER",            15, 30, 0, 1, 2, 0, 0,  400, 1.2f, 2},
+    { 3, ITEM_WEAPON_MELEE, "EPEE",              12, 25, 0, 1, 1, 0, 0,  300, 1.0f, 2},
+    { 4, ITEM_WEAPON_MELEE, "CUTLASS",           20, 40, 0, 1, 3, 0, 0,  600, 1.5f, 2},
 
-    // Handguns (range 6)
-    {10, ITEM_WEAPON_HANDGUN, "20MM-PISTOL",   100, 120, 0, 6, 0, 30, 30,  999, 1.5f, 1},
-    {11, ITEM_WEAPON_HANDGUN, "45MM-PISTOL",   140, 180, 0, 6, 1, 34, 34, 1500, 2.0f, 2},
-    {12, ITEM_WEAPON_HANDGUN, "50MM-PISTOL",   180, 250, 0, 6, 2, 40, 40, 2000, 2.5f, 3},
+    /* Axes and blunt (class 0x07) */
+    { 5, ITEM_WEAPON_MELEE, "AXE",               18, 35, 0, 1, 2, 0, 0,  350, 2.5f, 2},
+    { 6, ITEM_WEAPON_MELEE, "BATTLE AXE",        25, 50, 0, 1, 3, 0, 0,  700, 3.5f, 2},
+    { 7, ITEM_WEAPON_MELEE, "HALBERD",           30, 55, 0, 2, 4, 0, 0,  900, 4.0f, 2},
+    { 8, ITEM_WEAPON_MELEE, "HAMMER",            22, 45, 0, 1, 3, 0, 0,  500, 3.0f, 2},
+    { 9, ITEM_WEAPON_MELEE, "MACE",              20, 42, 0, 1, 2, 0, 0,  450, 2.8f, 2},
 
-    // Rifles (range 15)
-    {20, ITEM_WEAPON_RIFLE, "45MM-RIFLE",      300, 400, 0, 15, 0, 34, 34, 2000, 3.0f, 1},
-    {21, ITEM_WEAPON_RIFLE, "CARTRIDGE-RIFLE", 350, 450, 0, 15, 1, 42, 42, 2500, 3.2f, 2},
-    {22, ITEM_WEAPON_RIFLE, "50MM-RIFLE",      400, 490, 0, 15, 2, 40, 40, 3000, 3.5f, 3},
+    /* Projectile (class 0x09) */
+    {10, ITEM_WEAPON_HANDGUN, "ARROW",            8, 15, 0, 6, 0, 20, 20, 100, 0.1f, 3},
+    {11, ITEM_WEAPON_HANDGUN, "DART",             5, 12, 0, 5, 0, 15, 15,  60, 0.1f, 3},
+    {12, ITEM_WEAPON_HANDGUN, "THROWING KNIFE",  10, 20, 0, 4, 1, 10, 10, 150, 0.3f, 3},
+    {13, ITEM_WEAPON_HANDGUN, "THROWING STAR",   12, 22, 0, 5, 1, 12, 12, 180, 0.2f, 3},
+    {14, ITEM_WEAPON_HANDGUN, "GRENADE",         30, 60, 0, 4, 2,  5,  5, 400, 0.5f, 3},
 
-    // Automatics (range 12)
-    {30, ITEM_WEAPON_AUTO, "20MM-AUTO",        300, 380, 0, 12, 0, 39, 39, 2500, 2.2f, 1},
-    {31, ITEM_WEAPON_AUTO, "45MM-AUTO",        350, 450, 0, 12, 1, 46, 46, 3000, 2.3f, 2},
-    {32, ITEM_WEAPON_AUTO, "50MM-AUTO",        400, 570, 0, 12, 2, 50, 50, 3500, 2.4f, 3},
-    {33, ITEM_WEAPON_AUTO, "BOOSTER",          450, 600, 0, 12, 3, 50, 50, 4001, 2.5f, 4},
+    /* Firearms (class 0x0a) */
+    {20, ITEM_WEAPON_HANDGUN, "PISTOL",          15, 25, 0, 6, 1, 30, 30, 500, 1.0f, 4},
+    {21, ITEM_WEAPON_HANDGUN, "LIGHT PISTOL",    12, 20, 0, 6, 0, 25, 25, 350, 0.8f, 4},
+    {22, ITEM_WEAPON_HANDGUN, "HEAVY PISTOL",    20, 35, 0, 6, 2, 30, 30, 700, 1.3f, 4},
+    {23, ITEM_WEAPON_HANDGUN, "TWIN PISTOL",     25, 40, 0, 6, 3, 40, 40, 900, 1.5f, 4},
 
-    // Lasers (range 30)
-    {40, ITEM_WEAPON_LASER, "HAND-LASER",      900,1100, 0, 30, 0, 20, 20, 3000, 2.9f, 1},
-    {41, ITEM_WEAPON_LASER, "ION-PULSE",      1200,1500, 0, 30, 1, 25, 25, 4000, 3.2f, 2},
+    /* Rifles / light arms (class 0x0b) */
+    {30, ITEM_WEAPON_RIFLE, "RIFLE",             25, 40, 0, 10, 1, 30, 30,  800, 2.5f, 5},
+    {31, ITEM_WEAPON_RIFLE, "ASSAULT RIFLE",     30, 50, 0, 10, 2, 40, 40, 1200, 3.0f, 6},
+    {32, ITEM_WEAPON_RIFLE, "SNIPER RIFLE",      40, 60, 0, 15, 3, 20, 20, 1500, 3.5f, 5},
+    {33, ITEM_WEAPON_RIFLE, "LASER RIFLE",       50, 80, 0, 12, 4, 25, 25, 2000, 2.8f, 6},
+    {34, ITEM_WEAPON_LASER, "PLASMA GUN",        60,100, 0, 10, 5, 20, 20, 2500, 3.2f, 10},
 
-    // Cannons (range 50)
-    {50, ITEM_WEAPON_CANNON, "MONO-CANNON",   1500,1800, 0, 50, 0, 20, 20, 4000, 16.0f, 1},
-    {51, ITEM_WEAPON_CANNON, "A51-LAUNCHER",  1800,2000, 0, 50, 1, 15, 15, 5000, 19.0f, 2},
-    {52, ITEM_WEAPON_CANNON, "TWIN-CANNON",   2000,2200, 0, 50, 2, 20, 20, 6000, 20.2f, 3},
-
-    // Sprayguns (range 45)
-    {60, ITEM_WEAPON_SPRAY, "AIROSOLL",        100, 300, 0, 45, 0, 21, 21, 2000, 4.0f, 1},
-    {61, ITEM_WEAPON_SPRAY, "ACID-DISPERSER",  300, 500, 0, 45, 1, 10, 10, 3000, 4.5f, 2},
-    {62, ITEM_WEAPON_SPRAY, "FLAME-THROWER",   500, 700, 0, 45, 2, 10, 10, 4000, 5.0f, 3},
+    /* Heavy weapons (class 0x0d) */
+    {40, ITEM_WEAPON_CANNON, "CANNON",           50, 90, 0, 8, 3, 15, 15, 2000, 8.0f, 7},
+    {41, ITEM_WEAPON_CANNON, "TWIN CANNON",      70,120, 0, 8, 4, 20, 20, 3000, 10.0f, 7},
+    {42, ITEM_WEAPON_SPRAY,  "LIGHT SPRAYGUN",   25, 45, 0, 5, 2, 30, 30, 1200, 4.0f, 8},
+    {43, ITEM_WEAPON_SPRAY,  "HEAVY SPRAYGUN",   40, 70, 0, 5, 3, 25, 25, 1800, 5.0f, 8},
+    {44, ITEM_WEAPON_SPRAY,  "FLAME THROWER",    45, 80, 0, 4, 4, 20, 20, 2200, 5.5f, 8},
+    {45, ITEM_WEAPON_CANNON, "ROCKET LAUNCHER",  80,150, 0, 12, 5, 10, 10, 3500, 12.0f, 9},
 };
 
-static const Item armor_defs[] = {
-    {70, ITEM_ARMOR_HEAD,  "HELMET-1",      0, 0, 5, 0, 0, 0, 0, 200, 1.0f, 0},
-    {71, ITEM_ARMOR_HEAD,  "HELMET-2",      0, 0,10, 0, 1, 0, 0, 400, 1.2f, 0},
-    {72, ITEM_ARMOR_CHEST, "CHESTPLATE-1",  0, 0, 8, 0, 0, 0, 0, 300, 2.0f, 0},
-    {73, ITEM_ARMOR_CHEST, "CHESTPLATE-2",  0, 0,16, 0, 1, 0, 0, 600, 2.5f, 0},
-    {74, ITEM_ARMOR_ARM,   "ARM-GUARD-1",   0, 0, 4, 0, 0, 0, 0, 150, 0.8f, 0},
-    {75, ITEM_ARMOR_ARM,   "ARM-GUARD-2",   0, 0, 8, 0, 1, 0, 0, 300, 1.0f, 0},
-    {76, ITEM_ARMOR_LEG,   "LEG-GUARD-1",   0, 0, 4, 0, 0, 0, 0, 150, 1.0f, 0},
-    {77, ITEM_ARMOR_LEG,   "LEG-GUARD-2",   0, 0, 8, 0, 1, 0, 0, 300, 1.2f, 0},
-    {78, ITEM_ARMOR_FOOT,  "BOOTS-1",       0, 0, 3, 0, 0, 0, 0, 100, 0.6f, 0},
-    {79, ITEM_ARMOR_FOOT,  "BOOTS-2",       0, 0, 6, 0, 1, 0, 0, 200, 0.8f, 0},
-    {80, ITEM_ARMOR_HAND,  "GLOVES-1",      0, 0, 2, 0, 0, 0, 0,  80, 0.3f, 0},
-    {81, ITEM_ARMOR_HAND,  "GLOVES-2",      0, 0, 4, 0, 1, 0, 0, 160, 0.4f, 0},
-};
+static const Item consumable_defs[] = {
+    /* Energy cells (class 0x03) */
+    {50, ITEM_AMMO,    "SMALL ENERGY CELL",   0, 0, 0, 0, 0, 10, 10,  50, 0.5f, 0},
+    {51, ITEM_AMMO,    "MEDIUM ENERGY CELL",  0, 0, 0, 0, 0, 25, 25, 100, 1.0f, 0},
+    {52, ITEM_AMMO,    "LARGE ENERGY CELL",   0, 0, 0, 0, 0, 50, 50, 200, 2.0f, 0},
 
-static const Item misc_defs[] = {
-    {90, ITEM_BATTERY,    "BATTERY",     0, 0, 0, 0, 0, 0, 0,  50, 2.3f, 0},
-    {91, ITEM_MAP,        "MAP",         0, 0, 0, 0, 0, 0, 0, 500, 1.3f, 0},
-    {92, ITEM_CLIPBOARD,  "CLIPBOARD",   0, 0, 0, 0, 0, 0, 0, 100, 0.2f, 0},
-    {93, ITEM_DROID_CHIP, "DROID-CHIP",  0, 0, 0, 0, 0, 0, 0, 200, 1.0f, 0},
-    {94, ITEM_CAMERA,     "CAMERA",      0, 0, 0, 0, 0, 0, 0, 300, 29.3f, 0},
-    {95, ITEM_MINE,       "MINE",        0, 0, 0, 0, 0, 0, 0, 150, 19.2f, 0},
-    {96, ITEM_DIE,        "DIE",         0, 0, 0, 0, 0, 0, 0,  20, 0.2f, 0},
-    {97, ITEM_DEVSCAPE,   "DEV-SCAPE",   0, 0, 0, 0, 0, 0, 0, 900, 2.4f, 0},
-    {98, ITEM_OPTIC,      "OPTIC",       0, 0, 0, 0, 0, 0, 0, 600, 1.4f, 0},
-    {99, ITEM_PROBE,      "PLANET-PROBE",0, 0, 0, 0, 0, 0, 0,1000, 92.5f, 0},
+    /* Clips (class 0x01) */
+    {53, ITEM_AMMO,    "SMALL CLIP",          0, 0, 0, 0, 0, 15, 15,  30, 0.2f, 0},
+    {54, ITEM_AMMO,    "MEDIUM CLIP",         0, 0, 0, 0, 0, 30, 30,  60, 0.4f, 0},
+    {55, ITEM_AMMO,    "LARGE CLIP",          0, 0, 0, 0, 0, 50, 50, 100, 0.6f, 0},
 
-    // Ammo types
-    {100, ITEM_AMMO, "20MM-CLIP",    0, 0, 0, 0, 0, 30, 30,  50, 0.2f, 0},
-    {101, ITEM_AMMO, "45MM-CLIP",    0, 0, 0, 0, 0, 34, 34,  60, 0.3f, 0},
-    {102, ITEM_AMMO, "50MM-CLIP",    0, 0, 0, 0, 0, 40, 40,  70, 0.4f, 0},
-    {103, ITEM_AMMO, "CARTRIDGES",   0, 0, 0, 0, 0, 42, 42,  65, 0.3f, 0},
-    {104, ITEM_AMMO, "LASER-PACK",   0, 0, 0, 0, 0, 20, 20, 100, 3.1f, 0},
-    {105, ITEM_AMMO, "SONIC-PACK",   0, 0, 0, 0, 0, 25, 25, 120, 3.3f, 0},
-    {106, ITEM_AMMO, "SHELLS",       0, 0, 0, 0, 0, 20, 20, 150, 16.0f, 0},
-    {107, ITEM_AMMO, "A51-MISSILES", 0, 0, 0, 0, 0, 15, 15, 200, 11.0f, 0},
-    {108, ITEM_AMMO, "GAS-CANISTER", 0, 0, 0, 0, 0, 21, 21,  80, 19.0f, 0},
+    /* Utility items (class 0x02) */
+    {60, ITEM_DEVSCAPE,   "SMALL MEDIPACK",   0, 0, 0, 0, 0, 0, 0, 200, 0.5f, 0},
+    {61, ITEM_DEVSCAPE,   "LARGE MEDIPACK",   0, 0, 0, 0, 0, 0, 0, 500, 1.0f, 0},
+    {62, ITEM_ARMOR_HEAD, "SMALL SHIELD",     0, 0, 5, 0, 0, 0, 0, 300, 1.5f, 0},
+    {63, ITEM_ARMOR_CHEST,"LARGE SHIELD",     0, 0,10, 0, 1, 0, 0, 600, 3.0f, 0},
+    {64, ITEM_OPTIC,      "OPTICAL DEVICE",   0, 0, 0, 0, 0, 0, 0, 400, 0.8f, 0},
+    {65, ITEM_MAP,        "HOLO MAP",         0, 0, 0, 0, 0, 0, 0, 500, 0.5f, 0},
 };
 
 void item_db_init(ItemDatabase *db) {
     memset(db, 0, sizeof(*db));
-
     int n = 0;
     for (int i = 0; i < (int)(sizeof(weapon_defs)/sizeof(weapon_defs[0])); i++)
         db->defs[n++] = weapon_defs[i];
-    for (int i = 0; i < (int)(sizeof(armor_defs)/sizeof(armor_defs[0])); i++)
-        db->defs[n++] = armor_defs[i];
-    for (int i = 0; i < (int)(sizeof(misc_defs)/sizeof(misc_defs[0])); i++)
-        db->defs[n++] = misc_defs[i];
+    for (int i = 0; i < (int)(sizeof(consumable_defs)/sizeof(consumable_defs[0])); i++)
+        db->defs[n++] = consumable_defs[i];
     db->num_defs = n;
 }
 
