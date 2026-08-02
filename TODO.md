@@ -7,7 +7,7 @@
 - [ ] Replace approximate viewport projection with exact panel coordinates
 - [ ] Verify panel compositing order against DOS VGA captures
 - [x] Add creature sprite rendering (ALIEN1-6.PL5)
-- [ ] Add item/object rendering in viewport (OBJECTS.PL5)
+- [x] Add item/object rendering in viewport (OBJECTS.PL5)
 
 ### Combat
 - [x] Disassemble combat formula section of CAPPO.EXE (hit check, damage calc, scaling)

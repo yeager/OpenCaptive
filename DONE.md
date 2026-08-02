@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (object sprites)
+
+### Object sprite rendering (OBJECTS.PL5)
+- 16×16 frame grid (20 cols × 12 rows = 240 frames per sheet)
+- Same transparency and scaling as creature sprites
+- Test suite: load, blit, null safety
+
 ## 2026-08-02 (creature sprites)
 
 ### Creature sprite rendering
