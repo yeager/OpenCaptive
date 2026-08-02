@@ -1,18 +1,15 @@
 #include "puzzle.h"
+#include "captive_data.h"
 #include <string.h>
 
-static uint32_t puzzle_prng;
-static uint32_t puzzle_rand(void) {
-    puzzle_prng = puzzle_prng * 1103515245 + 12345;
-    return (puzzle_prng >> 16) & 0x7FFF;
-}
+static uint32_t puzzle_seed;
 
 void puzzle_init(PuzzleList *pl) {
     memset(pl, 0, sizeof(*pl));
 }
 
 void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t seed) {
-    puzzle_prng = seed + level_num * 4217;
+    puzzle_seed = seed + level_num * 4217;
 
     static const int dx[] = {0, 1, 0, -1};
     static const int dy[] = {-1, 0, 1, 0};
@@ -23,7 +20,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
             if (lvl->cells[y][x].type != CELL_DOOR &&
                 lvl->cells[y][x].type != CELL_DOOR_LOCKED) continue;
             if (pl->num_puzzles >= MAX_PUZZLES) return;
-            if (puzzle_rand() % 3 != 0) continue;
+            if (captive_prng(&puzzle_seed) % 3 != 0) continue;
 
             // Find a nearby wall face to place a button
             for (int d = 0; d < 4; d++) {
@@ -63,8 +60,8 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
         if (pl->num_puzzles >= MAX_PUZZLES) break;
         int attempts = 50;
         while (attempts-- > 0) {
-            int rx = 2 + puzzle_rand() % (MAP_WIDTH - 4);
-            int ry = 2 + puzzle_rand() % (MAP_HEIGHT - 4);
+            int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
+            int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
             if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
 
             // Check adjacent wall
@@ -73,13 +70,13 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 int wy = ry + dy[d];
                 if (lvl->cells[wy][wx].type == CELL_WALL) {
                     Puzzle *p = &pl->puzzles[pl->num_puzzles++];
-                    p->type = (puzzle_rand() % 3 == 0) ? PUZZLE_TRIPLE_LEVER : PUZZLE_LEVER;
+                    p->type = (captive_prng(&puzzle_seed) % 3 == 0) ? PUZZLE_TRIPLE_LEVER : PUZZLE_LEVER;
                     p->x = rx;
                     p->y = ry;
                     p->level = level_num;
                     p->face = d;
                     p->state = 0;
-                    p->solution = (uint8_t)(1 + puzzle_rand() % 7);
+                    p->solution = (uint8_t)(1 + captive_prng(&puzzle_seed) % 7);
                     p->solved = false;
 
                     // Find a locked door to link to
@@ -107,8 +104,8 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
     if (level_num >= 2 && pl->num_puzzles < MAX_PUZZLES) {
         int attempts = 100;
         while (attempts-- > 0) {
-            int rx = 2 + puzzle_rand() % (MAP_WIDTH - 4);
-            int ry = 2 + puzzle_rand() % (MAP_HEIGHT - 4);
+            int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
+            int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
             if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
 
             for (int d = 0; d < 4; d++) {
