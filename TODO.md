@@ -38,7 +38,7 @@
 - [x] Implement SFX bytecode interpreter (4 simultaneous voices, 70 Hz tick)
 - [x] Wire AdLib SFX player into game runtime
 - [ ] Fully reverse-engineer SFX bytecode interpreter from CAP_A.BIN driver code
-- [ ] Map SFX sequence indices to game events (combat hit, door, step, etc.)
+- [x] Map SFX sequence indices to game events (disassembled INT 61h call sites)
 - [ ] Implement AdLib MIDI playback (OPL2 instrument bank for MIDI)
 
 ### Save/load
