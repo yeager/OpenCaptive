@@ -20,6 +20,9 @@
 #define CITYGRID_DIR_S 2
 #define CITYGRID_DIR_W 3
 
+#define CITYGRID_MAX_BUILDINGS 256
+#define CITYGRID_CONN_TABLE_SIZE 51
+
 typedef struct {
     int8_t  dx;
     int8_t  dy;
@@ -27,11 +30,22 @@ typedef struct {
 } CityGridDirection;
 
 typedef struct {
+    uint16_t grid_offset;
+    uint8_t  connection;
+    uint8_t  direction;
+} CityGridBuilding;
+
+typedef struct {
     uint8_t plane0[CITYGRID_CELLS];
     uint8_t plane1[CITYGRID_CELLS];
     uint8_t plane2[CITYGRID_CELLS];
 
+    uint8_t plane0_backup[CITYGRID_CELLS];
+
     uint8_t meta[CITYGRID_META_SIZE * CITYGRID_META_SIZE * 2];
+
+    CityGridBuilding buildings[CITYGRID_MAX_BUILDINGS];
+    uint8_t conn_table[CITYGRID_CONN_TABLE_SIZE];
 
     uint16_t prng_state;
     uint16_t seed_hi;
@@ -44,6 +58,13 @@ typedef struct {
     uint8_t  building_counter_a;
     uint8_t  building_counter_b;
     uint8_t  road_id;
+    int16_t  retry_limit;
+    int16_t  entry_point;
+
+    uint8_t  feature_cell_type;
+    uint8_t  feature_count;
+    uint16_t feature_mode;
+    uint8_t  feature_building_id;
 } CityGridState;
 
 uint16_t citygrid_prng(CityGridState *s);

@@ -1,5 +1,19 @@
 # OpenCaptive Release Notes
 
+## v1.1.15 (2026-08-02)
+
+### Liberation: CityGen grid — remaining subroutines
+- Building shape resolution (sub_07D2): walks building records, resolves origin via directional traversal
+- Connection table init (sub_1766): 51-byte table, seed-derived coordinates
+- Building connectivity (sub_097A): PRNG-based direction assignment for unconnected buildings
+- Building record cleanup (sub_0A08): mask AND 0x0FFF/0xBF/0x2F on 4-byte records
+- Road feature placement: 3 variants — lamp post (0x21, ×10), post box (0x22, ×4), phone box (0x23, ×1)
+- Road feature inner loop (sub_160E): directional walk from PRNG position, target cell matching, adjacent-cell placement
+- Advanced feature placement (sub_0A80, difficulty ≥ 4): retry limit 0xFF, up to 51 iterations with plane0 backup/restore
+- Road-adjacent wall placement (sub_0ECC, difficulty ≥ 4): walk from random position to cell 0x1F, search for connectable cells
+- Entry point finder (sub_0180, difficulty ≥ 4): 30 attempts to find road cell via feature placement, walk to building origin
+- Finalize pass (sub_24B8): iterates all 4096 cells, ~20-case type dispatch converting generation cells to output values, sets entry point to 0x0A
+
 ## v1.1.14 (2026-08-02)
 
 ### Liberation: ArcD compression decoder

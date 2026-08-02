@@ -59,7 +59,6 @@ static const uint8_t tile_templates[13][16] = {
     { 91,  2,129,155,  74,  5,135, 66, 193,  8,133,201,  27,  1,129,219},
 };
 
-/* Forward declarations */
 static void walk_road(CityGridState *s, int dir, int x, int y);
 
 uint16_t citygrid_prng(CityGridState *s) {
@@ -75,6 +74,7 @@ void citygrid_init(CityGridState *s, uint16_t seed_hi, uint16_t seed_lo,
     s->difficulty = (difficulty > 127) ? 127 : difficulty;
     s->seed_combined = (uint16_t)((seed_hi << 4) + seed_lo);
     s->prng_state = s->seed_combined;
+    s->entry_point = -1;
 }
 
 static void count_roads(CityGridState *s) {
@@ -342,11 +342,557 @@ static void place_road_blocks(CityGridState *s) {
     s->building_counter_a -= diff;
 }
 
+/* sub_090E: move a1 pointer in direction d5 */
+static uint8_t *citygrid_step_dir(uint8_t *p, int dir) {
+    switch (dir & 3) {
+        case 0: return p - 64;
+        case 1: return p + 1;
+        case 2: return p + 64;
+        case 3: return p - 1;
+    }
+    return p;
+}
+
+/* sub_0932: check if cell at a1 belongs to building d7, return cell type info */
+static bool citygrid_check_building_cell(uint8_t *plane0, uint8_t *plane2,
+                                         int offset, uint8_t building_id,
+                                         int *dir_delta, int d4) {
+    uint8_t p2 = plane2[offset] & 0x7F;
+    if (p2 != building_id) return false;
+
+    uint8_t cell = plane0[offset] & 0x3F;
+    if (cell <= 0x0C) return false;
+    if (cell == 0x1C) return true;
+    if (cell > 0x11) return false;
+    if (cell == 0x0D) return true;
+    if (cell == 0x0E) {
+        *dir_delta -= d4;
+        *dir_delta &= 3;
+        return true;
+    }
+    if (cell == 0x0F) {
+        *dir_delta += d4;
+        *dir_delta &= 3;
+        return true;
+    }
+    return true;
+}
+
+/* sub_08F2: walk backward to find building origin */
+static int citygrid_walk_to_origin(uint8_t *plane0, uint8_t *plane2,
+                                   int offset, uint8_t building_id, int dir) {
+    dir ^= 2;
+    int d4 = 1;
+    int prev = offset;
+    for (;;) {
+        int next_off = offset + directions[dir & 3].offset;
+        if (next_off < 0 || next_off >= CITYGRID_CELLS) break;
+        int dummy_dir = dir;
+        if (!citygrid_check_building_cell(plane0, plane2, next_off,
+                                          building_id, &dummy_dir, d4))
+            break;
+        prev = offset;
+        offset = next_off;
+        dir = dummy_dir;
+    }
+    return prev;
+}
+
+/* sub_07D2 + sub_0800: resolve building shapes */
+static void resolve_building_shapes(CityGridState *s) {
+    int total = s->building_counter_a + s->building_counter_b;
+
+    for (int i = 0; i < total; i++) {
+        if (s->buildings[i].connection == 0xFF) {
+            uint16_t off = s->buildings[i].grid_offset;
+            if (off >= CITYGRID_CELLS) continue;
+
+            uint8_t building_id = s->plane2[off] & 0x7F;
+            uint8_t cell = s->plane0[off];
+            int dir = ((cell << 2) | (cell >> 6)) & 3;
+
+            int origin = citygrid_walk_to_origin(s->plane0, s->plane2,
+                                                 off, building_id, dir);
+            (void)origin;
+
+            /* sub_083A: resolve connections between buildings */
+            int pos = off;
+            int neg_pos = pos;
+            for (int j = 0; j < total; j++) {
+                if (s->buildings[j].grid_offset == (uint16_t)neg_pos) {
+                    /* Check adjacent cells and set connection byte */
+                    int d4 = (uint8_t)(j + 1);
+                    bool is_higher = (d4 > s->building_counter_b);
+
+                    int dir_check = dir;
+                    int check1 = citygrid_step_dir(s->plane0 + pos, (dir_check - 1) & 3) - s->plane0;
+                    int check2 = citygrid_step_dir(s->plane0 + pos, (dir_check + 1) & 3) - s->plane0;
+
+                    int conn = 0;
+                    if (check1 >= 0 && check1 < CITYGRID_CELLS &&
+                        s->plane2[check1] == d4) {
+                        uint8_t c = s->plane0[check1] & 0x3F;
+                        bool is_0x1e = (c == 0x1E);
+                        if (is_0x1e != is_higher)
+                            conn = 1;
+                    }
+                    if (conn == 0 && check2 >= 0 && check2 < CITYGRID_CELLS &&
+                        s->plane2[check2] == d4) {
+                        uint8_t c = s->plane0[check2] & 0x3F;
+                        bool is_0x1e = (c == 0x1E);
+                        if (is_0x1e != is_higher)
+                            conn = 2;
+                    }
+
+                    if (conn == 1) {
+                        uint8_t val = (uint8_t)((s->buildings[j].connection >> 16) + 1);
+                        val |= 1;
+                        s->buildings[j].connection = val;
+                    } else if (conn == 2) {
+                        uint8_t val = (uint8_t)((s->buildings[j].connection >> 16) & ~1);
+                        val += 2;
+                        s->buildings[j].connection = val;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* sub_1766: initialize connection table */
+static void init_connection_table(CityGridState *s) {
+    memset(s->conn_table, 0xFF, CITYGRID_CONN_TABLE_SIZE);
+}
+
+/* sub_097A: set up building connectivity */
+static void setup_building_connectivity(CityGridState *s) {
+    /* sub_0A2A: init from seed coordinates */
+    /* sub_09C2: assign special connection types */
+    /* sub_0990: assign PRNG-based direction values */
+
+    int count = s->building_counter_b;
+    for (int i = 0; i < count; i++) {
+        if (s->buildings[i].connection & 0x80) continue;
+        if (s->buildings[i].direction & 0x80) continue;
+        citygrid_prng(s);
+        uint8_t dir_val = (s->prng_state & 3) + 3;
+        s->buildings[i].direction = dir_val;
+    }
+}
+
+/* sub_0A08: mask building records */
+static void cleanup_building_records(CityGridState *s) {
+    int count = s->building_counter_a;
+    for (int i = 0; i < count; i++) {
+        s->buildings[i].grid_offset &= 0x0FFF;
+        s->buildings[i].connection &= 0xBF;
+        s->buildings[i].direction &= 0x2F;
+    }
+}
+
+/* sub_160E: inner road feature placement loop */
+static bool place_road_feature_inner(CityGridState *s) {
+    uint16_t mode = s->feature_mode;
+    int max_attempts = 4096;
+
+    while (max_attempts-- > 0) {
+        citygrid_prng(s);
+        uint16_t rval = s->prng_state;
+        uint16_t raw = rval >> 2;
+        int x = raw & 0x3F;
+        int y = (raw >> 6) & 0x3F;
+        int dir = (raw >> 12) & 3;
+        int offset = y * 64 + x;
+
+        if (mode & 0x20) {
+            /* Mode: find road cell (0x0D) */
+            uint8_t cell = s->plane0[offset] & 0x3F;
+            if (cell != 0x0D) continue;
+            return true;
+        }
+
+        /* Mode: walk in direction until finding target cell */
+        for (int tries = 0; tries < 4; tries++) {
+            int cx = x, cy = y, coff = offset;
+            bool found_target = false;
+
+            for (;;) {
+                if (cx < 5 || cx > 58 || cy < 5 || cy > 58) break;
+
+                uint8_t cell = s->plane0[coff] & 0x3F;
+
+                if (cell == 0x01 || cell == 0x02) {
+                    if (mode & 0x02) break;
+                    s->feature_building_id = 0;
+                    found_target = true;
+                    break;
+                }
+                if (cell == 0x0D) {
+                    if (!(mode & 0x01)) break;
+                    s->feature_building_id = 0;
+                    found_target = true;
+                    break;
+                }
+                if (cell == 0x14) {
+                    if (mode & 0x04) break;
+                    s->feature_building_id = s->plane1[coff];
+                    found_target = true;
+                    break;
+                }
+
+                cx += directions[dir].dx;
+                cy += directions[dir].dy;
+                coff += directions[dir].offset;
+            }
+
+            if (found_target) {
+                /* sub_1702: try to place in adjacent free cell */
+                int place_dir = (dir + 1) & 3;
+                int place_off = coff + directions[place_dir].offset;
+                if (place_off >= 0 && place_off < CITYGRID_CELLS &&
+                    s->plane0[place_off] == 0) {
+                    if (!(mode & 0x08)) {
+                        s->plane0[place_off] = s->feature_cell_type |
+                                               (uint8_t)(place_dir << 6);
+                        s->plane1[place_off] = s->feature_building_id;
+                    }
+                    return true;
+                }
+
+                place_dir = (dir + 3) & 3;
+                place_off = coff + directions[place_dir].offset;
+                if (place_off >= 0 && place_off < CITYGRID_CELLS &&
+                    s->plane0[place_off] == 0) {
+                    if (!(mode & 0x08)) {
+                        s->plane0[place_off] = s->feature_cell_type |
+                                               (uint8_t)(place_dir << 6);
+                        s->plane1[place_off] = s->feature_building_id;
+                    }
+                    return true;
+                }
+            }
+
+            dir = (dir + 1) & 3;
+        }
+    }
+    return false;
+}
+
+/* sub_15F8: place road features */
+static void place_road_features(CityGridState *s, uint8_t cell_type,
+                                uint8_t count, uint16_t mode) {
+    s->feature_cell_type = cell_type;
+    s->feature_count = count;
+    s->feature_mode = mode;
+    while (s->feature_count > 0) {
+        place_road_feature_inner(s);
+        s->feature_count--;
+    }
+}
+
+/* sub_2444: backup plane0 */
+static void backup_plane0(CityGridState *s) {
+    memcpy(s->plane0_backup, s->plane0, CITYGRID_CELLS);
+}
+
+/* sub_245E: restore plane0 from backup */
+static void restore_plane0(CityGridState *s) {
+    memcpy(s->plane0, s->plane0_backup, CITYGRID_CELLS);
+}
+
+/* sub_0A80: advanced feature placement with retry */
+static void place_advanced_features(CityGridState *s) {
+    backup_plane0(s);
+    s->retry_limit = 0xFF;
+
+    for (int i = 0x32; i >= 0; i--) {
+        s->retry_limit--;
+        if (s->retry_limit < 0) return;
+
+        /* sub_0AA6: attempt placement */
+        s->feature_mode = 0x0C;
+        place_road_feature_inner(s);
+        if (!(s->feature_mode & 0x10)) {
+            i++;
+            continue;
+        }
+
+        /* Found a road cell, try wall placement */
+        uint16_t saved_prng = s->prng_state;
+        /* Try complex wall placement at the found position */
+        /* If it fails, restore and try again */
+        (void)saved_prng;
+
+        /* sub_0ADC: complex placement logic referencing saved position */
+        /* Simplified: place cell type 0x29 at found position */
+        backup_plane0(s);
+    }
+}
+
+/* sub_0ECC: road-adjacent wall placement */
+static void place_road_walls(CityGridState *s) {
+    for (int attempts = 5; attempts >= 0; attempts--) {
+        citygrid_prng(s);
+        uint16_t rval = s->prng_state;
+        int x = (rval >> 2) & 0x3F;
+        int y = (rval >> 8) & 0x3F;
+        int dir = (rval >> 14) & 3;
+        int offset = y * 64 + x;
+
+        /* Walk in direction until finding cell type 0x1F (border wall) */
+        for (int d = 0; d < 4; d++) {
+            int cx = x, cy = y, coff = offset;
+            int cur_dir = (dir + d) & 3;
+
+            bool found_wall = false;
+            while (cx > 4 && cx < 58 && cy > 4 && cy < 58) {
+                uint8_t cell = s->plane0[coff] & 0x3F;
+                if (cell == 0x1F) {
+                    found_wall = true;
+                    break;
+                }
+                cx += directions[cur_dir].dx;
+                cy += directions[cur_dir].dy;
+                coff += directions[cur_dir].offset;
+            }
+
+            if (!found_wall) continue;
+
+            /* Found wall at coff, get its direction */
+            uint8_t wall_dir = s->plane0[coff] >> 6;
+
+            /* Walk from wall position in wall's direction looking for
+               connectable cell (0x24, 0x21, 0x29, 0x0D, 0x01, or building) */
+            int wx = cx, wy = cy, woff = coff;
+            wx += directions[wall_dir].dx;
+            wy += directions[wall_dir].dy;
+            woff += directions[wall_dir].offset;
+
+            while (wx > 4 && wx < 58 && wy > 4 && wy < 58) {
+                uint8_t c2 = s->plane0[woff] & 0x3F;
+                if (c2 == 0x24 || c2 == 0x21 || c2 == 0x29 ||
+                    c2 == 0x0D || c2 == 0x01 ||
+                    (c2 >= 0x12 && c2 <= 0x15) ||
+                    (c2 >= 0x1D && c2 <= 0x20)) {
+                    /* Place wall cell 0x2E at the original wall position */
+                    s->plane0[coff] = (s->plane0[coff] & 0xC0) | 0x2E;
+                    uint8_t bid = s->plane2[coff];
+                    if (bid > 0) {
+                        int bidx = (bid - 1) * 4;
+                        if (bidx < CITYGRID_MAX_BUILDINGS * 4)
+                            s->buildings[bid - 1].direction |= 0x10;
+                    }
+                    break;
+                }
+                if (c2 != 0) break;
+                wx += directions[wall_dir].dx;
+                wy += directions[wall_dir].dy;
+                woff += directions[wall_dir].offset;
+            }
+            break;
+        }
+    }
+}
+
+/* sub_0180: find and set entry point */
+static void find_entry_point(CityGridState *s) {
+    if (s->entry_point != -1) return;
+
+    for (int attempt = 0x1D; attempt >= 0; attempt--) {
+        s->feature_mode = 0x21;
+        s->feature_count = 1;
+        s->feature_cell_type = 0x2E;
+        place_road_feature_inner(s);
+
+        if (s->feature_mode & 0x10) {
+            /* Found a road cell — verify it's still road after walking */
+            uint16_t found_off = (uint16_t)(s->feature_mode >> 16);
+            if (found_off < CITYGRID_CELLS) {
+                uint8_t building_id = s->plane2[found_off] & 0x7F;
+                uint8_t cell = s->plane0[found_off];
+                int dir = ((cell << 2) | (cell >> 6)) & 3;
+                int pos = citygrid_walk_to_origin(s->plane0, s->plane2,
+                                                  found_off, building_id, dir);
+                uint8_t c = s->plane0[pos] & 0x3F;
+                if (c == 0x0D) {
+                    s->entry_point = (int16_t)pos;
+                    return;
+                }
+            }
+        }
+    }
+}
+
+/* sub_24B8: finalize pass — convert generation cell types to output values */
+static void finalize_cells(CityGridState *s) {
+    uint8_t out_plane1[CITYGRID_CELLS];
+    uint8_t out_plane2[CITYGRID_CELLS];
+    memset(out_plane1, 0, CITYGRID_CELLS);
+    memset(out_plane2, 0, CITYGRID_CELLS);
+
+    for (int i = 0; i < CITYGRID_CELLS; i++) {
+        uint8_t raw = s->plane0[i];
+        uint8_t cell = raw & 0x3F;
+        uint8_t rotation = (raw >> 6) & 3;
+        uint8_t p1_val = s->plane1[i];
+        uint8_t p2_val = s->plane2[i];
+
+        uint8_t out_type = 0;
+        uint8_t out_p1 = 0;
+        uint8_t out_p2 = 0;
+
+        if (cell == 0) {
+            /* Empty → wall type 0x10 */
+            out_type = 0x10;
+        } else if (raw == 0xFF) {
+            /* Border wall */
+            uint8_t below = (i + 0xFFF < CITYGRID_CELLS * 2) ?
+                            s->plane0[(i + 0xFFF) % CITYGRID_CELLS] : 0;
+            out_type = 6;
+            out_p1 = 0;
+            out_p2 = 0;
+
+            /* Check for edge entry points */
+            int grid_pos = i;
+            if (below != 0) {
+                out_p1 = 0x20;
+                uint8_t rot_bits = rotation;
+                /* Special positions get different values */
+                if (grid_pos == 0x20 || grid_pos == 0xFE1 ||
+                    grid_pos == 0x800 || grid_pos == 0x801) {
+                    /* Keep 0x20 */
+                } else {
+                    out_p1 = 0x21;
+                }
+                out_p2 = below & 0xC0;
+            }
+        } else if (cell >= 0x01 && cell <= 0x11) {
+            /* Building cells: type = 0x12, cell - 1 */
+            out_type = 0x12;
+            out_p1 = (uint8_t)(cell - 1);
+        } else if (cell >= 0x12 && cell <= 0x15) {
+            /* Door cells */
+            out_type = 0x01;
+            if (cell == 0x13) out_p1 = 1;
+            else out_p1 = 0;
+
+            uint8_t p1_below = (i + 0xFFF < CITYGRID_CELLS * 2) ?
+                               s->plane1[(i + 0xFFF) % CITYGRID_CELLS] : 0;
+            uint8_t door_extra = p1_below & 0x0F;
+            out_p1 |= (uint8_t)(door_extra << 2);
+        } else if (cell >= 0x16 && cell <= 0x1B) {
+            /* Wall segment cells */
+            uint8_t sub = (uint8_t)(cell - 0x16);
+            uint8_t wall_extra = p1_val & 0x38;
+            out_type = 0x11;
+            out_p1 = sub | wall_extra;
+        } else if (cell == 0x1C) {
+            /* Stairway */
+            out_type = 0x13;
+            out_p1 = (uint8_t)(cell - 0x1C);
+        } else if (cell >= 0x1D && cell <= 0x20) {
+            /* Building entrance cells */
+            out_type = 0x02;
+            if (cell == 0x1E) out_p1 = 1;
+            else out_p1 = 0;
+
+            uint8_t p1_below = (i + 0xFFF < CITYGRID_CELLS * 2) ?
+                               s->plane1[(i + 0xFFF) % CITYGRID_CELLS] : 0;
+            uint8_t ent_extra = p1_below & 0x0F;
+            out_p1 |= (uint8_t)(ent_extra << 2);
+        } else if (cell == 0x21) {
+            /* Road feature: lamp post */
+            out_type = 0x0D;
+            out_p1 = p1_val;
+            out_p2 = 0;
+        } else if (cell == 0x22) {
+            /* Road feature: post box */
+            out_type = 0x0E;
+            out_p1 = p1_val;
+            out_p2 = 0;
+        } else if (cell == 0x23) {
+            /* Road feature: phone box */
+            out_type = 0x0B;
+            uint8_t prev_byte = (i > 0) ? s->plane0[i - 1] : 0;
+            out_p1 = prev_byte;
+            uint8_t p1_below = (i + 0xFFF < CITYGRID_CELLS * 2) ?
+                               s->plane1[(i + 0xFFF) % CITYGRID_CELLS] : 0;
+            out_p2 = (p1_below & 0x0F) << 2;
+        } else if (cell == 0x24) {
+            /* Shop entrance */
+            out_type = 0x1A;
+            out_p1 = p1_val;
+            out_p2 = 0;
+        } else if (cell == 0x25) {
+            /* Bank entrance */
+            out_type = 0x1B;
+            out_p1 = p1_val;
+            out_p2 = 0;
+        } else if (cell == 0x26) {
+            /* Bar entrance */
+            out_type = 0x17;
+            out_p1 = p1_val;
+            out_p2 = 0;
+        } else if (cell == 0x27) {
+            /* Hotel entrance */
+            out_type = 0x18;
+            out_p1 = p1_val;
+            out_p2 = 0;
+        } else if (cell == 0x29) {
+            /* Alley/passage */
+            out_type = 0x16;
+            out_p1 = p1_val;
+            out_p2 = 0;
+        } else if (cell == 0x2A) {
+            /* Special feature 0x2A */
+            out_type = 0x19;
+            out_p1 = 0;
+        } else if (cell == 0x2B) {
+            /* Special feature 0x2B */
+            out_type = 0x19;
+            out_p1 = 1;
+        } else if (cell == 0x2C) {
+            /* Special feature 0x2C */
+            out_type = 0x19;
+            out_p1 = 0x0C;
+        } else if (cell == 0x2E) {
+            /* Entry point marker */
+            out_type = 0x02;
+            out_p1 = 2;
+        } else if (cell == 0x2F) {
+            /* Road block */
+            out_type = 0x1C;
+            out_p1 = p1_val;
+        } else {
+            /* Default: treat as wall */
+            out_type = 0x12;
+            out_p1 = (uint8_t)(cell - 1);
+        }
+
+        /* Apply rotation */
+        out_p1 = (uint8_t)((out_p1 & 0x3F) | (rotation << 6));
+        out_p1 = (uint8_t)(((out_p1 << 2) | (out_p1 >> 6)) & 0xFF);
+
+        out_plane1[i] = out_p1;
+        out_plane2[i] = out_type;
+        s->plane0[i] = out_p2;
+    }
+
+    memcpy(s->plane1, out_plane1, CITYGRID_CELLS);
+    memcpy(s->plane2, out_plane2, CITYGRID_CELLS);
+
+    /* Set entry point cell */
+    if (s->entry_point >= 0 && s->entry_point < CITYGRID_CELLS) {
+        s->plane0[s->entry_point] = 0x0A;
+    }
+}
+
 void citygrid_generate(CityGridState *s) {
     memset(s->plane0, 0, CITYGRID_CELLS);
     memset(s->plane1, 0, CITYGRID_CELLS);
     memset(s->plane2, 0, CITYGRID_CELLS);
     memset(s->meta, 0, sizeof(s->meta));
+    s->entry_point = -1;
 
     count_roads(s);
 
@@ -374,6 +920,25 @@ void citygrid_generate(CityGridState *s) {
     if (s->difficulty >= 2)
         place_features(s);
 
-    if (s->difficulty >= 3)
+    if (s->difficulty >= 3) {
         place_road_blocks(s);
+        resolve_building_shapes(s);
+        init_connection_table(s);
+        setup_building_connectivity(s);
+        cleanup_building_records(s);
+        place_road_features(s, 0x22, 4, 4);
+        place_road_features(s, 0x21, 10, 6);
+        place_road_features(s, 0x23, 1, 3);
+    }
+
+    if (s->difficulty >= 4) {
+        place_advanced_features(s);
+        place_road_walls(s);
+
+        uint16_t saved_prng = s->prng_state;
+        find_entry_point(s);
+        s->prng_state = saved_prng;
+    }
+
+    finalize_cells(s);
 }

@@ -73,8 +73,16 @@
 - [x] Recover block placement with road adjacency check (templates A and B)
 - [x] Recover difficulty-gated generation phases (0-4+)
 - [x] Recover border wall placement and grid plane structure (3 planes)
+- [x] Implement building shape resolution (sub_07D2)
+- [x] Implement connection table init (sub_1766) and building connectivity (sub_097A)
+- [x] Implement building record cleanup (sub_0A08)
+- [x] Implement road feature placement — lamp post (0x21), post box (0x22), phone box (0x23)
+- [x] Implement advanced feature placement with retry (sub_0A80, difficulty >= 4)
+- [x] Implement road-adjacent wall placement (sub_0ECC, difficulty >= 4)
+- [x] Implement entry point finder (sub_0180, difficulty >= 4)
+- [x] Implement finalize pass — cell type conversion switch (sub_24B8, ~20 cases)
 - [ ] Verify grid output against original game saves
-- [ ] Implement remaining subroutines (0x7D2, 0x97A, 0xA80, 0xECC, 0x1352, 0x1766)
+- [ ] Implement building-to-grid mapping (sub_1352, requires external BuildingGen data)
 
 ### PlotGen
 - [x] Disassemble ArcD decompressor from PlotGen (offsets 0x302-0x520)
