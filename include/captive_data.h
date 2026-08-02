@@ -38,4 +38,20 @@ uint32_t captive_prng(uint32_t *state);
  * Writes a NUL-terminated string of 2-3 syllables into buf (max bufsize). */
 void captive_generate_name(uint32_t *prng_state, char *buf, int bufsize);
 
+/* Game message strings from the DOS executable. */
+#define CAPTIVE_MSG_COUNT 25
+extern const char *const captive_messages[CAPTIVE_MSG_COUNT];
+
+/* Shop dialogue strings from the DOS executable. */
+#define CAPTIVE_SHOP_MSG_COUNT 13
+extern const char *const captive_shop_messages[CAPTIVE_SHOP_MSG_COUNT];
+
+/* Music track categories from the DOS executable. */
+#define CAPTIVE_MUSIC_CATEGORY_COUNT 14
+extern const char *const captive_music_categories[CAPTIVE_MUSIC_CATEGORY_COUNT];
+
+/* Graphics file names from the DOS executable (23 PL5 files). */
+extern const char *const *captive_graphics_files_ptr;
+extern const int captive_graphics_file_count;
+
 #endif
