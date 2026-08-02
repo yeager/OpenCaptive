@@ -222,13 +222,38 @@ The verified unpacked executable (144,556 bytes) contains the complete game data
 
 The executable structure, dispatch tables and descriptor format are documented above. The disassembly data provides ground truth for reimplementing item tables, shop pricing, combat formulas, and name generation without guessing.
 
+## Viewport renderer
+
+The viewport renderer (`src/render/viewport.c`) draws the first-person dungeon
+view using the 19-cell trapezoid from `captive_view_window_build()` and
+hash-verified PL5 panel sheets from the texture atlas:
+
+- **5 depth ranges** with perspective-correct cell sizing
+- **Back-to-front compositing** matching the documented draw order
+- **Wall faces**: front, left and right walls sampled from PL5 source sheets
+- **Floor/ceiling strips**: sampled from PL5 sheets per range
+- **Doors**: drawn from the dedicated door PL5 sheet
+- **Ornaments**: wall decorations from the icon PL5 sheet
+- **Special cells**: visual markers for stairs, generators and shops
+
+The renderer uses real PL5 pixel data exclusively — no synthetic textures. Each
+wall/floor/ceiling fragment is sampled from the hash-verified source sheets at
+positions determined by the cell's texture indices. Transparency is handled by
+skipping pixels where the source ARGB has zero RGB.
+
+This is the first stage of viewport parity. The original DOS renderer uses a
+descriptor table with exact source rectangles, destinations and blitter flags.
+Until that table is fully recovered, the current renderer approximates the
+projection geometry from documented view dimensions rather than using the
+original per-descriptor coordinates.
+
 ## Current runtime boundary
 
 Captive accepts movement, rotation, interaction, inventory, terminal, save and
 F10 runtime controls. These currently operate on OpenCaptive's provisional map
 state and must not be mistaken for an original-state recovery. The runtime
-displays verified intro/HUD data and keeps the viewport untouched until the
-original panel compositor and state format are recovered.
+displays verified intro/HUD data and renders the viewport using real PL5 panel
+sheets with approximate projection geometry.
 
 The F10 menu provides God Mode, Infinite Energy and Complete Objective for the
 active local Captive state. They are runtime conveniences, not original-game
