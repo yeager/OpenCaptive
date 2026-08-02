@@ -30,9 +30,11 @@ extern const char *const captive_bodypart_names[CAPTIVE_BODYPART_COUNT];
 #define CAPTIVE_SYLLABLE_COUNT 48
 extern const char *const captive_name_syllables[CAPTIVE_SYLLABLE_COUNT];
 
-/* Original PRNG recovered from code offset 0x44a0 in the unpacked executable.
- * multiply by 0x5e5, add 0x29, rotate right 4, XOR 0x0800. */
+/* Main PRNG recovered from 0x8A8E: multiply by 0x5E5, add 0x29, ror 3, xor 0x0800. */
 uint32_t captive_prng(uint32_t *state);
+
+/* Combat PRNG variant from 0x9815: multiply by 0x5E5, add 0x29, ror 2 (no XOR). */
+uint32_t captive_combat_prng(uint32_t *state);
 
 /* Generate a droid name from the syllable table using the original algorithm.
  * Writes a NUL-terminated string of 2-3 syllables into buf (max bufsize). */

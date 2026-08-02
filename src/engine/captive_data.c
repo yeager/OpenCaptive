@@ -41,6 +41,14 @@ uint32_t captive_prng(uint32_t *state) {
     return s;
 }
 
+uint32_t captive_combat_prng(uint32_t *state) {
+    uint16_t s = (uint16_t)*state;
+    s = (uint16_t)(s * 0x5e5 + 0x29);
+    s = (s >> 2) | (s << 14);
+    *state = s;
+    return s;
+}
+
 void captive_generate_name(uint32_t *prng_state, char *buf, int bufsize) {
     if (!buf || bufsize < 1) return;
     buf[0] = '\0';

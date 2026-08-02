@@ -21,7 +21,7 @@ static const int16_t creature_stats[CREATURE_COUNT][6] = {
 static uint32_t combat_seed;
 
 static uint32_t combat_rand(void) {
-    return captive_prng(&combat_seed);
+    return captive_combat_prng(&combat_seed);
 }
 
 void combat_init(CreatureList *cl) {
