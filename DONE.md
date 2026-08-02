@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-02 (Textured 3D viewport + CI fix — v1.1.24)
+
+### Perspective-correct textured polygon rendering
+- `lib3d_render_textured_quad()` with per-scanline UV interpolation and z-buffer
+- `city_nav_render_textured()` renders VGM wall textures in city navigation
+- Committed missing dialogue/shop/save headers that broke CI
+
 ## 2026-08-02 (Liberation save system — v1.1.23)
 
 ### LSAV binary save/load format

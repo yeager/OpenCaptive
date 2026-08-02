@@ -191,6 +191,55 @@ static void test_behind_camera(void) {
     assert(state.vis_count == 0);
 }
 
+static void test_textured_quad(void) {
+    Lib3dState state;
+    lib3d_init(&state);
+    lib3d_set_camera(&state, 0, 0, 0, 0);
+    lib3d_clear(&state, 0xFF000000, 0xFF000000);
+
+    Lib3dTexture tex;
+    tex.width = 4;
+    tex.height = 4;
+    for (int i = 0; i < 16; i++)
+        tex.pixels[i] = 0xFFFF0000 + (i * 16);
+
+    lib3d_render_textured_quad(&state,
+        -40, -40, 80,
+         40, -40, 80,
+         40,  40, 80,
+        -40,  40, 80,
+        &tex);
+
+    int cx = LIB3D_VP_WIDTH / 2;
+    int cy = LIB3D_VP_HEIGHT / 2;
+    uint32_t center = state.framebuffer[cy * LIB3D_VP_WIDTH + cx];
+    assert(center != 0xFF000000);
+    assert((center >> 24) == 0xFF);
+}
+
+static void test_textured_quad_behind(void) {
+    Lib3dState state;
+    lib3d_init(&state);
+    lib3d_set_camera(&state, 0, 0, 100, 0);
+    lib3d_clear(&state, 0xFF000000, 0xFF000000);
+
+    Lib3dTexture tex;
+    tex.width = 2;
+    tex.height = 2;
+    for (int i = 0; i < 4; i++) tex.pixels[i] = 0xFF00FF00;
+
+    lib3d_render_textured_quad(&state,
+        -10, -10, 50,
+         10, -10, 50,
+         10,  10, 50,
+        -10,  10, 50,
+        &tex);
+
+    int cx = LIB3D_VP_WIDTH / 2;
+    int cy = LIB3D_VP_HEIGHT / 2;
+    assert(state.framebuffer[cy * LIB3D_VP_WIDTH + cx] == 0xFF000000);
+}
+
 int main(void) {
     test_init();
     test_clear();
@@ -198,6 +247,8 @@ int main(void) {
     test_z_sorting();
     test_camera_rotation();
     test_behind_camera();
+    test_textured_quad();
+    test_textured_quad_behind();
     printf("All liberation_viewport_3d tests passed\n");
     return 0;
 }

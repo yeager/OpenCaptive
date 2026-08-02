@@ -10,6 +10,12 @@
 #define LIB3D_MAX_PROJECTED 256
 #define LIB3D_MAX_VISIBLE_POLYS 512
 #define LIB3D_NEAR_CLIP 4
+#define LIB3D_MAX_TEX_SIZE 128
+
+typedef struct {
+    uint32_t pixels[LIB3D_MAX_TEX_SIZE * LIB3D_MAX_TEX_SIZE];
+    int width, height;
+} Lib3dTexture;
 
 typedef struct {
     float x, y, z;
@@ -50,6 +56,12 @@ void lib3d_clear(Lib3dState *state, uint32_t sky_color, uint32_t ground_color);
 void lib3d_render_object(Lib3dState *state, const X3gObject *obj,
                          float obj_x, float obj_y, float obj_z,
                          const uint32_t *palette, unsigned pal_size);
+void lib3d_render_textured_quad(Lib3dState *state,
+                                float x0, float y0, float z0,
+                                float x1, float y1, float z1,
+                                float x2, float y2, float z2,
+                                float x3, float y3, float z3,
+                                const Lib3dTexture *tex);
 void lib3d_present(Lib3dState *state, uint32_t *dest, int dest_w, int dest_h,
                    int dest_x, int dest_y);
 

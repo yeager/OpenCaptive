@@ -172,6 +172,127 @@ void lib3d_render_object(Lib3dState *state, const X3gObject *obj,
     }
 }
 
+static void textured_scanline(Lib3dState *state, int y,
+                               int xa, float za, float ua, float va,
+                               int xb, float zb, float ub, float vb,
+                               const Lib3dTexture *tex) {
+    if (y < 0 || y >= LIB3D_VP_HEIGHT) return;
+    if (xa > xb) {
+        int ti = xa; xa = xb; xb = ti;
+        float tf;
+        tf = za; za = zb; zb = tf;
+        tf = ua; ua = ub; ub = tf;
+        tf = va; va = vb; vb = tf;
+    }
+    float inv_za = (za > 0.001f) ? 1.0f / za : 0;
+    float inv_zb = (zb > 0.001f) ? 1.0f / zb : 0;
+    float uoz_a = ua * inv_za, voz_a = va * inv_za;
+    float uoz_b = ub * inv_zb, voz_b = vb * inv_zb;
+
+    for (int x = xa; x <= xb; x++) {
+        if (x < 0 || x >= LIB3D_VP_WIDTH) continue;
+        float t = (xb != xa) ? (float)(x - xa) / (xb - xa) : 0;
+        float inv_z = inv_za + (inv_zb - inv_za) * t;
+        float z = (inv_z > 0.0001f) ? 1.0f / inv_z : 1e30f;
+        int idx = y * LIB3D_VP_WIDTH + x;
+        if (z >= state->zbuffer[idx]) continue;
+
+        float u_over_z = uoz_a + (uoz_b - uoz_a) * t;
+        float v_over_z = voz_a + (voz_b - voz_a) * t;
+        float u = u_over_z * z;
+        float v = v_over_z * z;
+
+        int tx = (int)(u * tex->width) % tex->width;
+        int ty = (int)(v * tex->height) % tex->height;
+        if (tx < 0) tx += tex->width;
+        if (ty < 0) ty += tex->height;
+
+        uint32_t texel = tex->pixels[ty * tex->width + tx];
+        if ((texel >> 24) == 0) continue;
+
+        state->zbuffer[idx] = z;
+        state->framebuffer[idx] = texel;
+    }
+}
+
+void lib3d_render_textured_quad(Lib3dState *state,
+                                float x0, float y0, float z0,
+                                float x1, float y1, float z1,
+                                float x2, float y2, float z2,
+                                float x3, float y3, float z3,
+                                const Lib3dTexture *tex) {
+    if (!state || !tex || tex->width <= 0 || tex->height <= 0) return;
+
+    Lib3dVec3 view[4];
+    float wx[4] = {x0, x1, x2, x3};
+    float wy[4] = {y0, y1, y2, y3};
+    float wz[4] = {z0, z1, z2, z3};
+
+    float cos_y = cosf(state->cam_yaw);
+    float sin_y = sinf(state->cam_yaw);
+
+    for (int i = 0; i < 4; i++) {
+        float dx = wx[i] - state->cam_x;
+        float dy = wy[i] - state->cam_y;
+        float dz = wz[i] - state->cam_z;
+        view[i].x = dx * cos_y - dz * sin_y;
+        view[i].y = dy;
+        view[i].z = dx * sin_y + dz * cos_y;
+    }
+
+    static const float uv[4][2] = {{0,0},{1,0},{1,1},{0,1}};
+    Lib3dProjected proj[4];
+    bool behind[4];
+    for (int i = 0; i < 4; i++) {
+        behind[i] = !project(state, &view[i], &proj[i]);
+        if (behind[i]) proj[i].z = view[i].z;
+    }
+
+    int tris[2][3] = {{0,1,2},{0,2,3}};
+    for (int t = 0; t < 2; t++) {
+        int i0 = tris[t][0], i1 = tris[t][1], i2 = tris[t][2];
+        if (behind[i0] && behind[i1] && behind[i2]) continue;
+
+        int sy0 = proj[i0].sy, sy1 = proj[i1].sy, sy2 = proj[i2].sy;
+        float sz0 = proj[i0].z, sz1 = proj[i1].z, sz2 = proj[i2].z;
+        int sx0 = proj[i0].sx, sx1 = proj[i1].sx, sx2 = proj[i2].sx;
+        float u0 = uv[i0][0], v0 = uv[i0][1];
+        float u1 = uv[i1][0], v1 = uv[i1][1];
+        float u2 = uv[i2][0], v2 = uv[i2][1];
+
+        if (sy0 > sy1) { int tt; tt=sx0;sx0=sx1;sx1=tt; tt=sy0;sy0=sy1;sy1=tt;
+                          float ff; ff=sz0;sz0=sz1;sz1=ff; ff=u0;u0=u1;u1=ff; ff=v0;v0=v1;v1=ff; }
+        if (sy0 > sy2) { int tt; tt=sx0;sx0=sx2;sx2=tt; tt=sy0;sy0=sy2;sy2=tt;
+                          float ff; ff=sz0;sz0=sz2;sz2=ff; ff=u0;u0=u2;u2=ff; ff=v0;v0=v2;v2=ff; }
+        if (sy1 > sy2) { int tt; tt=sx1;sx1=sx2;sx2=tt; tt=sy1;sy1=sy2;sy2=tt;
+                          float ff; ff=sz1;sz1=sz2;sz2=ff; ff=u1;u1=u2;u2=ff; ff=v1;v1=v2;v2=ff; }
+
+        int dy_total = sy2 - sy0;
+        if (dy_total == 0) continue;
+
+        for (int y = sy0; y <= sy2; y++) {
+            bool second = (y > sy1) || (sy1 == sy0);
+            int seg = second ? (sy2 - sy1) : (sy1 - sy0);
+            if (seg == 0) seg = 1;
+
+            float alpha = (float)(y - sy0) / dy_total;
+            float beta = second ? (float)(y - sy1) / seg : (float)(y - sy0) / seg;
+
+            int xa = sx0 + (int)((sx2 - sx0) * alpha);
+            int xb = second ? sx1 + (int)((sx2 - sx1) * beta)
+                            : sx0 + (int)((sx1 - sx0) * beta);
+            float za = sz0 + (sz2 - sz0) * alpha;
+            float zb = second ? sz1 + (sz2 - sz1) * beta : sz0 + (sz1 - sz0) * beta;
+            float ua_l = u0 + (u2 - u0) * alpha;
+            float va_l = v0 + (v2 - v0) * alpha;
+            float ub_l = second ? u1 + (u2 - u1) * beta : u0 + (u1 - u0) * beta;
+            float vb_l = second ? v1 + (v2 - v1) * beta : v0 + (v1 - v0) * beta;
+
+            textured_scanline(state, y, xa, za, ua_l, va_l, xb, zb, ub_l, vb_l, tex);
+        }
+    }
+}
+
 void lib3d_present(Lib3dState *state, uint32_t *dest, int dest_w, int dest_h,
                    int dest_x, int dest_y) {
     if (!state || !dest) return;

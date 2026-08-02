@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.24 (2026-08-02)
+
+### Liberation: Textured 3D viewport + missing modules
+- Perspective-correct UV-mapped texture rendering for wall quads
+- `lib3d_render_textured_quad()` with per-pixel z-buffer and transparency
+- `city_nav_render_textured()` for VGM wall texture support in city view
+- Added missing dialogue and shop modules that broke CI
+
 ## v1.1.23 (2026-08-02)
 
 ### Liberation: Save/load system

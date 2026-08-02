@@ -44,6 +44,10 @@ void city_nav_update(CityNavState *nav, float dt);
 void city_nav_render(CityNavState *nav, const CityGridState *grid,
                      Lib3dState *render, const X3gFile *city_vectors,
                      const uint32_t *palette, unsigned pal_size);
+void city_nav_render_textured(CityNavState *nav, const CityGridState *grid,
+                              Lib3dState *render, const Lib3dTexture *wall_tex,
+                              const X3gFile *city_vectors,
+                              const uint32_t *palette, unsigned pal_size);
 
 uint8_t city_nav_get_cell(const CityGridState *grid, int x, int y);
 bool city_nav_is_road(const CityGridState *grid, int x, int y);

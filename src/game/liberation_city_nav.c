@@ -193,3 +193,78 @@ void city_nav_render(CityNavState *nav, const CityGridState *grid,
         }
     }
 }
+
+static void render_textured_wall(Lib3dState *render, const Lib3dTexture *tex,
+                                  float x0, float z0, float x1, float z1,
+                                  float height) {
+    lib3d_render_textured_quad(render,
+        x0, 0, z0,
+        x1, 0, z1,
+        x1, -height, z1,
+        x0, -height, z0,
+        tex);
+}
+
+void city_nav_render_textured(CityNavState *nav, const CityGridState *grid,
+                              Lib3dState *render, const Lib3dTexture *wall_tex,
+                              const X3gFile *city_vectors,
+                              const uint32_t *palette, unsigned pal_size) {
+    if (!nav || !grid || !render) return;
+
+    lib3d_set_camera(render, nav->smooth_x, CITY_EYE_HEIGHT, nav->smooth_y,
+                     nav->smooth_yaw);
+    lib3d_clear(render, 0xFF4466AA, 0xFF446644);
+
+    int view_range = 8;
+    for (int dy = -view_range; dy <= view_range; dy++) {
+        for (int dx = -view_range; dx <= view_range; dx++) {
+            int gx = nav->cell_x + dx;
+            int gy = nav->cell_y + dy;
+
+            if (gx < 0 || gx >= CITYGRID_WIDTH || gy < 0 || gy >= CITYGRID_HEIGHT)
+                continue;
+
+            if (!city_nav_is_wall(grid, gx, gy)) continue;
+
+            float wx = gx * CITY_CELL_SIZE;
+            float wy = gy * CITY_CELL_SIZE;
+            float cs = CITY_CELL_SIZE;
+
+            bool road_n = !city_nav_is_wall(grid, gx, gy - 1);
+            bool road_s = !city_nav_is_wall(grid, gx, gy + 1);
+            bool road_e = !city_nav_is_wall(grid, gx + 1, gy);
+            bool road_w = !city_nav_is_wall(grid, gx - 1, gy);
+
+            if (wall_tex) {
+                if (road_n) render_textured_wall(render, wall_tex, wx, wy, wx + cs, wy, CITY_WALL_HEIGHT);
+                if (road_s) render_textured_wall(render, wall_tex, wx + cs, wy + cs, wx, wy + cs, CITY_WALL_HEIGHT);
+                if (road_e) render_textured_wall(render, wall_tex, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT);
+                if (road_w) render_textured_wall(render, wall_tex, wx, wy + cs, wx, wy, CITY_WALL_HEIGHT);
+            } else {
+                uint32_t wall_color = 0x20 + ((gx * 7 + gy * 13) & 0x1F);
+                if (road_n) render_wall_quad(render, wx, wy, wx + cs, wy, CITY_WALL_HEIGHT, wall_color);
+                if (road_s) render_wall_quad(render, wx + cs, wy + cs, wx, wy + cs, CITY_WALL_HEIGHT, wall_color);
+                if (road_e) render_wall_quad(render, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT, wall_color);
+                if (road_w) render_wall_quad(render, wx, wy + cs, wx, wy, CITY_WALL_HEIGHT, wall_color);
+            }
+        }
+    }
+
+    if (city_vectors && city_vectors->object_count > 0) {
+        for (int dy = -view_range; dy <= view_range; dy++) {
+            for (int dx = -view_range; dx <= view_range; dx++) {
+                int gx = nav->cell_x + dx;
+                int gy = nav->cell_y + dy;
+                if (gx < 0 || gx >= CITYGRID_WIDTH || gy < 0 || gy >= CITYGRID_HEIGHT)
+                    continue;
+                if (city_nav_is_building_entrance(grid, gx, gy)) {
+                    float ox = gx * CITY_CELL_SIZE + CITY_CELL_SIZE * 0.5f;
+                    float oz = gy * CITY_CELL_SIZE + CITY_CELL_SIZE * 0.5f;
+                    unsigned obj_idx = ((unsigned)(gx + gy * 7)) % city_vectors->object_count;
+                    lib3d_render_object(render, &city_vectors->objects[obj_idx],
+                                       ox, 0, oz, palette, pal_size);
+                }
+            }
+        }
+    }
+}
