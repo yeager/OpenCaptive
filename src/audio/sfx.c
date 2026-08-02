@@ -2,20 +2,21 @@
 #include <string.h>
 
 /* SFX type to CAP_A.BIN sequence index mapping.
- * These assignments are provisional — the exact mapping between game events
- * and the 49 SFX sequences needs verification against the original game.
- * Indices chosen based on sequence characteristics (length, pitch patterns). */
+ * Recovered from CAPPO.EXE disassembly: game calls INT 61h AH=0x40 AL=index.
+ * The driver remaps: game index < 4 = silent, 4-14 = direct, 15+ = index-11.
+ * Game indices found: 30(hit), 33(weapon), 34(panel), 35(door), 37(step).
+ * Variable SFX: weapon fire = [weapon_type]+3, action = [val]+38. */
 static const int sfx_sequence_map[SFX_COUNT] = {
-    [SFX_HIT]         = 5,   // short percussive hit
-    [SFX_SHOOT]       = 13,  // multi-tone attack sequence
-    [SFX_DOOR_OPEN]   = 4,   // sustained tone
-    [SFX_DOOR_LOCKED] = 7,   // brief alert
-    [SFX_STEP]        = 11,  // short click
-    [SFX_BUTTON]      = 9,   // interface click
-    [SFX_PICKUP]      = 10,  // pickup chime
-    [SFX_DEATH]       = 6,   // descending tone
-    [SFX_LEVEL_UP]    = 8,   // ascending tone
-    [SFX_GENERATOR]   = 3,   // sustained rumble
+    [SFX_HIT]         = 19,  // game idx 30 -> 30-11=19 (combat damage)
+    [SFX_SHOOT]       = 22,  // game idx 33 -> 33-11=22 (weapon fire)
+    [SFX_DOOR_OPEN]   = 24,  // game idx 35 -> 35-11=24 (door/button)
+    [SFX_DOOR_LOCKED] = 23,  // game idx 34 -> 34-11=23 (panel/locked)
+    [SFX_STEP]        = 26,  // game idx 37 -> 37-11=26 (movement)
+    [SFX_BUTTON]      = 18,  // game idx 29 -> 29-11=18 (UI/ambient)
+    [SFX_PICKUP]      = 20,  // game idx 31 -> 31-11=20 (droid/pickup)
+    [SFX_DEATH]       = 6,   // provisional (no static call site found)
+    [SFX_LEVEL_UP]    = 8,   // provisional (no static call site found)
+    [SFX_GENERATOR]   = 3,   // provisional (no static call site found)
 };
 
 bool sfx_init(SfxSystem *sfx, SoundSystem *snd) {
