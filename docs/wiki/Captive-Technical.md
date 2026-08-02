@@ -359,11 +359,11 @@ at 0x5E38:
    indexed by CH. Walks the list comparing each entry to AL (target ID).
    Increments hit counter (DL) on match.
 
-2. **Damage calculation** (0x97F4): `damage = lo_byte([di+6]) * hi_byte([di+6])`.
+2. **Damage calculation** (0x9BF4): `damage = lo_byte([di+6]) * hi_byte([di+6])`.
    The two bytes at offset 6 in the combat struct encode base damage and
    multiplier.
 
-3. **Damage scaling** (0x97FC): Shifts damage left up to 3 times (×2, ×4, ×8),
+3. **Damage scaling** (0x9BFC): Shifts damage left up to 3 times (×2, ×4, ×8),
    checking for signed overflow at each step. Returns 0xFFFD (-3) as an
    overflow sentinel.
 
