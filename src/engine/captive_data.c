@@ -2,31 +2,34 @@
 #include <string.h>
 
 const char *const captive_material_names[CAPTIVE_MATERIAL_COUNT] = {
-    "SHIT", "TIN", "BRASS", "IRON", "STEEL",
-    "CHROME", "SILVER", "GOLD", "PLATINUM", "TITANIUX",
+    "SHIT", "", "", "", "HUMAN",
+    "TINDRON", "COPPATOR", "BRONZITE", "IRONIDE", "CROMIZE",
 };
 
 const char *const captive_skill_names[CAPTIVE_SKILL_COUNT] = {
-    "BRAWLING", "CLOSE COMBAT", "PROJECTILE", "FIREARMS",
-    "LIGHT ARMS", "HEAVY ARMS", "AUTO ARMS", "HEAVY AUTO",
-    "MECH. WEAPON", "ENERGY WEAPON",
+    "ROBOTICS", "BRAWLING", "SWORDS", "HANDGUNS", "RIFLES",
+    "AUTOMATICS", "LASERS", "CANNONS", "SPAYGUNS", "EXPERIENCE",
 };
 
 const char *const captive_device_names[CAPTIVE_DEVICE_COUNT] = {
-    "HEAD", "TORSO", "LEFT ARM", "RIGHT ARM",
-    "LEFT HAND", "RIGHT HAND", "LEFT LEG", "RIGHT LEG",
-    "LEFT FOOT", "RIGHT FOOT", "BACKPACK", "POWER UNIT",
+    "AG-SCAN", "ROOT-FINDER", "MAPPER", "RADAR",
+    "MAGNA-SCAN", "BODY-SCAN", "VISION-CORRECTOR", "VISOR",
+    "ANTI-GRAV", "SHIELD", "FIRE-SHIELD", "GREASER",
+};
+
+const char *const captive_bodypart_names[CAPTIVE_BODYPART_COUNT] = {
+    "HEAD", "CHEST", "ARM", "LEG", "FOOT", "HAND",
 };
 
 const char *const captive_name_syllables[CAPTIVE_SYLLABLE_COUNT] = {
-    "BA", "BE", "BI", "BO", "BU", "BY",
-    "DA", "DE", "DI", "DO", "DU", "DY",
-    "KA", "KE", "KI", "KO", "KU", "KY",
-    "LA", "LE", "LI", "LO", "LU", "LY",
-    "MA", "ME", "MI", "MO", "MU", "MY",
-    "RA", "RE", "RI", "RO", "RU", "RY",
-    "SA", "SE", "SI", "SO", "SU", "SY",
-    "TA", "TE", "TI", "TO", "TU", "TY",
+    "VI",   "RUP",  "YUL",  "SCO",  "PHY",  "RAT",
+    "QUE",  "CHA",  "SY",   "POC",  "E",    "EX",
+    "DE",   "LAP",  "EL",   "MID",  "SO",   "SI",
+    "LE",   "NE",   "SIC",  "THA",  "ENE",  "INS",
+    "OO",   "ES",   "GIN",  "CEP",  "LTE",  "PE",
+    "DER",  "S",    "DON",  "S",    "ING",  "ST",
+    "Y",    "ED",   "BERY", "SY",   "LUME", "TON",
+    "FAR",  "HAM",  "KAL",  "APE",  "BEE",  "INK",
 };
 
 uint32_t captive_prng(uint32_t *state) {

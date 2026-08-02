@@ -9,20 +9,24 @@
  * All tables below are direct transcriptions from the binary's string and data
  * sections. No values are invented or interpolated. */
 
-/* Droid material grades, ascending quality. The original spells these
- * exactly as shown (CROMIZE not Chrome, TITANIUX not Titanium). */
+/* Droid material grades, ascending quality. Indices 1-3 are blank in the
+ * original executable (reserved/unused material tiers). */
 #define CAPTIVE_MATERIAL_COUNT 10
 extern const char *const captive_material_names[CAPTIVE_MATERIAL_COUNT];
 
-/* Combat skills. Each droid trains these independently, 1-8 points per tier. */
+/* Combat skills from the original skill table. */
 #define CAPTIVE_SKILL_COUNT 10
 extern const char *const captive_skill_names[CAPTIVE_SKILL_COUNT];
 
-/* Droid body part / device slot names (12 categories). */
+/* Shop device names (12 purchasable devices). */
 #define CAPTIVE_DEVICE_COUNT 12
 extern const char *const captive_device_names[CAPTIVE_DEVICE_COUNT];
 
-/* Name generation syllable table: 8 consonant groups x 6 vowels = 48. */
+/* Body part names (6 slots). */
+#define CAPTIVE_BODYPART_COUNT 6
+extern const char *const captive_bodypart_names[CAPTIVE_BODYPART_COUNT];
+
+/* Name generation syllable table: 48 syllables in 4-char slots. */
 #define CAPTIVE_SYLLABLE_COUNT 48
 extern const char *const captive_name_syllables[CAPTIVE_SYLLABLE_COUNT];
 

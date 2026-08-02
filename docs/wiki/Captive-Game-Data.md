@@ -5,29 +5,28 @@ Data extracted from the verified DOS executable CAPPO.EXE (v1.06, Oct 7 1992). T
 ## Version information
 
 ```
-CAPTIVE V1.06 OCT.07.92
-(C) 1990 MINDSCAPE INTERNATIONAL
-PROGRAMMED BY TONY CROWTHER
+VERSION 1.06 OCT.07.92
+COPYRIGHT RATT 1990  CAPTIVE A MINDSCAPE PRODUCT  PC CONVERSION BY TAG 1992
 ```
+
+Save file: `CAPTIVE1.SAV`
 
 ## Droid materials
 
-Droids are built from parts with one of 10 material grades, in ascending quality:
+10 material grades, ascending quality. Indices 1-3 are blank (unused tiers) in the original binary:
 
 | # | Material |
 | --- | --- |
-| 1 | SHIT |
-| 2 | TIN |
-| 3 | BRASS |
-| 4 | IRON |
-| 5 | STEEL |
-| 6 | CHROME |
-| 7 | SILVER |
-| 8 | GOLD |
-| 9 | PLATINUM |
-| 10 | TITANIUX |
-
-Note: the original spells it "CROMIZE" in some contexts and "TITANIUX" (not Titanium).
+| 0 | SHIT |
+| 1 | *(blank)* |
+| 2 | *(blank)* |
+| 3 | *(blank)* |
+| 4 | HUMAN |
+| 5 | TINDRON |
+| 6 | COPPATOR |
+| 7 | BRONZITE |
+| 8 | IRONIDE |
+| 9 | CROMIZE |
 
 ## Combat skills
 
@@ -35,132 +34,242 @@ Each droid has 10 trainable combat skills:
 
 | # | Skill |
 | --- | --- |
+| 0 | ROBOTICS |
 | 1 | BRAWLING |
-| 2 | CLOSE COMBAT |
-| 3 | PROJECTILE |
-| 4 | FIREARMS |
-| 5 | LIGHT ARMS |
-| 6 | HEAVY ARMS |
-| 7 | AUTO ARMS |
-| 8 | HEAVY AUTO |
-| 9 | MECH. WEAPON |
-| 10 | ENERGY WEAPON |
+| 2 | SWORDS |
+| 3 | HANDGUNS |
+| 4 | RIFLES |
+| 5 | AUTOMATICS |
+| 6 | LASERS |
+| 7 | CANNONS |
+| 8 | SPAYGUNS |
+| 9 | EXPERIENCE |
 
-Skills range 1-8 points per tier. Experience threshold: `level * 100` XP.
+## Droid devices (shop items)
 
-## Droid devices (body parts)
-
-12 device categories for droid construction:
+12 purchasable device categories:
 
 ```
-HEAD, TORSO, LEFT ARM, RIGHT ARM, LEFT HAND, RIGHT HAND,
-LEFT LEG, RIGHT LEG, LEFT FOOT, RIGHT FOOT, BACKPACK, POWER UNIT
+AG-SCAN, ROOT-FINDER, MAPPER, RADAR, MAGNA-SCAN, BODY-SCAN,
+VISION-CORRECTOR, VISOR, ANTI-GRAV, SHIELD, FIRE-SHIELD, GREASER
 ```
 
-6 body parts for armor slots: Head, Torso, Arms, Hands, Legs, Feet.
+## Body parts
+
+6 body part slots:
+
+```
+HEAD, CHEST, ARM, LEG, FOOT, HAND
+```
 
 ## Items and weapons
 
-### Weapon categories
+Items found in the DOS executable at offsets 0x019c90-0x019fe4, with hex prefix bytes:
 
-7 weapon classes corresponding to the combat skills:
-
-1. Brawling weapons
-2. Close combat weapons
-3. Projectile weapons
-4. Firearms
-5. Light arms
-6. Heavy arms / Auto arms
-7. Mechanical / Energy weapons
-
-### Known items from executable
-
-Items found in the DOS executable string table, with their hex prefix bytes (inventory/shop classification):
-
+### Body parts and utility
 ```
-08 03 SMALL ENERGY CELL       08 03 MEDIUM ENERGY CELL
-08 03 LARGE ENERGY CELL       0a 01 SMALL CLIP
-0a 01 MEDIUM CLIP             0a 01 LARGE CLIP
-06 0c LIGHT SABRE             06 08 RAPIER
-06 08 EPEE                    06 08 CUTLASS
-06 07 AXE                     06 07 BATTLE AXE
-06 07 HALBERD                 06 07 HAMMER
-06 07 MACE                    06 09 ARROW
-06 09 DART                    06 09 THROWING KNIFE
-06 09 THROWING STAR           06 09 GRENADE
-06 0a PISTOL                  06 0a LIGHT PISTOL
-06 0a HEAVY PISTOL            06 0a TWIN PISTOL
-06 0b RIFLE                   06 0b ASSAULT RIFLE
-06 0b SNIPER RIFLE            06 0b LASER RIFLE
-06 0b PLASMA GUN              06 0d CANNON
-06 0d TWIN CANNON             06 0d LIGHT SPRAYGUN
-06 0d HEAVY SPRAYGUN          06 0d FLAME THROWER
-06 0d ROCKET LAUNCHER         04 02 SMALL MEDIPACK
-04 02 LARGE MEDIPACK          04 02 SMALL SHIELD
-04 02 LARGE SHIELD            04 02 OPTICAL DEVICE
-04 02 HOLO MAP
+0x019c90  HEAD
+0x019ca7  CHEST
+0x019cb1  ARM
+0x019cb9  LEG
+0x019cc1  FOOT
+0x019cca  HAND
+0x019cd3  GOLD
+0x019cdc  BATTERY
+0x019ce7  EXPLOSIVES
+0x019cf4  DEV-SCAPE
 ```
 
-### Quality tiers
+### Optics
+```
+0x019d00  [21] OPTIC
+0x019d08  [21] CAMERA
+```
 
-Each weapon comes in 8 quality grades (derived from the material system).
+### Melee weapons
+```
+0x019d11  [00] KNUCLE-DUSTER
+0x019d21  [21] BATTLE-GLOVE
+0x019d30  [21] WAR-BLADE
+0x019d3c  [21] LIGHT-BLADE
+0x019d4a  [21] FIRE-AXE
+```
 
-### Ammo capacities
+### Handguns
+```
+0x019d55  [21] PISTOL
+0x019d5e  [30] COLT
+0x019d65  [30] MAGNUM
+```
 
-- Small/Medium/Large Energy Cells
-- Small/Medium/Large Clips
-- Grenade stacks
+### Rifles
+```
+0x019d76  [30] RIFLE
+0x019d80  [30] SHOTGUN
+0x019d89  [30] HUNTER
+```
+
+### Automatics
+```
+0x019d90  [30] UZIE
+0x019d99  [30] RAPEDO
+0x019da3  [30] BOOSTER
+```
+
+### Energy weapons
+```
+0x019db0  [30] HAND-LASER
+0x019dbe  [30] LYTE-ZAPPER
+0x019dca  [30] ION-PULSE
+```
+
+### Heavy weapons
+```
+0x019dd8  [30] MONO-CANNON
+0x019de7  [30] A51-LAUNCHER
+0x019df5  [30] TWIN-CANNON
+0x019e00  [30] AIROSOLL
+0x019e11  [30] ACID-DISPERSER
+0x019eb2  [30] FLAME-THROWER
+```
+
+### Weapon variants
+```
+0x019eb2  [30] A12-
+0x019ec2  [30] L22-
+0x019eca  [30] X42-2-
+```
+
+### Ammo
+```
+0x019ed4  CARTRIDGES
+0x019ef3  A51 MISSILES
+0x019f14  SHELLS
+0x019f1d  LASER PACK
+0x019f2a  SONIC PACK
+0x019f37  POISON
+0x019f3f  ACID
+0x019f47  FLAMBOS
+```
+
+### Utility items
+```
+0x019f52  PLANET PROBE
+0x019f63  CLIPBOARD
+0x019f7e  MINE
+0x019f86  DIE
+0x019f8c  BALL
+0x019f93  SUPER BALL
+0x019fa0  MAP
+0x019fa6  DROID CHIP
+0x019fb3  CLIPBOARD
+0x019fbf  CLIPBOARD
+0x019fcb  MESSAGE FROM RATT
+```
+
+Note: CLIPBOARD appears three times with different prefix bytes — likely different clipboard types. The hex prefix bytes encode item flags, weapon class and stat modifiers. Full stat decoding of the prefix bytes is not yet complete.
 
 ## Music system
 
 The original supports 4 sound drivers:
 
-| Driver | Hardware |
-| --- | --- |
-| ADLIB | AdLib/OPL2 FM synthesis |
-| ROLAND | Roland MT-32/LAPC-1 |
-| BEEPER | PC internal speaker |
-| SBLASTER | Sound Blaster DAC |
+| Driver | File | Hardware |
+| --- | --- | --- |
+| ADLIB | NEW_ADL.BIN | AdLib/OPL2 FM synthesis |
+| ROLAND | NEW_ROL.BIN | Roland MT-32/LAPC-1 |
+| BEEPER | NEW_BEP.BIN | PC internal speaker |
+| SBLASTER | _SBNEW.DAT | Sound Blaster DAC |
+
+Instrument patches: `CAP_A.BIN` (AdLib), `CAP_R.BIN` (Roland).
+Sound Blaster Creative Voice files: `SB15.CTV`, `SB20.CTV`, `SBPRO.CTV`.
 
 ### Track categories
 
-14 music categories with 11 variations each (154 total track slots):
+14 music categories with 11 variations each (numbered 1-9, A, B = 154 total track slots):
 
-The categories map to game situations (exploration, combat intensity levels, puzzle, victory, danger, ambient). Specific mapping is under analysis.
+| Category | Description |
+| --- | --- |
+| BATT | Battle tracks |
+| COMPROOM | Computer room |
+| ESCAPED | Mission success |
+| FCBASE | Fast combat base |
+| FINAL2 | Final mission / endgame |
+| GENBASE | General base / exploration |
+| HOLOMAP | Holamap navigation |
+| LONGNT | Long night / exploration |
+| MAIN2 | Main title screen |
+| RUNNING | Chase / running sequence |
+| SHOPKEEP | Shop interaction |
+| TRAPPED | Game over / trapped |
+| VCBASE | Vocal/varied combat base |
+| W | World / ambient |
 
-OpenCaptive currently identifies 8 MIDI tracks by SHA-256 and plays them through a 32-voice square-wave synthesizer with ADSR envelope.
+Track filename pattern: `SOUND\{CATEGORY}{NUMBER}.MID`
+
+OpenCaptive identifies 8 MIDI tracks by SHA-256 and plays them through a 32-voice square-wave synthesizer with ADSR envelope.
 
 ## Name generation
 
-The original generates droid names from a syllable table. 48 syllables are combined to create names:
+The original generates droid names from 48 syllables stored in 4-char slots:
 
 ```
-BA  BE  BI  BO  BU  BY
-DA  DE  DI  DO  DU  DY
-KA  KE  KI  KO  KU  KY
-LA  LE  LI  LO  LU  LY
-MA  ME  MI  MO  MU  MY
-RA  RE  RI  RO  RU  RY
-SA  SE  SI  SO  SU  SY
-TA  TE  TI  TO  TU  TY
+ 0: VI     1: RUP    2: YUL    3: SCO    4: PHY    5: RAT
+ 6: QUE    7: CHA    8: SY     9: POC   10: E     11: EX
+12: DE    13: LAP   14: EL    15: MID   16: SO    17: SI
+18: LE    19: NE    20: SIC   21: THA   22: ENE   23: INS
+24: OO    25: ES    26: GIN   27: CEP   28: LTE   29: PE
+30: DER   31: S     32: DON   33: S     34: ING   35: ST
+36: Y     37: ED    38: BERY  39: SY    40: LUME  41: TON
+42: FAR   43: HAM   44: KAL   45: APE   46: BEE   47: INK
 ```
 
-Names consist of 2-3 concatenated syllables (e.g., BADO, KIRAMU, SYTELI).
+Names are 2-3 concatenated syllables. The PRNG at code offset 0x44a0 uses:
+`multiply by 0x5e5, add 0x29, rotate right 4, XOR 0x0800`.
 
 ## Planet name generation
 
-Planet names use a similar syllable-based system with a different table. The naming is seeded by the mission number.
+```
+Prefix: STATION
+Consonants: Z
+Vowels1: QUP
+Vowels2: TRSLM
+Vowels3: B
+Suffix1: GRL
+Suffix2: S
+```
 
 ## Holamap system
 
-The HOLO MAP item displays a top-down view of the current dungeon level. It shows:
-- Walls and corridors
-- Current party position
-- Explored/unexplored areas
+```
+HOLAMAP SYSTEM V5
+CO-OD 150N-150W
+```
+
+Location types: PLANET, MOON, SPACE-STATION
+Surface types: LAND-MISS, LAND-LEV0, LAND
+
+## Game messages
+
+```
+DESTROY THE GENERATORS.
+TOP-LEFT, BOTTOM-LEFT, TOP-RIGHT, BOTTOM-RIGHT.
+PUT PLANET-PROBE IN HOLAMAP.
+BASE HAS BEEN DESTROYED!
+TRILL HAS BEEN RESCUED!
+DROID'S HAVE FAILED!
+TRILL HAS BEEN LEFT TO DIE.
+DROID'S ARE TO BE WASTED
+TRILL HAS BE KILLED!
+DROIDS BRUTALLY OUTWITTED
+PRESS MOUSE TO CONTINUE
+LET BATTLE COMMENCE
+CAPTIVE MISSION 0001
+LEGEND OF TRILL:
+```
 
 ## Shop system
 
-Shops appear in space stations between missions. Shop UI strings from the executable:
+Shops appear in space stations between missions.
 
 ```
 BUY, SELL, REPAIR, EXIT
@@ -178,8 +287,6 @@ SLOT 1, SLOT 2, SLOT 3, SLOT 4
 OVERWRITE EXISTING SAVE?
 ```
 
-Save state includes: party droids (parts, skills, equipment), current mission/level, map state, gold, objective counters.
-
 ## Graphics files
 
 ### PL5 images (DOS)
@@ -193,13 +300,7 @@ All PL5 files are 40,000 bytes (320x200, 5bpp):
 
 ### ANM animations (DOS)
 
-16 animation files for:
-- Title sequence
-- Intro cutscene
-- Game-over sequence
-- Mission briefing
-- Level transitions
-- Victory sequence
+16 animation files for title, intro, game-over, mission briefing, level transitions and victory sequences.
 
 ## Keyboard layout
 
