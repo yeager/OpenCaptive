@@ -60,6 +60,7 @@ set(OPENCAPTIVE_SOURCES
     src/engine/xp_level.c
     src/engine/item_price.c
     src/engine/spawn.c
+    src/engine/mapgen_ca.c
     src/render/captive_compositor.c
     src/render/frame_compare.c
     src/render/viewport.c
@@ -236,6 +237,11 @@ add_executable(test_item_price tests/test_item_price.c
     src/engine/item_price.c)
 target_include_directories(test_item_price PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME item_price COMMAND test_item_price)
+
+add_executable(test_mapgen_ca tests/test_mapgen_ca.c
+    src/engine/mapgen_ca.c)
+target_include_directories(test_mapgen_ca PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME mapgen_ca COMMAND test_mapgen_ca)
 
 add_executable(test_spawn tests/test_spawn.c
     src/engine/spawn.c src/engine/creature_stats.c src/engine/captive_data.c)
