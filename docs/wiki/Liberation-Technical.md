@@ -8,8 +8,14 @@ CityGen (64×64 grid) and BuildingGen (building placement, road graph, naming)
 have been fully disassembled and reimplemented with test suites. The ArcD
 Huffman+LZSS decompressor from PlotGen has been recovered with bit-exact parity,
 enabling decompression of all three text data files (PGE.txt, DTE.txt, CTE.txt).
-The PlotGen main algorithm (building interiors, plot state machine, text opcodes)
-remains under reverse engineering.
+
+All CD32 asset formats have been decoded: x3g 3D vectors (33 files, IFF FORM
+O3DG with EXVL vertices and PLST polygon records), VGM wall textures (71 files,
+4 AmSp banks per file, 152 sprites each), Img sprites (361 sprites across 4
+files with multi-frame LOD), FNT proportional fonts (2 variants, 114 glyphs
+with drop-shadow), and gamemenu.spr (AmSp bank). The PlotGen main algorithm
+(building interiors, plot state machine, text opcodes) remains under reverse
+engineering.
 
 ## CD32 data track
 
@@ -244,10 +250,14 @@ Progress on the data-driven parity work:
 4. ~~Recover ArcD compression format from PlotGen.~~ **Done** — Huffman+LZSS with bit-exact parity against all three text files.
 5. Identify PlotGen’s building/interior format and plot progression state. **In progress**
 6. Decode text table opcodes and dialogue branching. **In progress**
-7. Decode x3g 3D vector format for city/room/monster geometry.
-8. Decode VGM wall texture format.
-9. Add small independently testable parsers, golden hashes and structural
-   invariants before wiring them into the live city loop.
+7. ~~Decode x3g 3D vector format for city/room/monster geometry.~~ **Done** — IFF FORM O3DG, EXVL vertices (16 bytes each), PLST polygons (36-byte header + variable vertex refs). Verified across all 33 x3g files.
+8. ~~Decode VGM wall texture format.~~ **Done** — 4 concatenated AmSp banks per file, 152 sprites/file, 71 wall sets. All parse correctly.
+9. ~~Decode Img sprite format.~~ **Done** — ImgA container, 1–6 color bitplanes + mask, multi-frame LOD variants. 361 sprites across 4 files.
+10. ~~Decode FNT font format.~~ **Done** — CHAR container, 114 proportional glyphs, 2-plane (foreground + shadow). 2 variants decoded.
+11. ~~Identify gamemenu.spr format.~~ **Done** — Standard AmSp bank.
+12. Build 3D viewport renderer (x3g geometry + VGM textures + Img frame). **Next**
+13. Add small independently testable parsers, golden hashes and structural
+    invariants before wiring them into the live city loop.
 
-Until steps 5–9 are complete, do not describe the procedural city as a
+Until steps 5–6 and 12–13 are complete, do not describe the procedural city as a
 faithful reproduction of Liberation’s original story, population or plot logic.

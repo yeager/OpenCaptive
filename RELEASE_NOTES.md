@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.20 (2026-08-02)
+
+### Liberation: FNT font decoder + wiki updates
+- `CHAR` container: 114 proportional-width glyphs, 7 rows, 2 bitplanes (foreground + drop-shadow)
+- 2 font variants: 0Liberation (large, up to 9px) and 1Liberation (small, up to 6px)
+- gamemenu.spr confirmed as standard AmSp bank
+- Updated all wiki pages with decoded format documentation
+
 ## v1.1.19 (2026-08-02)
 
 ### Liberation: Img sprite format decoded

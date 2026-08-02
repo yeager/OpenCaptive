@@ -99,7 +99,7 @@
 
 ### Assets
 - [x] Decode Img format (MainSP 158, 3dView 23×6 multi-frame, Taxi 4, backpack 176)
-- [ ] Decode FNT font format (2 variants: CHAR magic, 114 glyphs)
+- [x] Decode FNT font format (2 variants: CHAR magic, 114 glyphs, 2-plane proportional)
 - [x] Decode spr format (GameMenu = standard AmSp bank)
 - [ ] Extract and verify all 71 VGM wall texture sets from CD32 disc image
 

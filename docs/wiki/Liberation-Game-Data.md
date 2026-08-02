@@ -176,17 +176,21 @@ The ArcD format uses canonical Huffman codes with three tables per block (litera
 
 ## Graphics assets
 
-| File | Content |
-| --- | --- |
-| `MainSP.Img` | Main sprite sheet |
-| `MainSP16.Img` | 16-colour sprite sheet |
-| `Taxi.Img` | Taxi/transport graphics |
-| `backpack.img` | Inventory/backpack UI |
-| `GameMenu.spr` | Game menu sprites |
+All Img files use the `ImgA` container format with planar Amiga bitplanes + transparency mask.
+
+| File | Sprites | Dimensions | Planes | Content |
+| --- | --- | --- | --- | --- |
+| `MainSP.Img` | 158 | 10–128px wide | 1–6 | Main sprite sheet (UI elements, icons, cursors) |
+| `3dView.Img` | 23 × 6 frames | 4–16px | 4–6 | 3D viewport border (distance-LOD multi-frame) |
+| `Taxi.Img` | 4 | 188–192px | 6 | Taxi/transport graphics |
+| `backpack.img` | 176 | 9–32px | 4–6 | Inventory/backpack UI elements |
+| `GameMenu.spr` | — | — | — | Game menu sprites (AmSp format) |
+
+Total: 361 decoded sprites (338 simple + 23 multi-frame with 6 LOD levels each).
 
 ## Font system
 
-4 font variants: `{0-3}Liberation.FNT` — one per city visual variant.
+2 font variants found on CD32: `0Liberation.FNT` (large, up to 9px wide) and `1Liberation.FNT` (small, up to 6px wide). Both use `CHAR` format: 114 proportional-width glyphs (ASCII 32–145), 7 rows each, 2 bitplanes (foreground + drop-shadow outline).
 
 ## Audio
 

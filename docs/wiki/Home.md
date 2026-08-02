@@ -13,14 +13,14 @@ The project targets source-level accuracy against the original DOS, Amiga, Atari
 ## For developers
 
 - [[Developer Guide]] — Code layout, build/test contract, contribution workflow
-- [[File Formats]] — PL5, ANM, RNC, ADF, ISO9660, ArcD, CTV, AmSp, x3g, VGM, 8SVX, MIDI
+- [[File Formats]] — PL5, ANM, RNC, ADF, ISO9660, ArcD, CTV, AmSp, x3g, VGM, Img, FNT, 8SVX, MIDI
 
 ## Game reference
 
 - [[Captive Technical]] — DOS engine analysis, viewport, map generation, runtime
 - [[Captive Game Data]] — Items, droid materials, skills, music system, name generation
-- [[Liberation Technical]] — CD32 engine analysis, CityGen, sprite banks, ANIM
-- [[Liberation Game Data]] — Procedural cities, shops, bars, NPCs, 3D vector data
+- [[Liberation Technical]] — CD32 engine analysis, CityGen, sprite banks, ANIM, asset format decoding
+- [[Liberation Game Data]] — Procedural cities, shops, bars, NPCs, 3D vectors, sprites, fonts
 
 ## Scope and provenance
 

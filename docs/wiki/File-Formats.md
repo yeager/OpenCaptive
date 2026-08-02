@@ -264,7 +264,28 @@ Records are word-aligned: odd total payload is followed by one padding byte.
 
 ## FNT — Liberation fonts
 
-Font data stored as `{N}Liberation.FNT` (2 variants found: N=0,1). `CHAR` magic, 1836 bytes each, 114 glyphs at 16 bytes per glyph (8px wide, 2-plane bitmap). Format partially decoded.
+Font data stored as `{N}Liberation.FNT` (2 variants: N=0 large, N=1 small). `CHAR` magic, 1836 bytes, 114 proportional-width glyphs starting at ASCII 32.
+
+### FNT file header (12 bytes)
+
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | 4 | Magic `CHAR` |
+| 4 | uint16 | Glyph count (114) |
+| 6 | uint16 | Version (1) |
+| 8 | uint16 | Max glyph width (8) |
+| 10 | uint16 | Plane count (2) |
+
+### FNT glyph record (16 bytes)
+
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | uint8 | Glyph width (proportional spacing) |
+| 1–7 | 7×uint8 | Plane 0 bitmap (7 rows, 8px wide, MSB=leftmost) |
+| 8 | uint8 | Width duplicate (plane 1) |
+| 9–15 | 7×uint8 | Plane 1 bitmap (drop shadow/outline) |
+
+2-plane rendering: plane 0 = foreground stroke, plane 1 = shadow/outline. 4 possible color indices per pixel (0=transparent, 1=fg, 2=shadow, 3=both).
 
 ## spr — Liberation sprites
 
