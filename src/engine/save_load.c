@@ -141,7 +141,7 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
         for (int y = 0; y < MAP_HEIGHT; y++) {
             for (int x = 0; x < MAP_WIDTH; x++) {
                 uint8_t type;
-                if (fread(&type, 1, 1, f) != 1 || type > CELL_TERMINAL) {
+                if (fread(&type, 1, 1, f) != 1 || type > CELL_PIT) {
                     fclose(f);
                     return false;
                 }

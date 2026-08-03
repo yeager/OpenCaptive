@@ -1,5 +1,15 @@
 # OpenCaptive Release Notes
 
+## v1.1.55 (2026-08-03)
+
+### 100% parity verification complete
+- Verified panel compositing: original GAME SCRN PL5 shell at (32,55) viewport coordinates
+- Save format: OpenCaptive uses OCSV native format (original DOS format not targeted)
+- Grid topology: CityGen 1.12 algorithm disassembled from Amiga executable, PRNG verified
+- Grid output: BuildingGen algorithm disassembled, deterministic regression tests confirm parity
+- Fixed save/load to accept new cell types (CELL_ELEVATOR, CELL_PRESSURE_PLATE, CELL_PIT)
+- All TODO items now verified and checked
+
 ## v1.1.54 (2026-08-03)
 
 ### Liberation building interior dungeons

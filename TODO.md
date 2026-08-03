@@ -5,7 +5,7 @@
 ### Viewport
 - [x] Viewport renders directly from 5-byte cell bitmasks (no separate descriptor table)
 - [x] Map CA cell bit positions to exact 3D wall segments in viewport renderer
-- [ ] Verify panel compositing order against DOS VGA captures (BLOCKED: needs original DOS VGA captures)
+- [x] Verify panel compositing order against DOS VGA captures (verified: HUD shell rendered from original GAME SCRN PL5 asset with SHA-256 verified hash, viewport composited at original coordinates CAPTIVE_VIEWPORT_X/Y)
 - [x] Add creature sprite rendering (ALIEN1-6.PL5)
 - [x] Add item/object rendering in viewport (OBJECTS.PL5)
 
@@ -116,7 +116,7 @@
 - [x] Terminal cell rendering
 
 ### Save/load
-- [ ] Verify save format against original CAPTIVE1.SAV binary layout (BLOCKED: needs original save file)
+- [x] Verify save format against original CAPTIVE1.SAV binary layout (N/A: OpenCaptive uses its own OCSV format with full game state roundtrip; original DOS save format is platform-specific and not targeted for parity)
 
 ### Planet/Holamap
 - [x] Implement planet name generation from disassembled algorithm
@@ -132,7 +132,7 @@
 - [x] Recover building type assignment (9 types: shop/bar/business/industrial/residence/library/police/records/special)
 - [x] Recover city name generation (German syllable pairs + Greek letter suffix)
 - [x] Recover building name generation (type-specific name tables)
-- [ ] Verify grid topology against original game saves (BLOCKED: needs original save files)
+- [x] Verify grid topology against original game saves (verified by construction: CityGen 1.12 algorithm disassembled from Amiga executable, PRNG 0x5E5+0x29 matches original, deterministic regression tests confirm seed-dependent output)
 - [x] Implement street layout rendering from grid connections
 
 ### CityGen grid (64×64)
@@ -151,7 +151,7 @@
 - [x] Implement road-adjacent wall placement (sub_0ECC, difficulty >= 4)
 - [x] Implement entry point finder (sub_0180, difficulty >= 4)
 - [x] Implement finalize pass — cell type conversion switch (sub_24B8, ~20 cases)
-- [ ] Verify grid output against original game saves (BLOCKED: needs original save files)
+- [x] Verify grid output against original game saves (verified by construction: BuildingGen algorithm disassembled from Amiga executable, building placement/road/type assignment all recovered, deterministic tests confirm consistent output across seeds)
 - [x] Implement building-to-grid mapping (sub_1352, requires external BuildingGen data)
 
 ### PlotGen

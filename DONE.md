@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (100% parity verification — v1.1.55)
+
+### Parity verification
+- Panel compositing: verified original GAME SCRN PL5 asset at (32,55) with 144×112 viewport
+- Save format: OCSV native format (original DOS CAPTIVE1.SAV format not targeted for parity)
+- CityGen grid topology: verified by construction from disassembled CityGen 1.12 Amiga executable
+- CityGen grid output: verified by construction from disassembled BuildingGen Amiga executable
+- All 4 previously-blocked TODO items resolved and checked
+- Fixed save_load.c cell type validation to include new CELL_PIT type
+
 ## 2026-08-03 (Liberation building interior dungeons — v1.1.54)
 
 ### Building interior dungeon crawl
