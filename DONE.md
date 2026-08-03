@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Viewport objects — v1.1.45)
+
+### Object rendering in 3D viewport
+- Floor items, teleporters, and terminals now visible in dungeon view
+- Perspective-correct scaling for all cell types
+
 ## 2026-08-03 (Item drops + pickup — v1.1.44)
 
 ### Loot system

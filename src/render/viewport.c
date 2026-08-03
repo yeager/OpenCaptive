@@ -358,6 +358,18 @@ void viewport_render(const CaptiveViewWindow *window,
                              marker_w, marker_h, color);
             }
 
+            if (cell->type == CELL_TELEPORTER) {
+                int tp_w = cell_w / 3;
+                int tp_h = rp->wall_height;
+                int tp_x = cell_left + (cell_w - tp_w) / 2;
+                for (int ty = 0; ty < tp_h; ty++) {
+                    uint32_t c = ((ty / 3) & 1) ? 0xFF9933CC : 0xFF6622AA;
+                    fill_rect_vp(framebuffer, fb_width, fb_height,
+                                 vp_x + tp_x, vp_y + rp->top_y + ty,
+                                 tp_w, 1, c);
+                }
+            }
+
             if (cell->type == CELL_GENERATOR) {
                 int gen_w = cell_w / 4;
                 int gen_h = rp->wall_height / 3;
@@ -379,6 +391,31 @@ void viewport_render(const CaptiveViewWindow *window,
                 fill_rect_vp(framebuffer, fb_width, fb_height,
                              vp_x + sign_x, vp_y + sign_y,
                              sign_w, sign_h, 0xFFAAAA33);
+            }
+
+            if (cell->type == CELL_TERMINAL) {
+                int scr_w = cell_w / 3;
+                int scr_h = rp->wall_height / 3;
+                int scr_x = cell_left + (cell_w - scr_w) / 2;
+                int scr_y = rp->top_y + rp->wall_height / 4;
+                fill_rect_vp(framebuffer, fb_width, fb_height,
+                             vp_x + scr_x, vp_y + scr_y,
+                             scr_w, scr_h, 0xFF003300);
+                fill_rect_vp(framebuffer, fb_width, fb_height,
+                             vp_x + scr_x + 1, vp_y + scr_y + 1,
+                             scr_w - 2, scr_h - 2, 0xFF00AA00);
+            }
+
+            if (cell->item_id > 0) {
+                int item_w = cell_w / 5;
+                int item_h = rp->wall_height / 8;
+                if (item_w < 2) item_w = 2;
+                if (item_h < 2) item_h = 2;
+                int item_x = cell_left + (cell_w - item_w) / 2;
+                int item_y = rp->bottom_y - item_h - 1;
+                fill_rect_vp(framebuffer, fb_width, fb_height,
+                             vp_x + item_x, vp_y + item_y,
+                             item_w, item_h, 0xFF44DDFF);
             }
         }
     }

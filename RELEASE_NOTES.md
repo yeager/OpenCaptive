@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.45 (2026-08-03)
+
+### Viewport object rendering
+- Floor items visible as cyan blocks in 3D viewport
+- Teleporter cells rendered as purple/magenta striped columns
+- Terminal cells rendered as green screen rectangles
+- All objects scale with perspective distance
+
 ## v1.1.44 (2026-08-03)
 
 ### Item drops and floor pickup
