@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Liberation combat system — v1.1.32)
+
+### Liberation turn-based combat
+- Implemented `liberation_combat.c` with PRNG-based encounter generation
+- Enemy stats scale with mission difficulty (HP, damage, defense, speed)
+- Droid attack uses weapon_damage lo*hi encoding, costs 3 energy
+- Enemy turn targets random droids with alive-droid fallback
+- Combat UI overlay with enemy HP display, target selection, attack/flee controls
+- Random encounters triggered ~1/32 chance per city movement step
+- 6 tests covering init, generation, determinism, attack, energy, full rounds
+
 ## 2026-08-03 (Liberation save/load + building interactions — v1.1.31)
 
 ### Liberation save/load wired into main loop

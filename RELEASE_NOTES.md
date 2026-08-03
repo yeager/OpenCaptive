@@ -1,5 +1,17 @@
 # OpenCaptive Release Notes
 
+## v1.1.32 (2026-08-03)
+
+### Liberation combat system
+- Turn-based combat with random street encounters (~1/32 chance per move)
+- Enemy generation from PRNG seed with difficulty scaling (HP, damage, defense)
+- Droid attack uses weapon_damage (lo*hi encoding), costs 3 energy per attack
+- Enemy turn targets random droids with fallback to alive droids
+- 8 enemy types (Guard, Soldier, Enforcer, Drone, Sentinel, Trooper, Agent, Warden)
+- Combat UI: 1-4 attack with droid, TAB cycle target, ESC flee
+- Victory awards 50 XP per kill
+- Deterministic encounters from position-based seed
+
 ## v1.1.31 (2026-08-03)
 
 ### Liberation save/load

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.31 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.32 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -70,6 +70,7 @@ set(OPENCAPTIVE_SOURCES
     src/game/liberation_dialogue.c
     src/game/liberation_shop.c
     src/game/liberation_building_interact.c
+    src/game/liberation_combat.c
     src/game/liberation_npc_dialogue.c
     src/engine/liberation_plotgen.c
     src/game/liberation_save.c
@@ -250,6 +251,11 @@ add_executable(test_liberation_dialogue_shop tests/test_liberation_dialogue_shop
 target_include_directories(test_liberation_dialogue_shop PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_liberation_dialogue_shop PRIVATE SDL3::SDL3)
 add_test(NAME liberation_dialogue_shop COMMAND test_liberation_dialogue_shop)
+
+add_executable(test_liberation_combat tests/test_liberation_combat.c
+    src/game/liberation_combat.c)
+target_include_directories(test_liberation_combat PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation_combat COMMAND test_liberation_combat)
 
 add_executable(test_liberation_text_table tests/test_liberation_text_table.c
     src/data/liberation_text_table.c src/engine/arcd_decoder.c)

@@ -124,7 +124,7 @@
 - [x] Wire Liberation save/load into main loop (F5 save, F9 load)
 - [x] Building type interactions: library, police, records, residence, industrial, special
 - [x] NPC dialogue Trade and Ask around options give useful responses
-- [ ] Liberation combat system (NPC attack/follow states)
+- [x] Liberation combat system (turn-based, random encounters, energy cost, XP rewards)
 
 ## Internationalization (i18n)
 

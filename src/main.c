@@ -28,6 +28,7 @@
 #include "liberation_building_interact.h"
 #include "liberation_viewport_3d.h"
 #include "liberation_save.h"
+#include "liberation_combat.h"
 #include "amos_sprite.h"
 #include "dos_vga_reference.h"
 #include "frame_compare.h"
@@ -380,6 +381,8 @@ static Lib3dState lib_render;
 static BuildingInteraction lib_interact;
 static bool lib_city_generated;
 static bool lib_in_building;
+static LibCombatState lib_combat;
+static bool lib_in_combat;
 
 
 typedef struct {
@@ -612,6 +615,8 @@ static void start_liberation_session(GameState *gs_ptr) {
         lib3d_init(&lib_render);
         building_interact_init(&lib_interact);
         lib_in_building = false;
+        lib_combat_init(&lib_combat);
+        lib_in_combat = false;
         lib_city_generated = true;
     }
 }
@@ -696,6 +701,36 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                     lib_transfer_purchases(gs);
                     lib_in_building = false;
                 }
+                return;
+            default: return;
+        }
+    }
+
+    if (lib_in_combat) {
+        switch (event->key.key) {
+            case SDLK_ESCAPE:
+                lib_combat.active = false;
+                lib_in_combat = false;
+                return;
+            case SDLK_1: case SDLK_2: case SDLK_3: case SDLK_4: {
+                int droid_idx = (int)(event->key.key - SDLK_1);
+                if (lib_combat_droid_attack(&lib_combat, gs, droid_idx)) {
+                    if (lib_combat_is_over(&lib_combat, gs)) {
+                        lib_in_combat = false;
+                        lib_combat.active = false;
+                    } else {
+                        lib_combat_enemy_turn(&lib_combat, gs);
+                        if (lib_combat_is_over(&lib_combat, gs)) {
+                            lib_in_combat = false;
+                            lib_combat.active = false;
+                        }
+                    }
+                }
+                return;
+            }
+            case SDLK_TAB:
+                lib_combat.selected_target =
+                    (lib_combat.selected_target + 1) % lib_combat.enemy_count;
                 return;
             default: return;
         }
@@ -1630,7 +1665,15 @@ int main(int argc, char *argv[]) {
                         float dt = (now - gs.last_frame_ms) / 1000.0f;
                         if (dt > 0.1f) dt = 0.1f;
                         gs.last_frame_ms = now;
+                        bool was_moving = lib_nav.moving;
                         city_nav_update(&lib_nav, dt);
+                        if (was_moving && !lib_nav.moving && !lib_in_combat && !lib_in_building) {
+                            uint16_t encounter_roll = (uint16_t)(gs.tick * 0x5E5 + lib_nav.cell_x * 31 + lib_nav.cell_y * 17);
+                            if ((encounter_roll & 0x1F) == 0) {
+                                lib_combat_generate_encounter(&lib_combat, encounter_roll, gs.mission);
+                                lib_in_combat = true;
+                            }
+                        }
                         city_nav_render(&lib_nav, &lib_grid, &lib_render,
                                         NULL, NULL, 0);
                         for (int i = 0; i < LIB3D_VP_WIDTH * LIB3D_VP_HEIGHT; i++) {
@@ -1649,7 +1692,33 @@ int main(int argc, char *argv[]) {
                         draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                             LIBERATION_SCREEN_HEIGHT, 2, LIBERATION_SCREEN_HEIGHT - 10,
                             pos_str, 0xFFFFFFFF, 1);
-                        if (lib_in_building) {
+                        if (lib_in_combat) {
+                            for (int y = 0; y < LIBERATION_SCREEN_HEIGHT; y++)
+                                for (int x = 0; x < LIBERATION_SCREEN_WIDTH; x++)
+                                    framebuffer[y * LIBERATION_SCREEN_WIDTH + x] =
+                                        (framebuffer[y * LIBERATION_SCREEN_WIDTH + x] >> 1) & 0x7F7F7F;
+                            draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                LIBERATION_SCREEN_HEIGHT, 8, 8, "COMBAT", 0xFFFF0000, 1);
+                            for (int ei = 0; ei < lib_combat.enemy_count; ei++) {
+                                LibCombatEnemy *e = &lib_combat.enemies[ei];
+                                char line[80];
+                                snprintf(line, sizeof(line), "%s%s HP:%d/%d DMG:%d",
+                                    ei == lib_combat.selected_target ? ">" : " ",
+                                    e->name, e->hp, e->hp_max, e->damage);
+                                uint32_t color = e->alive ? 0xFFFFFFFF : 0xFF666666;
+                                draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                    LIBERATION_SCREEN_HEIGHT, 8, 22 + ei * 10, line, color, 1);
+                            }
+                            draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                LIBERATION_SCREEN_HEIGHT, 8, LIBERATION_SCREEN_HEIGHT - 30,
+                                "1-4:Attack TAB:Target ESC:Flee", 0xFFCCCCCC, 1);
+                            if (lib_combat_is_over(&lib_combat, &gs)) {
+                                draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                    LIBERATION_SCREEN_HEIGHT, 8, LIBERATION_SCREEN_HEIGHT / 2,
+                                    lib_combat_player_won(&lib_combat) ? "VICTORY!" : "DEFEATED",
+                                    0xFFFFFF00, 1);
+                            }
+                        } else if (lib_in_building) {
                             const char *text = building_interact_text(&lib_interact);
                             if (text) {
                                 for (int y = LIBERATION_SCREEN_HEIGHT / 2;
