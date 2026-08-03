@@ -440,28 +440,44 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
         uint32_t color = (c->type < CREATURE_COUNT) ?
             creature_colors[c->type] : 0xFF22AA22;
 
-        /* Body */
-        fill_rect_vp(framebuffer, fb_width, fb_height,
-                     vp_x + sx + sprite_w / 4, vp_y + sy + sprite_h / 4,
-                     sprite_w / 2, sprite_h * 3 / 4, color);
-        /* Head */
-        int head_sz = sprite_w / 3;
-        if (head_sz < 2) head_sz = 2;
-        fill_rect_vp(framebuffer, fb_width, fb_height,
-                     vp_x + sx + sprite_w / 2 - head_sz / 2,
-                     vp_y + sy,
-                     head_sz, head_sz, color);
-        /* Eyes */
-        uint32_t eye_color = 0xFFFF0000;
-        int eye_sz = head_sz / 3;
-        if (eye_sz < 1) eye_sz = 1;
-        fill_rect_vp(framebuffer, fb_width, fb_height,
-                     vp_x + sx + sprite_w / 2 - head_sz / 4,
-                     vp_y + sy + head_sz / 3,
-                     eye_sz, eye_sz, eye_color);
-        fill_rect_vp(framebuffer, fb_width, fb_height,
-                     vp_x + sx + sprite_w / 2 + head_sz / 4 - eye_sz,
-                     vp_y + sy + head_sz / 3,
-                     eye_sz, eye_sz, eye_color);
+        int alien_idx = (c->type >= CREATURE_ALIEN1 && c->type <= CREATURE_ALIEN6)
+            ? c->type - CREATURE_ALIEN1 : 0;
+        int sheet = atlas ? atlas->alien_sheets[alien_idx] : -1;
+
+        if (sheet >= 0) {
+            /* Blit from PL5 sheet — front-facing frame at (0,0), 64×100 region */
+            int src_w = 64, src_h = 100;
+            for (int py = 0; py < sprite_h; py++) {
+                int src_y = py * src_h / sprite_h;
+                for (int px = 0; px < sprite_w; px++) {
+                    int src_x = px * src_w / sprite_w;
+                    uint32_t pixel = sample_sheet(atlas, sheet, src_x, src_y);
+                    if ((pixel & 0x00FFFFFF) == 0) continue;
+                    put_pixel_vp(framebuffer, fb_width, fb_height,
+                                 vp_x + sx + px, vp_y + sy + py, pixel);
+                }
+            }
+        } else {
+            /* Procedural fallback */
+            fill_rect_vp(framebuffer, fb_width, fb_height,
+                         vp_x + sx + sprite_w / 4, vp_y + sy + sprite_h / 4,
+                         sprite_w / 2, sprite_h * 3 / 4, color);
+            int head_sz = sprite_w / 3;
+            if (head_sz < 2) head_sz = 2;
+            fill_rect_vp(framebuffer, fb_width, fb_height,
+                         vp_x + sx + sprite_w / 2 - head_sz / 2,
+                         vp_y + sy,
+                         head_sz, head_sz, color);
+            int eye_sz = head_sz / 3;
+            if (eye_sz < 1) eye_sz = 1;
+            fill_rect_vp(framebuffer, fb_width, fb_height,
+                         vp_x + sx + sprite_w / 2 - head_sz / 4,
+                         vp_y + sy + head_sz / 3,
+                         eye_sz, eye_sz, 0xFFFF0000);
+            fill_rect_vp(framebuffer, fb_width, fb_height,
+                         vp_x + sx + sprite_w / 2 + head_sz / 4 - eye_sz,
+                         vp_y + sy + head_sz / 3,
+                         eye_sz, eye_sz, 0xFFFF0000);
+        }
     }
 }

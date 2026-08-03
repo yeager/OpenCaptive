@@ -2,6 +2,15 @@
 #include <string.h>
 #include <stdio.h>
 
+static const char *const alien_hashes[6] = {
+    "4a2bc840d184ff07657f56e630b0293f1d5d7cdbf1d00e4505a1a69dcf721667",
+    "2c8db6bfbec2b463856ab4cd9a313f9fbf20be408a2e278d94d498653562f754",
+    "0b0d6ee225493c92b534b50e893d9c27e423ce0a4298e1789682b8cf222b7adc",
+    "1f1b89e7692dc7c01f9d649677c820e79076304e8bc79835683e14484d68bb5b",
+    "fed16e510697e17123d474c08687de548076b26a55f08f1d00fd17e3fcdf9410",
+    "63ffa6901b59d463b050088065503d386ca2f3813ed91d8e0833320f9df2fe11",
+};
+
 bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs) {
     memset(atlas, 0, sizeof(*atlas));
     for (int i = 0; i < CAPTIVE_VIEW_SOURCE_COUNT; ++i) atlas->view_sheets[i] = -1;
@@ -11,6 +20,7 @@ bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs) {
     atlas->icon_sheet = -1;
     atlas->object_sheet = -1;
     atlas->gamescrn_sheet = -1;
+    for (int i = 0; i < 6; i++) atlas->alien_sheets[i] = -1;
 
     if (!gfx_init(&atlas->gfx, vfs)) return false;
 
@@ -24,6 +34,9 @@ bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs) {
     atlas->icon_sheet = atlas->view_sheets[19];
     atlas->object_sheet = atlas->view_sheets[17];
     atlas->gamescrn_sheet = atlas->view_sheets[18];
+
+    for (int i = 0; i < 6; ++i)
+        atlas->alien_sheets[i] = gfx_load_pl5_hash(&atlas->gfx, alien_hashes[i]);
 
     /* Original-mode rendering is an all-or-nothing contract.  A partial
        atlas used to be accepted as soon as the first wall sheet was present,

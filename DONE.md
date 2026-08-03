@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Original ALIEN sprites — v1.1.41)
+
+### ALIEN PL5 sprite loading
+- 6 alien sprite sheets loaded by SHA-256 hash verification
+- Viewport blits from original PL5 data with nearest-neighbor scaling
+- Falls back to procedural shapes without game data
+
 ## 2026-08-03 (Creature rendering + mission flow — v1.1.40)
 
 ### Creature viewport rendering

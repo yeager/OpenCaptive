@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.41 (2026-08-03)
+
+### Original ALIEN PL5 creature sprites
+- SHA-256 verified loading of ALIEN1-6.PL5 from game data
+- Creatures render with original sprite art when available
+- Procedural colored silhouettes as fallback without game data
+- Front-facing 64×100 region scaled to viewport perspective
+
 ## v1.1.40 (2026-08-03)
 
 ### Creature viewport rendering

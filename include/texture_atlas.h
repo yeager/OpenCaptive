@@ -19,6 +19,7 @@ typedef struct {
     int     icon_sheet;       // ICONS texture id
     int     object_sheet;     // OBJECTS texture id
     int     gamescrn_sheet;   // GAMESCRN texture id
+    int     alien_sheets[6];  // ALIEN1-6 creature sprites
     bool    loaded;
 } TextureAtlas;
 
