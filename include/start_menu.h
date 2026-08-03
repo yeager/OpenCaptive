@@ -75,6 +75,7 @@ void start_menu_check_data(StartMenu *menu, const char *data_path);
 void start_menu_check_saves(StartMenu *menu);
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event);
 MenuResult start_menu_handle_click(StartMenu *menu, float x, float y);
+void start_menu_handle_mouse_motion(StartMenu *menu, float x, float y);
 void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height);
 
 #endif

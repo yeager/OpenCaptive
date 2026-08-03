@@ -1773,10 +1773,16 @@ int main(int argc, char *argv[]) {
             switch (gs.mode) {
                 case STATE_MENU: {
                     MenuResult result;
-                    if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
+                    if (event.type == SDL_EVENT_MOUSE_MOTION) {
+                        int width = MENU_WIDTH, height = MENU_HEIGHT;
+                        SDL_GetWindowSize(renderer.window, &width, &height);
+                        float mx = event.motion.x * MENU_WIDTH / width;
+                        float my = event.motion.y * MENU_HEIGHT / height;
+                        start_menu_handle_mouse_motion(&menu, mx, my);
+                        result = MENU_RESULT_NONE;
+                    } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                         event.button.button == SDL_BUTTON_LEFT) {
-                        int width = MENU_WIDTH;
-                        int height = MENU_HEIGHT;
+                        int width = MENU_WIDTH, height = MENU_HEIGHT;
                         SDL_GetWindowSize(renderer.window, &width, &height);
                         float x = event.button.x * MENU_WIDTH / width;
                         float y = event.button.y * MENU_HEIGHT / height;

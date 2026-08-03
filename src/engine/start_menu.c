@@ -2,6 +2,7 @@
 #include "opencaptive.h"
 #include "data_vfs.h"
 #include "sha256.h"
+#include "liberation_data.h"
 #include "i18n.h"
 #include <stdlib.h>
 #include <string.h>
@@ -36,6 +37,8 @@ static const char *liberation_required_hashes[] = {
     "d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2",
 };
 #define LIBERATION_HASH_COUNT (sizeof(liberation_required_hashes)/sizeof(liberation_required_hashes[0]))
+
+#define SETTINGS_COUNT 16
 
 static uint32_t *load_card_image(const char *filename, int *w, int *h) {
     char path[1024];
@@ -393,12 +396,9 @@ void start_menu_check_data(StartMenu *menu, const char *data_path) {
         uint8_t *d = vfs_find_sha256(&vfs, captive_required_hashes[i], &sz);
         if (d) free(d); else { menu->captive_data_ok = false; break; }
     }
-    menu->liberation_data_ok = true;
-    for (size_t i = 0; i < LIBERATION_HASH_COUNT; i++) {
-        size_t sz = 0;
-        uint8_t *d = vfs_find_sha256(&vfs, liberation_required_hashes[i], &sz);
-        if (d) free(d); else { menu->liberation_data_ok = false; break; }
-    }
+    LiberationData lib_data;
+    menu->liberation_data_ok = liberation_data_open(&lib_data, &vfs);
+    liberation_data_close(&lib_data);
     vfs_free(&vfs);
 }
 
@@ -431,12 +431,14 @@ static void run_data_scanner(StartMenu *menu, const char *data_path) {
         uint8_t *d = vfs_find_sha256(&vfs, captive_required_hashes[i], &sz);
         if (d) { free(d); menu->scanner_captive_found++; }
     }
-    menu->scanner_liberation_total = (int)LIBERATION_HASH_COUNT;
+    menu->scanner_liberation_total = (int)LIBERATION_RESOURCE_COUNT;
     menu->scanner_liberation_found = 0;
-    for (size_t i = 0; i < LIBERATION_HASH_COUNT; i++) {
-        size_t sz = 0;
-        uint8_t *d = vfs_find_sha256(&vfs, liberation_required_hashes[i], &sz);
-        if (d) { free(d); menu->scanner_liberation_found++; }
+    {
+        LiberationData lib_data;
+        if (liberation_data_open(&lib_data, &vfs)) {
+            menu->scanner_liberation_found = (int)LIBERATION_RESOURCE_COUNT;
+            liberation_data_close(&lib_data);
+        }
     }
     vfs_free(&vfs);
     menu->scanner_done = true;
@@ -452,31 +454,66 @@ void start_menu_free(StartMenu *menu) {
     menu->ttf_ready = false;
 }
 
-MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
-    if (!menu || menu->in_settings || menu->in_about || menu->in_controls || menu->in_scanner)
-        return MENU_RESULT_NONE;
-    int card_w = 390, card_h = 300, gap = 30;
+static int hit_test_main_menu(const StartMenu *menu, float x, float y) {
+    int card_w = 390, card_h = 280, gap = 30;
     int total_w = card_w * 2 + gap;
     int cx0 = (MENU_WIDTH - total_w) / 2, cx1 = cx0 + card_w + gap;
-    int card_y = 80;
-    int continue_y = card_y + card_h + 8;
-    int bottom_y = continue_y + 32;
-    int bottom2_y = bottom_y + 32;
+    int logo_h_used = menu->logo_img ? 66 : 45;
+    int card_y = logo_h_used + 18;
+    int label_y = card_y + card_h + 4;
+    int year_y = label_y + 22;
+    int continue_y = year_y + 22;
+    int bottom_y = continue_y + 26;
+    int bottom2_y = bottom_y + 28;
 
-    int item = -1;
     if (y >= card_y && y < card_y + card_h) {
-        if (x >= cx0 && x < cx0 + card_w) item = 0;
-        else if (x >= cx1 && x < cx1 + card_w) item = 1;
-    } else if (y >= continue_y && y < continue_y + 28) {
-        if (x >= cx0 && x < cx0 + card_w && menu->captive_save_exists) item = 2;
-        else if (x >= cx1 && x < cx1 + card_w && menu->liberation_save_exists) item = 3;
-    } else if (y >= bottom_y && y < bottom_y + 28) {
-        if (x >= cx0 && x < cx0 + card_w) item = 4;
-        else if (x >= cx1 && x < cx1 + card_w) item = 5;
-    } else if (y >= bottom2_y && y < bottom2_y + 28) {
-        if (x >= cx0 && x < cx0 + card_w) item = 6;
-        else if (x >= cx1 && x < cx1 + card_w) item = 7;
+        if (x >= cx0 && x < cx0 + card_w) return 0;
+        if (x >= cx1 && x < cx1 + card_w) return 1;
+    } else if (y >= continue_y && y < continue_y + 24) {
+        if (x >= cx0 && x < cx0 + card_w && menu->captive_save_exists) return 2;
+        if (x >= cx1 && x < cx1 + card_w && menu->liberation_save_exists) return 3;
+    } else if (y >= bottom_y && y < bottom_y + 26) {
+        if (x >= cx0 && x < cx0 + card_w) return 4;
+        if (x >= cx1 && x < cx1 + card_w) return 5;
+    } else if (y >= bottom2_y && y < bottom2_y + 26) {
+        if (x >= cx0 && x < cx0 + card_w) return 6;
+        if (x >= cx1 && x < cx1 + card_w) return 7;
     }
+    return -1;
+}
+
+MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
+    if (!menu) return MENU_RESULT_NONE;
+
+    if (menu->in_about || menu->in_controls) {
+        menu->in_about = false;
+        menu->in_controls = false;
+        return MENU_RESULT_NONE;
+    }
+    if (menu->in_scanner) {
+        menu->in_scanner = false;
+        menu->scanner_done = false;
+        return MENU_RESULT_NONE;
+    }
+    if (menu->in_settings) {
+        int menu_y = 90, item_h = 32, visible = 10;
+        if (x >= 80 && x < MENU_WIDTH - 80) {
+            int vi = (int)(y - menu_y) / item_h;
+            if (vi >= 0 && vi < visible) {
+                int i = vi + menu->settings_scroll;
+                if (i >= 0 && i < SETTINGS_COUNT) {
+                    menu->settings_cursor = i;
+                    SDL_Event fake = {0};
+                    fake.type = SDL_EVENT_KEY_DOWN;
+                    fake.key.key = SDLK_RETURN;
+                    return start_menu_handle_event(menu, &fake);
+                }
+            }
+        }
+        return MENU_RESULT_NONE;
+    }
+
+    int item = hit_test_main_menu(menu, x, y);
     if (item < 0) return MENU_RESULT_NONE;
     menu->selected_item = item;
     switch (item) {
@@ -490,6 +527,13 @@ MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
         case 7: return MENU_RESULT_QUIT;
     }
     return MENU_RESULT_NONE;
+}
+
+void start_menu_handle_mouse_motion(StartMenu *menu, float x, float y) {
+    if (!menu || menu->in_settings || menu->in_about || menu->in_controls || menu->in_scanner)
+        return;
+    int item = hit_test_main_menu(menu, x, y);
+    if (item >= 0) menu->selected_item = item;
 }
 
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
@@ -554,7 +598,6 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
     }
 
     if (menu->in_settings) {
-        #define SETTINGS_COUNT 16
         switch (event->key.key) {
             case SDLK_UP: if (menu->settings_cursor > 0) menu->settings_cursor--; break;
             case SDLK_DOWN: if (menu->settings_cursor < SETTINGS_COUNT - 1) menu->settings_cursor++; break;

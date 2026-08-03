@@ -94,24 +94,24 @@ typedef struct {
     int wall_height;
 } RangeParams;
 
-/* Viewport is CAPTIVE_VIEWPORT_WIDTH x CAPTIVE_VIEWPORT_HEIGHT (256x136).
- * These perspective brackets are derived from the documented view geometry. */
+/* Viewport is CAPTIVE_VIEWPORT_WIDTH x CAPTIVE_VIEWPORT_HEIGHT (144x112).
+ * Perspective brackets scaled to the actual viewport dimensions. */
 static const RangeParams range_params[] = {
     /* Range 0: fills most of the viewport */
-    { .left_x = 0, .right_x = 255, .top_y = 0, .bottom_y = 135,
-      .wall_width = 86, .wall_height = 136 },
+    { .left_x = 0, .right_x = 143, .top_y = 0, .bottom_y = 111,
+      .wall_width = 48, .wall_height = 112 },
     /* Range 1: medium-large */
-    { .left_x = 32, .right_x = 223, .top_y = 16, .bottom_y = 119,
-      .wall_width = 64, .wall_height = 104 },
+    { .left_x = 18, .right_x = 125, .top_y = 13, .bottom_y = 98,
+      .wall_width = 36, .wall_height = 86 },
     /* Range 2: medium */
-    { .left_x = 56, .right_x = 199, .top_y = 28, .bottom_y = 107,
-      .wall_width = 48, .wall_height = 80 },
+    { .left_x = 32, .right_x = 111, .top_y = 23, .bottom_y = 88,
+      .wall_width = 27, .wall_height = 66 },
     /* Range 3: small */
-    { .left_x = 72, .right_x = 183, .top_y = 38, .bottom_y = 97,
-      .wall_width = 22, .wall_height = 60 },
+    { .left_x = 40, .right_x = 103, .top_y = 31, .bottom_y = 80,
+      .wall_width = 12, .wall_height = 49 },
     /* Range 4: distant */
-    { .left_x = 84, .right_x = 171, .top_y = 44, .bottom_y = 91,
-      .wall_width = 18, .wall_height = 48 },
+    { .left_x = 47, .right_x = 96, .top_y = 36, .bottom_y = 75,
+      .wall_width = 10, .wall_height = 40 },
 };
 
 /* Draw a floor/ceiling strip for a cell at a given range.
