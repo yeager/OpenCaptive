@@ -1,5 +1,18 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (language selector + card menu + 19 languages — v1.1.28)
+
+### Language selector and translations
+- Language selector in settings menu (left/right cycling through 19 languages)
+- 18 PO translation files: cs, da, de, es, fi, fr, hu, it, ja, ko, nl, no, pl, pt, ro, ru, sv, zh
+- All CJK and Cyrillic translations use romanized ASCII (bitmap font constraint)
+
+### Card-based start menu
+- Redesigned from flat text list to 2x2 card grid layout
+- Procedural dungeon art card for Captive (Amiga-style purple palette, torches, corridor)
+- Procedural cityscape art card for Liberation (gradient sky, buildings, blinking windows)
+- 2x2 grid navigation for keyboard and mouse
+
 ## 2026-08-03 (i18n system + wiki updates — v1.1.26)
 
 ### Internationalization (i18n) system

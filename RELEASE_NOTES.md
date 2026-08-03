@@ -1,5 +1,18 @@
 # OpenCaptive Release Notes
 
+## v1.1.28 (2026-08-03)
+
+### Language selector and 19-language support
+- Language selector in settings menu with left/right cycling
+- 18 new PO translation files (cs, da, de, es, fi, fr, hu, it, ja, ko, nl, no, pl, pt, ro, ru, sv, zh)
+- Romanized ASCII for CJK/Cyrillic languages (bitmap font constraint)
+
+### Card-based start menu
+- Redesigned start menu with procedural game art cards
+- Captive: dungeon corridor with flickering torches (Amiga purple palette)
+- Liberation: cityscape with gradient sky, procedural buildings, blinking windows
+- 2x2 grid navigation (arrow keys + mouse click)
+
 ## v1.1.26 (2026-08-03)
 
 ### Internationalization (i18n) system
