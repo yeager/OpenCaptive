@@ -1,5 +1,14 @@
 # OpenCaptive Release Notes
 
+## v1.1.61 (2026-08-03)
+
+### Replace synthetic data with real game data
+- Item weapon stats: damage lo/hi bytes from CAPPO.EXE melee_damage[] and ranged_damage[] tables wired into item_defs (was all zeros with fallback to cx=5)
+- Item defense/range values populated for armor and weapons from binary tables
+- Viewport objects: stairs, teleporter, generator, shop, terminal, pit, pressure plate, and floor items now render from OBJECTS.PL5 sprite sheet when game data is present (colored rectangle fallback preserved)
+- Object sprite scaling: blit_object_scaled() samples 16x16 frames from the object sheet at perspective-correct sizes
+- Windows CI fix: all test files use static GameState (1.1MB struct exceeds Windows 1MB stack)
+
 ## v1.1.60 (2026-08-03)
 
 ### Deep parity audit: 16 gaps closed

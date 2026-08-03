@@ -1,5 +1,19 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Real game data: items + viewport objects — v1.1.61)
+
+### Item stats from CAPPO.EXE binary
+- Weapon damage_min/damage_max populated from melee_damage[] (0x1A006) and ranged_damage[] tables
+- Armor defense values, weapon range, tier assignments from original binary
+- Eliminates synthetic zero-damage and provisional price/weight placeholders
+
+### Viewport object sprites from OBJECTS.PL5
+- All special cell types (stairs, teleporter, generator, shop, terminal, pit, pressure plate, floor items) now render from real sprite sheet
+- Scaled blit preserves transparency, falls back to colored rectangles without game data
+
+### Windows CI fix
+- GameState moved to static storage in test_custom_features.c, test_game_state.c, test_liberation_combat.c
+
 ## 2026-08-03 (Deep parity: 16 gaps closed — v1.1.60)
 
 ### Clipboard puzzle hints

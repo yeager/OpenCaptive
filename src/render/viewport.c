@@ -1,6 +1,7 @@
 #include "viewport.h"
 #include "opencaptive.h"
 #include "gfx_loader.h"
+#include "object_sprite.h"
 #include <string.h>
 
 /* Captive's original viewport is a panel-based compositor: pre-projected
@@ -29,6 +30,45 @@ static void fill_rect_vp(uint32_t *fb, int fb_w, int fb_h,
         for (int px = x; px < x + w; px++) {
             if (px >= 0 && px < fb_w)
                 fb[py * fb_w + px] = color;
+        }
+    }
+}
+
+/* Object sprite frame indices in OBJECTS.PL5 (20-column, 16x16 grid).
+ * Mapped from the original sprite sheet layout. */
+#define OBJ_STAIRS_UP    0
+#define OBJ_STAIRS_DOWN  1
+#define OBJ_TELEPORTER   2
+#define OBJ_GENERATOR    3
+#define OBJ_SHOP_SIGN    4
+#define OBJ_TERMINAL     5
+#define OBJ_PIT          6
+#define OBJ_PRESSURE     7
+#define OBJ_FLOOR_ITEM   8
+
+static void blit_object_scaled(const TextureAtlas *atlas, int frame_idx,
+                               uint32_t *fb, int fb_w, int fb_h,
+                               int dst_x, int dst_y, int dst_w, int dst_h) {
+    if (atlas->object_sheet < 0) return;
+    const Texture *tex = gfx_get(&atlas->gfx, atlas->object_sheet);
+    if (!tex) return;
+    int col = frame_idx % OBJECT_COLS;
+    int row = frame_idx / OBJECT_COLS;
+    int src_x0 = col * OBJECT_FRAME_W;
+    int src_y0 = row * OBJECT_FRAME_H;
+    for (int dy = 0; dy < dst_h; dy++) {
+        int sy = src_y0 + dy * OBJECT_FRAME_H / dst_h;
+        if (sy >= tex->height) continue;
+        int py = dst_y + dy;
+        if (py < 0 || py >= fb_h) continue;
+        for (int dx = 0; dx < dst_w; dx++) {
+            int sx = src_x0 + dx * OBJECT_FRAME_W / dst_w;
+            if (sx >= tex->width) continue;
+            int px = dst_x + dx;
+            if (px < 0 || px >= fb_w) continue;
+            uint32_t c = tex->pixels[sy * tex->width + sx];
+            if ((c >> 24) > 0x80)
+                fb[py * fb_w + px] = c;
         }
     }
 }
@@ -345,97 +385,134 @@ void viewport_render(const CaptiveViewWindow *window,
                 }
             }
 
-            /* Special cell markers */
+            /* Special cell objects — use OBJECTS.PL5 sprites when loaded */
+            bool has_obj = atlas->object_sheet >= 0;
+
             if (cell->type == CELL_STAIRS_UP || cell->type == CELL_STAIRS_DOWN) {
-                int marker_w = cell_w / 3;
-                int marker_h = 4;
-                int marker_x = cell_left + (cell_w - marker_w) / 2;
-                int marker_y = rp->bottom_y - marker_h - 2;
-                uint32_t color = cell->type == CELL_STAIRS_UP ?
-                    0xFF44FF44 : 0xFF4444FF;
-                fill_rect_vp(framebuffer, fb_width, fb_height,
-                             vp_x + marker_x, vp_y + marker_y,
-                             marker_w, marker_h, color);
+                int obj_w = cell_w / 2;
+                int obj_h = rp->wall_height / 3;
+                if (obj_w < 4) obj_w = 4;
+                if (obj_h < 4) obj_h = 4;
+                int obj_x = cell_left + (cell_w - obj_w) / 2;
+                int obj_y = rp->bottom_y - obj_h - 2;
+                int fi = cell->type == CELL_STAIRS_UP ? OBJ_STAIRS_UP : OBJ_STAIRS_DOWN;
+                if (has_obj) {
+                    blit_object_scaled(atlas, fi, framebuffer, fb_width, fb_height,
+                                       vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
+                } else {
+                    uint32_t color = cell->type == CELL_STAIRS_UP ? 0xFF44FF44 : 0xFF4444FF;
+                    fill_rect_vp(framebuffer, fb_width, fb_height,
+                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, color);
+                }
             }
 
             if (cell->type == CELL_TELEPORTER) {
-                int tp_w = cell_w / 3;
-                int tp_h = rp->wall_height;
-                int tp_x = cell_left + (cell_w - tp_w) / 2;
-                for (int ty = 0; ty < tp_h; ty++) {
-                    uint32_t c = ((ty / 3) & 1) ? 0xFF9933CC : 0xFF6622AA;
-                    fill_rect_vp(framebuffer, fb_width, fb_height,
-                                 vp_x + tp_x, vp_y + rp->top_y + ty,
-                                 tp_w, 1, c);
+                int obj_w = cell_w / 3;
+                int obj_h = rp->wall_height;
+                int obj_x = cell_left + (cell_w - obj_w) / 2;
+                if (has_obj) {
+                    blit_object_scaled(atlas, OBJ_TELEPORTER, framebuffer, fb_width, fb_height,
+                                       vp_x + obj_x, vp_y + rp->top_y, obj_w, obj_h);
+                } else {
+                    for (int ty = 0; ty < obj_h; ty++) {
+                        uint32_t c = ((ty / 3) & 1) ? 0xFF9933CC : 0xFF6622AA;
+                        fill_rect_vp(framebuffer, fb_width, fb_height,
+                                     vp_x + obj_x, vp_y + rp->top_y + ty, obj_w, 1, c);
+                    }
                 }
             }
 
             if (cell->type == CELL_GENERATOR) {
-                int gen_w = cell_w / 4;
-                int gen_h = rp->wall_height / 3;
-                int gen_x = cell_left + (cell_w - gen_w) / 2;
-                int gen_y = rp->top_y + rp->wall_height / 3;
-                fill_rect_vp(framebuffer, fb_width, fb_height,
-                             vp_x + gen_x, vp_y + gen_y,
-                             gen_w, gen_h, 0xFFFF2222);
-                fill_rect_vp(framebuffer, fb_width, fb_height,
-                             vp_x + gen_x + 1, vp_y + gen_y + 1,
-                             gen_w - 2, gen_h - 2, 0xFFAA0000);
+                int obj_w = cell_w / 3;
+                int obj_h = rp->wall_height / 2;
+                int obj_x = cell_left + (cell_w - obj_w) / 2;
+                int obj_y = rp->top_y + rp->wall_height / 4;
+                if (has_obj) {
+                    blit_object_scaled(atlas, OBJ_GENERATOR, framebuffer, fb_width, fb_height,
+                                       vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
+                } else {
+                    fill_rect_vp(framebuffer, fb_width, fb_height,
+                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, 0xFFFF2222);
+                    fill_rect_vp(framebuffer, fb_width, fb_height,
+                                 vp_x + obj_x + 1, vp_y + obj_y + 1,
+                                 obj_w - 2, obj_h - 2, 0xFFAA0000);
+                }
             }
 
             if (cell->type == CELL_SHOP) {
-                int sign_w = cell_w / 2;
-                int sign_h = rp->wall_height / 6;
-                int sign_x = cell_left + (cell_w - sign_w) / 2;
-                int sign_y = rp->top_y + 4;
-                fill_rect_vp(framebuffer, fb_width, fb_height,
-                             vp_x + sign_x, vp_y + sign_y,
-                             sign_w, sign_h, 0xFFAAAA33);
+                int obj_w = cell_w / 2;
+                int obj_h = rp->wall_height / 4;
+                int obj_x = cell_left + (cell_w - obj_w) / 2;
+                int obj_y = rp->top_y + 4;
+                if (has_obj) {
+                    blit_object_scaled(atlas, OBJ_SHOP_SIGN, framebuffer, fb_width, fb_height,
+                                       vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
+                } else {
+                    fill_rect_vp(framebuffer, fb_width, fb_height,
+                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, 0xFFAAAA33);
+                }
             }
 
             if (cell->type == CELL_TERMINAL) {
-                int scr_w = cell_w / 3;
-                int scr_h = rp->wall_height / 3;
-                int scr_x = cell_left + (cell_w - scr_w) / 2;
-                int scr_y = rp->top_y + rp->wall_height / 4;
-                fill_rect_vp(framebuffer, fb_width, fb_height,
-                             vp_x + scr_x, vp_y + scr_y,
-                             scr_w, scr_h, 0xFF003300);
-                fill_rect_vp(framebuffer, fb_width, fb_height,
-                             vp_x + scr_x + 1, vp_y + scr_y + 1,
-                             scr_w - 2, scr_h - 2, 0xFF00AA00);
+                int obj_w = cell_w / 3;
+                int obj_h = rp->wall_height / 3;
+                int obj_x = cell_left + (cell_w - obj_w) / 2;
+                int obj_y = rp->top_y + rp->wall_height / 4;
+                if (has_obj) {
+                    blit_object_scaled(atlas, OBJ_TERMINAL, framebuffer, fb_width, fb_height,
+                                       vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
+                } else {
+                    fill_rect_vp(framebuffer, fb_width, fb_height,
+                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, 0xFF003300);
+                    fill_rect_vp(framebuffer, fb_width, fb_height,
+                                 vp_x + obj_x + 1, vp_y + obj_y + 1,
+                                 obj_w - 2, obj_h - 2, 0xFF00AA00);
+                }
             }
 
             if (cell->type == CELL_PIT) {
-                int pit_w = cell_w * 2 / 3;
-                int pit_h = rp->wall_height / 6;
-                int pit_x = cell_left + (cell_w - pit_w) / 2;
-                int pit_y = rp->top_y + rp->wall_height - pit_h;
-                fill_rect_vp(framebuffer, fb_width, fb_height,
-                             vp_x + pit_x, vp_y + pit_y,
-                             pit_w, pit_h, 0xFF111111);
+                int obj_w = cell_w * 2 / 3;
+                int obj_h = rp->wall_height / 4;
+                int obj_x = cell_left + (cell_w - obj_w) / 2;
+                int obj_y = rp->top_y + rp->wall_height - obj_h;
+                if (has_obj) {
+                    blit_object_scaled(atlas, OBJ_PIT, framebuffer, fb_width, fb_height,
+                                       vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
+                } else {
+                    fill_rect_vp(framebuffer, fb_width, fb_height,
+                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, 0xFF111111);
+                }
             }
 
             if (cell->type == CELL_PRESSURE_PLATE) {
-                int pp_w = cell_w / 3;
-                int pp_h = 2;
-                int pp_x = cell_left + (cell_w - pp_w) / 2;
-                int pp_y = rp->top_y + rp->wall_height - 2;
-                fill_rect_vp(framebuffer, fb_width, fb_height,
-                             vp_x + pp_x, vp_y + pp_y,
-                             pp_w, pp_h, 0xFF888844);
+                int obj_w = cell_w / 3;
+                int obj_h = rp->wall_height / 6;
+                if (obj_h < 2) obj_h = 2;
+                int obj_x = cell_left + (cell_w - obj_w) / 2;
+                int obj_y = rp->top_y + rp->wall_height - obj_h;
+                if (has_obj) {
+                    blit_object_scaled(atlas, OBJ_PRESSURE, framebuffer, fb_width, fb_height,
+                                       vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
+                } else {
+                    fill_rect_vp(framebuffer, fb_width, fb_height,
+                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, 0xFF888844);
+                }
             }
 
             if (cell->item_id > 0) {
-                int item_w = cell_w / 5;
-                int item_h = rp->wall_height / 8;
-                if (item_w < 2) item_w = 2;
-                if (item_h < 2) item_h = 2;
-                int item_x = cell_left + (cell_w - item_w) / 2;
-                int item_y = rp->bottom_y - item_h - 1;
-                fill_rect_vp(framebuffer, fb_width, fb_height,
-                             vp_x + item_x, vp_y + item_y,
-                             item_w, item_h, 0xFF44DDFF);
+                int obj_w = cell_w / 4;
+                int obj_h = rp->wall_height / 4;
+                if (obj_w < 4) obj_w = 4;
+                if (obj_h < 4) obj_h = 4;
+                int obj_x = cell_left + (cell_w - obj_w) / 2;
+                int obj_y = rp->bottom_y - obj_h - 1;
+                if (has_obj) {
+                    blit_object_scaled(atlas, OBJ_FLOOR_ITEM, framebuffer, fb_width, fb_height,
+                                       vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
+                } else {
+                    fill_rect_vp(framebuffer, fb_width, fb_height,
+                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, 0xFF44DDFF);
+                }
             }
         }
     }
