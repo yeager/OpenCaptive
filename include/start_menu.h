@@ -12,6 +12,8 @@ typedef enum {
     MENU_RESULT_NONE,
     MENU_RESULT_START_CAPTIVE,
     MENU_RESULT_START_LIBERATION,
+    MENU_RESULT_CONTINUE_CAPTIVE,
+    MENU_RESULT_CONTINUE_LIBERATION,
     MENU_RESULT_QUIT,
 } MenuResult;
 
@@ -42,6 +44,19 @@ typedef struct {
     bool data_path_editing;
     int data_path_cursor;
     int lang_index;
+    bool captive_data_ok;
+    bool liberation_data_ok;
+    bool captive_save_exists;
+    bool liberation_save_exists;
+    bool in_about;
+    bool in_controls;
+    bool in_scanner;
+    int scanner_captive_found;
+    int scanner_captive_total;
+    int scanner_liberation_found;
+    int scanner_liberation_total;
+    int scanner_zip_count;
+    bool scanner_done;
     uint32_t *logo_img;
     int logo_img_w, logo_img_h;
     uint32_t *captive_img;
@@ -56,6 +71,8 @@ typedef struct {
 
 void start_menu_init(StartMenu *menu);
 void start_menu_free(StartMenu *menu);
+void start_menu_check_data(StartMenu *menu, const char *data_path);
+void start_menu_check_saves(StartMenu *menu);
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event);
 MenuResult start_menu_handle_click(StartMenu *menu, float x, float y);
 void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height);

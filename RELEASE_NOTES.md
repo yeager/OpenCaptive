@@ -1,5 +1,15 @@
 # OpenCaptive Release Notes
 
+## v1.1.64 (2026-08-03)
+
+### Start menu enhancements
+- **Game data status**: checkmark/cross indicators next to each game title showing whether SHA-256 verified data files were found
+- **Continue game**: detects existing save files and offers to resume directly from the menu
+- **About/Credits**: version info, original game credits (Tony Crowther / Mindscape), technology details
+- **Controls reference**: full keyboard shortcut listing accessible from menu or F1
+- **Data scanner**: press D to scan data directory — reports ZIP count and per-game SHA-256 verification results
+- Fixed version header sync (opencaptive.h was stuck at 1.1.29)
+
 ## v1.1.63 (2026-08-03)
 
 ### SFX mappings fully verified from CAPPO.EXE disassembly

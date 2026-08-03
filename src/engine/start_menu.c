@@ -1,5 +1,7 @@
 #include "start_menu.h"
 #include "opencaptive.h"
+#include "data_vfs.h"
+#include "sha256.h"
 #include "i18n.h"
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +9,33 @@
 #include <SDL3_ttf/SDL_ttf.h>
 
 extern unsigned char *load_png_file(const char *path, int *w, int *h);
+
+static const char *captive_required_hashes[] = {
+    "71bcf404103f1ac2920800a8bc166939bb49a1204cf51bebce8aca7dd5faafde",
+    "1ec1f90adbcfcb3b99b64a56cf1c669b409b7d3a76bc09cedb056f503bfb1959",
+    "47ad15b4a593c37880d0306b6a0f51b7a9f20615cf6a188f23716d5b48315524",
+    "43833e4a8df622f84d53698a76c6d18f910c1cca79c6b89cbfacc563f695356c",
+    "8b7301fc6c302fd673a81d23e7a99d715aa02d5b404c1e1edea19ceccccc9681",
+    "519d3ef4494f0e868479a90c8a47249b840598e382c7ba3272f417ce3daf5936",
+    "7edb8ee856a91e835ea86dda00af49fda3dae730d694bd7234b7fa96d711e296",
+    "978d18857d5ffcf6fb7b91fb22c02b85079db0171caeac3d290a69b276cf098f",
+    "dec7143f063c98459ab2f267ed135204cdee1b521eda9810b219e8c10e05c7e8",
+    "ce00ba2bc78f160b934486fe101a90264163356e02e7acbea2a41cf5d125b017",
+    "21db7daf64cff3b0cae19c3e7eb2057762df9110055e7253175024ecb146fb6b",
+    "dfca77f0e219962242226f11f9697f580f92e8ad24786296a5b2571b20c2b707",
+};
+#define CAPTIVE_HASH_COUNT (sizeof(captive_required_hashes)/sizeof(captive_required_hashes[0]))
+
+static const char *liberation_required_hashes[] = {
+    "f807b1385c0996d54ed10afab271a7dd31d2c6dc6a18f13196ad2a79a0af8a80",
+    "e54540c3bf8dfaf569380a135ac039f1438e9efb85cf6d5e3e487e25d4c7c13e",
+    "bc9c922801661eb66024d0bcf822c03e38ffea7f3576693e0512692ccf6d6705",
+    "884d4124fa1ab600a4f7dd889df160779eda8c62e13af1d0280ac9aad681818c",
+    "99f7bd75794a7b4f3e94eeef9c61b756da938d862bb83339b140c18d02eb79c5",
+    "e154d250c1acdbed66835bb356a699efdb6f9f8b5e6d586ca07080414610a94c",
+    "d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2",
+};
+#define LIBERATION_HASH_COUNT (sizeof(liberation_required_hashes)/sizeof(liberation_required_hashes[0]))
 
 static uint32_t *load_card_image(const char *filename, int *w, int *h) {
     char path[1024];
@@ -309,7 +338,7 @@ void start_menu_init(StartMenu *menu) {
     memset(menu, 0, sizeof(*menu));
     memcpy(menu->data_path, saved_path, sizeof(menu->data_path));
     menu->data_path_cursor = saved_cursor ? saved_cursor : (int)strlen(menu->data_path);
-    menu->num_items = 4;
+    menu->num_items = 6;
     menu->platform = CAPTIVE_PLATFORM_DOS;
     menu->music_enabled = true;
     menu->sfx_enabled = true;
@@ -354,6 +383,65 @@ void start_menu_init(StartMenu *menu) {
     }
 }
 
+void start_menu_check_data(StartMenu *menu, const char *data_path) {
+    if (!menu || !data_path || !data_path[0]) return;
+    DataVFS vfs;
+    if (!vfs_init(&vfs, data_path)) return;
+    menu->captive_data_ok = true;
+    for (size_t i = 0; i < CAPTIVE_HASH_COUNT; i++) {
+        size_t sz = 0;
+        uint8_t *d = vfs_find_sha256(&vfs, captive_required_hashes[i], &sz);
+        if (d) free(d); else { menu->captive_data_ok = false; break; }
+    }
+    menu->liberation_data_ok = true;
+    for (size_t i = 0; i < LIBERATION_HASH_COUNT; i++) {
+        size_t sz = 0;
+        uint8_t *d = vfs_find_sha256(&vfs, liberation_required_hashes[i], &sz);
+        if (d) free(d); else { menu->liberation_data_ok = false; break; }
+    }
+    vfs_free(&vfs);
+}
+
+void start_menu_check_saves(StartMenu *menu) {
+    if (!menu) return;
+    FILE *f = fopen("opencaptive.sav", "rb");
+    if (!f) f = fopen("opencaptive_slot0.sav", "rb");
+    menu->captive_save_exists = (f != NULL);
+    if (f) fclose(f);
+    f = fopen("liberation.sav", "rb");
+    menu->liberation_save_exists = (f != NULL);
+    if (f) fclose(f);
+}
+
+static void run_data_scanner(StartMenu *menu, const char *data_path) {
+    if (!menu || !data_path || !data_path[0]) {
+        menu->scanner_done = true;
+        return;
+    }
+    DataVFS vfs;
+    if (!vfs_init(&vfs, data_path)) {
+        menu->scanner_done = true;
+        return;
+    }
+    menu->scanner_zip_count = vfs.num_zips;
+    menu->scanner_captive_total = (int)CAPTIVE_HASH_COUNT;
+    menu->scanner_captive_found = 0;
+    for (size_t i = 0; i < CAPTIVE_HASH_COUNT; i++) {
+        size_t sz = 0;
+        uint8_t *d = vfs_find_sha256(&vfs, captive_required_hashes[i], &sz);
+        if (d) { free(d); menu->scanner_captive_found++; }
+    }
+    menu->scanner_liberation_total = (int)LIBERATION_HASH_COUNT;
+    menu->scanner_liberation_found = 0;
+    for (size_t i = 0; i < LIBERATION_HASH_COUNT; i++) {
+        size_t sz = 0;
+        uint8_t *d = vfs_find_sha256(&vfs, liberation_required_hashes[i], &sz);
+        if (d) { free(d); menu->scanner_liberation_found++; }
+    }
+    vfs_free(&vfs);
+    menu->scanner_done = true;
+}
+
 void start_menu_free(StartMenu *menu) {
     if (menu->font_title) { TTF_CloseFont(menu->font_title); menu->font_title = NULL; }
     if (menu->font_body)  { TTF_CloseFont(menu->font_body);  menu->font_body = NULL; }
@@ -365,28 +453,41 @@ void start_menu_free(StartMenu *menu) {
 }
 
 MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
-    if (!menu || menu->in_settings) return MENU_RESULT_NONE;
-    int W = MENU_WIDTH, H = MENU_HEIGHT;
-    int card_w = 390, card_h = 340, card_y = 80, gap = 30;
+    if (!menu || menu->in_settings || menu->in_about || menu->in_controls || menu->in_scanner)
+        return MENU_RESULT_NONE;
+    int card_w = 390, card_h = 300, gap = 30;
     int total_w = card_w * 2 + gap;
-    int cx0 = (W - total_w) / 2, cx1 = cx0 + card_w + gap;
-    int bottom_y = card_y + card_h + 50;
+    int cx0 = (MENU_WIDTH - total_w) / 2, cx1 = cx0 + card_w + gap;
+    int card_y = 80;
+    int continue_y = card_y + card_h + 8;
+    int bottom_y = continue_y + 32;
+    int bottom2_y = bottom_y + 32;
 
     int item = -1;
     if (y >= card_y && y < card_y + card_h) {
         if (x >= cx0 && x < cx0 + card_w) item = 0;
         else if (x >= cx1 && x < cx1 + card_w) item = 1;
-    } else if (y >= bottom_y && y < bottom_y + 30) {
-        if (x >= cx0 && x < cx0 + card_w) item = 2;
-        else if (x >= cx1 && x < cx1 + card_w) item = 3;
+    } else if (y >= continue_y && y < continue_y + 28) {
+        if (x >= cx0 && x < cx0 + card_w && menu->captive_save_exists) item = 2;
+        else if (x >= cx1 && x < cx1 + card_w && menu->liberation_save_exists) item = 3;
+    } else if (y >= bottom_y && y < bottom_y + 28) {
+        if (x >= cx0 && x < cx0 + card_w) item = 4;
+        else if (x >= cx1 && x < cx1 + card_w) item = 5;
+    } else if (y >= bottom2_y && y < bottom2_y + 28) {
+        if (x >= cx0 && x < cx0 + card_w) item = 6;
+        else if (x >= cx1 && x < cx1 + card_w) item = 7;
     }
     if (item < 0) return MENU_RESULT_NONE;
     menu->selected_item = item;
     switch (item) {
         case 0: return MENU_RESULT_START_CAPTIVE;
         case 1: return MENU_RESULT_START_LIBERATION;
-        case 2: menu->in_settings = true; menu->settings_cursor = 0; break;
-        case 3: return MENU_RESULT_QUIT;
+        case 2: return MENU_RESULT_CONTINUE_CAPTIVE;
+        case 3: return MENU_RESULT_CONTINUE_LIBERATION;
+        case 4: menu->in_settings = true; menu->settings_cursor = 0; break;
+        case 5: menu->in_about = true; break;
+        case 6: menu->in_controls = true; break;
+        case 7: return MENU_RESULT_QUIT;
     }
     return MENU_RESULT_NONE;
 }
@@ -437,6 +538,20 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
     }
 
     if (event->type != SDL_EVENT_KEY_DOWN) return MENU_RESULT_NONE;
+
+    if (menu->in_about || menu->in_controls) {
+        menu->in_about = false;
+        menu->in_controls = false;
+        return MENU_RESULT_NONE;
+    }
+
+    if (menu->in_scanner) {
+        if (event->key.key == SDLK_ESCAPE || event->key.key == SDLK_RETURN) {
+            menu->in_scanner = false;
+            menu->scanner_done = false;
+        }
+        return MENU_RESULT_NONE;
+    }
 
     if (menu->in_settings) {
         #define SETTINGS_COUNT 16
@@ -496,16 +611,26 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
 
     switch (event->key.key) {
         case SDLK_UP: if (menu->selected_item >= 2) menu->selected_item -= 2; break;
-        case SDLK_DOWN: if (menu->selected_item < 2) menu->selected_item += 2; break;
-        case SDLK_LEFT: if (menu->selected_item == 1) menu->selected_item = 0; else if (menu->selected_item == 3) menu->selected_item = 2; break;
-        case SDLK_RIGHT: if (menu->selected_item == 0) menu->selected_item = 1; else if (menu->selected_item == 2) menu->selected_item = 3; break;
+        case SDLK_DOWN: if (menu->selected_item < 6) menu->selected_item += 2; break;
+        case SDLK_LEFT: if (menu->selected_item % 2 == 1) menu->selected_item--; break;
+        case SDLK_RIGHT: if (menu->selected_item % 2 == 0) menu->selected_item++; break;
         case SDLK_RETURN: case SDLK_KP_ENTER:
             switch (menu->selected_item) {
                 case 0: return MENU_RESULT_START_CAPTIVE;
                 case 1: return MENU_RESULT_START_LIBERATION;
-                case 2: menu->in_settings = true; menu->settings_cursor = 0; break;
-                case 3: return MENU_RESULT_QUIT;
+                case 2: if (menu->captive_save_exists) return MENU_RESULT_CONTINUE_CAPTIVE; break;
+                case 3: if (menu->liberation_save_exists) return MENU_RESULT_CONTINUE_LIBERATION; break;
+                case 4: menu->in_settings = true; menu->settings_cursor = 0; break;
+                case 5: menu->in_about = true; break;
+                case 6: menu->in_controls = true; break;
+                case 7: return MENU_RESULT_QUIT;
             }
+            break;
+        case SDLK_F1: menu->in_controls = true; break;
+        case SDLK_D:
+            menu->in_scanner = true;
+            menu->scanner_done = false;
+            run_data_scanner(menu, menu->data_path);
             break;
         case SDLK_ESCAPE: return MENU_RESULT_QUIT;
     }
@@ -588,14 +713,137 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
     draw_border(pixels, width, height, 10, 10, width - 20, height - 20, 0xFF444488, 2);
 }
 
+static void render_about(StartMenu *menu, uint32_t *pixels, int width, int height) {
+    TTF_Font *title = menu->font_title;
+    TTF_Font *body = menu->font_body;
+    TTF_Font *small = menu->font_small;
+    char ver[48];
+    snprintf(ver, sizeof(ver), "v%d.%d.%d",
+             OPENCAPTIVE_VERSION_MAJOR, OPENCAPTIVE_VERSION_MINOR, OPENCAPTIVE_VERSION_PATCH);
+
+    ttf_text_centered(pixels, width, height, 20, _("OPENCAPTIVE"), title, 0xFFFF8800);
+    ttf_text_centered(pixels, width, height, 60, ver, body, 0xFF888888);
+
+    int y = 100;
+    ttf_text(pixels, width, height, 80, y, _("ABOUT"), body, 0xFFCCCCCC); y += 35;
+    ttf_text(pixels, width, height, 80, y, _("A reimplementation of:"), small, 0xFFAAAACC); y += 22;
+    ttf_text(pixels, width, height, 100, y, "Captive (1990) - Mindscape / Tony Crowther", small, 0xFF88AACC); y += 20;
+    ttf_text(pixels, width, height, 100, y, "Liberation: Captive 2 (1993) - Mindscape", small, 0xFF88AACC); y += 30;
+    ttf_text(pixels, width, height, 80, y, _("CREDITS"), body, 0xFFCCCCCC); y += 30;
+    ttf_text(pixels, width, height, 100, y, "Original game design: Tony Crowther", small, 0xFF88AACC); y += 20;
+    ttf_text(pixels, width, height, 100, y, "OpenCaptive: Daniel Nylander", small, 0xFF88AACC); y += 30;
+    ttf_text(pixels, width, height, 80, y, _("TECHNOLOGY"), body, 0xFFCCCCCC); y += 30;
+    ttf_text(pixels, width, height, 100, y, "Pure C / SDL3 / OPL2 emulation", small, 0xFF88AACC); y += 20;
+    ttf_text(pixels, width, height, 100, y, "SHA-256 content-addressed asset loading", small, 0xFF88AACC); y += 20;
+    ttf_text(pixels, width, height, 100, y, "CAPPO.EXE disassembly-verified formulas", small, 0xFF88AACC); y += 20;
+    ttf_text(pixels, width, height, 100, y, "Amiga CityGen/PlotGen/BuildingGen disassembly", small, 0xFF88AACC); y += 30;
+    ttf_text(pixels, width, height, 80, y, "https://github.com/yeager/OpenCaptive", small, 0xFF6688BB);
+
+    ttf_text_centered(pixels, width, height, height - 30, _("PRESS ANY KEY TO RETURN"), small, 0xFF555555);
+    draw_border(pixels, width, height, 10, 10, width - 20, height - 20, 0xFF444488, 2);
+}
+
+static void render_controls(StartMenu *menu, uint32_t *pixels, int width, int height) {
+    TTF_Font *title = menu->font_title;
+    TTF_Font *body = menu->font_body;
+    TTF_Font *small = menu->font_small;
+
+    ttf_text_centered(pixels, width, height, 20, _("CONTROLS"), title, 0xFFFF8800);
+
+    int y = 70;
+    int lx = 80, rx = 420;
+    ttf_text(pixels, width, height, lx, y, _("MOVEMENT"), body, 0xFFCCCCCC); y += 30;
+    ttf_text(pixels, width, height, lx, y, "W / Up", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Move forward"), small, 0xFFAAAACC); y += 20;
+    ttf_text(pixels, width, height, lx, y, "S / Down", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Move backward"), small, 0xFFAAAACC); y += 20;
+    ttf_text(pixels, width, height, lx, y, "A / Left", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Turn left"), small, 0xFFAAAACC); y += 20;
+    ttf_text(pixels, width, height, lx, y, "D / Right", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Turn right"), small, 0xFFAAAACC); y += 30;
+
+    ttf_text(pixels, width, height, lx, y, _("COMBAT & ITEMS"), body, 0xFFCCCCCC); y += 30;
+    ttf_text(pixels, width, height, lx, y, "Space", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Fire weapon"), small, 0xFFAAAACC); y += 20;
+    ttf_text(pixels, width, height, lx, y, "Enter", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Use item / Interact"), small, 0xFFAAAACC); y += 20;
+    ttf_text(pixels, width, height, lx, y, "Tab", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Cycle droids"), small, 0xFFAAAACC); y += 20;
+    ttf_text(pixels, width, height, lx, y, "I", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Inventory"), small, 0xFFAAAACC); y += 30;
+
+    ttf_text(pixels, width, height, lx, y, _("SYSTEM"), body, 0xFFCCCCCC); y += 30;
+    ttf_text(pixels, width, height, lx, y, "F5 / F9", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Save / Load game"), small, 0xFFAAAACC); y += 20;
+    ttf_text(pixels, width, height, lx, y, "F6", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Cycle save slots"), small, 0xFFAAAACC); y += 20;
+    ttf_text(pixels, width, height, lx, y, "M / Shift+M", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Minimap / City map"), small, 0xFFAAAACC); y += 20;
+    ttf_text(pixels, width, height, lx, y, "H", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Help screen"), small, 0xFFAAAACC); y += 20;
+    ttf_text(pixels, width, height, lx, y, "ESC", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Pause menu"), small, 0xFFAAAACC);
+
+    ttf_text_centered(pixels, width, height, height - 30, _("PRESS ANY KEY TO RETURN"), small, 0xFF555555);
+    draw_border(pixels, width, height, 10, 10, width - 20, height - 20, 0xFF444488, 2);
+}
+
+static void render_scanner(StartMenu *menu, uint32_t *pixels, int width, int height) {
+    TTF_Font *title = menu->font_title;
+    TTF_Font *body = menu->font_body;
+    TTF_Font *small = menu->font_small;
+
+    ttf_text_centered(pixels, width, height, 20, _("DATA SCANNER"), title, 0xFFFF8800);
+
+    int y = 80;
+    char buf[256];
+    ttf_text(pixels, width, height, 80, y, _("DATA PATH:"), body, 0xFFCCCCCC); y += 28;
+    ttf_text(pixels, width, height, 100, y, menu->data_path, small, 0xFFAAAACC); y += 30;
+
+    if (!menu->scanner_done) {
+        ttf_text_centered(pixels, width, height, y + 40, _("SCANNING..."), body, 0xFFFFFF00);
+    } else {
+        snprintf(buf, sizeof(buf), _("ZIP archives found: %d"), menu->scanner_zip_count);
+        ttf_text(pixels, width, height, 80, y, buf, body, 0xFFCCCCCC); y += 35;
+
+        snprintf(buf, sizeof(buf), "Captive: %d / %d %s",
+                 menu->scanner_captive_found, menu->scanner_captive_total,
+                 menu->scanner_captive_found == menu->scanner_captive_total ? "[OK]" : "[MISSING]");
+        uint32_t cap_col = menu->scanner_captive_found == menu->scanner_captive_total
+                           ? 0xFF44FF44 : 0xFFFF4444;
+        ttf_text(pixels, width, height, 100, y, buf, body, cap_col); y += 30;
+
+        snprintf(buf, sizeof(buf), "Liberation: %d / %d %s",
+                 menu->scanner_liberation_found, menu->scanner_liberation_total,
+                 menu->scanner_liberation_found == menu->scanner_liberation_total ? "[OK]" : "[MISSING]");
+        uint32_t lib_col = menu->scanner_liberation_found == menu->scanner_liberation_total
+                           ? 0xFF44FF44 : 0xFFFF4444;
+        ttf_text(pixels, width, height, 100, y, buf, body, lib_col); y += 40;
+
+        ttf_text(pixels, width, height, 80, y, _("VERIFICATION"), body, 0xFFCCCCCC); y += 28;
+        ttf_text(pixels, width, height, 100, y,
+                 _("Files identified by SHA-256 content hash, not filename."),
+                 small, 0xFF88AACC); y += 20;
+        ttf_text(pixels, width, height, 100, y,
+                 _("Nested ZIPs, ADF disk images, and ISO tracks are scanned."),
+                 small, 0xFF88AACC); y += 20;
+        ttf_text(pixels, width, height, 100, y,
+                 _("No filenames are trusted; only content determines identity."),
+                 small, 0xFF88AACC);
+    }
+
+    ttf_text_centered(pixels, width, height, height - 30, _("ESC: BACK"), small, 0xFF555555);
+    draw_border(pixels, width, height, 10, 10, width - 20, height - 20, 0xFF444488, 2);
+}
+
 void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height) {
     menu->anim_tick++;
     memset(pixels, 0, (size_t)width * height * sizeof(uint32_t));
 
-    if (menu->in_settings) {
-        render_settings(menu, pixels, width, height);
-        return;
-    }
+    if (menu->in_settings) { render_settings(menu, pixels, width, height); return; }
+    if (menu->in_about)    { render_about(menu, pixels, width, height);    return; }
+    if (menu->in_controls) { render_controls(menu, pixels, width, height); return; }
+    if (menu->in_scanner)  { render_scanner(menu, pixels, width, height);  return; }
 
     TTF_Font *title = menu->font_title;
     TTF_Font *body = menu->font_body;
@@ -603,22 +851,22 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
 
     int logo_h_used = 0;
     if (menu->logo_img) {
-        int max_w = width - 40, max_h = 70;
+        int max_w = width - 40, max_h = 60;
         int lw = menu->logo_img_w, lh = menu->logo_img_h;
         float scale = (float)max_w / lw;
         if (lh * scale > max_h) scale = (float)max_h / lh;
         int dw = (int)(lw * scale), dh = (int)(lh * scale);
-        int dx = (width - dw) / 2, dy = 5;
+        int dx = (width - dw) / 2, dy = 3;
         blit_scaled(pixels, width, height, dx, dy, dw, dh,
                     menu->logo_img, lw, lh);
-        logo_h_used = dy + dh + 5;
+        logo_h_used = dy + dh + 3;
     } else {
-        ttf_text_centered(pixels, width, height, 10, _("OPENCAPTIVE"), title, 0xFFFF8800);
-        logo_h_used = 50;
+        ttf_text_centered(pixels, width, height, 8, _("OPENCAPTIVE"), title, 0xFFFF8800);
+        logo_h_used = 45;
     }
     ttf_text_centered(pixels, width, height, logo_h_used, _("BY DANIEL NYLANDER"), small, 0xFF666688);
 
-    int card_w = 390, card_h = 340, card_y = logo_h_used + 20, gap = 30;
+    int card_w = 390, card_h = 280, card_y = logo_h_used + 18, gap = 30;
     int total_w = card_w * 2 + gap;
     int cx0 = (width - total_w) / 2;
     int cx1 = cx0 + card_w + gap;
@@ -651,36 +899,91 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
         draw_border(pixels, width, height, cx1, card_y, card_w, card_h, 0xFF444466, 2);
     }
 
-    int label_y = card_y + card_h + 8;
+    int label_y = card_y + card_h + 4;
     int ltw = 0;
-    if (body) TTF_GetStringSize(body, "CAPTIVE", 0, &ltw, NULL);
-    ttf_text(pixels, width, height, cx0 + (card_w - ltw) / 2, label_y, "CAPTIVE", body, 0xFFCCCCCC);
-    if (body) TTF_GetStringSize(body, "LIBERATION", 0, &ltw, NULL);
-    ttf_text(pixels, width, height, cx1 + (card_w - ltw) / 2, label_y, "LIBERATION", body, 0xFFCCCCCC);
 
-    int year_y = label_y + 24;
+    // Game titles with data status indicators
+    {
+        const char *cap_label = "CAPTIVE";
+        if (body) TTF_GetStringSize(body, cap_label, 0, &ltw, NULL);
+        int lx = cx0 + (card_w - ltw - 24) / 2;
+        ttf_text(pixels, width, height, lx, label_y, cap_label, body, 0xFFCCCCCC);
+        const char *cap_status = menu->captive_data_ok ? "\xe2\x9c\x93" : "\xe2\x9c\x97";
+        uint32_t cap_scol = menu->captive_data_ok ? 0xFF44FF44 : 0xFFFF4444;
+        ttf_text(pixels, width, height, lx + ltw + 8, label_y, cap_status, body, cap_scol);
+    }
+    {
+        const char *lib_label = "LIBERATION";
+        if (body) TTF_GetStringSize(body, lib_label, 0, &ltw, NULL);
+        int lx = cx1 + (card_w - ltw - 24) / 2;
+        ttf_text(pixels, width, height, lx, label_y, lib_label, body, 0xFFCCCCCC);
+        const char *lib_status = menu->liberation_data_ok ? "\xe2\x9c\x93" : "\xe2\x9c\x97";
+        uint32_t lib_scol = menu->liberation_data_ok ? 0xFF44FF44 : 0xFFFF4444;
+        ttf_text(pixels, width, height, lx + ltw + 8, label_y, lib_status, body, lib_scol);
+    }
+
+    int year_y = label_y + 22;
     int ctw = 0;
     if (small) TTF_GetStringSize(small, "1990", 0, &ctw, NULL);
     ttf_text(pixels, width, height, cx0 + (card_w - ctw) / 2, year_y, "1990", small, 0xFF888888);
     if (small) TTF_GetStringSize(small, "1993", 0, &ctw, NULL);
     ttf_text(pixels, width, height, cx1 + (card_w - ctw) / 2, year_y, "1993", small, 0xFF888888);
 
-    int bottom_y = card_y + card_h + 60;
-    const char *btns[] = { _("SETTINGS"), _("QUIT") };
-    int bidx[] = { 2, 3 };
-    for (int i = 0; i < 2; i++) {
-        int bx = cx0 + i * (card_w + gap);
-        bool sel = (menu->selected_item == bidx[i]);
-        if (sel)
-            draw_rect(pixels, width, height, bx, bottom_y - 2, card_w, 28, 0xFF333366);
-        uint32_t col = sel ? 0xFFFFFFFF : 0xFFAAAAAA;
-        int btw = 0;
-        if (body) TTF_GetStringSize(body, btns[i], 0, &btw, NULL);
-        ttf_text(pixels, width, height, bx + (card_w - btw) / 2, bottom_y, btns[i], body, col);
+    // Continue buttons (row 2-3)
+    int continue_y = year_y + 22;
+    {
+        const char *cont_cap = menu->captive_save_exists ? _("CONTINUE") : "";
+        const char *cont_lib = menu->liberation_save_exists ? _("CONTINUE") : "";
+        bool sel2 = (menu->selected_item == 2);
+        bool sel3 = (menu->selected_item == 3);
+        if (cont_cap[0]) {
+            if (sel2) draw_rect(pixels, width, height, cx0, continue_y - 2, card_w, 24, 0xFF333366);
+            int tw2 = 0; if (body) TTF_GetStringSize(body, cont_cap, 0, &tw2, NULL);
+            ttf_text(pixels, width, height, cx0 + (card_w - tw2) / 2, continue_y, cont_cap,
+                     small, sel2 ? 0xFFFFFF00 : 0xFF88AA88);
+        }
+        if (cont_lib[0]) {
+            if (sel3) draw_rect(pixels, width, height, cx1, continue_y - 2, card_w, 24, 0xFF333366);
+            int tw2 = 0; if (body) TTF_GetStringSize(body, cont_lib, 0, &tw2, NULL);
+            ttf_text(pixels, width, height, cx1 + (card_w - tw2) / 2, continue_y, cont_lib,
+                     small, sel3 ? 0xFFFFFF00 : 0xFF88AA88);
+        }
+    }
+
+    // Row: Settings / About
+    int bottom_y = continue_y + 26;
+    {
+        const char *btns1[] = { _("SETTINGS"), _("ABOUT") };
+        int bidx1[] = { 4, 5 };
+        for (int i = 0; i < 2; i++) {
+            int bx = cx0 + i * (card_w + gap);
+            bool sel = (menu->selected_item == bidx1[i]);
+            if (sel) draw_rect(pixels, width, height, bx, bottom_y - 2, card_w, 26, 0xFF333366);
+            uint32_t col = sel ? 0xFFFFFFFF : 0xFFAAAAAA;
+            int btw = 0;
+            if (body) TTF_GetStringSize(body, btns1[i], 0, &btw, NULL);
+            ttf_text(pixels, width, height, bx + (card_w - btw) / 2, bottom_y, btns1[i], body, col);
+        }
+    }
+
+    // Row: Controls / Quit
+    int bottom2_y = bottom_y + 28;
+    {
+        const char *btns2[] = { _("CONTROLS"), _("QUIT") };
+        int bidx2[] = { 6, 7 };
+        for (int i = 0; i < 2; i++) {
+            int bx = cx0 + i * (card_w + gap);
+            bool sel = (menu->selected_item == bidx2[i]);
+            if (sel) draw_rect(pixels, width, height, bx, bottom2_y - 2, card_w, 26, 0xFF333366);
+            uint32_t col = sel ? 0xFFFFFFFF : 0xFFAAAAAA;
+            int btw = 0;
+            if (body) TTF_GetStringSize(body, btns2[i], 0, &btw, NULL);
+            ttf_text(pixels, width, height, bx + (card_w - btw) / 2, bottom2_y, btns2[i], body, col);
+        }
     }
 
     ttf_text_centered(pixels, width, height, height - 25,
-                       _("UP-DOWN: SELECT  ENTER: START  ESC: QUIT"),
+                       _("ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"),
                        small, 0xFF444444);
     draw_border(pixels, width, height, 10, 10, width - 20, height - 20, 0xFF444488, 2);
 

@@ -356,6 +356,8 @@ static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *conf
     menu->brightness = config->brightness;
     menu->contrast = config->contrast;
     menu->scale_factor = config->scale_factor;
+    start_menu_check_data(menu, menu->data_path);
+    start_menu_check_saves(menu);
 }
 
 static CreatureList creatures;
@@ -1838,6 +1840,80 @@ int main(int argc, char *argv[]) {
                             }
                             load_liberation_mission_menu();
                             start_liberation_session(&gs);
+                            break;
+                        case MENU_RESULT_CONTINUE_CAPTIVE:
+                            gs.game_type = GAME_CAPTIVE;
+                            apply_menu_config(&config, &menu);
+                            gs.config = config;
+                            renderer_set_effects(&renderer, config.bilinear,
+                                                 config.scanlines,
+                                                 config.crt_curvature,
+                                                 config.brightness,
+                                                 config.contrast);
+                            renderer_apply_display(&renderer, &config);
+                            music_set_enabled(&music_sys, menu.music_enabled);
+                            sound_set_enabled(&sound_sys, menu.sfx_enabled);
+                            vfs_free(&vfs);
+                            vfs_init(&vfs, config.data_path);
+                            if (!validate_data_path(&vfs)) {
+                                show_missing_data_dialog(config.data_path);
+                                break;
+                            }
+                            textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg);
+                            {
+                                char spath[64];
+                                bool loaded = false;
+                                snprintf(spath, sizeof(spath), "opencaptive_slot%d.sav", quicksave_slot);
+                                loaded = load_game(&gs, &creatures, &puzzles, spath);
+                                if (!loaded) loaded = load_game(&gs, &creatures, &puzzles, "opencaptive.sav");
+                                if (loaded) {
+                                    music_play(&music_sys, MUSIC_BASE);
+                                    gs.mode = STATE_GAME;
+                                } else {
+                                    gs.mode = STATE_DROID_CONFIG;
+                                    droid_config_cursor = 0;
+                                }
+                            }
+                            break;
+                        case MENU_RESULT_CONTINUE_LIBERATION:
+                            apply_menu_config(&config, &menu);
+                            gs.config = config;
+                            renderer_set_effects(&renderer, config.bilinear,
+                                                 config.scanlines,
+                                                 config.crt_curvature,
+                                                 config.brightness,
+                                                 config.contrast);
+                            renderer_apply_display(&renderer, &config);
+                            music_set_enabled(&music_sys, menu.music_enabled);
+                            sound_set_enabled(&sound_sys, menu.sfx_enabled);
+                            vfs_free(&vfs);
+                            vfs_init(&vfs, config.data_path);
+                            liberation_data_close(&liberation_data);
+                            if (!liberation_data_open(&liberation_data, &vfs)) {
+                                show_missing_liberation_data_dialog(config.data_path);
+                                break;
+                            }
+                            load_liberation_mission_menu();
+                            {
+                                LibSaveData save;
+                                if (lib_save_read(&save, "liberation.sav")) {
+                                    start_liberation_session(&gs);
+                                    gs.gold = (int)save.gold;
+                                    gs.tick = save.tick;
+                                    city_nav_init(&lib_nav, save.city_x, save.city_y,
+                                        (CityDirection)save.facing);
+                                    for (int i = 0; i < 4 && i < save.num_droids; i++) {
+                                        snprintf(gs.droids[i].name, sizeof(gs.droids[i].name),
+                                                 "%s", save.droids[i].name);
+                                        gs.droids[i].hp = save.droids[i].hp;
+                                        gs.droids[i].hp_max = save.droids[i].hp_max;
+                                        gs.droids[i].energy = save.droids[i].energy;
+                                        gs.droids[i].energy_max = save.droids[i].energy_max;
+                                    }
+                                } else {
+                                    start_liberation_session(&gs);
+                                }
+                            }
                             break;
                         case MENU_RESULT_QUIT:
                             running = false;

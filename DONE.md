@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Start menu enhancements — v1.1.64)
+
+### Five new start menu features
+- Game data status: checkmark/cross next to each game title showing SHA-256 verification status
+- Continue game: detects existing saves (opencaptive.sav, liberation.sav) and offers to resume
+- About/Credits screen: version, original credits (Tony Crowther / Mindscape), technology stack
+- Controls reference: full keyboard shortcut listing, accessible via F1 or menu
+- Data scanner: press D to scan data path, reports ZIP count and per-game file verification
+- Fixed version header sync (opencaptive.h was stuck at 1.1.29, now tracks CMakeLists)
+- Updated test_start_menu for new 8-item layout with about/controls/continue coverage
+
 ## 2026-08-03 (SFX fully verified, zero synthetic data — v1.1.63)
 
 ### SFX mappings from CAPPO.EXE INT 61h call sites

@@ -285,3 +285,11 @@
 - [x] Add `--lang` to `--help` output
 - [x] Add language selector to settings menu (left/right cycling through 19 languages)
 - [x] Unicode/extended character support in bitmap font renderer (UTF-8 decode, lowercase a-z, accented→base mapping for all 19 languages)
+
+## Start menu enhancements
+
+- [x] Game data status indicators (checkmark/cross per game, SHA-256 verified)
+- [x] Continue game (detect existing saves, load most recent)
+- [x] About/Credits screen (original game credits, technology, version)
+- [x] Controls reference screen (keyboard shortcuts, F1 shortcut)
+- [x] Data scanner (D key, scan ~/.opencaptive for verified game files)

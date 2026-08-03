@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.63 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.64 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -304,9 +304,9 @@ add_executable(test_custom_features tests/test_custom_features.c
 target_include_directories(test_custom_features PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME custom_features COMMAND test_custom_features)
 
-add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c src/data/i18n.c src/data/stb_image_impl.c)
+add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c src/data/i18n.c src/data/stb_image_impl.c src/data/data_vfs.c src/data/sha256.c src/data/amiga_ofs.c)
 target_include_directories(test_start_menu PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(test_start_menu PRIVATE SDL3::SDL3 ${SDL3_TTF_TARGET} ${MATH_LIBRARY})
+target_link_libraries(test_start_menu PRIVATE SDL3::SDL3 ${SDL3_TTF_TARGET} ${MATH_LIBRARY} ZLIB::ZLIB)
 add_test(NAME start_menu COMMAND test_start_menu)
 
 add_executable(test_game_state tests/test_game_state.c
