@@ -4,19 +4,23 @@
 /* SFX type to CAP_A.BIN sequence index mapping.
  * Recovered from CAPPO.EXE disassembly: game calls INT 61h AH=0x40 AL=index.
  * The driver remaps: game index < 4 = silent, 4-14 = direct, 15+ = index-11.
- * Game indices found: 30(hit), 33(weapon), 34(panel), 35(door), 37(step).
- * Variable SFX: weapon fire = [weapon_type]+3, action = [val]+38. */
+ * Call sites found via disassembly of unpacked binary (SHA-256 fa7d5ca7...):
+ *   0x67D0: AX=37 (step), 0x92FE: AX=33 (weapon), 0x8285: AX=35 (door),
+ *   0x82CC: AX=34 (panel), 0xA48C: AL=29 (UI), 0x50B5: AX=31 (spawn),
+ *   0x5763: DX=24 (creature hit), 0x578E: DX=28 (creature death),
+ *   0x56AC: DX=26/27 (combat variants), 0x56B6: DX=19 (combat event).
+ * Variable: weapon_type+3 at 0x55EF, val+38 at 0x734A. */
 static const int sfx_sequence_map[SFX_COUNT] = {
-    [SFX_HIT]         = 19,  // game idx 30 -> 30-11=19 (combat damage)
-    [SFX_SHOOT]       = 22,  // game idx 33 -> 33-11=22 (weapon fire)
-    [SFX_DOOR_OPEN]   = 24,  // game idx 35 -> 35-11=24 (door/button)
-    [SFX_DOOR_LOCKED] = 23,  // game idx 34 -> 34-11=23 (panel/locked)
-    [SFX_STEP]        = 26,  // game idx 37 -> 37-11=26 (movement)
-    [SFX_BUTTON]      = 18,  // game idx 29 -> 29-11=18 (UI/ambient)
-    [SFX_PICKUP]      = 20,  // game idx 31 -> 31-11=20 (droid/pickup)
-    [SFX_DEATH]       = 6,   // provisional (no static call site found)
-    [SFX_LEVEL_UP]    = 8,   // provisional (no static call site found)
-    [SFX_GENERATOR]   = 3,   // provisional (no static call site found)
+    [SFX_HIT]         = 13,  // game idx 24 -> 24-11=13 (creature hit, at 0x5763)
+    [SFX_SHOOT]       = 22,  // game idx 33 -> 33-11=22 (weapon fire, at 0x92FE)
+    [SFX_DOOR_OPEN]   = 24,  // game idx 35 -> 35-11=24 (door/button, at 0x8285)
+    [SFX_DOOR_LOCKED] = 23,  // game idx 34 -> 34-11=23 (panel/locked, at 0x82CC)
+    [SFX_STEP]        = 26,  // game idx 37 -> 37-11=26 (movement, at 0x67D0)
+    [SFX_BUTTON]      = 18,  // game idx 29 -> 29-11=18 (UI/ambient, at 0xA48C)
+    [SFX_PICKUP]      = 20,  // game idx 31 -> 31-11=20 (spawn/pickup, at 0x50B5)
+    [SFX_DEATH]       = 17,  // game idx 28 -> 28-11=17 (creature death, at 0x578E)
+    [SFX_LEVEL_UP]    = 15,  // game idx 26 -> 26-11=15 (combat variant A, at 0x56AC)
+    [SFX_GENERATOR]   = 8,   // game idx 19 -> 19-11=8 (combat event, at 0x56B6)
 };
 
 bool sfx_init(SfxSystem *sfx, SoundSystem *snd) {
