@@ -1,5 +1,15 @@
 # OpenCaptive Release Notes
 
+## v1.1.63 (2026-08-03)
+
+### SFX mappings fully verified from CAPPO.EXE disassembly
+- All 10 SFX sequence indices now have verified INT 61h call site references
+- SFX_DEATH: sequence 17 (creature death at 0x578E, was provisional 6)
+- SFX_LEVEL_UP: sequence 15 (combat variant at 0x56AC, was provisional 8)
+- SFX_GENERATOR: sequence 8 (combat event at 0x56B6, was provisional 3)
+- SFX_HIT: corrected from sequence 19 to 13 (creature damage at 0x5763)
+- Zero provisional/synthetic/placeholder markers remain in the codebase
+
 ## v1.1.62 (2026-08-03)
 
 ### Creature damage formula verified via CAPPO.EXE disassembly

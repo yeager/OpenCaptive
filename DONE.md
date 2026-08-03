@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (SFX fully verified, zero synthetic data — v1.1.63)
+
+### SFX mappings from CAPPO.EXE INT 61h call sites
+- Disassembled all INT 61h call sites in unpacked CAPPO.EXE
+- Recovered SFX_DEATH (seq 17 from 0x578E), SFX_LEVEL_UP (seq 15 from 0x56AC), SFX_GENERATOR (seq 8 from 0x56B6)
+- Corrected SFX_HIT from seq 19 to 13 (creature damage at 0x5763)
+- All 10 SFX entries now verified — zero provisional mappings remain
+- No synthetic/provisional/placeholder markers remain in any source file
+
 ## 2026-08-03 (Creature damage disassembly verification — v1.1.62)
 
 ### Creature damage formula from CAPPO.EXE
