@@ -1,5 +1,20 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Equip system + locked doors — v1.1.46)
+
+### Liberation item equip system
+- Shared inventory → droid assignment (ENTER to give item to selected droid)
+- E key equips first weapon from droid inventory to hand slot
+- U key unequips first droid item back to shared inventory
+- 1-4 selects droid, inventory screen shows equipped weapons and carried items
+- droid_recalc_weapon_damage exposed for Liberation equip path
+
+### Captive locked door key mechanic
+- KEY item (id 57) added to item database
+- combat_interact checks party inventory for KEY when facing CELL_DOOR_LOCKED
+- Key consumed on use, door converts to CELL_FLOOR
+- MapGen places key item on nearby floor cell for each locked door generated
+
 ## 2026-08-03 (Viewport objects — v1.1.45)
 
 ### Object rendering in 3D viewport

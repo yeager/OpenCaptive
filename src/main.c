@@ -404,6 +404,7 @@ static LibCombatState lib_combat;
 static PlotgenState lib_plot;
 static bool lib_mission_briefing;
 static bool lib_in_combat;
+static int lib_inv_cursor;
 
 
 typedef struct {
@@ -953,7 +954,7 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             int face = (gs->party_dir + 2) % 4;
             if (!puzzle_interact(&puzzles, gs, gs->party_x, gs->party_y, gs->party_dir) &&
                 !puzzle_interact(&puzzles, gs, tx, ty, face)) {
-                combat_interact(gs);
+                combat_interact(gs, &item_db);
             }
             return;
         }
@@ -1626,23 +1627,103 @@ int main(int argc, char *argv[]) {
                     break;
                 case STATE_INVENTORY:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
-                        switch (event.key.key) {
-                            case SDLK_ESCAPE:
-                                gs.mode = STATE_GAME;
-                                break;
-                            case SDLK_UP:
-                                droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x50);
-                                break;
-                            case SDLK_DOWN:
-                                droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x51);
-                                break;
-                            case SDLK_TAB:
-                                droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x09);
-                                break;
-                            case SDLK_RETURN:
-                                droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x0D);
-                                break;
-                            default: break;
+                        if (gs.game_type == GAME_LIBERATION) {
+                            switch (event.key.key) {
+                                case SDLK_ESCAPE:
+                                    gs.mode = STATE_GAME;
+                                    break;
+                                case SDLK_UP:
+                                    if (lib_inv_cursor > 0) lib_inv_cursor--;
+                                    break;
+                                case SDLK_DOWN:
+                                    if (lib_inv_cursor < gs.lib_inventory_count - 1)
+                                        lib_inv_cursor++;
+                                    break;
+                                case SDLK_1: gs.selected_droid = 0; break;
+                                case SDLK_2: gs.selected_droid = 1; break;
+                                case SDLK_3: gs.selected_droid = 2; break;
+                                case SDLK_4: gs.selected_droid = 3; break;
+                                case SDLK_RETURN: {
+                                    if (lib_inv_cursor >= 0 &&
+                                        lib_inv_cursor < gs.lib_inventory_count) {
+                                        Droid *d = &gs.droids[gs.selected_droid];
+                                        for (int si = 0; si < 10; si++) {
+                                            if (d->items[si] == 0) {
+                                                d->items[si] = (uint8_t)gs.lib_inventory[lib_inv_cursor].item_type;
+                                                for (int j = lib_inv_cursor; j < gs.lib_inventory_count - 1; j++)
+                                                    gs.lib_inventory[j] = gs.lib_inventory[j + 1];
+                                                gs.lib_inventory_count--;
+                                                if (lib_inv_cursor >= gs.lib_inventory_count && lib_inv_cursor > 0)
+                                                    lib_inv_cursor--;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
+                                case SDLK_U: {
+                                    Droid *d = &gs.droids[gs.selected_droid];
+                                    for (int si = 0; si < 10; si++) {
+                                        if (d->items[si] != 0 && gs.lib_inventory_count < 40) {
+                                            const Item *it = item_db_get(&item_db, d->items[si]);
+                                            snprintf(gs.lib_inventory[gs.lib_inventory_count].name,
+                                                     sizeof(gs.lib_inventory[0].name), "%s",
+                                                     it ? it->name : "ITEM");
+                                            gs.lib_inventory[gs.lib_inventory_count].item_type = d->items[si];
+                                            gs.lib_inventory_count++;
+                                            d->items[si] = 0;
+                                            break;
+                                        }
+                                    }
+                                    break;
+                                }
+                                case SDLK_E: {
+                                    Droid *d = &gs.droids[gs.selected_droid];
+                                    for (int si = 0; si < 10; si++) {
+                                        if (d->items[si] != 0) {
+                                            const Item *it = item_db_get(&item_db, d->items[si]);
+                                            if (it && (it->category >= ITEM_WEAPON_MELEE &&
+                                                       it->category <= ITEM_WEAPON_SPRAY)) {
+                                                for (int w = 0; w < 2; w++) {
+                                                    if (d->weapons[w] == 0) {
+                                                        d->weapons[w] = d->items[si];
+                                                        d->items[si] = 0;
+                                                        droid_recalc_weapon_damage(d, &item_db);
+                                                        goto lib_equip_done;
+                                                    }
+                                                }
+                                                uint8_t old = d->weapons[0];
+                                                d->weapons[0] = d->items[si];
+                                                d->items[si] = old;
+                                                droid_recalc_weapon_damage(d, &item_db);
+                                                goto lib_equip_done;
+                                            }
+                                        }
+                                    }
+                                    lib_equip_done:
+                                    break;
+                                }
+                                default: break;
+                            }
+                        } else {
+                            switch (event.key.key) {
+                                case SDLK_ESCAPE:
+                                    gs.mode = STATE_GAME;
+                                    break;
+                                case SDLK_UP:
+                                    droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x50);
+                                    break;
+                                case SDLK_DOWN:
+                                    droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x51);
+                                    break;
+                                case SDLK_TAB:
+                                    droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x09);
+                                    break;
+                                case SDLK_RETURN:
+                                    droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x0D);
+                                    break;
+                                default: break;
+                            }
                         }
                     }
                     break;
@@ -1965,41 +2046,64 @@ int main(int argc, char *argv[]) {
                 if (gs.game_type == GAME_LIBERATION) {
                     memset(framebuffer, 0, sizeof(framebuffer));
                     draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
-                                  LIBERATION_SCREEN_HEIGHT, 10,
+                                  LIBERATION_SCREEN_HEIGHT, 4,
                                   "INVENTORY", 0xFF44AAFF, 2);
-                    for (int di = 0; di < 4; di++) {
-                        int col_x = 10 + di * 78;
-                        char dname[20];
-                        snprintf(dname, sizeof(dname), "DROID %d", di + 1);
-                        draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
-                            LIBERATION_SCREEN_HEIGHT, col_x, 35, dname,
-                            di == gs.selected_droid ? 0xFFFFAA00 : 0xFFAAAAAA, 1);
+                    {
+                        int sel_x = 10 + gs.selected_droid * 78;
+                        const Droid *sd = &gs.droids[gs.selected_droid];
+                        for (int di = 0; di < 4; di++) {
+                            int col_x = 10 + di * 78;
+                            char dname[20];
+                            snprintf(dname, sizeof(dname), "DROID %d", di + 1);
+                            draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                LIBERATION_SCREEN_HEIGHT, col_x, 22, dname,
+                                di == gs.selected_droid ? 0xFFFFAA00 : 0xFFAAAAAA, 1);
+                        }
                         char hp_str[16];
-                        snprintf(hp_str, sizeof(hp_str), "HP %d/%d",
-                                 gs.droids[di].hp, gs.droids[di].hp_max);
+                        snprintf(hp_str, sizeof(hp_str), "HP %d/%d", sd->hp, sd->hp_max);
                         draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
-                            LIBERATION_SCREEN_HEIGHT, col_x, 48, hp_str, 0xFF00AA00, 1);
+                            LIBERATION_SCREEN_HEIGHT, sel_x, 32, hp_str, 0xFF00AA00, 1);
                         char en_str[16];
-                        snprintf(en_str, sizeof(en_str), "EN %d/%d",
-                                 gs.droids[di].energy, gs.droids[di].energy_max);
+                        snprintf(en_str, sizeof(en_str), "EN %d/%d", sd->energy, sd->energy_max);
                         draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
-                            LIBERATION_SCREEN_HEIGHT, col_x, 58, en_str, 0xFF0088CC, 1);
+                            LIBERATION_SCREEN_HEIGHT, sel_x, 42, en_str, 0xFF0088CC, 1);
+                        for (int w = 0; w < 2; w++) {
+                            const Item *wi = sd->weapons[w] ? item_db_get(&item_db, sd->weapons[w]) : NULL;
+                            char wstr[32];
+                            snprintf(wstr, sizeof(wstr), "%s: %s", w == 0 ? "LH" : "RH",
+                                     wi ? wi->name : "EMPTY");
+                            draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                LIBERATION_SCREEN_HEIGHT, sel_x, 52 + w * 10, wstr, 0xFF88FF88, 1);
+                        }
+                        for (int si = 0; si < 10; si++) {
+                            if (sd->items[si] == 0) continue;
+                            const Item *it = item_db_get(&item_db, sd->items[si]);
+                            if (!it) continue;
+                            draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                LIBERATION_SCREEN_HEIGHT, sel_x, 72 + si * 8, it->name,
+                                0xFFAAAADD, 1);
+                        }
                     }
-                    draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
-                                  LIBERATION_SCREEN_HEIGHT, 75,
-                                  "ITEMS", 0xFFAAAA44, 1);
+                    draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                  LIBERATION_SCREEN_HEIGHT, 10, 160,
+                                  "SHARED ITEMS", 0xFFAAAA44, 1);
                     for (int i = 0; i < gs.lib_inventory_count && i < 20; i++) {
                         int ix = 10 + (i % 2) * 155;
-                        int iy = 90 + (i / 2) * 10;
+                        int iy = 172 + (i / 2) * 10;
+                        bool sel = (i == lib_inv_cursor);
                         draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                             LIBERATION_SCREEN_HEIGHT, ix, iy,
-                            gs.lib_inventory[i].name, 0xFFCCCCCC, 1);
+                            gs.lib_inventory[i].name,
+                            sel ? 0xFFFFFF00 : 0xFFCCCCCC, 1);
                     }
                     char gold_str[32];
                     snprintf(gold_str, sizeof(gold_str), "GOLD: %d", gs.gold);
-                    draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
-                                  LIBERATION_SCREEN_HEIGHT, 240,
+                    draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                  LIBERATION_SCREEN_HEIGHT, 10, 240,
                                   gold_str, 0xFFFFFF00, 1);
+                    draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                  LIBERATION_SCREEN_HEIGHT, 10, 250,
+                                  "1-4:DROID ENTER:GIVE E:EQUIP U:UNEQUIP", 0xFF666688, 1);
                 } else {
                     droid_ui_render(&droid_ui, &gs, &item_db, framebuffer,
                                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);

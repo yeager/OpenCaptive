@@ -4,6 +4,7 @@
 #include "creature_stats.h"
 #include "spawn.h"
 #include "xp_level.h"
+#include "inventory.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -249,7 +250,8 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     return true;
 }
 
-void combat_interact(GameState *gs) {
+void combat_interact(GameState *gs, const void *item_db_ptr) {
+    const ItemDatabase *idb = (const ItemDatabase *)item_db_ptr;
     int fwd_x = (int[]){0,1,0,-1}[gs->party_dir];
     int fwd_y = (int[]){-1,0,1,0}[gs->party_dir];
     int tx = gs->party_x + fwd_x;
@@ -265,6 +267,20 @@ void combat_interact(GameState *gs) {
             cell->type = CELL_FLOOR;
             break;
         case CELL_DOOR_LOCKED:
+            if (idb) {
+                for (int di = 0; di < 4; di++) {
+                    for (int si = 0; si < 10; si++) {
+                        if (gs->droids[di].items[si] != 0) {
+                            const Item *ki = item_db_get(idb, gs->droids[di].items[si]);
+                            if (ki && ki->category == ITEM_KEY) {
+                                gs->droids[di].items[si] = 0;
+                                cell->type = CELL_FLOOR;
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
             break;
         case CELL_GENERATOR:
             cell->type = CELL_FLOOR;

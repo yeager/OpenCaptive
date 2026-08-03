@@ -48,6 +48,14 @@
 ### Combat
 - [x] Energy consumption per attack (3 energy per shot)
 - [x] Energy consumption per movement step (1 energy per droid per step)
+- [x] Creature AI movement toward party (combat_tick in game loop)
+- [x] Creature respawning (600 tick timer)
+- [x] Creature-to-creature collision
+- [x] Game over detection (all droids dead)
+- [x] Creature item drops on death (1/3 chance)
+- [x] Floor item auto-pickup on step
+- [x] Combat damage flash + message log
+- [x] HP regeneration alongside energy
 
 ### Energy
 - [x] Energy regeneration (1 per ~5 seconds per alive droid)
@@ -59,6 +67,17 @@
 
 ### Equipment
 - [x] Weapon equip/unequip updates droid weapon_damage from item database
+- [x] Locked door key mechanic (KEY item consumed to open CELL_DOOR_LOCKED)
+- [x] Key item placement near locked doors in mapgen
+
+### Shop
+- [x] Shop repair (R key, restores HP/energy/body parts)
+
+### Viewport rendering
+- [x] Original ALIEN1-6.PL5 creature sprites (SHA-256 verified)
+- [x] Floor item rendering in viewport
+- [x] Teleporter cell rendering
+- [x] Terminal cell rendering
 
 ### Save/load
 - [ ] Verify save format against original CAPTIVE1.SAV binary layout
@@ -134,6 +153,7 @@
 - [x] NPC dialogue Trade and Ask around options give useful responses
 - [x] Liberation combat system (turn-based, random encounters, energy cost, XP rewards)
 - [x] PlotGen wired into Liberation session (mission briefing, city name, victim objective)
+- [x] Liberation item equip system (shared inventory → droid, E to equip weapon, U to unequip)
 
 ## Internationalization (i18n)
 

@@ -1,5 +1,16 @@
 # OpenCaptive Release Notes
 
+## v1.1.46 (2026-08-03)
+
+### Liberation item equip system
+- Assign items from shared inventory to individual droids (ENTER)
+- Equip weapons to hand slots (E key), unequip back to shared pool (U key)
+- Inventory screen shows selected droid's weapons and carried items
+
+### Captive locked door keys
+- KEY item unlocks CELL_DOOR_LOCKED (key consumed on use)
+- Keys placed near locked doors during map generation
+
 ## v1.1.45 (2026-08-03)
 
 ### Viewport object rendering

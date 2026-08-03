@@ -145,7 +145,7 @@ void droid_ui_render(const DroidUIState *ui, const GameState *gs,
              "TAB:SWITCH  ENTER:EQUIP  ESC:CLOSE", 0xFF666688);
 }
 
-static void droid_recalc_weapon_damage(Droid *d, const ItemDatabase *db) {
+void droid_recalc_weapon_damage(Droid *d, const ItemDatabase *db) {
     uint16_t best = 0;
     for (int w = 0; w < 2; w++) {
         if (d->weapons[w] == 0) continue;

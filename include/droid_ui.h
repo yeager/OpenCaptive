@@ -18,6 +18,7 @@ typedef struct {
 } DroidUIState;
 
 void droid_ui_init(DroidUIState *ui, int droid_idx);
+void droid_recalc_weapon_damage(Droid *d, const ItemDatabase *db);
 void droid_ui_render(const DroidUIState *ui, const GameState *gs,
                      const ItemDatabase *db, uint32_t *pixels, int width, int height);
 bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db, int key);

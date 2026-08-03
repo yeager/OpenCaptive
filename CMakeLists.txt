@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.45 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.46 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -311,7 +311,7 @@ add_test(NAME start_menu COMMAND test_start_menu)
 
 add_executable(test_game_state tests/test_game_state.c
     src/engine/engine.c src/engine/map_gen.c src/engine/combat.c
-    src/engine/captive_data.c src/engine/xp_level.c
+    src/engine/captive_data.c src/engine/xp_level.c src/engine/inventory.c
     src/engine/mapgen_ca.c src/engine/spawn.c src/engine/creature_stats.c)
 target_include_directories(test_game_state PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME game_state COMMAND test_game_state)
@@ -323,7 +323,7 @@ add_test(NAME ctv_decoder COMMAND test_ctv_decoder)
 add_executable(test_save_load tests/test_save_load.c
     src/engine/save_load.c src/engine/engine.c src/engine/map_gen.c
     src/engine/combat.c src/engine/puzzle.c src/engine/captive_data.c
-    src/engine/xp_level.c
+    src/engine/xp_level.c src/engine/inventory.c
     src/engine/mapgen_ca.c src/engine/spawn.c src/engine/creature_stats.c)
 target_include_directories(test_save_load PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME save_load COMMAND test_save_load)

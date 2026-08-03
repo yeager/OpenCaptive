@@ -132,8 +132,22 @@ void map_generate(DungeonLevel *level, uint32_t seed, int level_num) {
 
             if ((ns_wall && ew_open) || (ew_wall && ns_open)) {
                 if (prng_next() % 4 == 0) {
-                    level->cells[y][x].type = (prng_next() % 3 == 0)
-                        ? CELL_DOOR_LOCKED : CELL_DOOR;
+                    bool locked = (prng_next() % 3 == 0);
+                    level->cells[y][x].type = locked ? CELL_DOOR_LOCKED : CELL_DOOR;
+                    if (locked) {
+                        for (int ky = y - 3; ky <= y + 3; ky++) {
+                            for (int kx = x - 3; kx <= x + 3; kx++) {
+                                if (kx > 0 && kx < MAP_WIDTH - 1 &&
+                                    ky > 0 && ky < MAP_HEIGHT - 1 &&
+                                    level->cells[ky][kx].type == CELL_FLOOR &&
+                                    level->cells[ky][kx].item_id == 0) {
+                                    level->cells[ky][kx].item_id = 57;
+                                    goto key_placed;
+                                }
+                            }
+                        }
+                        key_placed:;
+                    }
                 }
             }
         }

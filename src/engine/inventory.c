@@ -87,6 +87,7 @@ static const Item item_defs[] = {
     {54, ITEM_MAP,       "MAP",                0x00, 0,0,0,0,0,0,0, 200, 0.2f, 0},
     {55, ITEM_DROID_CHIP, "DROID CHIP",        0x20, 0,0,0,0,0,0,0, 400, 0.1f, 0},
     {56, ITEM_MAP,       "MESSAGE FROM RATT",  0x00, 0,0,0,0,0,0,0,   0, 0.1f, 0},
+    {57, ITEM_KEY,       "KEY",                0x00, 0,0,0,0,0,0,0,  50, 0.1f, 0},
 };
 
 const UpgradeTier upgrade_tiers[UPGRADE_TIER_COUNT] = {

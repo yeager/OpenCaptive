@@ -107,13 +107,13 @@ int main(void) {
     gs.party_dir = DIR_EAST;
     gs.levels[0].cells[1][2].type = CELL_GENERATOR;
     int before = gs.generators_destroyed;
-    combat_interact(&gs);
+    combat_interact(&gs, NULL);
     assert(gs.generators_destroyed == before + 1);
     assert(gs.levels[0].cells[1][2].type == CELL_FLOOR);
 
     /* Doors are barriers until the interaction path opens them. */
     gs.levels[0].cells[1][2].type = CELL_DOOR;
-    combat_interact(&gs);
+    combat_interact(&gs, NULL);
     assert(gs.levels[0].cells[1][2].type == CELL_FLOOR);
 
     int initial_level = gs.current_level;
