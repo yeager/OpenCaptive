@@ -817,8 +817,32 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
             gs->map_overlay = !gs->map_overlay;
             break;
         case SDLK_F:
-        case SDLK_RETURN:
-            if (city_nav_is_building_entrance(&lib_grid,
+        case SDLK_RETURN: {
+            int fwd_dx = (int[]){0,1,0,-1}[lib_nav.facing];
+            int fwd_dy = (int[]){-1,0,1,0}[lib_nav.facing];
+            int fx = lib_nav.cell_x + fwd_dx;
+            int fy = lib_nav.cell_y + fwd_dy;
+            if (fx >= 0 && fx < 64 && fy >= 0 && fy < 64 &&
+                city_nav_get_cell(&lib_grid, fx, fy) == 0x23 && gs->gold >= 50) {
+                gs->gold -= 50;
+                for (int ty = 0; ty < 64; ty++) {
+                    for (int tx = 0; tx < 64; tx++) {
+                        if (city_nav_get_cell(&lib_grid, tx, ty) != 0x0A) continue;
+                        int off = ty * 64 + tx;
+                        uint8_t bid = lib_grid.plane2[off];
+                        if (bid == 0 || bid == 0xFF) continue;
+                        int bg = (bid - 1) % lib_buildings.total_buildings;
+                        if (bg >= 0 && bg < lib_buildings.total_buildings &&
+                            lib_buildings.buildings[bg].type == 8) {
+                            lib_nav.cell_x = tx;
+                            lib_nav.cell_y = ty;
+                            msg_push("Taxi: 50 gold", 0xFFFFAA00);
+                            goto lib_interact_done;
+                        }
+                    }
+                }
+                gs->gold += 50;
+            } else if (city_nav_is_building_entrance(&lib_grid,
                     lib_nav.cell_x, lib_nav.cell_y)) {
                 if (building_interact_enter(&lib_interact, &lib_grid,
                         &lib_buildings, lib_nav.cell_x, lib_nav.cell_y,
@@ -826,7 +850,9 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                     lib_in_building = true;
                 }
             }
+            lib_interact_done:
             break;
+        }
         case SDLK_F5: {
             LibSaveData save;
             LibSaveDroid sd[4];

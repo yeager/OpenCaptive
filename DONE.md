@@ -1,5 +1,18 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Body part damage + taxi — v1.1.49)
+
+### Body part damage system
+- Per-body-part HP (body_part_hp[6], 0-255 condition)
+- Creature attacks damage a random body part for 1/4 of attack value
+- Droid UI shows body part condition with color-coded percentage
+- Shop repair restores body part condition alongside HP/energy
+
+### Liberation taxi system
+- Phone boxes (cell 0x23) now interactive — face and press F/Enter
+- Costs 50 gold, teleports party to the special building entrance
+- Refunds gold if no special building entrance found
+
 ## 2026-08-03 (Custom resolution + aspect ratio — v1.1.48)
 
 ### Custom resolution support

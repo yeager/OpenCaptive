@@ -73,6 +73,12 @@
 ### Shop
 - [x] Shop repair (R key, restores HP/energy/body parts)
 
+### Body part damage
+- [x] Per-body-part HP system (body_part_hp[6], 0-255 condition)
+- [x] Creature attacks damage random body part (1/4 of attack damage)
+- [x] Body part condition shown in droid UI (color-coded percentage)
+- [x] Shop repair restores body part condition to 255
+
 ### Sound effects
 - [x] SFX_HIT on creature attack
 - [x] SFX_DEATH on creature kill
@@ -161,6 +167,7 @@
 - [x] Liberation combat system (turn-based, random encounters, energy cost, XP rewards)
 - [x] PlotGen wired into Liberation session (mission briefing, city name, victim objective)
 - [x] Liberation item equip system (shared inventory → droid, E to equip weapon, U to unequip)
+- [x] Liberation taxi system (phone box interaction, 50 gold, teleport to special building)
 
 ## Internationalization (i18n)
 

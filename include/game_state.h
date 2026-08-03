@@ -73,7 +73,8 @@ typedef struct {
     int16_t hp_max;
     int16_t energy;
     int16_t energy_max;
-    uint8_t body_parts[6];   // head, torso, l_arm, r_arm, l_leg, r_leg
+    uint8_t body_parts[6];   // head, torso, l_arm, r_arm, l_leg, r_leg (item ID)
+    uint8_t body_part_hp[6]; // condition per part (0=destroyed, 255=perfect)
     uint8_t weapons[2];      // left/right hand weapon ID
     uint8_t items[10];       // inventory slots
     uint8_t skill_levels[10]; // per-skill level (0x00-0xFF)

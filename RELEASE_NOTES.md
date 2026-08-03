@@ -1,5 +1,16 @@
 # OpenCaptive Release Notes
 
+## v1.1.49 (2026-08-03)
+
+### Body part damage system
+- Creature attacks now damage individual body parts (head, torso, arms, legs)
+- Body part condition (0-255) shown in droid UI with color-coded percentage
+- Shop repair restores all body part conditions
+
+### Liberation taxi
+- Phone boxes are now interactive — face one and press F/Enter to call a taxi
+- Costs 50 gold, teleports to the special building (mission objective)
+
 ## v1.1.48 (2026-08-03)
 
 ### Custom resolution and aspect ratio

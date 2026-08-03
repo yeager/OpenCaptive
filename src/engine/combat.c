@@ -139,6 +139,15 @@ void combat_tick(CreatureList *cl, GameState *gs) {
             Droid *d = &gs->droids[target];
             int damage = c->damage_min +
                          (combat_rand() % (c->damage_max - c->damage_min + 1));
+            int part = combat_rand() % 6;
+            if (d->body_parts[part] != 0 && d->body_part_hp[part] > 0) {
+                int part_dmg = damage / 4;
+                if (part_dmg < 1) part_dmg = 1;
+                if (part_dmg >= d->body_part_hp[part])
+                    d->body_part_hp[part] = 0;
+                else
+                    d->body_part_hp[part] -= (uint8_t)part_dmg;
+            }
             d->hp -= damage;
             if (d->hp < 0) d->hp = 0;
             c->cooldown = c->speed;

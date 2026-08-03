@@ -107,10 +107,12 @@ void droid_ui_render(const DroidUIState *ui, const GameState *gs,
         if (sel) fill(pixels, width, height, px + 4, iy - 1, pw/2 - 8, 10, 0xFF222266);
 
         const Item *item = d->body_parts[i] ? item_db_get(db, d->body_parts[i]) : NULL;
-        snprintf(buf, sizeof(buf), "%s: %s", body_part_names[i],
-                 item ? item->name : "EMPTY");
-        draw_txt(pixels, width, height, px + 8, iy, buf,
-                 sel ? 0xFFFFFF00 : 0xFFCCCCCC);
+        int pct = d->body_part_hp[i] * 100 / 255;
+        snprintf(buf, sizeof(buf), "%s: %s %d%%", body_part_names[i],
+                 item ? item->name : "EMPTY", pct);
+        uint32_t color = sel ? 0xFFFFFF00 : (pct > 50 ? 0xFFCCCCCC :
+                          (pct > 20 ? 0xFFAAAA00 : 0xFFFF4444));
+        draw_txt(pixels, width, height, px + 8, iy, buf, color);
     }
 
     // Weapons

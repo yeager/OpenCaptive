@@ -23,8 +23,10 @@ void game_state_init(GameState *gs, GameType type, int mission) {
         gs->droids[i].energy_max = 100;
         gs->droids[i].xp = 1024;
         gs->droids[i].weapon_damage = 0x050A;
-        for (int p = 0; p < 6; p++)
+        for (int p = 0; p < 6; p++) {
             gs->droids[i].body_parts[p] = 1;
+            gs->droids[i].body_part_hp[p] = 255;
+        }
     }
 }
 
