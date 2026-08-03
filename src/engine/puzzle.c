@@ -392,3 +392,27 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
     }
     return false;
 }
+
+void puzzle_check_step(PuzzleList *pl, GameState *gs, int x, int y) {
+    for (int i = 0; i < pl->num_puzzles; i++) {
+        Puzzle *p = &pl->puzzles[i];
+        if (p->x != x || p->y != y || p->level != gs->current_level) continue;
+
+        switch (p->type) {
+            case PUZZLE_FLOOR_TRAP: {
+                Droid *d = &gs->droids[gs->selected_droid];
+                d->hp -= p->state;
+                if (d->hp < 0) d->hp = 0;
+                break;
+            }
+            case PUZZLE_TELEPORTER_TRAP:
+                if (p->target_x >= 0 && p->target_y >= 0) {
+                    gs->party_x = p->target_x;
+                    gs->party_y = p->target_y;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}

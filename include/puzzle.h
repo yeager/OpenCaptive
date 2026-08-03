@@ -40,5 +40,6 @@ typedef struct {
 void puzzle_init(PuzzleList *pl);
 void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t seed);
 bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face);
+void puzzle_check_step(PuzzleList *pl, GameState *gs, int x, int y);
 
 #endif

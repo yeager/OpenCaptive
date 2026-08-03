@@ -1,5 +1,17 @@
 # OpenCaptive Release Notes
 
+## v1.1.36 (2026-08-03)
+
+### Creature AI movement (live combat)
+- Creatures now move toward party during gameplay (combat_tick wired into game loop)
+- Creatures attack when in range with line of sight, chase when alerted
+- Tick rate: every 10 game ticks (~6 Hz)
+
+### Teleporter and floor trap activation
+- Stepping on teleporter traps teleports party to destination
+- Floor traps deal damage on step
+- puzzle_check_step() called after every party movement
+
 ## v1.1.35 (2026-08-03)
 
 ### Game over detection

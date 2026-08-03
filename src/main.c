@@ -974,6 +974,7 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             for (int di = 0; di < 4; di++) {
                 if (gs->droids[di].energy > 0) gs->droids[di].energy--;
             }
+            puzzle_check_step(&puzzles, gs, nx, ny);
             sfx_play(&sfx, SFX_STEP);
         } else if (cell == CELL_DOOR_LOCKED) {
             sfx_play(&sfx, SFX_DOOR_LOCKED);
@@ -1799,6 +1800,8 @@ int main(int argc, char *argv[]) {
                             }
                         }
                     }
+                    if (gs.tick % 10 == 0)
+                        combat_tick(&creatures, &gs);
                     /* Captive: the verified original GAME SCRN shell. */
                     if (hud_bg) {
                         memcpy(framebuffer, hud_bg,

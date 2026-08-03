@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Creature AI + trap activation — v1.1.36)
+
+### Live creature movement
+- combat_tick() wired into Captive game loop (every 10 ticks)
+- Creatures chase party when alerted, attack in range with LOS
+
+### Step-triggered puzzles
+- puzzle_check_step() runs after party movement
+- Teleporter traps and floor traps now activate on step
+
 ## 2026-08-03 (Game over, HP regen, shop repair — v1.1.35)
 
 ### Game over detection
