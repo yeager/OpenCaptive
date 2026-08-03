@@ -74,8 +74,9 @@ static void test_campaign_progression(void) {
     assert(!game_state_complete_mission(&gs));
     gs.generators_destroyed = gs.generators_total;
     assert(game_state_complete_mission(&gs));
-    assert(gs.mission == 10 && gs.mode == STATE_GAME);
+    assert(gs.mission == 9 && gs.mode == STATE_HOLAMAP);
 
+    game_state_new_mission(&gs, 10);
     gs.generators_destroyed = gs.generators_total;
     assert(game_state_complete_mission(&gs));
     assert(gs.mode == STATE_VICTORY);

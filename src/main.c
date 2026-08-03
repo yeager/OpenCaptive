@@ -10,6 +10,7 @@
 #include "texture_atlas.h"
 #include "viewport.h"
 #include "captive_view_window.h"
+#include "captive_data.h"
 #include "music.h"
 #include "puzzle.h"
 #include "sound.h"
@@ -1584,6 +1585,26 @@ int main(int argc, char *argv[]) {
                         }
                     }
                     break;
+                case STATE_HOLAMAP:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        switch (event.key.key) {
+                            case SDLK_RETURN:
+                                game_state_new_mission(&gs, gs.mission + 1);
+                                gs.mode = STATE_GAME;
+                                music_play(&music_sys, MUSIC_BASE);
+                                break;
+                            case SDLK_S:
+                                gs.mode = STATE_SHOP;
+                                shop_init(&shop, &item_db, gs.mission, gs.mission_seed);
+                                shop.gold = gs.gold;
+                                break;
+                            case SDLK_ESCAPE:
+                                gs.mode = STATE_MENU;
+                                break;
+                            default: break;
+                        }
+                    }
+                    break;
                 case STATE_GAMEOVER:
                 case STATE_VICTORY:
                     if (event.type == SDL_EVENT_KEY_DOWN &&
@@ -1752,6 +1773,15 @@ int main(int argc, char *argv[]) {
                                       0xFFCCDDEE, 1);
                     }
                 } else {
+                    /* Captive game tick: energy regen every ~5 seconds */
+                    gs.tick++;
+                    if (gs.tick % 300 == 0) {
+                        for (int di = 0; di < 4; di++) {
+                            if (gs.droids[di].hp > 0 &&
+                                gs.droids[di].energy < gs.droids[di].energy_max)
+                                gs.droids[di].energy++;
+                        }
+                    }
                     /* Captive: the verified original GAME SCRN shell. */
                     if (hud_bg) {
                         memcpy(framebuffer, hud_bg,
@@ -1805,6 +1835,28 @@ int main(int argc, char *argv[]) {
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                               130, "PRESS ESCAPE", 0xFF888888, 1);
                 break;
+
+            case STATE_HOLAMAP: {
+                memset(framebuffer, 0, sizeof(framebuffer));
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              30, "MISSION COMPLETE!", 0xFF44FF44, 2);
+                char mission_str[64];
+                snprintf(mission_str, sizeof(mission_str),
+                         "Next: Mission %d of 10", gs.mission + 1);
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              70, mission_str, 0xFFFFFF44, 1);
+                char planet_name[32];
+                uint32_t pname_seed = gs.mission_seed + (uint32_t)gs.mission;
+                captive_generate_planet_name(&pname_seed,
+                                             planet_name, sizeof(planet_name));
+                char planet_str[64];
+                snprintf(planet_str, sizeof(planet_str), "Planet: %s", planet_name);
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              90, planet_str, 0xFFCCCCFF, 1);
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              120, "ENTER: Launch    S: Shop", 0xFF888888, 1);
+                break;
+            }
 
             case STATE_VICTORY:
                 memset(framebuffer, 0, sizeof(framebuffer));

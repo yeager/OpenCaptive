@@ -1,4 +1,5 @@
 #include "combat.h"
+#include "game_state.h"
 #include "captive_data.h"
 #include "creature_stats.h"
 #include "spawn.h"
@@ -237,6 +238,8 @@ void combat_interact(GameState *gs) {
         case CELL_GENERATOR:
             cell->type = CELL_FLOOR;
             gs->generators_destroyed++;
+            if (gs->generators_destroyed >= gs->generators_total)
+                game_state_complete_mission(gs);
             break;
         case CELL_SHOP:
             gs->mode = STATE_SHOP;

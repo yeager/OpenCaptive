@@ -125,7 +125,7 @@ bool game_state_complete_mission(GameState *gs) {
     if (gs->mission >= 10) {
         gs->mode = STATE_VICTORY;
     } else {
-        game_state_new_mission(gs, gs->mission + 1);
+        gs->mode = STATE_HOLAMAP;
     }
     return true;
 }

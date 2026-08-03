@@ -1,5 +1,18 @@
 # OpenCaptive Release Notes
 
+## v1.1.33 (2026-08-03)
+
+### Captive energy regeneration
+- Droids regenerate 1 energy every ~5 seconds (300 game ticks)
+- Only alive droids regenerate, capped at energy_max
+
+### Captive mission flow (holamap)
+- Destroying all generators now transitions to STATE_HOLAMAP
+- Holamap screen shows mission number, next planet name, shop access
+- ENTER launches next mission, S opens shop, ESC returns to menu
+- Mission 10 completion still leads to victory screen
+- Generator destruction in combat auto-checks mission completion
+
 ## v1.1.32 (2026-08-03)
 
 ### Liberation combat system

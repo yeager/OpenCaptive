@@ -49,6 +49,14 @@
 - [x] Energy consumption per attack (3 energy per shot)
 - [x] Energy consumption per movement step (1 energy per droid per step)
 
+### Energy
+- [x] Energy regeneration (1 per ~5 seconds per alive droid)
+
+### Mission flow
+- [x] Holamap screen between missions (planet name, shop access)
+- [x] Generator destruction auto-triggers mission completion
+- [x] Mission 10 → victory, missions 1-9 → holamap → next mission
+
 ### Equipment
 - [x] Weapon equip/unequip updates droid weapon_damage from item database
 

@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Captive energy regen + mission flow — v1.1.33)
+
+### Captive energy regeneration
+- 1 energy per ~5 seconds per alive droid, capped at energy_max
+
+### Captive holamap mission flow
+- Generator destruction triggers mission completion check
+- STATE_HOLAMAP between missions with planet name, shop access
+- ENTER launches next mission, S opens shop between missions
+
 ## 2026-08-03 (Liberation combat system — v1.1.32)
 
 ### Liberation turn-based combat
