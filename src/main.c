@@ -990,9 +990,19 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             if (!puzzle_interact(&puzzles, gs, gs->party_x, gs->party_y, gs->party_dir) &&
                 !puzzle_interact(&puzzles, gs, tx, ty, face)) {
                 int gen_before = gs->generators_destroyed;
+                CellType cell_before = CELL_WALL;
+                if (tx >= 0 && tx < MAP_WIDTH && ty >= 0 && ty < MAP_HEIGHT)
+                    cell_before = gs->levels[gs->current_level].cells[ty][tx].type;
                 combat_interact(gs, &item_db);
                 if (gs->generators_destroyed > gen_before)
                     sfx_play(&sfx, SFX_GENERATOR);
+                if (tx >= 0 && tx < MAP_WIDTH && ty >= 0 && ty < MAP_HEIGHT) {
+                    CellType cell_after = gs->levels[gs->current_level].cells[ty][tx].type;
+                    if (cell_before == CELL_DOOR_LOCKED && cell_after == CELL_FLOOR)
+                        sfx_play(&sfx, SFX_DOOR_OPEN);
+                    else if (cell_before == CELL_DOOR && cell_after == CELL_FLOOR)
+                        sfx_play(&sfx, SFX_DOOR_OPEN);
+                }
             }
             return;
         }
@@ -1061,7 +1071,8 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             gs->party_x = nx;
             gs->party_y = ny;
             for (int di = 0; di < 4; di++) {
-                if (gs->droids[di].energy > 0) gs->droids[di].energy--;
+                if (gs->droids[di].hp > 0 && gs->droids[di].energy > 0)
+                    gs->droids[di].energy--;
             }
             puzzle_check_step(&puzzles, gs, nx, ny);
             {

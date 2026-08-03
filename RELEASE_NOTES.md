@@ -1,5 +1,12 @@
 # OpenCaptive Release Notes
 
+## v1.1.50 (2026-08-03)
+
+### Consumable items and polish
+- Battery items restore 50 energy when used from droid inventory
+- Dead droids skip movement energy drain
+- Door open and key unlock both play SFX_DOOR_OPEN
+
 ## v1.1.49 (2026-08-03)
 
 ### Body part damage system

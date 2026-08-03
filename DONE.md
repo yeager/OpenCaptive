@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Battery usage + door SFX + dead droid handling — v1.1.50)
+
+### Consumable items
+- Battery item consumed with ENTER in droid UI, restores 50 energy
+- Dead droids (HP=0) skip movement energy cost
+
+### Door interaction sounds
+- SFX_DOOR_OPEN now plays on both regular door open and key unlock
+
 ## 2026-08-03 (Body part damage + taxi — v1.1.49)
 
 ### Body part damage system

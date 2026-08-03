@@ -144,7 +144,7 @@ void droid_ui_render(const DroidUIState *ui, const GameState *gs,
 
     // Help text
     draw_txt(pixels, width, height, px + 8, py + ph - 12,
-             "TAB:SWITCH  ENTER:EQUIP  ESC:CLOSE", 0xFF666688);
+             "TAB:SWITCH ENTER:EQUIP/USE ESC:CLOSE", 0xFF666688);
 }
 
 void droid_recalc_weapon_damage(Droid *d, const ItemDatabase *db) {
@@ -181,6 +181,13 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db
             if (ui->ui_mode == DROID_UI_INVENTORY) {
                 uint8_t item_id = d->items[ui->cursor];
                 if (item_id == 0) return true;
+                const Item *use_item = item_db_get(db, item_id);
+                if (use_item && use_item->category == ITEM_BATTERY) {
+                    d->energy += 50;
+                    if (d->energy > d->energy_max) d->energy = d->energy_max;
+                    d->items[ui->cursor] = 0;
+                    return true;
+                }
                 for (int w = 0; w < 2; w++) {
                     if (d->weapons[w] == 0) {
                         d->weapons[w] = item_id;

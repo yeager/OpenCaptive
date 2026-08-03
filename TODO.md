@@ -70,6 +70,10 @@
 - [x] Locked door key mechanic (KEY item consumed to open CELL_DOOR_LOCKED)
 - [x] Key item placement near locked doors in mapgen
 
+### Consumables
+- [x] Battery usage (ENTER on battery item restores 50 energy)
+- [x] Dead droids skip movement energy cost
+
 ### Shop
 - [x] Shop repair (R key, restores HP/energy/body parts)
 
@@ -85,6 +89,7 @@
 - [x] SFX_LEVEL_UP on droid level up
 - [x] SFX_PICKUP on floor item pickup
 - [x] SFX_GENERATOR on generator destruction
+- [x] SFX_DOOR_OPEN on door open and key unlock
 
 ### Viewport rendering
 - [x] Original ALIEN1-6.PL5 creature sprites (SHA-256 verified)
