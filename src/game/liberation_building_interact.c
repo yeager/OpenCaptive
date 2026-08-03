@@ -1,4 +1,5 @@
 #include "liberation_building_interact.h"
+#include "i18n.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -45,40 +46,41 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
     switch (bi->type) {
         case INTERACT_BUSINESS:
             snprintf(greeting, sizeof(greeting),
-                     "This is %s. We're not taking visitors right now.", building_name);
+                     _("This is %s. We're not taking visitors right now."), building_name);
             break;
         case INTERACT_LIBRARY:
             snprintf(greeting, sizeof(greeting),
-                     "Welcome to %s. The archives are available for research.", building_name);
+                     _("Welcome to %s. The archives are available for public access."), building_name);
             break;
         case INTERACT_POLICE:
             snprintf(greeting, sizeof(greeting),
-                     "This is %s. State your business.", building_name);
+                     _("This is the %s police station. State your business."), building_name);
             break;
         case INTERACT_RECORDS:
             snprintf(greeting, sizeof(greeting),
-                     "Welcome to %s. Public records are available.", building_name);
+                     _("City Records Office. How can we help?"));
             break;
         case INTERACT_RESIDENCE:
             snprintf(greeting, sizeof(greeting),
-                     "This is a private residence. What do you want?");
+                     _("This is a private residence. What do you want?"));
             break;
         case INTERACT_INDUSTRIAL:
             snprintf(greeting, sizeof(greeting),
-                     "Welcome to %s. This area is restricted.", building_name);
+                     _("Welcome to %s. This area is restricted."), building_name);
             break;
         case INTERACT_SPECIAL:
             snprintf(greeting, sizeof(greeting),
-                     "You've found %s. Interesting.", building_name);
+                     _("%s. You shouldn't be here."), building_name);
             break;
         default:
-            snprintf(greeting, sizeof(greeting), "Welcome to %s.", building_name);
+            snprintf(greeting, sizeof(greeting),
+                     _("%s. Come in and browse."), building_name);
             break;
     }
 
-    unsigned exit_node = dialogue_tree_add_exit(&tree, "You leave the building.");
+    unsigned exit_node = dialogue_tree_add_exit(&tree, _("You leave the building."));
     unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
-    dialogue_tree_add_option(&tree, choice, "Leave", exit_node);
+    dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
 
     bi->shop.dialogue = tree;
     dialogue_state_init(&bi->dialogue, &bi->shop.dialogue);

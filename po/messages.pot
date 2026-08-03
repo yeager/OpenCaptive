@@ -1,0 +1,172 @@
+# OpenCaptive — Translatable strings
+# Copyright (C) 2026 Daniel Nylander
+# This file is distributed under the MIT license.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
+"POT-Creation-Date: 2026-08-03\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Main menu title
+msgid "OPENCAPTIVE"
+msgstr ""
+
+msgid "BY DANIEL NYLANDER"
+msgstr ""
+
+msgid "SELECT GAME"
+msgstr ""
+
+msgid "CAPTIVE (1990)"
+msgstr ""
+
+msgid "LIBERATION: CAPTIVE 2"
+msgstr ""
+
+msgid "SETTINGS"
+msgstr ""
+
+msgid "QUIT"
+msgstr ""
+
+msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
+msgstr ""
+
+#. Settings menu
+msgid "RENDERER:"
+msgstr ""
+
+msgid "SCANLINES:"
+msgstr ""
+
+msgid "CRT CURVE:"
+msgstr ""
+
+msgid "BILINEAR:"
+msgstr ""
+
+msgid "INT SCALE:"
+msgstr ""
+
+msgid "SCALE:"
+msgstr ""
+
+msgid "FULLSCREEN:"
+msgstr ""
+
+msgid "VSYNC:"
+msgstr ""
+
+msgid "FPS LIMIT:"
+msgstr ""
+
+msgid "BRIGHTNESS:"
+msgstr ""
+
+msgid "CONTRAST:"
+msgstr ""
+
+msgid "MUSIC:"
+msgstr ""
+
+msgid "SFX:"
+msgstr ""
+
+msgid "DATA PATH:"
+msgstr ""
+
+msgid "BACK"
+msgstr ""
+
+msgid "ON"
+msgstr ""
+
+msgid "OFF"
+msgstr ""
+
+msgid "UNLIMITED"
+msgstr ""
+
+msgid "ENTER: EDIT PATH  ESC: CANCEL"
+msgstr ""
+
+msgid "ENTER: SAVE PATH  ESC: CANCEL"
+msgstr ""
+
+#. Liberation building interactions
+msgid "This is %s. We're not taking visitors right now."
+msgstr ""
+
+msgid "Welcome to %s. The archives are available for public access."
+msgstr ""
+
+msgid "This is the %s police station. State your business."
+msgstr ""
+
+msgid "City Records Office. How can we help?"
+msgstr ""
+
+msgid "%s. Come in and browse."
+msgstr ""
+
+msgid "Welcome to %s! What'll it be?"
+msgstr ""
+
+msgid "Welcome to %s. How can we help you today?"
+msgstr ""
+
+msgid "%s. You shouldn't be here."
+msgstr ""
+
+msgid "You leave the building."
+msgstr ""
+
+#. Liberation shop
+msgid "Welcome to %s! What can I do for you?"
+msgstr ""
+
+msgid "Goodbye!"
+msgstr ""
+
+msgid "Buy/Sell"
+msgstr ""
+
+msgid "Any news?"
+msgstr ""
+
+msgid "Leave"
+msgstr ""
+
+#. Liberation NPC dialogue
+msgid "You leave."
+msgstr ""
+
+msgid "Trade"
+msgstr ""
+
+msgid "Ask around"
+msgstr ""
+
+#. Error messages
+msgid "Failed to initialize renderer"
+msgstr ""
+
+msgid "Missing game data"
+msgstr ""
+
+msgid "No game data found. Please set the data path in Settings or use --data on the command line."
+msgstr ""
+
+msgid "You can also change the data path in Settings."
+msgstr ""
+
+msgid "Missing Liberation data"
+msgstr ""

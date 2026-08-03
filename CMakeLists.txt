@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.25 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.26 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -46,6 +46,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/liberation_data.c
     src/data/liberation_string_tables.c
     src/data/liberation_text_table.c
+    src/data/i18n.c
     src/data/amos_sprite.c
     src/data/liberation_fnt.c
     src/data/liberation_img.c
@@ -232,8 +233,9 @@ add_executable(test_liberation_dialogue_shop tests/test_liberation_dialogue_shop
     src/game/liberation_dialogue.c src/game/liberation_shop.c
     src/game/liberation_building_interact.c
     src/engine/liberation_citygen.c src/engine/liberation_citygen_grid.c
-    src/data/liberation_string_tables.c)
+    src/data/liberation_string_tables.c src/data/i18n.c)
 target_include_directories(test_liberation_dialogue_shop PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_liberation_dialogue_shop PRIVATE SDL3::SDL3)
 add_test(NAME liberation_dialogue_shop COMMAND test_liberation_dialogue_shop)
 
 add_executable(test_liberation_text_table tests/test_liberation_text_table.c
@@ -243,9 +245,15 @@ add_test(NAME liberation_text_table COMMAND test_liberation_text_table)
 
 add_executable(test_liberation_npc_dialogue tests/test_liberation_npc_dialogue.c
     src/game/liberation_npc_dialogue.c src/data/liberation_text_table.c
-    src/engine/arcd_decoder.c src/game/liberation_dialogue.c)
+    src/engine/arcd_decoder.c src/game/liberation_dialogue.c src/data/i18n.c)
 target_include_directories(test_liberation_npc_dialogue PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_liberation_npc_dialogue PRIVATE SDL3::SDL3)
 add_test(NAME liberation_npc_dialogue COMMAND test_liberation_npc_dialogue)
+
+add_executable(test_i18n tests/test_i18n.c src/data/i18n.c)
+target_include_directories(test_i18n PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_i18n PRIVATE SDL3::SDL3)
+add_test(NAME i18n COMMAND test_i18n)
 
 add_executable(test_liberation_plotgen tests/test_liberation_plotgen.c
     src/engine/liberation_plotgen.c src/data/liberation_string_tables.c)
@@ -277,7 +285,7 @@ add_executable(test_custom_features tests/test_custom_features.c
 target_include_directories(test_custom_features PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME custom_features COMMAND test_custom_features)
 
-add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c)
+add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c src/data/i18n.c)
 target_include_directories(test_start_menu PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_start_menu PRIVATE SDL3::SDL3)
 add_test(NAME start_menu COMMAND test_start_menu)

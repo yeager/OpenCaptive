@@ -1,0 +1,172 @@
+# Swedish translation for OpenCaptive
+# Copyright (C) 2026 Daniel Nylander
+# This file is distributed under the MIT license.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
+"POT-Creation-Date: 2026-08-03\n"
+"PO-Revision-Date: 2026-08-03\n"
+"Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
+"Language-Team: Swedish\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Main menu title
+msgid "OPENCAPTIVE"
+msgstr "OPENCAPTIVE"
+
+msgid "BY DANIEL NYLANDER"
+msgstr "AV DANIEL NYLANDER"
+
+msgid "SELECT GAME"
+msgstr "VALJ SPEL"
+
+msgid "CAPTIVE (1990)"
+msgstr "CAPTIVE (1990)"
+
+msgid "LIBERATION: CAPTIVE 2"
+msgstr "LIBERATION: CAPTIVE 2"
+
+msgid "SETTINGS"
+msgstr "INSTALLNINGAR"
+
+msgid "QUIT"
+msgstr "AVSLUTA"
+
+msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
+msgstr "UPP-NER: VALJ  ENTER: STARTA  ESC: AVSLUTA"
+
+#. Settings menu
+msgid "RENDERER:"
+msgstr "RENDERARE:"
+
+msgid "SCANLINES:"
+msgstr "SKANLINJER:"
+
+msgid "CRT CURVE:"
+msgstr "CRT-KURVA:"
+
+msgid "BILINEAR:"
+msgstr "BILINJAR:"
+
+msgid "INT SCALE:"
+msgstr "HEL SKALA:"
+
+msgid "SCALE:"
+msgstr "SKALA:"
+
+msgid "FULLSCREEN:"
+msgstr "HELSKARM:"
+
+msgid "VSYNC:"
+msgstr "VSYNC:"
+
+msgid "FPS LIMIT:"
+msgstr "FPS-GRANS:"
+
+msgid "BRIGHTNESS:"
+msgstr "LJUSSTYRKA:"
+
+msgid "CONTRAST:"
+msgstr "KONTRAST:"
+
+msgid "MUSIC:"
+msgstr "MUSIK:"
+
+msgid "SFX:"
+msgstr "LJUDEFFEKTER:"
+
+msgid "DATA PATH:"
+msgstr "DATASOKVAG:"
+
+msgid "BACK"
+msgstr "TILLBAKA"
+
+msgid "ON"
+msgstr "PA"
+
+msgid "OFF"
+msgstr "AV"
+
+msgid "UNLIMITED"
+msgstr "OBEGRANSAD"
+
+msgid "ENTER: EDIT PATH  ESC: CANCEL"
+msgstr "ENTER: REDIGERA  ESC: AVBRYT"
+
+msgid "ENTER: SAVE PATH  ESC: CANCEL"
+msgstr "ENTER: SPARA  ESC: AVBRYT"
+
+#. Liberation building interactions
+msgid "This is %s. We're not taking visitors right now."
+msgstr "Det har ar %s. Vi tar inte emot besokare just nu."
+
+msgid "Welcome to %s. The archives are available for public access."
+msgstr "Valkommen till %s. Arkiven ar oppna for allmanheten."
+
+msgid "This is the %s police station. State your business."
+msgstr "Det har ar %s polisstation. Vad vill du?"
+
+msgid "City Records Office. How can we help?"
+msgstr "Stadsarkivet. Hur kan vi hjalpa dig?"
+
+msgid "%s. Come in and browse."
+msgstr "%s. Kom in och titta runt."
+
+msgid "Welcome to %s! What'll it be?"
+msgstr "Valkommen till %s! Vad far det vara?"
+
+msgid "Welcome to %s. How can we help you today?"
+msgstr "Valkommen till %s. Hur kan vi hjalpa dig idag?"
+
+msgid "%s. You shouldn't be here."
+msgstr "%s. Du borde inte vara har."
+
+msgid "You leave the building."
+msgstr "Du lamnar byggnaden."
+
+#. Liberation shop
+msgid "Welcome to %s! What can I do for you?"
+msgstr "Valkommen till %s! Vad kan jag gora for dig?"
+
+msgid "Goodbye!"
+msgstr "Hejda!"
+
+msgid "Buy/Sell"
+msgstr "Kop/Salj"
+
+msgid "Any news?"
+msgstr "Nagra nyheter?"
+
+msgid "Leave"
+msgstr "Ga"
+
+#. Liberation NPC dialogue
+msgid "You leave."
+msgstr "Du gar."
+
+msgid "Trade"
+msgstr "Handla"
+
+msgid "Ask around"
+msgstr "Fraga runt"
+
+#. Error messages
+msgid "Failed to initialize renderer"
+msgstr "Kunde inte starta renderaren"
+
+msgid "Missing game data"
+msgstr "Speldata saknas"
+
+msgid "No game data found. Please set the data path in Settings or use --data on the command line."
+msgstr "Ingen speldata hittades. Ange datasokvagen i Installningar eller anvand --data pa kommandoraden."
+
+msgid "You can also change the data path in Settings."
+msgstr "Du kan ocksa andra datasokvagen i Installningar."
+
+msgid "Missing Liberation data"
+msgstr "Liberation-data saknas"

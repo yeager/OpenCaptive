@@ -26,6 +26,7 @@
 #include "dos_vga_reference.h"
 #include "frame_compare.h"
 #include "custom_features.h"
+#include "i18n.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <errno.h>
@@ -798,6 +799,7 @@ int main(int argc, char *argv[]) {
     GameType requested_game = GAME_CAPTIVE;
     bool start_directly = false;
     bool show_liberation_mission_menu_requested = false;
+    const char *lang_override = NULL;
     const char *verify_data = NULL;
     const char *capture_frame_path = NULL;
     const char *dos_vga_dump_path = NULL;
@@ -1020,6 +1022,8 @@ int main(int argc, char *argv[]) {
                 }
             }
             compare_rect_set = true;
+        } else if (strcmp(argv[i], "--lang") == 0 && i + 1 < argc) {
+            lang_override = argv[++i];
         } else if (strcmp(argv[i], "--skip-intro") == 0) {
             skip_liberation_intro_requested = true;
         } else if (strcmp(argv[i], "--show-liberation-mission-menu") == 0) {
@@ -1084,6 +1088,8 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
     }
+
+    i18n_init(lang_override);
 
     OpenCaptiveRenderer renderer = {0};
     if (!renderer_init(&renderer, &config)) {
@@ -1579,6 +1585,7 @@ int main(int argc, char *argv[]) {
     if (intro_loaded) anm_free(&intro_anim);
     if (textures_loaded) texture_atlas_free(&atlas);
     renderer_shutdown(&renderer);
+    i18n_free();
     SDL_Quit();
     return exit_status;
 }

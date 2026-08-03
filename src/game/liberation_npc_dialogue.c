@@ -1,5 +1,6 @@
 #include "liberation_npc_dialogue.h"
 #include "arcd_decoder.h"
+#include "i18n.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -58,13 +59,13 @@ bool npc_dialogue_generate(const NPCDialogueData *ndd,
                          description, sizeof(description)))
         return false;
 
-    unsigned exit_node = dialogue_tree_add_exit(tree, "You leave.");
+    unsigned exit_node = dialogue_tree_add_exit(tree, _("You leave."));
 
     if (npc_state == NPC_STATE_NORMAL) {
         unsigned greet = dialogue_tree_add_choice(tree, "NPC", description);
-        dialogue_tree_add_option(tree, greet, "Trade", exit_node);
-        dialogue_tree_add_option(tree, greet, "Ask around", exit_node);
-        dialogue_tree_add_option(tree, greet, "Leave", exit_node);
+        dialogue_tree_add_option(tree, greet, _("Trade"), exit_node);
+        dialogue_tree_add_option(tree, greet, _("Ask around"), exit_node);
+        dialogue_tree_add_option(tree, greet, _("Leave"), exit_node);
     } else {
         dialogue_tree_add_text(tree, NULL, description, exit_node);
     }

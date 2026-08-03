@@ -110,3 +110,14 @@
 - [x] Implement shop/bar/business interaction
 - [x] Implement NPC dialogue system
 - [x] Implement save system (LSAV binary format, roundtrip, mission bitmap)
+
+## Internationalization (i18n)
+
+- [x] Implement i18n string table system (PO file loader, `_()` macro, SDL3 locale detection)
+- [x] Wire `_()` into start menu, settings, building interaction, shop, NPC dialogue
+- [x] Create POT template with all translatable strings
+- [x] Swedish (sv) translation
+- [ ] Add remaining 17 languages (cs, da, de, es, fi, fr, hu, it, ja, ko, nl, no, pl, pt, ro, ru, zh)
+- [ ] Add `--lang` to `--help` output
+- [ ] Add language selector to settings menu
+- [ ] Unicode/extended character support in bitmap font renderer

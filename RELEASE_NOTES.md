@@ -1,5 +1,17 @@
 # OpenCaptive Release Notes
 
+## v1.1.26 (2026-08-03)
+
+### Internationalization (i18n) system
+- Added PO-based translation system with `_()` macro and SDL3 locale detection
+- `--lang` CLI flag for manual language override
+- Swedish (sv) translation — first non-English language
+- All UI strings in start menu, settings, building interaction, shop, and NPC dialogue are now translatable
+
+### Wiki documentation
+- Updated all 10 wiki pages with current project state
+- PlotGen, x3g, VGM, FNT, and spr formats fully documented
+
 ## v1.1.25 (2026-08-02)
 
 ### Captive: CA cell-to-wall segment mapping + full feature pipeline

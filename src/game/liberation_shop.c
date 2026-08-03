@@ -1,4 +1,5 @@
 #include "liberation_shop.h"
+#include "i18n.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -96,16 +97,16 @@ void lib_shop_generate_dialogue(LibShopState *shop, const char *npc_name) {
 
     char greeting[DIALOGUE_MAX_TEXT];
     snprintf(greeting, sizeof(greeting),
-             "Welcome to %s! What can I do for you?", shop->shop_name);
+             _("Welcome to %s! What can I do for you?"), shop->shop_name);
 
-    unsigned exit_node = dialogue_tree_add_exit(tree, "Goodbye!");
+    unsigned exit_node = dialogue_tree_add_exit(tree, _("Goodbye!"));
     unsigned trade_text = dialogue_tree_add_text(tree, npc_name,
-        "Take a look at what I have.", exit_node);
+        _("Take a look at what I have."), exit_node);
     unsigned info_text = dialogue_tree_add_text(tree, npc_name,
-        "I might have heard something. Check back later.", exit_node);
+        _("I might have heard something. Check back later."), exit_node);
 
     unsigned choice = dialogue_tree_add_choice(tree, npc_name, greeting);
-    dialogue_tree_add_option(tree, choice, "Buy/Sell", trade_text);
-    dialogue_tree_add_option(tree, choice, "Any news?", info_text);
-    dialogue_tree_add_option(tree, choice, "Leave", exit_node);
+    dialogue_tree_add_option(tree, choice, _("Buy/Sell"), trade_text);
+    dialogue_tree_add_option(tree, choice, _("Any news?"), info_text);
+    dialogue_tree_add_option(tree, choice, _("Leave"), exit_node);
 }

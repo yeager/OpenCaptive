@@ -1,5 +1,25 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (i18n system + wiki updates — v1.1.26)
+
+### Internationalization (i18n) system
+- PO file loader with escape handling, multi-line support, table reuse
+- `_()` macro for marking translatable strings throughout codebase
+- SDL3 locale auto-detection via `SDL_GetPreferredLocales()`
+- `--lang` CLI flag for manual language override
+- POT template with all translatable strings (menu, settings, dialogue, errors)
+- Swedish (sv) translation — first non-English language
+- Wired into start menu, settings, building interaction, shop, NPC dialogue
+- 48 tests passing (new: test_i18n)
+
+### Wiki updates
+- All 10 wiki pages reviewed and updated
+- Liberation-Technical: PlotGen fully implemented, runtime boundary updated, RE plan items 5-8 done
+- Liberation-Game-Data: PlotGen algorithm, text engine opcodes, news sources added
+- File-Formats: x3g (IFF FORM O3DG), VGM (71 sets, 152 sprites), FNT, spr documented
+- Data-Identity-and-Verification: ADF added as VFS source
+- Game-Preservation: CityGen/BuildingGen/PlotGen marked reimplemented
+
 ## 2026-08-02 (CA wall segments + feature pipeline — v1.1.25)
 
 ### CA cell-to-viewport wall segment mapping

@@ -1,5 +1,6 @@
 #include "start_menu.h"
 #include "opencaptive.h"
+#include "i18n.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -307,42 +308,42 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
 }
 
 static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int height) {
-    draw_text_centered(pixels, width, height, 8, "OPENCAPTIVE", 0xFFFF8800, 2);
-    draw_text_centered(pixels, width, height, 26, "BY DANIEL NYLANDER", 0xFF666688, 1);
-    draw_text_centered(pixels, width, height, 38, "SETTINGS", 0xFF888888, 1);
+    draw_text_centered(pixels, width, height, 8, _("OPENCAPTIVE"), 0xFFFF8800, 2);
+    draw_text_centered(pixels, width, height, 26, _("BY DANIEL NYLANDER"), 0xFF666688, 1);
+    draw_text_centered(pixels, width, height, 38, _("SETTINGS"), 0xFF888888, 1);
 
     const char *labels[] = {
-        "RENDERER:",
-        "SCANLINES:",
-        "CRT CURVE:",
-        "BILINEAR:",
-        "INT SCALE:",
-        "SCALE:",
-        "FULLSCREEN:",
-        "VSYNC:",
-        "FPS LIMIT:",
-        "BRIGHTNESS:",
-        "CONTRAST:",
-        "MUSIC:",
-        "SFX:",
-        "DATA PATH:",
-        "BACK",
+        _("RENDERER:"),
+        _("SCANLINES:"),
+        _("CRT CURVE:"),
+        _("BILINEAR:"),
+        _("INT SCALE:"),
+        _("SCALE:"),
+        _("FULLSCREEN:"),
+        _("VSYNC:"),
+        _("FPS LIMIT:"),
+        _("BRIGHTNESS:"),
+        _("CONTRAST:"),
+        _("MUSIC:"),
+        _("SFX:"),
+        _("DATA PATH:"),
+        _("BACK"),
     };
     char values[SETTINGS_COUNT][20];
     snprintf(values[0], 20, "PENDING");
-    snprintf(values[1], 20, "%s", menu->scanlines ? "ON" : "OFF");
-    snprintf(values[2], 20, "%s", menu->crt_curvature ? "ON" : "OFF");
-    snprintf(values[3], 20, "%s", menu->bilinear ? "ON" : "OFF");
-    snprintf(values[4], 20, "%s", menu->integer_scaling ? "ON" : "OFF");
+    snprintf(values[1], 20, "%s", menu->scanlines ? _("ON") : _("OFF"));
+    snprintf(values[2], 20, "%s", menu->crt_curvature ? _("ON") : _("OFF"));
+    snprintf(values[3], 20, "%s", menu->bilinear ? _("ON") : _("OFF"));
+    snprintf(values[4], 20, "%s", menu->integer_scaling ? _("ON") : _("OFF"));
     snprintf(values[5], 20, "%dX", menu->scale_factor);
-    snprintf(values[6], 20, "%s", menu->fullscreen ? "ON" : "OFF");
-    snprintf(values[7], 20, "%s", menu->vsync ? "ON" : "OFF");
-    snprintf(values[8], 20, "%s", menu->fps_limit == 0 ? "UNLIMITED" :
+    snprintf(values[6], 20, "%s", menu->fullscreen ? _("ON") : _("OFF"));
+    snprintf(values[7], 20, "%s", menu->vsync ? _("ON") : _("OFF"));
+    snprintf(values[8], 20, "%s", menu->fps_limit == 0 ? _("UNLIMITED") :
              (menu->fps_limit == 30 ? "30" : (menu->fps_limit == 60 ? "60" : "120")));
     snprintf(values[9], 20, "%d%%", menu->brightness);
     snprintf(values[10], 20, "%d%%", menu->contrast);
-    snprintf(values[11], 20, "%s", menu->music_enabled ? "ON" : "OFF");
-    snprintf(values[12], 20, "%s", menu->sfx_enabled ? "ON" : "OFF");
+    snprintf(values[11], 20, "%s", menu->music_enabled ? _("ON") : _("OFF"));
+    snprintf(values[12], 20, "%s", menu->sfx_enabled ? _("ON") : _("OFF"));
     values[13][0] = '\0';
     values[14][0] = '\0';
 
@@ -395,11 +396,11 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
 
     if (menu->data_path_editing) {
         draw_text_centered(pixels, width, height, height - 16,
-                           "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL",
+                           _("TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"),
                            0xFF555555, 1);
     } else {
         draw_text_centered(pixels, width, height, height - 16,
-                           "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK",
+                           _("UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"),
                            0xFF555555, 1);
     }
     draw_border(pixels, width, height, 5, 5, width - 10, height - 10, 0xFF444488, 1);
@@ -415,15 +416,15 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
     }
 
     // Title
-    draw_text_centered(pixels, width, height, 15, "OPENCAPTIVE", 0xFFFF8800, 3);
-    draw_text_centered(pixels, width, height, 42, "BY DANIEL NYLANDER", 0xFF666688, 1);
-    draw_text_centered(pixels, width, height, 55, "SELECT GAME", 0xFF888888, 1);
+    draw_text_centered(pixels, width, height, 15, _("OPENCAPTIVE"), 0xFFFF8800, 3);
+    draw_text_centered(pixels, width, height, 42, _("BY DANIEL NYLANDER"), 0xFF666688, 1);
+    draw_text_centered(pixels, width, height, 55, _("SELECT GAME"), 0xFF888888, 1);
 
     const char *items[] = {
-        "CAPTIVE (1990)",
-        "LIBERATION: CAPTIVE 2",
-        "SETTINGS",
-        "QUIT",
+        _("CAPTIVE (1990)"),
+        _("LIBERATION: CAPTIVE 2"),
+        _("SETTINGS"),
+        _("QUIT"),
     };
 
     int menu_y = 80;
@@ -445,7 +446,7 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
     }
 
     draw_text_centered(pixels, width, height, height - 20,
-                       "UP-DOWN: SELECT  ENTER: START  ESC: QUIT",
+                       _("UP-DOWN: SELECT  ENTER: START  ESC: QUIT"),
                        0xFF555555, 1);
     draw_border(pixels, width, height, 5, 5, width - 10, height - 10, 0xFF444488, 1);
     char ver[32];
