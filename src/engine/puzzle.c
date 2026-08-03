@@ -285,6 +285,27 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
             break;
         }
     }
+
+    int elec_count = 1 + captive_prng(&puzzle_seed) % 3;
+    for (int e = 0; e < elec_count && pl->num_puzzles < MAX_PUZZLES; e++) {
+        int attempts = 50;
+        while (attempts-- > 0) {
+            int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
+            int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
+            if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+            int d = captive_prng(&puzzle_seed) % 4;
+            Puzzle *p = &pl->puzzles[pl->num_puzzles++];
+            p->type = PUZZLE_WALL_ELECTRIC;
+            p->x = rx; p->y = ry;
+            p->level = level_num;
+            p->face = d;
+            p->state = 0;
+            p->solved = false;
+            p->target_x = -1; p->target_y = -1;
+            lvl->cells[ry][rx].ornament[d] = ORNAMENT_PANEL;
+            break;
+        }
+    }
 }
 
 bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
@@ -385,6 +406,17 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                         d->energy = d->energy_max;
                 }
                 return true;
+
+            case PUZZLE_WALL_ELECTRIC: {
+                int elec_dmg = 8 + gs->current_level * 3;
+                for (int di = 0; di < 4; di++) {
+                    if (gs->droids[di].hp > 0) {
+                        gs->droids[di].hp -= (int16_t)elec_dmg;
+                        if (gs->droids[di].hp < 0) gs->droids[di].hp = 0;
+                    }
+                }
+                return true;
+            }
 
             default:
                 break;

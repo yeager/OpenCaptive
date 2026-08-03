@@ -1,5 +1,14 @@
 # OpenCaptive Release Notes
 
+## v1.1.57 (2026-08-03)
+
+### Wall traps, droid death, and building info
+- Wall electric traps (PUZZLE_WALL_ELECTRIC): 1-3 per level, deal 8 + level*3 damage on interact
+- Droid destruction: message + SFX_DEATH when HP drops to 0, game over when all 4 droids dead
+- Library info text includes dynamic building count from city grid
+- Records office shows building index and name for cross-referencing
+- Police station fine: 100 gold to resolve bar fight charges
+
 ## v1.1.56 (2026-08-03)
 
 ### Combat depth and Liberation atmosphere

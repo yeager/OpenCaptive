@@ -118,6 +118,19 @@
 - [x] Day/night cycle (tick-based sky/ground color: day 6-18h, dusk 18-21h, night 21-6h)
 - [x] Bar fight encounters (25% chance after buying drinks, triggers combat on exit)
 
+### Traps (advanced)
+- [x] Wall electric traps (PUZZLE_WALL_ELECTRIC) placed by puzzle generator
+- [x] Electric trap damage: 8 + level*3 to all droids on interact
+
+### Droid death
+- [x] Droid destruction message and SFX_DEATH when HP drops to 0
+- [x] Game over (STATE_GAMEOVER) when all 4 droids destroyed
+
+### Liberation building info
+- [x] Dynamic library info text (building count from grid)
+- [x] Dynamic records info text (building index and name)
+- [x] Police fine mechanic (100 gold fine after bar fight)
+
 ### Viewport rendering
 - [x] Original ALIEN1-6.PL5 creature sprites (SHA-256 verified)
 - [x] Floor item rendering in viewport

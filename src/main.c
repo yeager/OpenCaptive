@@ -2250,13 +2250,27 @@ int main(int argc, char *argv[]) {
                     if (gs.tick % 10 == 0) {
                         combat_tick(&creatures, &gs);
                         if (creatures.attack_occurred) {
+                            int ti = creatures.last_attack_target;
                             char msg[64];
                             snprintf(msg, sizeof(msg), "Droid %d hit for %d!",
-                                     creatures.last_attack_target + 1,
+                                     ti + 1,
                                      creatures.last_attack_damage);
                             msg_push(msg, 0xFFFF4444);
                             damage_flash_ttl = 8;
                             sfx_play(&sfx, SFX_HIT);
+                            if (ti >= 0 && ti < 4 && gs.droids[ti].hp <= 0) {
+                                char dmsg[64];
+                                snprintf(dmsg, sizeof(dmsg), "Droid %d destroyed!", ti + 1);
+                                msg_push(dmsg, 0xFFFF0000);
+                                sfx_play(&sfx, SFX_DEATH);
+                                int alive = 0;
+                                for (int di = 0; di < 4; di++)
+                                    if (gs.droids[di].hp > 0) alive++;
+                                if (alive == 0) {
+                                    msg_push("All droids destroyed! Mission failed.", 0xFFFF0000);
+                                    gs.mode = STATE_GAMEOVER;
+                                }
+                            }
                         }
                     }
                     for (int mi = 0; mi < MSG_LOG_SIZE; mi++)

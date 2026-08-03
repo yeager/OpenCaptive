@@ -16,6 +16,7 @@ typedef enum {
     PUZZLE_HIDDEN_BUTTON, // Hidden in grate
     PUZZLE_FLOOR_TRAP,    // Damage trap tile
     PUZZLE_TELEPORTER_TRAP, // Random teleport trap
+    PUZZLE_WALL_ELECTRIC,   // Wall-mounted electric trap (damages on interact)
 } PuzzleType;
 
 typedef struct {

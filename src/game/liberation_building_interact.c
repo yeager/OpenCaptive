@@ -49,9 +49,13 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
         case INTERACT_LIBRARY: {
             snprintf(greeting, sizeof(greeting),
                      _("Welcome to %s. The archives are available for public access."), building_name);
-            unsigned info = dialogue_tree_add_text(&tree, npc,
-                _("The city records show several generators in the surrounding buildings. "
-                  "Check industrial and special zones."), exit_node);
+            char lib_info[DIALOGUE_MAX_TEXT];
+            snprintf(lib_info, sizeof(lib_info),
+                _("Records indicate %d buildings in this city. "
+                  "The target is in a special-class building. "
+                  "Check the industrial and commercial districts."),
+                bi->building_index + 5);
+            unsigned info = dialogue_tree_add_text(&tree, npc, lib_info, exit_node);
             unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
             dialogue_tree_add_option(&tree, choice, _("Search archives"), info);
             dialogue_tree_add_option(&tree, choice, _("Ask around"), info);
@@ -64,17 +68,27 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
             unsigned report = dialogue_tree_add_text(&tree, npc,
                 _("We have reports of suspicious activity in the industrial district. "
                   "Stay alert out there."), exit_node);
+            unsigned fine_node = dialogue_tree_add_text(&tree, npc,
+                _("You have been fined 100 gold for disturbing the peace."), exit_node);
             unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
             dialogue_tree_add_option(&tree, choice, _("Ask for information"), report);
+            if (bi->bar_fight && bi->player_gold && *bi->player_gold >= 100) {
+                dialogue_tree_add_option(&tree, choice, _("Pay fine"), fine_node);
+                *bi->player_gold -= 100;
+                bi->bar_fight = false;
+            }
             dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
             break;
         }
         case INTERACT_RECORDS: {
             snprintf(greeting, sizeof(greeting),
                      _("City Records Office. How can we help?"));
-            unsigned lookup = dialogue_tree_add_text(&tree, npc,
-                _("The building registry shows all commercial and industrial "
-                  "properties in the city grid. Check the shops for supplies."), exit_node);
+            char rec_info[DIALOGUE_MAX_TEXT];
+            snprintf(rec_info, sizeof(rec_info),
+                _("Building registry entry %d: %s. "
+                  "Cross-reference with police reports for suspect locations."),
+                bi->building_index, building_name);
+            unsigned lookup = dialogue_tree_add_text(&tree, npc, rec_info, exit_node);
             unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
             dialogue_tree_add_option(&tree, choice, _("Look up records"), lookup);
             dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
