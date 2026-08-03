@@ -62,9 +62,14 @@ bool npc_dialogue_generate(const NPCDialogueData *ndd,
     unsigned exit_node = dialogue_tree_add_exit(tree, _("You leave."));
 
     if (npc_state == NPC_STATE_NORMAL) {
+        unsigned trade_node = dialogue_tree_add_text(tree, "NPC",
+            _("I don't have anything to trade right now. Try the shops."), exit_node);
+        unsigned info_node = dialogue_tree_add_text(tree, "NPC",
+            _("Check the library or records office if you need information. "
+              "The police might know about threats in the area."), exit_node);
         unsigned greet = dialogue_tree_add_choice(tree, "NPC", description);
-        dialogue_tree_add_option(tree, greet, _("Trade"), exit_node);
-        dialogue_tree_add_option(tree, greet, _("Ask around"), exit_node);
+        dialogue_tree_add_option(tree, greet, _("Trade"), trade_node);
+        dialogue_tree_add_option(tree, greet, _("Ask around"), info_node);
         dialogue_tree_add_option(tree, greet, _("Leave"), exit_node);
     } else {
         dialogue_tree_add_text(tree, NULL, description, exit_node);

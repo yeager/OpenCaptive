@@ -27,6 +27,7 @@
 #include "liberation_city_nav.h"
 #include "liberation_building_interact.h"
 #include "liberation_viewport_3d.h"
+#include "liberation_save.h"
 #include "amos_sprite.h"
 #include "dos_vga_reference.h"
 #include "frame_compare.h"
@@ -735,6 +736,45 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 }
             }
             break;
+        case SDLK_F5: {
+            LibSaveData save;
+            LibSaveDroid sd[4];
+            for (int i = 0; i < 4; i++) {
+                snprintf(sd[i].name, sizeof(sd[i].name), "%s", gs->droids[i].name);
+                sd[i].hp = gs->droids[i].hp;
+                sd[i].hp_max = gs->droids[i].hp_max;
+                sd[i].energy = gs->droids[i].energy;
+                sd[i].energy_max = gs->droids[i].energy_max;
+                sd[i].level = 1;
+                memset(sd[i].skills, 0, sizeof(sd[i].skills));
+                memset(sd[i].equipment, 0, sizeof(sd[i].equipment));
+            }
+            uint16_t seed = (uint16_t)(gs->mission_seed & 0xFFFF);
+            uint16_t seed_hi = (uint16_t)((gs->mission_seed >> 16) & 0xFFFF);
+            lib_save_from_state(&save, seed_hi, seed,
+                (uint16_t)gs->mission, (uint16_t)gs->mission,
+                (uint32_t)gs->gold, gs->tick, &lib_nav, sd, 4);
+            lib_save_write(&save, "liberation.sav");
+            break;
+        }
+        case SDLK_F9: {
+            LibSaveData save;
+            if (lib_save_read(&save, "liberation.sav")) {
+                gs->gold = (int)save.gold;
+                gs->tick = save.tick;
+                city_nav_init(&lib_nav, save.city_x, save.city_y,
+                    (CityDirection)save.facing);
+                for (int i = 0; i < 4 && i < save.num_droids; i++) {
+                    snprintf(gs->droids[i].name, sizeof(gs->droids[i].name),
+                        "%s", save.droids[i].name);
+                    gs->droids[i].hp = save.droids[i].hp;
+                    gs->droids[i].hp_max = save.droids[i].hp_max;
+                    gs->droids[i].energy = save.droids[i].energy;
+                    gs->droids[i].energy_max = save.droids[i].energy_max;
+                }
+            }
+            break;
+        }
         default: break;
     }
 }

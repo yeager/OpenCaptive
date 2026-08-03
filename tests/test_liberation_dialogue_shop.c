@@ -252,7 +252,8 @@ static void test_building_interact_generic(void) {
     const char *text = building_interact_text(&bi);
     assert(text != NULL);
 
-    building_interact_choose(&bi, 0);
+    unsigned count = building_interact_choice_count(&bi);
+    building_interact_choose(&bi, count - 1);
     assert(!bi.active);
 }
 

@@ -1,5 +1,15 @@
 # OpenCaptive Release Notes
 
+## v1.1.31 (2026-08-03)
+
+### Liberation save/load
+- F5 saves city position, facing, droid stats, gold, tick to LSAV format
+- F9 loads and restores Liberation game state
+
+### All building types interactive
+- Library, police, records, residence, industrial, special each have unique dialogue
+- NPC Trade and Ask around options give contextual responses instead of dead-ends
+
 ## v1.1.30 (2026-08-03)
 
 ### Liberation city navigation

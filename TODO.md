@@ -121,9 +121,10 @@
 - [x] Implement NPC dialogue system
 - [x] Implement save system (LSAV binary format, roundtrip, mission bitmap)
 - [x] Shop purchase stores items in Liberation inventory
-- [ ] Wire Liberation save/load into main loop
+- [x] Wire Liberation save/load into main loop (F5 save, F9 load)
+- [x] Building type interactions: library, police, records, residence, industrial, special
+- [x] NPC dialogue Trade and Ask around options give useful responses
 - [ ] Liberation combat system (NPC attack/follow states)
-- [ ] Implement remaining building type interactions (library, police, records, etc.)
 
 ## Internationalization (i18n)
 

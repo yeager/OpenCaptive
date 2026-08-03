@@ -1,5 +1,20 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Liberation save/load + building interactions — v1.1.31)
+
+### Liberation save/load wired into main loop
+- F5 saves Liberation game state (position, facing, droids, gold, tick)
+- F9 loads Liberation save and restores city navigation position
+
+### All building types have unique interactions
+- Library: search archives for generator locations
+- Police: ask for information about threats
+- Records office: look up building registry
+- Residence: hear rumors about special buildings
+- Industrial: explore restricted area
+- Special: investigate mission-critical location
+- NPC dialogue Trade and Ask around options give contextual responses
+
 ## 2026-08-03 (Liberation game loop + Captive equipment parity — v1.1.30)
 
 ### Liberation city navigation wired into main loop
