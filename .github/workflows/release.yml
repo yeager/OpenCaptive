@@ -30,7 +30,7 @@ jobs:
           sudo ldconfig
       - name: Build SDL3_ttf
         run: |
-          git clone --depth 1 https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
+          git clone --depth 1 --recurse-submodules https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
           cmake -S SDL3_ttf-src -B SDL3_ttf-build -DCMAKE_INSTALL_PREFIX=/usr/local -G Ninja -DCMAKE_BUILD_TYPE=Release
           ninja -C SDL3_ttf-build
           sudo ninja -C SDL3_ttf-build install
@@ -163,7 +163,7 @@ jobs:
           sudo ldconfig
       - name: Build SDL3_ttf
         run: |
-          git clone --depth 1 https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
+          git clone --depth 1 --recurse-submodules https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
           cmake -S SDL3_ttf-src -B SDL3_ttf-build -DCMAKE_INSTALL_PREFIX=/usr -G Ninja -DCMAKE_BUILD_TYPE=Release
           ninja -C SDL3_ttf-build
           sudo ninja -C SDL3_ttf-build install
@@ -284,7 +284,7 @@ jobs:
           cmake --install SDL3-build --config Release
       - name: Install SDL3_ttf
         run: |
-          git clone --depth 1 https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
+          git clone --depth 1 --recurse-submodules https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
           cmake -S SDL3_ttf-src -B SDL3_ttf-build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3_ttf-install -DCMAKE_PREFIX_PATH=${{ github.workspace }}/SDL3-install
           cmake --build SDL3_ttf-build --config Release
           cmake --install SDL3_ttf-build --config Release
