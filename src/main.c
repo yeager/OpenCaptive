@@ -1138,6 +1138,9 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_COMMA: // < stairs up
             game_state_change_floor(gs, -1);
             return;
+        case SDLK_H:
+            gs->mode = STATE_HELP;
+            return;
         default: return;
     }
 
@@ -1939,6 +1942,11 @@ int main(int argc, char *argv[]) {
                         music_stop(&music_sys);
                     }
                     break;
+                case STATE_HELP:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        gs.mode = STATE_GAME;
+                    }
+                    break;
                 case STATE_PAUSE:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
                         switch (event.key.key) {
@@ -2354,6 +2362,37 @@ int main(int argc, char *argv[]) {
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                               150, "PRESS ESCAPE", 0xFF888888, 1);
                 break;
+
+            case STATE_HELP: {
+                int pw = (gs.game_type == GAME_LIBERATION)
+                    ? LIBERATION_SCREEN_WIDTH : CAPTIVE_ORIGINAL_WIDTH;
+                int ph = (gs.game_type == GAME_LIBERATION)
+                    ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
+                memset(framebuffer, 0, (size_t)pw * ph * sizeof(uint32_t));
+                draw_centered(framebuffer, pw, ph, 5, "CONTROLS", 0xFFFFFF44, 2);
+                const char *help[] = {
+                    "W/UP: Move forward",
+                    "S/DOWN: Move backward",
+                    "A/LEFT: Turn left",
+                    "D/RIGHT: Turn right",
+                    "F/ENTER: Interact",
+                    "TAB: Inventory",
+                    "1-4: Select droid",
+                    "SPACE: Attack",
+                    ".: Stairs down",
+                    ",: Stairs up",
+                    "F5: Save  F9: Load",
+                    "H: This help",
+                    "ESC: Pause menu",
+                    "",
+                    "Press any key",
+                };
+                int nlines = (int)(sizeof(help) / sizeof(help[0]));
+                for (int i = 0; i < nlines; i++)
+                    draw_simple_text(framebuffer, pw, ph,
+                                     8, 30 + i * 11, help[i], 0xFFCCCCCC, 1);
+                break;
+            }
 
             case STATE_PAUSE: {
                 int pw = (gs.game_type == GAME_LIBERATION)

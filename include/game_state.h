@@ -101,6 +101,7 @@ typedef enum {
     STATE_INVENTORY,
     STATE_HOLAMAP,
     STATE_PAUSE,
+    STATE_HELP,
 } GameStateMode;
 
 typedef struct {

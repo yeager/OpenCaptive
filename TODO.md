@@ -102,6 +102,13 @@
 - [x] Pause menu with Resume/Settings/Quit options and cursor navigation
 - [x] Dimmed game background behind pause overlay
 
+### Help screen
+- [x] H key opens help screen (STATE_HELP) with control reference
+- [x] Any key dismisses help screen
+
+### Creature stats
+- [x] Creature damage/defense/range derived from category table (not placeholder values)
+
 ### Viewport rendering
 - [x] Original ALIEN1-6.PL5 creature sprites (SHA-256 verified)
 - [x] Floor item rendering in viewport

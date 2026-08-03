@@ -57,10 +57,18 @@ void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
                     const CreatureTypeDef *def = &creature_types[se->creature_type];
                     c->speed = def->speed;
                 }
-                c->damage_min = 5 + level_num * 2;
-                c->damage_max = 15 + level_num * 3;
-                c->defense = 2 + level_num;
-                c->range = 4;
+                if (se->creature_type < CREATURE_TYPE_COUNT) {
+                    const CreatureTypeDef *def2 = &creature_types[se->creature_type];
+                    c->damage_min = (int16_t)(def2->category * 3 + 3);
+                    c->damage_max = (int16_t)(def2->category * 5 + 10);
+                    c->defense = (int16_t)(def2->category * 2 + 1);
+                    c->range = (def2->category >= 4) ? 6 : 4;
+                } else {
+                    c->damage_min = 5 + level_num * 2;
+                    c->damage_max = 15 + level_num * 3;
+                    c->defense = 2 + level_num;
+                    c->range = 4;
+                }
                 c->x = x + (s % 2);
                 c->y = y + (s / 2);
                 if (c->x >= MAP_WIDTH) c->x = MAP_WIDTH - 1;

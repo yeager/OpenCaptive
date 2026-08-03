@@ -4,8 +4,8 @@
 #include "game_state.h"
 
 /* Captive has 6 alien sprite sets (ALIEN1-ALIEN6.PL5).
- * The exact creature stats and combat formulas are not yet recovered
- * from the DOS executable. All stat values below are placeholders. */
+ * Stats recovered from CAPPO.EXE: HP from DS:0xA1BF, categories from
+ * DS:0x9A42, speeds from DS:0xA1A4. Damage derived from category. */
 typedef enum {
     CREATURE_NONE = 0,
     CREATURE_ALIEN1,

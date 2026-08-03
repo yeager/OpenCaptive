@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Help screen + creature stats — v1.1.53)
+
+### Help screen
+- H key opens STATE_HELP with full keyboard control reference
+- Any key dismisses, returns to STATE_GAME
+
+### Creature combat stats
+- Damage, defense, range now derived from recovered category table (DS:0x9A42)
+- Category 0-3: range 4, category 4+: range 6
+- Stale "placeholder" comment in combat.h updated
+
 ## 2026-08-03 (Pause menu + trap cells — v1.1.52)
 
 ### Pause menu

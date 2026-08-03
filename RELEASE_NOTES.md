@@ -1,5 +1,12 @@
 # OpenCaptive Release Notes
 
+## v1.1.53 (2026-08-03)
+
+### Help screen and creature stats
+- H key opens help screen with full control reference (any key to dismiss)
+- Creature damage/defense/range now derived from recovered category table instead of flat placeholders
+- Higher-category creatures (4+) get extended attack range (6 vs 4)
+
 ## v1.1.52 (2026-08-03)
 
 ### Pause menu and trap cells
