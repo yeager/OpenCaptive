@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Creature rendering + mission flow — v1.1.40)
+
+### Creature viewport rendering
+- viewport_render_creatures() draws creatures as colored silhouettes in 3D viewport
+- Per-creature-type colors, perspective scaling, head+body+eyes
+- Creatures visible at ranges 0-4 with correct cell positioning
+
+### Liberation mission loop
+- Special building completes mission → new city with briefing
+- Creature-to-creature collision prevents stacking
+
 ## 2026-08-03 (Liberation mission completion — v1.1.39)
 
 ### Mission completion system

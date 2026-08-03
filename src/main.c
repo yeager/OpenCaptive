@@ -1857,6 +1857,9 @@ int main(int argc, char *argv[]) {
                             viewport_render(&vw, &atlas, framebuffer,
                                             CAPTIVE_ORIGINAL_WIDTH,
                                             CAPTIVE_ORIGINAL_HEIGHT);
+                            viewport_render_creatures(&gs, &creatures, &atlas,
+                                            framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                                            CAPTIVE_ORIGINAL_HEIGHT);
                         } else {
                             for (int y = 0; y < CAPTIVE_VIEWPORT_HEIGHT; ++y) {
                                 uint32_t *row = framebuffer +

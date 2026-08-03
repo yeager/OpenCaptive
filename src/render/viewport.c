@@ -383,3 +383,85 @@ void viewport_render(const CaptiveViewWindow *window,
         }
     }
 }
+
+static const uint32_t creature_colors[CREATURE_COUNT] = {
+    [CREATURE_NONE]   = 0x00000000,
+    [CREATURE_ALIEN1] = 0xFF22AA22,
+    [CREATURE_ALIEN2] = 0xFF2222CC,
+    [CREATURE_ALIEN3] = 0xFFCC2222,
+    [CREATURE_ALIEN4] = 0xFFAAAA22,
+    [CREATURE_ALIEN5] = 0xFFCC22CC,
+    [CREATURE_ALIEN6] = 0xFF22CCCC,
+};
+
+void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
+                               const TextureAtlas *atlas,
+                               uint32_t *framebuffer, int fb_width, int fb_height) {
+    if (!gs || !cl || !framebuffer) return;
+    (void)atlas;
+
+    int vp_x = CAPTIVE_VIEWPORT_X;
+    int vp_y = CAPTIVE_VIEWPORT_Y;
+
+    int dx_table[] = {0, 1, 0, -1};
+    int dy_table[] = {-1, 0, 1, 0};
+    int lx_table[] = {-1, 0, 1, 0};
+    int ly_table[] = {0, -1, 0, 1};
+
+    int fwd_dx = dx_table[gs->party_dir];
+    int fwd_dy = dy_table[gs->party_dir];
+    int lat_dx = lx_table[gs->party_dir];
+    int lat_dy = ly_table[gs->party_dir];
+
+    for (int i = 0; i < cl->num_creatures; i++) {
+        const Creature *c = &cl->creatures[i];
+        if (!c->active || c->level != gs->current_level) continue;
+
+        int rel_x = c->x - gs->party_x;
+        int rel_y = c->y - gs->party_y;
+        int forward = rel_x * fwd_dx + rel_y * fwd_dy;
+        int lateral = rel_x * lat_dx + rel_y * lat_dy;
+
+        if (forward < 0 || forward > 4) continue;
+        if (lateral < -2 || lateral > 2) continue;
+
+        const RangeParams *rp = &range_params[forward];
+        int total_w = rp->right_x - rp->left_x + 1;
+        int cells_at_range = (forward >= 3) ? 5 : 3;
+        int cell_w = total_w / cells_at_range;
+        int center_offset = lateral + cells_at_range / 2;
+        int cell_cx = rp->left_x + center_offset * cell_w + cell_w / 2;
+
+        int sprite_w = cell_w / 2;
+        int sprite_h = rp->wall_height / 2;
+        int sx = cell_cx - sprite_w / 2;
+        int sy = rp->top_y + rp->wall_height - sprite_h;
+
+        uint32_t color = (c->type < CREATURE_COUNT) ?
+            creature_colors[c->type] : 0xFF22AA22;
+
+        /* Body */
+        fill_rect_vp(framebuffer, fb_width, fb_height,
+                     vp_x + sx + sprite_w / 4, vp_y + sy + sprite_h / 4,
+                     sprite_w / 2, sprite_h * 3 / 4, color);
+        /* Head */
+        int head_sz = sprite_w / 3;
+        if (head_sz < 2) head_sz = 2;
+        fill_rect_vp(framebuffer, fb_width, fb_height,
+                     vp_x + sx + sprite_w / 2 - head_sz / 2,
+                     vp_y + sy,
+                     head_sz, head_sz, color);
+        /* Eyes */
+        uint32_t eye_color = 0xFFFF0000;
+        int eye_sz = head_sz / 3;
+        if (eye_sz < 1) eye_sz = 1;
+        fill_rect_vp(framebuffer, fb_width, fb_height,
+                     vp_x + sx + sprite_w / 2 - head_sz / 4,
+                     vp_y + sy + head_sz / 3,
+                     eye_sz, eye_sz, eye_color);
+        fill_rect_vp(framebuffer, fb_width, fb_height,
+                     vp_x + sx + sprite_w / 2 + head_sz / 4 - eye_sz,
+                     vp_y + sy + head_sz / 3,
+                     eye_sz, eye_sz, eye_color);
+    }
+}

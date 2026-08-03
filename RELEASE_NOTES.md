@@ -1,5 +1,21 @@
 # OpenCaptive Release Notes
 
+## v1.1.40 (2026-08-03)
+
+### Creature viewport rendering
+- Creatures now visible in Captive 3D viewport as colored silhouettes
+- 6 creature types with distinct colors (green, blue, red, yellow, magenta, cyan)
+- Perspective-correct scaling: creatures shrink with distance (range 0-4)
+- Red eyes on creature heads for visual feedback
+
+### Liberation mission completion
+- Special building investigation completes mission and advances to next city
+- New city generated with fresh seed and mission briefing
+- 256 missions total before victory
+
+### Creature collision
+- Creatures can no longer stack on the same cell during AI movement
+
 ## v1.1.39 (2026-08-03)
 
 ### Liberation mission completion

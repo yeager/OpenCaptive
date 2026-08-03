@@ -15,4 +15,10 @@ void viewport_render(const CaptiveViewWindow *window,
                      const TextureAtlas *atlas,
                      uint32_t *framebuffer, int fb_width, int fb_height);
 
+#include "combat.h"
+
+void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
+                               const TextureAtlas *atlas,
+                               uint32_t *framebuffer, int fb_width, int fb_height);
+
 #endif
