@@ -240,7 +240,7 @@ void city_nav_render(CityNavState *nav, const CityGridState *grid,
                 bool road_e = !city_nav_is_wall(grid, gx + 1, gy);
                 bool road_w = !city_nav_is_wall(grid, gx - 1, gy);
 
-                uint32_t wall_color = 0x20 + ((gx * 7 + gy * 13) & 0x1F);
+                uint32_t wall_color = render->wall_color_base + ((gx * 7 + gy * 13) & 0x1F);
                 if (road_n) render_wall_quad(render, wx, wy, wx + cs, wy, CITY_WALL_HEIGHT, wall_color);
                 if (road_s) render_wall_quad(render, wx + cs, wy + cs, wx, wy + cs, CITY_WALL_HEIGHT, wall_color);
                 if (road_e) render_wall_quad(render, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT, wall_color);
@@ -321,7 +321,7 @@ void city_nav_render_textured(CityNavState *nav, const CityGridState *grid,
                     if (road_e) render_textured_wall(render, wall_tex, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT);
                     if (road_w) render_textured_wall(render, wall_tex, wx, wy + cs, wx, wy, CITY_WALL_HEIGHT);
                 } else {
-                    uint32_t wall_color = 0x20 + ((gx * 7 + gy * 13) & 0x1F);
+                    uint32_t wall_color = render->wall_color_base + ((gx * 7 + gy * 13) & 0x1F);
                     if (road_n) render_wall_quad(render, wx, wy, wx + cs, wy, CITY_WALL_HEIGHT, wall_color);
                     if (road_s) render_wall_quad(render, wx + cs, wy + cs, wx, wy + cs, CITY_WALL_HEIGHT, wall_color);
                     if (road_e) render_wall_quad(render, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT, wall_color);

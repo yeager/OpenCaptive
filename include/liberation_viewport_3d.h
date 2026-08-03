@@ -51,6 +51,7 @@ typedef struct {
 
     uint32_t sky_color;
     uint32_t ground_color;
+    uint8_t  wall_color_base;
 } Lib3dState;
 
 void lib3d_init(Lib3dState *state);

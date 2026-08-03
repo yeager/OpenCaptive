@@ -76,6 +76,7 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
                 dialogue_tree_add_option(&tree, choice, _("Pay fine"), fine_node);
                 *bi->player_gold -= 100;
                 bi->bar_fight = false;
+                bi->fine_paid = true;
             }
             dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
             break;
@@ -108,11 +109,18 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
         case INTERACT_INDUSTRIAL: {
             snprintf(greeting, sizeof(greeting),
                      _("Welcome to %s. This area is restricted."), building_name);
+            unsigned hazard_node = dialogue_tree_add_text(&tree, npc,
+                _("WARNING: Machinery malfunction! Electrical discharge hits your droids!"), exit_node);
             unsigned explore = dialogue_tree_add_text(&tree, npc,
                 _("The machinery hums loudly. There might be useful equipment "
                   "stored in the back, but the foreman keeps it locked."), exit_node);
             unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
-            dialogue_tree_add_option(&tree, choice, _("Look around"), explore);
+            if (bi->building_index % 3 == 0) {
+                dialogue_tree_add_option(&tree, choice, _("Look around"), hazard_node);
+                bi->industrial_hazard = true;
+            } else {
+                dialogue_tree_add_option(&tree, choice, _("Look around"), explore);
+            }
             dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
             break;
         }

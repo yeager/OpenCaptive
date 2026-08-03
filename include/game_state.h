@@ -102,6 +102,7 @@ typedef enum {
     STATE_HOLAMAP,
     STATE_PAUSE,
     STATE_HELP,
+    STATE_DROID_CONFIG,
 } GameStateMode;
 
 typedef struct {
@@ -138,6 +139,9 @@ typedef struct {
         uint16_t item_type;
     } lib_inventory[40];
     int         lib_inventory_count;
+
+    // Reputation (Liberation)
+    int         reputation; // -100 to +100, starts at 0
 
     // UI state
     int         selected_droid;  // 0-3

@@ -410,6 +410,8 @@ static int lib_dungeon_entry_x;
 static int lib_dungeon_entry_y;
 static int lib_inv_cursor;
 static int pause_cursor;
+static int droid_config_cursor;
+static int taxi_flash_ttl;
 
 
 typedef struct {
@@ -718,6 +720,20 @@ static void start_liberation_session(GameState *gs_ptr) {
         if (start_x == 0 && start_y == 0) { start_x = 32; start_y = 32; }
         city_nav_init(&lib_nav, start_x, start_y, CITY_DIR_NORTH);
         lib3d_init(&lib_render);
+        {
+            static const struct { uint32_t sky, ground; uint8_t wall; } city_themes[] = {
+                {0xFF4466AA, 0xFF446644, 0x20}, // blue sky, green ground
+                {0xFF664422, 0xFF554433, 0x40}, // desert
+                {0xFF222244, 0xFF333333, 0x30}, // industrial
+                {0xFF446688, 0xFF335544, 0x50}, // coastal
+                {0xFF553355, 0xFF443344, 0x28}, // twilight
+                {0xFF445566, 0xFF334422, 0x38}, // forest
+                {0xFF666655, 0xFF555544, 0x48}, // arid
+                {0xFF334455, 0xFF223322, 0x58}, // tundra
+            };
+            int ti = (gs_ptr->mission - 1) % 8;
+            lib_render.wall_color_base = city_themes[ti].wall;
+        }
         building_interact_init(&lib_interact);
         lib_in_building = false;
         lib_combat_init(&lib_combat);
@@ -791,12 +807,32 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 building_interact_leave(&lib_interact);
                 lib_transfer_purchases(gs);
                 lib_in_building = false;
+                if (lib_interact.fine_paid) {
+                    lib_interact.fine_paid = false;
+                    gs->reputation += 15;
+                    if (gs->reputation > 100) gs->reputation = 100;
+                    msg_push("Fine paid. Rep +15", 0xFF44FF44);
+                }
+                if (lib_interact.industrial_hazard) {
+                    lib_interact.industrial_hazard = false;
+                    int dmg = 5 + gs->mission * 2;
+                    for (int di = 0; di < 4; di++)
+                        if (gs->droids[di].hp > 0) {
+                            gs->droids[di].hp -= (int16_t)dmg;
+                            if (gs->droids[di].hp < 0) gs->droids[di].hp = 0;
+                        }
+                    char hmsg[64];
+                    snprintf(hmsg, sizeof(hmsg), "Industrial hazard! %d damage!", dmg);
+                    msg_push(hmsg, 0xFFFF8800);
+                }
                 if (lib_interact.bar_fight) {
                     lib_interact.bar_fight = false;
                     lib_combat_generate_encounter(&lib_combat,
                         (uint16_t)(gs->tick * 0x5E5), gs->mission);
                     lib_in_combat = true;
-                    msg_push("Bar fight!", 0xFFFF4444);
+                    gs->reputation -= 10;
+                    if (gs->reputation < -100) gs->reputation = -100;
+                    msg_push("Bar fight! Rep -10", 0xFFFF4444);
                 }
                 return;
             case SDLK_UP: {
@@ -823,12 +859,32 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 if (!lib_interact.active) {
                     lib_transfer_purchases(gs);
                     lib_in_building = false;
+                    if (lib_interact.fine_paid) {
+                        lib_interact.fine_paid = false;
+                        gs->reputation += 15;
+                        if (gs->reputation > 100) gs->reputation = 100;
+                        msg_push("Fine paid. Rep +15", 0xFF44FF44);
+                    }
+                    if (lib_interact.industrial_hazard) {
+                        lib_interact.industrial_hazard = false;
+                        int dmg = 5 + gs->mission * 2;
+                        for (int di = 0; di < 4; di++)
+                            if (gs->droids[di].hp > 0) {
+                                gs->droids[di].hp -= (int16_t)dmg;
+                                if (gs->droids[di].hp < 0) gs->droids[di].hp = 0;
+                            }
+                        char hmsg[64];
+                        snprintf(hmsg, sizeof(hmsg), "Industrial hazard! %d damage!", dmg);
+                        msg_push(hmsg, 0xFFFF8800);
+                    }
                     if (lib_interact.bar_fight) {
                         lib_interact.bar_fight = false;
                         lib_combat_generate_encounter(&lib_combat,
                             (uint16_t)(gs->tick * 0x5E5), gs->mission);
                         lib_in_combat = true;
-                        msg_push("Bar fight!", 0xFFFF4444);
+                        gs->reputation -= 10;
+                        if (gs->reputation < -100) gs->reputation = -100;
+                        msg_push("Bar fight! Rep -10", 0xFFFF4444);
                     } else if (lib_interact.mission_complete) {
                         lib_interact.mission_complete = false;
                         lib_in_dungeon = true;
@@ -950,6 +1006,7 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                             lib_buildings.buildings[bg].type == 8) {
                             lib_nav.cell_x = tx;
                             lib_nav.cell_y = ty;
+                            taxi_flash_ttl = 15;
                             msg_push("Taxi: 50 gold", 0xFFFFAA00);
                             goto lib_interact_done;
                         }
@@ -1625,7 +1682,8 @@ int main(int argc, char *argv[]) {
              * launch must make the same state transition as selecting
              * Captive in the menu; without this the prepared mission was
              * hidden behind the start screen. */
-            gs.mode = STATE_GAME;
+            gs.mode = STATE_DROID_CONFIG;
+            droid_config_cursor = 0;
             printf("Starting verified Captive presentation\n");
         }
     } else if (start_directly && requested_game == GAME_LIBERATION) {
@@ -1713,7 +1771,8 @@ int main(int argc, char *argv[]) {
                             }
                             if (!intro_loaded) {
                                 music_play(&music_sys, MUSIC_BASE);
-                                gs.mode = STATE_GAME;
+                                gs.mode = STATE_DROID_CONFIG;
+                                droid_config_cursor = 0;
                             }
                             break;
                         case MENU_RESULT_START_LIBERATION:
@@ -1747,7 +1806,18 @@ int main(int argc, char *argv[]) {
                 case STATE_INTRO:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
                         music_play(&music_sys, MUSIC_BASE);
-                        gs.mode = STATE_GAME;
+                        gs.mode = STATE_DROID_CONFIG;
+                        droid_config_cursor = 0;
+                    }
+                    break;
+                case STATE_DROID_CONFIG:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        if (event.key.key == SDLK_UP && droid_config_cursor > 0)
+                            droid_config_cursor--;
+                        else if (event.key.key == SDLK_DOWN && droid_config_cursor < 3)
+                            droid_config_cursor++;
+                        else if (event.key.key == SDLK_RETURN || event.key.key == SDLK_ESCAPE)
+                            gs.mode = STATE_GAME;
                     }
                     break;
                 case STATE_GAME:
@@ -2166,6 +2236,15 @@ int main(int argc, char *argv[]) {
                                     lib_render.framebuffer[sy * LIB3D_VP_WIDTH + sx];
                             }
                         }
+                        if (taxi_flash_ttl > 0) {
+                            taxi_flash_ttl--;
+                            uint32_t flash = 0xFF000000 | ((taxi_flash_ttl * 17) << 8);
+                            for (int i = 0; i < LIBERATION_SCREEN_WIDTH * (LIBERATION_SCREEN_HEIGHT - 40); i++)
+                                framebuffer[i] = flash;
+                            draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                          LIBERATION_SCREEN_HEIGHT, 80,
+                                          "TAXI", 0xFFFFFF00, 3);
+                        }
                         char pos_str[64];
                         snprintf(pos_str, sizeof(pos_str), "%s (%d,%d) %s",
                             lib_plot.city_name[0] ? lib_plot.city_name : lib_buildings.city_name,
@@ -2497,6 +2576,31 @@ int main(int argc, char *argv[]) {
                 }
                 draw_centered(framebuffer, pw, ph, ph - 20,
                               "ESC: RESUME", 0xFF666666, 1);
+                break;
+            }
+
+            case STATE_DROID_CONFIG: {
+                int cw = CAPTIVE_ORIGINAL_WIDTH;
+                int ch = CAPTIVE_ORIGINAL_HEIGHT;
+                for (int i = 0; i < cw * ch; i++)
+                    framebuffer[i] = 0xFF000000;
+                draw_centered(framebuffer, cw, ch, 10, "DROID CONFIGURATION", 0xFF00FF00, 2);
+                for (int d = 0; d < 4; d++) {
+                    int yy = 45 + d * 35;
+                    uint32_t col = (d == droid_config_cursor) ? 0xFFFFFF44 : 0xFF888888;
+                    char line[80];
+                    snprintf(line, sizeof(line), "%s %s  HP:%d  EN:%d",
+                             (d == droid_config_cursor) ? ">" : " ",
+                             gs.droids[d].name, gs.droids[d].hp, gs.droids[d].energy);
+                    draw_simple_text(framebuffer, cw, ch, 10, yy, line, col, 1);
+                    char parts[64];
+                    snprintf(parts, sizeof(parts), "  Parts: %d %d %d %d %d %d",
+                             gs.droids[d].body_part_hp[0], gs.droids[d].body_part_hp[1],
+                             gs.droids[d].body_part_hp[2], gs.droids[d].body_part_hp[3],
+                             gs.droids[d].body_part_hp[4], gs.droids[d].body_part_hp[5]);
+                    draw_simple_text(framebuffer, cw, ch, 10, yy + 12, parts, 0xFF666666, 1);
+                }
+                draw_centered(framebuffer, cw, ch, ch - 20, "ENTER: START MISSION", 0xFF00CC00, 1);
                 break;
             }
 

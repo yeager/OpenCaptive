@@ -1,5 +1,28 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Droid config + city themes + reputation + hazards — v1.1.58)
+
+### Droid configuration screen
+- STATE_DROID_CONFIG shown at mission start (after intro, before gameplay)
+- Displays all 4 droids with name, HP, energy, and body part condition
+- Arrow keys select droid, ENTER starts mission
+
+### City visual themes
+- 8 distinct wall color palettes rotated by mission number
+- Each city has a unique visual identity (blue/green, desert, industrial, coastal, twilight, forest, arid, tundra)
+
+### Taxi travel visual
+- Green fade flash with "TAXI" overlay text during phone box teleport
+
+### NPC reputation system
+- Reputation field in GameState (-100 to +100)
+- Bar fights decrease reputation by 10
+- Police fine payment restores 15 reputation
+
+### Industrial zone hazards
+- Some industrial buildings trigger electrical hazard (5 + mission*2 damage)
+- Hazard warning message displayed before damage applies
+
 ## 2026-08-03 (Wall traps + droid death + building info — v1.1.57)
 
 ### Wall electric traps

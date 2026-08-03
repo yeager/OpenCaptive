@@ -1,5 +1,14 @@
 # OpenCaptive Release Notes
 
+## v1.1.58 (2026-08-03)
+
+### Droid config, city themes, reputation, and industrial hazards
+- Droid configuration screen (STATE_DROID_CONFIG) shows all 4 droids before mission start
+- 8 city visual themes with distinct wall color palettes per mission
+- Taxi travel visual: green flash with "TAXI" text during phone box teleport
+- NPC reputation system: bar fights -10 rep, police fines +15 rep
+- Industrial zone hazards: electrical damage (5 + mission*2) in some industrial buildings
+
 ## v1.1.57 (2026-08-03)
 
 ### Wall traps, droid death, and building info

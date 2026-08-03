@@ -114,6 +114,27 @@
 - [x] Ranged vs melee weapon distinction (melee range 1, ranged range 6)
 - [x] Terminal map shows all cell types (teleporter, terminal, pit, pressure plate, elevator)
 
+### Droid configuration
+- [x] Droid configuration screen (STATE_DROID_CONFIG) shown before mission start
+- [x] Displays all 4 droids with HP, energy, and body part condition
+
+### City visual themes
+- [x] 8 city visual themes (wall color base varies by mission number)
+- [x] Wall color procedurally offset per building for variation within theme
+
+### Taxi visual
+- [x] Taxi travel flash effect (green fade with "TAXI" text, 15 ticks)
+
+### NPC reputation
+- [x] Reputation system (-100 to +100, starts at 0)
+- [x] Bar fights decrease reputation by 10
+- [x] Police fine payment restores 15 reputation
+- [x] Reputation tracked in GameState
+
+### Industrial hazards
+- [x] Industrial buildings may trigger electrical hazard (building_index % 3 == 0)
+- [x] Hazard deals 5 + mission*2 damage to all droids
+
 ### Liberation day/night and bar fights
 - [x] Day/night cycle (tick-based sky/ground color: day 6-18h, dusk 18-21h, night 21-6h)
 - [x] Bar fight encounters (25% chance after buying drinks, triggers combat on exit)
