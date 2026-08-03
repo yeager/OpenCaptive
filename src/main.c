@@ -788,6 +788,16 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_Q:
             city_nav_turn_around(&lib_nav);
             break;
+        case SDLK_I:
+            gs->mode = STATE_INVENTORY;
+            break;
+        case SDLK_1: gs->selected_droid = 0; break;
+        case SDLK_2: gs->selected_droid = 1; break;
+        case SDLK_3: gs->selected_droid = 2; break;
+        case SDLK_4: gs->selected_droid = 3; break;
+        case SDLK_M:
+            gs->map_overlay = !gs->map_overlay;
+            break;
         case SDLK_F:
         case SDLK_RETURN:
             if (city_nav_is_building_entrance(&lib_grid,
@@ -1885,8 +1895,48 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_INVENTORY:
-                droid_ui_render(&droid_ui, &gs, &item_db, framebuffer,
-                                CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                if (gs.game_type == GAME_LIBERATION) {
+                    memset(framebuffer, 0, sizeof(framebuffer));
+                    draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                  LIBERATION_SCREEN_HEIGHT, 10,
+                                  "INVENTORY", 0xFF44AAFF, 2);
+                    for (int di = 0; di < 4; di++) {
+                        int col_x = 10 + di * 78;
+                        char dname[20];
+                        snprintf(dname, sizeof(dname), "DROID %d", di + 1);
+                        draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                            LIBERATION_SCREEN_HEIGHT, col_x, 35, dname,
+                            di == gs.selected_droid ? 0xFFFFAA00 : 0xFFAAAAAA, 1);
+                        char hp_str[16];
+                        snprintf(hp_str, sizeof(hp_str), "HP %d/%d",
+                                 gs.droids[di].hp, gs.droids[di].hp_max);
+                        draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                            LIBERATION_SCREEN_HEIGHT, col_x, 48, hp_str, 0xFF00AA00, 1);
+                        char en_str[16];
+                        snprintf(en_str, sizeof(en_str), "EN %d/%d",
+                                 gs.droids[di].energy, gs.droids[di].energy_max);
+                        draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                            LIBERATION_SCREEN_HEIGHT, col_x, 58, en_str, 0xFF0088CC, 1);
+                    }
+                    draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                  LIBERATION_SCREEN_HEIGHT, 75,
+                                  "ITEMS", 0xFFAAAA44, 1);
+                    for (int i = 0; i < gs.lib_inventory_count && i < 20; i++) {
+                        int ix = 10 + (i % 2) * 155;
+                        int iy = 90 + (i / 2) * 10;
+                        draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                            LIBERATION_SCREEN_HEIGHT, ix, iy,
+                            gs.lib_inventory[i].name, 0xFFCCCCCC, 1);
+                    }
+                    char gold_str[32];
+                    snprintf(gold_str, sizeof(gold_str), "GOLD: %d", gs.gold);
+                    draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                  LIBERATION_SCREEN_HEIGHT, 240,
+                                  gold_str, 0xFFFFFF00, 1);
+                } else {
+                    droid_ui_render(&droid_ui, &gs, &item_db, framebuffer,
+                                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                }
                 break;
 
             case STATE_SHOP:

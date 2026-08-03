@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Liberation inventory + controls — v1.1.42)
+
+### Liberation inventory screen
+- Full droid status + item list display via I key
+- Droid selection (1-4) and map overlay (M) in city exploration
+
 ## 2026-08-03 (Original ALIEN sprites — v1.1.41)
 
 ### ALIEN PL5 sprite loading

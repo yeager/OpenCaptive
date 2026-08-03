@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.42 (2026-08-03)
+
+### Liberation inventory screen
+- I key opens inventory showing all 4 droids' HP/energy and purchased items
+- Gold display, ESC to close
+- Droid selection (1-4 keys) during city exploration
+- M key toggles map overlay in Liberation
+
 ## v1.1.41 (2026-08-03)
 
 ### Original ALIEN PL5 creature sprites
