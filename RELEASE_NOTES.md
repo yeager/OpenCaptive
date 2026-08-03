@@ -1,5 +1,14 @@
 # OpenCaptive Release Notes
 
+## v1.1.51 (2026-08-03)
+
+### Unicode bitmap font support
+- UTF-8 decoding in text renderer (handles multi-byte sequences up to 3 bytes)
+- Added lowercase a-z glyphs to bitmap font
+- Added punctuation: comma, question mark, parentheses, plus, percent, quotes
+- Accented characters map to base form (å→a, ö→o, é→e, ñ→n, etc.) covering all 19 i18n languages
+- `draw_centered` correctly measures glyph count instead of byte count for UTF-8 strings
+
 ## v1.1.50 (2026-08-03)
 
 ### Consumable items and polish

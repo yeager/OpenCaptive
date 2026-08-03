@@ -5,7 +5,7 @@
 ### Viewport
 - [x] Viewport renders directly from 5-byte cell bitmasks (no separate descriptor table)
 - [x] Map CA cell bit positions to exact 3D wall segments in viewport renderer
-- [ ] Verify panel compositing order against DOS VGA captures
+- [ ] Verify panel compositing order against DOS VGA captures (BLOCKED: needs original DOS VGA captures)
 - [x] Add creature sprite rendering (ALIEN1-6.PL5)
 - [x] Add item/object rendering in viewport (OBJECTS.PL5)
 
@@ -98,7 +98,7 @@
 - [x] Terminal cell rendering
 
 ### Save/load
-- [ ] Verify save format against original CAPTIVE1.SAV binary layout
+- [ ] Verify save format against original CAPTIVE1.SAV binary layout (BLOCKED: needs original save file)
 
 ### Planet/Holamap
 - [x] Implement planet name generation from disassembled algorithm
@@ -114,7 +114,7 @@
 - [x] Recover building type assignment (9 types: shop/bar/business/industrial/residence/library/police/records/special)
 - [x] Recover city name generation (German syllable pairs + Greek letter suffix)
 - [x] Recover building name generation (type-specific name tables)
-- [ ] Verify grid topology against original game saves
+- [ ] Verify grid topology against original game saves (BLOCKED: needs original save files)
 - [x] Implement street layout rendering from grid connections
 
 ### CityGen grid (64×64)
@@ -133,7 +133,7 @@
 - [x] Implement road-adjacent wall placement (sub_0ECC, difficulty >= 4)
 - [x] Implement entry point finder (sub_0180, difficulty >= 4)
 - [x] Implement finalize pass — cell type conversion switch (sub_24B8, ~20 cases)
-- [ ] Verify grid output against original game saves
+- [ ] Verify grid output against original game saves (BLOCKED: needs original save files)
 - [x] Implement building-to-grid mapping (sub_1352, requires external BuildingGen data)
 
 ### PlotGen
@@ -183,4 +183,4 @@
 - [x] Add remaining 17 languages (cs, da, de, es, fi, fr, hu, it, ja, ko, nl, no, pl, pt, ro, ru, zh)
 - [x] Add `--lang` to `--help` output
 - [x] Add language selector to settings menu (left/right cycling through 19 languages)
-- [ ] Unicode/extended character support in bitmap font renderer
+- [x] Unicode/extended character support in bitmap font renderer (UTF-8 decode, lowercase a-z, accented→base mapping for all 19 languages)

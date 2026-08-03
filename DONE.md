@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Unicode bitmap font — v1.1.51)
+
+### Unicode/extended character support
+- UTF-8 decoding replaces single-byte char indexing in draw_simple_text
+- Added lowercase a-z bitmap glyphs (5×7 format)
+- Added comma, question mark, parentheses, plus, percent, single/double quotes
+- Accented characters (å ä ö ü é è ê ë ç ñ ß í ì î ï ó ò ô ú ù û ý + uppercase + Czech/Polish/Hungarian variants) mapped to ASCII base form
+- draw_centered counts glyphs not bytes for correct centering of UTF-8 strings
+- All 19 i18n languages now render correctly in bitmap font
+
 ## 2026-08-03 (Battery usage + door SFX + dead droid handling — v1.1.50)
 
 ### Consumable items
