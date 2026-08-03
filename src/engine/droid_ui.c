@@ -188,6 +188,17 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db
                     d->items[ui->cursor] = 0;
                     return true;
                 }
+                if (use_item && use_item->category >= ITEM_ARMOR_HEAD &&
+                    use_item->category <= ITEM_ARMOR_HAND) {
+                    int slot = use_item->category - ITEM_ARMOR_HEAD;
+                    if (slot >= 0 && slot < 6) {
+                        uint8_t old = d->body_parts[slot];
+                        d->body_parts[slot] = item_id;
+                        d->body_part_hp[slot] = 255;
+                        d->items[ui->cursor] = old;
+                        return true;
+                    }
+                }
                 for (int w = 0; w < 2; w++) {
                     if (d->weapons[w] == 0) {
                         d->weapons[w] = item_id;

@@ -197,6 +197,10 @@ void hud_render(const GameState *gs, uint32_t *pixels, int width, int height) {
         draw_number(pixels, width, height, px + 40, py + 20,
                     xp_to_display_level(gs->droids[i].xp), 0xFFAAAA00);
 
+        // XP
+        draw_number(pixels, width, height, px + 22, py + 20,
+                    (int)(gs->droids[i].xp / 1024), 0xFF8888CC);
+
         // Droid number
         draw_number(pixels, width, height, px + 4, py + 30,
                     i + 1, 0xFF888888);

@@ -103,6 +103,7 @@ typedef enum {
     STATE_PAUSE,
     STATE_HELP,
     STATE_DROID_CONFIG,
+    STATE_CITY_MAP,
 } GameStateMode;
 
 typedef struct {

@@ -377,6 +377,13 @@ static void msg_push(const char *text, uint32_t color) {
 }
 
 static int damage_flash_ttl;
+static int levelup_flash_ttl;
+static int generator_flash_ttl;
+static int recharge_flash_ttl;
+static int stair_flash_ttl;
+static int door_flash_ttl;
+static int fire_flash_ttl;
+static int creature_death_flash_ttl;
 static SoundSystem sound_sys;
 static MusicSystem music_sys;
 static ItemDatabase item_db;
@@ -894,7 +901,8 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                         lib_dungeon_entry_y = lib_nav.cell_y;
                         gs->current_level = 0;
                         map_generate_base(gs->levels, &gs->num_levels,
-                                          gs->mission_seed + (uint32_t)gs->mission);
+                                          gs->mission_seed + (uint32_t)gs->mission +
+                                          (uint32_t)lib_interact.building_index * 7919);
                         gs->party_x = 1; gs->party_y = 1;
                         for (int y2 = 0; y2 < MAP_HEIGHT; y2++)
                             for (int x2 = 0; x2 < MAP_WIDTH; x2++)
@@ -986,7 +994,10 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_3: gs->selected_droid = 2; break;
         case SDLK_4: gs->selected_droid = 3; break;
         case SDLK_M:
-            gs->map_overlay = !gs->map_overlay;
+            if (event->key.mod & SDL_KMOD_SHIFT)
+                gs->mode = STATE_CITY_MAP;
+            else
+                gs->map_overlay = !gs->map_overlay;
             break;
         case SDLK_F:
         case SDLK_RETURN: {
@@ -1127,13 +1138,17 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_SPACE:
             if (combat_droid_attack(gs, &creatures, gs->selected_droid)) {
                 sfx_play(&sfx, SFX_SHOOT);
+                fire_flash_ttl = 3;
                 if (creatures.creature_killed) {
                     sfx_play(&sfx, SFX_DEATH);
+                    creature_death_flash_ttl = 5;
+                    msg_push("Creature destroyed!", 0xFF44AAFF);
                     creatures.creature_killed = false;
                 }
                 if (creatures.level_up_occurred) {
                     sfx_play(&sfx, SFX_LEVEL_UP);
                     msg_push("LEVEL UP!", 0xFFFFFF00);
+                    levelup_flash_ttl = 10;
                     creatures.level_up_occurred = false;
                 }
                 char atk_msg[64];
@@ -1160,23 +1175,47 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             int tx = gs->party_x + fwd_x;
             int ty = gs->party_y + fwd_y;
             int face = (gs->party_dir + 2) % 4;
-            if (!puzzle_interact(&puzzles, gs, gs->party_x, gs->party_y, gs->party_dir) &&
-                !puzzle_interact(&puzzles, gs, tx, ty, face)) {
+            {
+                bool has_clipboard = false;
+                for (int di = 0; di < 4; di++)
+                    for (int si = 0; si < 10; si++)
+                        if (gs->droids[di].items[si] == 49) has_clipboard = true;
+                if (has_clipboard) {
+                    char hint[64];
+                    if (puzzle_get_clipboard_hint(&puzzles, gs, tx, ty, face, hint, sizeof(hint)) ||
+                        puzzle_get_clipboard_hint(&puzzles, gs, gs->party_x, gs->party_y, gs->party_dir, hint, sizeof(hint)))
+                        msg_push(hint, 0xFF88CCFF);
+                }
+            }
+            {
+                int16_t en_before = gs->droids[gs->selected_droid].energy;
+                bool puzzle_handled =
+                    puzzle_interact(&puzzles, gs, gs->party_x, gs->party_y, gs->party_dir) ||
+                    puzzle_interact(&puzzles, gs, tx, ty, face);
+                if (gs->droids[gs->selected_droid].energy > en_before)
+                    recharge_flash_ttl = 6;
+                if (puzzle_handled) sfx_play(&sfx, SFX_BUTTON);
+                if (!puzzle_handled) {
                 int gen_before = gs->generators_destroyed;
                 CellType cell_before = CELL_WALL;
                 if (tx >= 0 && tx < MAP_WIDTH && ty >= 0 && ty < MAP_HEIGHT)
                     cell_before = gs->levels[gs->current_level].cells[ty][tx].type;
                 combat_interact(gs, &item_db);
-                if (gs->generators_destroyed > gen_before)
+                if (gs->generators_destroyed > gen_before) {
                     sfx_play(&sfx, SFX_GENERATOR);
+                    generator_flash_ttl = 12;
+                }
                 if (tx >= 0 && tx < MAP_WIDTH && ty >= 0 && ty < MAP_HEIGHT) {
                     CellType cell_after = gs->levels[gs->current_level].cells[ty][tx].type;
-                    if (cell_before == CELL_DOOR_LOCKED && cell_after == CELL_FLOOR)
+                    if (cell_before == CELL_DOOR_LOCKED && cell_after == CELL_FLOOR) {
                         sfx_play(&sfx, SFX_DOOR_OPEN);
-                    else if (cell_before == CELL_DOOR && cell_after == CELL_FLOOR)
+                        door_flash_ttl = 4;
+                    } else if (cell_before == CELL_DOOR && cell_after == CELL_FLOOR) {
                         sfx_play(&sfx, SFX_DOOR_OPEN);
+                        door_flash_ttl = 4;
+                    }
                 }
-            }
+            }}
             return;
         }
         case SDLK_F5:
@@ -1227,10 +1266,12 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             }
             return;
         case SDLK_PERIOD: // > stairs down
-            game_state_change_floor(gs, 1);
+            if (game_state_change_floor(gs, 1))
+                stair_flash_ttl = 6;
             return;
         case SDLK_COMMA: // < stairs up
-            game_state_change_floor(gs, -1);
+            if (game_state_change_floor(gs, -1))
+                stair_flash_ttl = 6;
             return;
         case SDLK_H:
             gs->mode = STATE_HELP;
@@ -2114,6 +2155,11 @@ int main(int argc, char *argv[]) {
                         gs.mode = STATE_GAME;
                     }
                     break;
+                case STATE_CITY_MAP:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        gs.mode = STATE_GAME;
+                    }
+                    break;
                 case STATE_PAUSE:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
                         switch (event.key.key) {
@@ -2328,6 +2374,17 @@ int main(int argc, char *argv[]) {
                                     for (int x = 0; x < LIBERATION_SCREEN_WIDTH; x++)
                                         framebuffer[y * LIBERATION_SCREEN_WIDTH + x] =
                                             (framebuffer[y * LIBERATION_SCREEN_WIDTH + x] >> 2) & 0x3F3F3F;
+                                // NPC type indicator (portrait substitute)
+                                {
+                                    const char *npc_icons[] = {"[?]","[S]","[B]","[C]","[L]","[P]","[R]","[H]","[I]","[!]"};
+                                    int ti = lib_interact.type;
+                                    if (ti < 0 || ti > 9) ti = 0;
+                                    draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                        LIBERATION_SCREEN_HEIGHT,
+                                        LIBERATION_SCREEN_WIDTH - 30,
+                                        LIBERATION_SCREEN_HEIGHT / 2 + 4,
+                                        npc_icons[ti], 0xFFFFAA00, 2);
+                                }
                                 draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                     LIBERATION_SCREEN_HEIGHT, 8, LIBERATION_SCREEN_HEIGHT / 2 + 8,
                                     text, 0xFFFFFFFF, 1);
@@ -2340,6 +2397,17 @@ int main(int argc, char *argv[]) {
                                         LIBERATION_SCREEN_HEIGHT, 8,
                                         LIBERATION_SCREEN_HEIGHT / 2 + 20 + (int)ci * 10,
                                         label, 0xFFCCCCCC, 1);
+                                }
+                                if ((lib_interact.type == INTERACT_SHOP || lib_interact.type == INTERACT_BAR) &&
+                                    lib_interact.shop.item_count > 0) {
+                                    char shop_info[80];
+                                    snprintf(shop_info, sizeof(shop_info),
+                                        "%d items available. Gold: %d",
+                                        lib_interact.shop.item_count, gs.gold);
+                                    draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                        LIBERATION_SCREEN_HEIGHT, 8,
+                                        LIBERATION_SCREEN_HEIGHT - 12,
+                                        shop_info, 0xFFAAAA00, 1);
                                 }
                             }
                         }
@@ -2416,6 +2484,40 @@ int main(int argc, char *argv[]) {
                                         r = r + 60 > 255 ? 255 : r + 60;
                                         *p = (*p & 0xFF00FFFF) | (r << 16);
                                     }
+                            }
+                            // Additional viewport flash effects
+                            #define VP_FLASH(ttl_var, channel_shift, amount) \
+                                if (ttl_var > 0) { ttl_var--; \
+                                    for (int fy = CAPTIVE_VIEWPORT_Y; fy < CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT; fy++) \
+                                        for (int fx = CAPTIVE_VIEWPORT_X; fx < CAPTIVE_VIEWPORT_X + CAPTIVE_VIEWPORT_WIDTH; fx++) { \
+                                            uint32_t *p = &framebuffer[fy * CAPTIVE_ORIGINAL_WIDTH + fx]; \
+                                            uint32_t c = (*p >> channel_shift) & 0xFF; \
+                                            c = c + amount > 255 ? 255 : c + amount; \
+                                            *p = (*p & ~(0xFFu << channel_shift)) | (c << channel_shift); \
+                                        } \
+                                }
+                            VP_FLASH(levelup_flash_ttl, 8, 80)   // green flash
+                            VP_FLASH(generator_flash_ttl, 0, 90) // blue flash
+                            VP_FLASH(recharge_flash_ttl, 8, 50)  // green flash
+                            VP_FLASH(door_flash_ttl, 16, 30)     // subtle red
+                            VP_FLASH(creature_death_flash_ttl, 0, 70) // blue flash
+                            if (stair_flash_ttl > 0) {
+                                stair_flash_ttl--;
+                                for (int fy = CAPTIVE_VIEWPORT_Y; fy < CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT; fy++)
+                                    for (int fx = CAPTIVE_VIEWPORT_X; fx < CAPTIVE_VIEWPORT_X + CAPTIVE_VIEWPORT_WIDTH; fx++)
+                                        framebuffer[fy * CAPTIVE_ORIGINAL_WIDTH + fx] =
+                                            0xFF000000 | (stair_flash_ttl * 40);
+                            }
+                            #undef VP_FLASH
+                            if (fire_flash_ttl > 0) {
+                                fire_flash_ttl--;
+                                int mcx = CAPTIVE_VIEWPORT_X + CAPTIVE_VIEWPORT_WIDTH / 2;
+                                int mcy = CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT - 8;
+                                for (int fy = mcy - 4; fy <= mcy + 4; fy++)
+                                    for (int fx = mcx - 6; fx <= mcx + 6; fx++)
+                                        if (fx >= CAPTIVE_VIEWPORT_X && fx < CAPTIVE_VIEWPORT_X + CAPTIVE_VIEWPORT_WIDTH &&
+                                            fy >= CAPTIVE_VIEWPORT_Y && fy < CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT)
+                                            framebuffer[fy * CAPTIVE_ORIGINAL_WIDTH + fx] = 0xFFFFFF00;
                             }
                             for (int mi = 0; mi < MSG_LOG_SIZE; mi++) {
                                 if (msg_log[mi].ttl <= 0) continue;
@@ -2649,6 +2751,43 @@ int main(int argc, char *argv[]) {
                                      "R:RENAME  S:SWAP WEAPONS", 0xFF666666, 1);
                 }
                 draw_centered(framebuffer, cw, ch, ch - 20, "ENTER: START MISSION", 0xFF00CC00, 1);
+                break;
+            }
+
+            case STATE_CITY_MAP: {
+                int mw = LIBERATION_SCREEN_WIDTH;
+                int mh = LIBERATION_SCREEN_HEIGHT;
+                for (int i = 0; i < mw * mh; i++)
+                    framebuffer[i] = 0xFF000000;
+                draw_centered(framebuffer, mw, mh, 5, "CITY MAP", 0xFF00FF00, 2);
+                int scale = 3;
+                int ox = (mw - 64 * scale) / 2;
+                int oy = 30;
+                for (int gy = 0; gy < 64; gy++) {
+                    for (int gx = 0; gx < 64; gx++) {
+                        uint8_t cell = lib_grid.plane0[gy * 64 + gx];
+                        uint8_t bid = lib_grid.plane2[gy * 64 + gx];
+                        uint32_t col;
+                        if (gx == lib_nav.cell_x && gy == lib_nav.cell_y)
+                            col = 0xFFFFFF00;
+                        else if (bid != 0 && bid != 0xFF)
+                            col = 0xFF4444AA;
+                        else if (cell == 0x0A)
+                            col = 0xFF333333;
+                        else if (cell == 0x00)
+                            col = 0xFF666666;
+                        else
+                            col = 0xFF222222;
+                        for (int sy = 0; sy < scale; sy++)
+                            for (int sx = 0; sx < scale; sx++) {
+                                int px = ox + gx * scale + sx;
+                                int py = oy + gy * scale + sy;
+                                if (px >= 0 && px < mw && py >= 0 && py < mh)
+                                    framebuffer[py * mw + px] = col;
+                            }
+                    }
+                }
+                draw_centered(framebuffer, mw, mh, mh - 15, "ANY KEY: RETURN", 0xFF666666, 1);
                 break;
             }
 

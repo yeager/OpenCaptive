@@ -1,5 +1,34 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Deep parity: 16 gaps closed — v1.1.60)
+
+### Clipboard puzzle hints
+- Clipboard item in inventory now shows puzzle solutions when interacting with unsolved puzzles
+
+### HUD XP display
+- XP value shown for each droid alongside level on the HUD
+
+### Viewport visual effects (8 new)
+- Weapon firing muzzle flash (yellow at viewport bottom center)
+- Creature death blue flash, generator destruction blue flash
+- Level-up green flash, door opening subtle red flash
+- Staircase transition fade-to-black, power socket recharge green flash
+
+### Body part installation
+- Armor items can be installed from inventory into body part slots (ENTER on armor-category item)
+- Installing restores body part condition to 255, swaps with existing part
+
+### Liberation city map
+- Shift+M opens full-screen overhead 64x64 city map with player marker and building highlights
+
+### Building exterior/interior variety
+- Building wall colors vary by building ID for visual differentiation
+- Building interiors use unique seeds per building_index for diverse floor plans
+
+### NPC and shop display
+- NPC type icon indicator during building dialogue (portrait substitute)
+- Shop/bar shows item count and gold during purchase flow
+
 ## 2026-08-03 (Droid config editing — v1.1.59)
 
 ### Droid configuration editing

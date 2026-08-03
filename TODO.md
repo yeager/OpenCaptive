@@ -120,6 +120,36 @@
 - [x] Droid rename (R key, keyboard input, up to 14 characters)
 - [x] Weapon swap between droids (S key, swaps with next droid)
 
+### Clipboard and puzzles
+- [x] Clipboard hint display (shows puzzle solution when clipboard is in droid inventory)
+
+### XP display
+- [x] XP shown on HUD alongside level for each droid
+
+### Visual effects (viewport)
+- [x] Weapon firing muzzle flash (yellow flash at viewport bottom)
+- [x] Creature death flash (blue viewport flash)
+- [x] Generator destruction flash (blue viewport flash)
+- [x] Level-up flash (green viewport flash)
+- [x] Door opening flash (subtle red viewport flash)
+- [x] Staircase transition visual (fade-to-black)
+- [x] Power socket recharge flash (green viewport flash)
+
+### Body part installation
+- [x] Body part items can be installed from inventory to droid body slots (ENTER on armor item)
+- [x] Installing a body part resets part condition to 255
+
+### Liberation city map
+- [x] City map screen (Shift+M) shows overhead 64x64 grid with player position and buildings
+
+### Liberation building variety
+- [x] Building exterior wall colors vary by building ID (type_offset from plane2)
+- [x] Building interior floor plans vary by building_index (unique seed per building)
+
+### NPC and shop display
+- [x] NPC type indicator icon displayed during building interaction
+- [x] Shop/bar item count and gold shown during purchase dialogue
+
 ### City visual themes
 - [x] 8 city visual themes (wall color base varies by mission number)
 - [x] Wall color procedurally offset per building for variation within theme

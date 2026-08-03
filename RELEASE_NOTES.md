@@ -1,5 +1,17 @@
 # OpenCaptive Release Notes
 
+## v1.1.60 (2026-08-03)
+
+### Deep parity audit: 16 gaps closed
+- Clipboard puzzle hint display (shows solution when clipboard is in inventory)
+- HUD XP display alongside droid level
+- 8 viewport visual effects: weapon muzzle flash, creature/generator death, level-up, door opening, staircase transition, power socket recharge
+- Body part installation from inventory to body slots (armor-category items)
+- Liberation city map screen (Shift+M) with 64x64 overhead grid
+- Building exterior wall color variety by building ID
+- Building interior floor plan variety by building_index seed
+- NPC type indicator during dialogue, shop item count/gold display
+
 ## v1.1.59 (2026-08-03)
 
 ### Droid configuration editing
