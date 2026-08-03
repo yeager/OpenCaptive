@@ -228,6 +228,147 @@ static void test_architect_seed_range(void) {
         assert_base_is_playable(seed);
 }
 
+static void test_ca_segments_preserved(void) {
+    DungeonLevel lvl;
+    map_generate(&lvl, 42, 0);
+
+    int has_segments = 0;
+    int partial_walls = 0;
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (lvl.cells[y][x].ca_segments != 0) has_segments++;
+            if (lvl.cells[y][x].ca_segments != 0 &&
+                lvl.cells[y][x].ca_segments != 0x1F)
+                partial_walls++;
+        }
+    }
+    assert(has_segments > 0);
+}
+
+static void test_mapgen_output_validation(void) {
+    for (int seed = 0; seed < 20; seed++) {
+        for (int level = 0; level < 5; level++) {
+            DungeonLevel lvl;
+            map_generate(&lvl, (uint32_t)(seed * 1000 + 1), level);
+
+            int walls = 0, floors = 0, doors = 0, generators = 0;
+            for (int y = 0; y < MAP_HEIGHT; y++) {
+                for (int x = 0; x < MAP_WIDTH; x++) {
+                    switch (lvl.cells[y][x].type) {
+                        case CELL_WALL: walls++; break;
+                        case CELL_FLOOR: floors++; break;
+                        case CELL_DOOR: case CELL_DOOR_LOCKED: doors++; break;
+                        case CELL_GENERATOR: generators++; break;
+                        default: break;
+                    }
+                }
+            }
+            assert(walls > 0);
+            assert(floors > 0);
+            (void)generators;
+
+            /* Border must be all walls */
+            for (int x = 0; x < MAP_WIDTH; x++) {
+                assert(lvl.cells[0][x].type == CELL_WALL);
+                assert(lvl.cells[MAP_HEIGHT-1][x].type == CELL_WALL);
+            }
+            for (int y = 0; y < MAP_HEIGHT; y++) {
+                assert(lvl.cells[y][0].type == CELL_WALL);
+                assert(lvl.cells[y][MAP_WIDTH-1].type == CELL_WALL);
+            }
+        }
+    }
+}
+
+static void test_exterior_generation(void) {
+    DungeonLevel ext;
+    map_generate_exterior(&ext, 30, 0);
+
+    assert(ext.level == -1);
+
+    /* Entrance cell exists */
+    assert(ext.cells[1][30].type == CELL_STAIRS_DOWN);
+
+    /* Landing area has open floor */
+    int floor_count = 0;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            if (ext.cells[y][x].type != CELL_WALL)
+                floor_count++;
+    assert(floor_count > 100);
+
+    /* Border row 0 is all walls (exterior boundary) */
+    for (int x = 0; x < MAP_WIDTH; x++)
+        assert(ext.cells[0][x].type == CELL_WALL);
+}
+
+static void test_exterior_deterministic(void) {
+    DungeonLevel a, b;
+    map_generate_exterior(&a, 20, 42);
+    map_generate_exterior(&b, 20, 42);
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            assert(a.cells[y][x].type == b.cells[y][x].type);
+}
+
+static void test_exterior_different_seeds(void) {
+    DungeonLevel a, b;
+    map_generate_exterior(&a, 20, 100);
+    map_generate_exterior(&b, 20, 200);
+    int diffs = 0;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            if (a.cells[y][x].type != b.cells[y][x].type) diffs++;
+    assert(diffs > 0);
+}
+
+static void test_exterior_entrance_range(void) {
+    /* Exterior must work for any entrance_x within map bounds */
+    int positions[] = { 1, 10, 30, 50, MAP_WIDTH - 2 };
+    for (int i = 0; i < 5; i++) {
+        DungeonLevel ext;
+        map_generate_exterior(&ext, positions[i], 42);
+        int has_stairs = 0;
+        for (int y = 0; y < MAP_HEIGHT; y++)
+            for (int x = 0; x < MAP_WIDTH; x++)
+                has_stairs += ext.cells[y][x].type == CELL_STAIRS_DOWN;
+        assert(has_stairs == 1);
+    }
+}
+
+static void test_mapgen_connectivity(void) {
+    /* Every generated level's floor cells must be connected */
+    for (int seed = 0; seed < 10; seed++) {
+        DungeonLevel lvl;
+        map_generate(&lvl, (uint32_t)(seed * 777 + 1), 0);
+
+        bool seen[MAP_HEIGHT][MAP_WIDTH] = {{false}};
+        int queue[MAP_HEIGHT * MAP_WIDTH];
+        int head = 0, tail = 0, total = 0;
+        for (int y = 0; y < MAP_HEIGHT; y++)
+            for (int x = 0; x < MAP_WIDTH; x++)
+                if (lvl.cells[y][x].type != CELL_WALL) {
+                    total++;
+                    if (tail == 0) { queue[tail++] = y * MAP_WIDTH + x; seen[y][x] = true; }
+                }
+        while (head < tail) {
+            int pos = queue[head++];
+            int px = pos % MAP_WIDTH, py = pos / MAP_WIDTH;
+            const int ddx[] = {0, 1, 0, -1};
+            const int ddy[] = {-1, 0, 1, 0};
+            for (int d = 0; d < 4; d++) {
+                int nx = px + ddx[d], ny = py + ddy[d];
+                if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT &&
+                    !seen[ny][nx] && lvl.cells[ny][nx].type != CELL_WALL) {
+                    seen[ny][nx] = true;
+                    queue[tail++] = ny * MAP_WIDTH + nx;
+                }
+            }
+        }
+        assert(head == total);
+    }
+}
+
 int main(void) {
     test_deterministic();
     test_different_seeds();
@@ -241,6 +382,13 @@ int main(void) {
     test_architect_base_layout();
     test_logical_floors_are_connected();
     test_architect_seed_range();
+    test_ca_segments_preserved();
+    test_mapgen_output_validation();
+    test_exterior_generation();
+    test_exterior_deterministic();
+    test_exterior_different_seeds();
+    test_exterior_entrance_range();
+    test_mapgen_connectivity();
     printf("All map generator tests passed\n");
     return 0;
 }

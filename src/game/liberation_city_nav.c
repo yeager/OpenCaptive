@@ -110,6 +110,77 @@ void city_nav_update(CityNavState *nav, float dt) {
     }
 }
 
+static bool is_road_feature(uint8_t cell) {
+    return cell == 0x21 || cell == 0x22 || cell == 0x23;
+}
+
+static void render_ground_quad(Lib3dState *render,
+                                float x0, float z0, float x1, float z1,
+                                uint32_t color) {
+    X3gVertex verts[4] = {
+        { (int16_t)x0, 0, (int16_t)z0, 0, {0,0,0,0} },
+        { (int16_t)x1, 0, (int16_t)z0, 0, {0,0,0,0} },
+        { (int16_t)x1, 0, (int16_t)z1, 0, {0,0,0,0} },
+        { (int16_t)x0, 0, (int16_t)z1, 0, {0,0,0,0} },
+    };
+    X3gPolygon poly;
+    memset(&poly, 0, sizeof(poly));
+    poly.vertex_count = 4;
+    poly.vertex_indices[0] = 0;
+    poly.vertex_indices[1] = 1;
+    poly.vertex_indices[2] = 2;
+    poly.vertex_indices[3] = 3;
+    poly.color = (uint16_t)(color & 0x3F);
+
+    X3gObject obj;
+    memset(&obj, 0, sizeof(obj));
+    obj.vertices = verts;
+    obj.vertex_count = 4;
+    obj.parsed_polys = &poly;
+    obj.polygon_count = 1;
+
+    lib3d_render_object(render, &obj, 0, 0, 0, NULL, 0);
+}
+
+static void render_road_feature(Lib3dState *render, float cx, float cz,
+                                 uint8_t feature_type) {
+    float h, w;
+    uint32_t color;
+    switch (feature_type) {
+        case 0x21: h = 80.0f; w = 8.0f;  color = 0x1A; break; /* lamp post */
+        case 0x22: h = 40.0f; w = 16.0f; color = 0x04; break; /* post box */
+        case 0x23: h = 80.0f; w = 24.0f; color = 0x04; break; /* phone box */
+        default: return;
+    }
+    float x0 = cx - w * 0.5f, x1 = cx + w * 0.5f;
+    float z0 = cz - w * 0.5f, z1 = cz + w * 0.5f;
+    X3gVertex verts[8] = {
+        { (int16_t)x0, 0,          (int16_t)z0, 0, {0,0,0,0} },
+        { (int16_t)x1, 0,          (int16_t)z0, 0, {0,0,0,0} },
+        { (int16_t)x1, 0,          (int16_t)z1, 0, {0,0,0,0} },
+        { (int16_t)x0, 0,          (int16_t)z1, 0, {0,0,0,0} },
+        { (int16_t)x0, (int16_t)-h, (int16_t)z0, 0, {0,0,0,0} },
+        { (int16_t)x1, (int16_t)-h, (int16_t)z0, 0, {0,0,0,0} },
+        { (int16_t)x1, (int16_t)-h, (int16_t)z1, 0, {0,0,0,0} },
+        { (int16_t)x0, (int16_t)-h, (int16_t)z1, 0, {0,0,0,0} },
+    };
+    X3gPolygon faces[4];
+    memset(faces, 0, sizeof(faces));
+    int idx[][4] = {{0,1,5,4},{1,2,6,5},{2,3,7,6},{3,0,4,7}};
+    for (int f = 0; f < 4; f++) {
+        faces[f].vertex_count = 4;
+        for (int v = 0; v < 4; v++) faces[f].vertex_indices[v] = idx[f][v];
+        faces[f].color = (uint16_t)(color + f);
+    }
+    X3gObject obj;
+    memset(&obj, 0, sizeof(obj));
+    obj.vertices = verts;
+    obj.vertex_count = 8;
+    obj.parsed_polys = faces;
+    obj.polygon_count = 4;
+    lib3d_render_object(render, &obj, 0, 0, 0, NULL, 0);
+}
+
 static void render_wall_quad(Lib3dState *render,
                               float x0, float z0, float x1, float z1,
                               float height, uint32_t color) {
@@ -156,22 +227,27 @@ void city_nav_render(CityNavState *nav, const CityGridState *grid,
             if (gx < 0 || gx >= CITYGRID_WIDTH || gy < 0 || gy >= CITYGRID_HEIGHT)
                 continue;
 
-            if (!city_nav_is_wall(grid, gx, gy)) continue;
-
             float wx = gx * CITY_CELL_SIZE;
             float wy = gy * CITY_CELL_SIZE;
             float cs = CITY_CELL_SIZE;
+            uint8_t cell = city_nav_get_cell(grid, gx, gy);
 
-            bool road_n = !city_nav_is_wall(grid, gx, gy - 1);
-            bool road_s = !city_nav_is_wall(grid, gx, gy + 1);
-            bool road_e = !city_nav_is_wall(grid, gx + 1, gy);
-            bool road_w = !city_nav_is_wall(grid, gx - 1, gy);
+            if (city_nav_is_wall(grid, gx, gy)) {
+                bool road_n = !city_nav_is_wall(grid, gx, gy - 1);
+                bool road_s = !city_nav_is_wall(grid, gx, gy + 1);
+                bool road_e = !city_nav_is_wall(grid, gx + 1, gy);
+                bool road_w = !city_nav_is_wall(grid, gx - 1, gy);
 
-            uint32_t wall_color = 0x20 + ((gx * 7 + gy * 13) & 0x1F);
-            if (road_n) render_wall_quad(render, wx, wy, wx + cs, wy, CITY_WALL_HEIGHT, wall_color);
-            if (road_s) render_wall_quad(render, wx + cs, wy + cs, wx, wy + cs, CITY_WALL_HEIGHT, wall_color);
-            if (road_e) render_wall_quad(render, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT, wall_color);
-            if (road_w) render_wall_quad(render, wx, wy + cs, wx, wy, CITY_WALL_HEIGHT, wall_color);
+                uint32_t wall_color = 0x20 + ((gx * 7 + gy * 13) & 0x1F);
+                if (road_n) render_wall_quad(render, wx, wy, wx + cs, wy, CITY_WALL_HEIGHT, wall_color);
+                if (road_s) render_wall_quad(render, wx + cs, wy + cs, wx, wy + cs, CITY_WALL_HEIGHT, wall_color);
+                if (road_e) render_wall_quad(render, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT, wall_color);
+                if (road_w) render_wall_quad(render, wx, wy + cs, wx, wy, CITY_WALL_HEIGHT, wall_color);
+            } else {
+                render_ground_quad(render, wx, wy, wx + cs, wy + cs, 0x0C);
+                if (is_road_feature(cell))
+                    render_road_feature(render, wx + cs * 0.5f, wy + cs * 0.5f, cell);
+            }
         }
     }
 
@@ -224,28 +300,33 @@ void city_nav_render_textured(CityNavState *nav, const CityGridState *grid,
             if (gx < 0 || gx >= CITYGRID_WIDTH || gy < 0 || gy >= CITYGRID_HEIGHT)
                 continue;
 
-            if (!city_nav_is_wall(grid, gx, gy)) continue;
-
             float wx = gx * CITY_CELL_SIZE;
             float wy = gy * CITY_CELL_SIZE;
             float cs = CITY_CELL_SIZE;
+            uint8_t cell = city_nav_get_cell(grid, gx, gy);
 
-            bool road_n = !city_nav_is_wall(grid, gx, gy - 1);
-            bool road_s = !city_nav_is_wall(grid, gx, gy + 1);
-            bool road_e = !city_nav_is_wall(grid, gx + 1, gy);
-            bool road_w = !city_nav_is_wall(grid, gx - 1, gy);
+            if (city_nav_is_wall(grid, gx, gy)) {
+                bool road_n = !city_nav_is_wall(grid, gx, gy - 1);
+                bool road_s = !city_nav_is_wall(grid, gx, gy + 1);
+                bool road_e = !city_nav_is_wall(grid, gx + 1, gy);
+                bool road_w = !city_nav_is_wall(grid, gx - 1, gy);
 
-            if (wall_tex) {
-                if (road_n) render_textured_wall(render, wall_tex, wx, wy, wx + cs, wy, CITY_WALL_HEIGHT);
-                if (road_s) render_textured_wall(render, wall_tex, wx + cs, wy + cs, wx, wy + cs, CITY_WALL_HEIGHT);
-                if (road_e) render_textured_wall(render, wall_tex, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT);
-                if (road_w) render_textured_wall(render, wall_tex, wx, wy + cs, wx, wy, CITY_WALL_HEIGHT);
+                if (wall_tex) {
+                    if (road_n) render_textured_wall(render, wall_tex, wx, wy, wx + cs, wy, CITY_WALL_HEIGHT);
+                    if (road_s) render_textured_wall(render, wall_tex, wx + cs, wy + cs, wx, wy + cs, CITY_WALL_HEIGHT);
+                    if (road_e) render_textured_wall(render, wall_tex, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT);
+                    if (road_w) render_textured_wall(render, wall_tex, wx, wy + cs, wx, wy, CITY_WALL_HEIGHT);
+                } else {
+                    uint32_t wall_color = 0x20 + ((gx * 7 + gy * 13) & 0x1F);
+                    if (road_n) render_wall_quad(render, wx, wy, wx + cs, wy, CITY_WALL_HEIGHT, wall_color);
+                    if (road_s) render_wall_quad(render, wx + cs, wy + cs, wx, wy + cs, CITY_WALL_HEIGHT, wall_color);
+                    if (road_e) render_wall_quad(render, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT, wall_color);
+                    if (road_w) render_wall_quad(render, wx, wy + cs, wx, wy, CITY_WALL_HEIGHT, wall_color);
+                }
             } else {
-                uint32_t wall_color = 0x20 + ((gx * 7 + gy * 13) & 0x1F);
-                if (road_n) render_wall_quad(render, wx, wy, wx + cs, wy, CITY_WALL_HEIGHT, wall_color);
-                if (road_s) render_wall_quad(render, wx + cs, wy + cs, wx, wy + cs, CITY_WALL_HEIGHT, wall_color);
-                if (road_e) render_wall_quad(render, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT, wall_color);
-                if (road_w) render_wall_quad(render, wx, wy + cs, wx, wy, CITY_WALL_HEIGHT, wall_color);
+                render_ground_quad(render, wx, wy, wx + cs, wy + cs, 0x0C);
+                if (is_road_feature(cell))
+                    render_road_feature(render, wx + cs * 0.5f, wy + cs * 0.5f, cell);
             }
         }
     }

@@ -21,4 +21,7 @@ typedef struct {
 bool vgm_open(VgmFile *vgm, const uint8_t *data, size_t size);
 bool vgm_get_sprite(const VgmFile *vgm, unsigned index, AmosSprite *out);
 
+#define LIBERATION_VGM_WALL_SET_COUNT 71
+extern const char *const liberation_vgm_wall_sha256[LIBERATION_VGM_WALL_SET_COUNT];
+
 #endif

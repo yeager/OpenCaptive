@@ -7,7 +7,8 @@ int main(int argc, char **argv) {
     DataVFS vfs;
     LiberationData data = {0};
     int ok = vfs_init(&vfs, argv[1]) && liberation_data_open(&data, &vfs);
-    printf("Liberation CD32 data: %s\n", ok ? "verified" : "not verified");
+    const char *src_name = data.source == LIBERATION_SOURCE_AMIGA_ADF ? "Amiga ADF" : "CD32";
+    printf("Liberation data: %s (%s)\n", ok ? "verified" : "not verified", src_name);
     if (ok) {
         printf("Original presentation: intro=%s/%s city=%s/%s\n",
                data.intro_frame.bitplanes ? "decoded" : "unavailable",

@@ -91,10 +91,11 @@ int main(void) {
     game_state_new_mission(&gs, 17);
 
     assert(gs.mission_seed == 179);
-    assert(gs.num_levels >= 2 && gs.num_levels <= 5);
+    assert(gs.num_levels >= 3 && gs.num_levels <= 6);
     assert(gs.generators_total == generator_count(&gs));
     assert(gs.generators_total > 0);
-    assert(gs.party_y == 0);
+    /* Level 0 is now the exterior landing zone; party starts at y=1 */
+    assert(gs.party_y >= 1);
 
     /* Interacting with a generator is the only action that increments the
      * objective counter.  Position it in front of the party to test the

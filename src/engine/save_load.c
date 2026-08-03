@@ -172,7 +172,7 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
     }
     for (int i = 0; i < restored_puzzles.num_puzzles; i++) {
         const Puzzle *puzzle = &restored_puzzles.puzzles[i];
-        if (puzzle->type < PUZZLE_NONE || puzzle->type > PUZZLE_HIDDEN_BUTTON ||
+        if (puzzle->type < PUZZLE_NONE || puzzle->type > PUZZLE_TELEPORTER_TRAP ||
             puzzle->x < 0 || puzzle->x >= MAP_WIDTH ||
             puzzle->y < 0 || puzzle->y >= MAP_HEIGHT ||
             puzzle->level < 0 || puzzle->level >= restored.num_levels ||

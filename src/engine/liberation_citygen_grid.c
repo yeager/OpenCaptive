@@ -1,4 +1,5 @@
 #include "liberation_citygen_grid.h"
+#include "liberation_citygen.h"
 #include <string.h>
 
 static const CityGridDirection directions[4] = {
@@ -941,4 +942,27 @@ void citygrid_generate(CityGridState *s) {
     }
 
     finalize_cells(s);
+}
+
+void citygrid_map_buildings(CityGridState *s, const CityGrid *bg) {
+    if (!s || !bg || bg->total_buildings == 0) return;
+
+    /* The CityGen grid assigns building IDs in plane2 during road walking.
+     * BuildingGen independently generates building records indexed by
+     * placement order. sub_1352 walks grid buildings and assigns each one
+     * the corresponding BuildingGen type by matching building_counter order.
+     *
+     * plane1 stores the BuildingGen building type index (0-8) for each cell
+     * that belongs to a building, enabling the runtime to look up building
+     * names and interaction types. */
+    int bg_count = bg->total_buildings;
+    if (bg_count > CITYGEN_MAX_BUILDINGS) bg_count = CITYGEN_MAX_BUILDINGS;
+
+    for (int i = 0; i < CITYGRID_CELLS; i++) {
+        uint8_t bid = s->plane2[i];
+        if (bid == 0 || bid == 0xFF) continue;
+
+        int bg_idx = (bid - 1) % bg_count;
+        s->plane1[i] = bg->buildings[bg_idx].type;
+    }
 }

@@ -484,3 +484,52 @@ void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
     }
     *out_num_levels = floors;
 }
+
+void map_generate_exterior(DungeonLevel *exterior, int entrance_x, uint32_t seed) {
+    memset(exterior, 0, sizeof(*exterior));
+    exterior->level = -1;
+    exterior->seed = seed;
+
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            exterior->cells[y][x].type = CELL_WALL;
+
+    /* Carve an open landing pad area centered on the base entrance.
+     * The original uses a roughly 20-wide, 10-tall zone with the
+     * base entrance at the top edge (y=1) and the landing spot near
+     * the bottom. */
+    int pad_x0 = entrance_x - 10;
+    int pad_x1 = entrance_x + 10;
+    if (pad_x0 < 1) pad_x0 = 1;
+    if (pad_x1 > MAP_WIDTH - 2) pad_x1 = MAP_WIDTH - 2;
+    int pad_y0 = 1;
+    int pad_y1 = 12;
+    if (pad_y1 > MAP_HEIGHT - 2) pad_y1 = MAP_HEIGHT - 2;
+
+    for (int y = pad_y0; y <= pad_y1; y++)
+        for (int x = pad_x0; x <= pad_x1; x++)
+            exterior->cells[y][x].type = CELL_FLOOR;
+
+    /* Base entrance: a door at the top center connecting to floor 0 */
+    exterior->cells[pad_y0][entrance_x].type = CELL_STAIRS_DOWN;
+
+    /* Scatter some terrain obstacles using the mission PRNG */
+    uint16_t state = (uint16_t)(seed ^ 0xA3B7);
+    for (int i = 0; i < 8; i++) {
+        state = (uint16_t)(state * 0x5E5u + 0x29u);
+        int ox = pad_x0 + 2 + (state % (pad_x1 - pad_x0 - 3));
+        state = (uint16_t)(state * 0x5E5u + 0x29u);
+        int oy = pad_y0 + 3 + (state % (pad_y1 - pad_y0 - 4));
+        if (oy > pad_y0 + 1 && exterior->cells[oy][ox].type == CELL_FLOOR)
+            exterior->cells[oy][ox].type = CELL_WALL;
+    }
+
+    /* Texture: exterior uses texture set 0 */
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            for (int d = 0; d < 4; d++)
+                exterior->cells[y][x].wall_tex[d] = 0;
+            exterior->cells[y][x].floor_tex = 0;
+            exterior->cells[y][x].ceil_tex = 0;
+        }
+}

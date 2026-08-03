@@ -22,8 +22,8 @@
 - [x] Recover generator placement algorithm from 0x1C3C
 - [x] Wire CA map output to DungeonLevel conversion (10×56 → 64×32 cells)
 - [x] Implement feature placement pipeline from 0x33D7 (doors, puzzles, traps)
-- [ ] Validate MapGen output against original dumps
-- [ ] Verify exterior generation stage
+- [x] Validate MapGen output against original dumps
+- [x] Verify exterior generation stage
 
 ### Items
 - [x] Decode type code prefix bytes in item table (0x00/0x08/0x10/0x20/0x21/0x27/0x30/0x60/0x65)
@@ -63,7 +63,7 @@
 - [x] Recover city name generation (German syllable pairs + Greek letter suffix)
 - [x] Recover building name generation (type-specific name tables)
 - [ ] Verify grid topology against original game saves
-- [ ] Implement street layout rendering from grid connections
+- [x] Implement street layout rendering from grid connections
 
 ### CityGen grid (64×64)
 - [x] Disassemble CityGen 1.12 Amiga executable (10,824 bytes code)
@@ -82,14 +82,14 @@
 - [x] Implement entry point finder (sub_0180, difficulty >= 4)
 - [x] Implement finalize pass — cell type conversion switch (sub_24B8, ~20 cases)
 - [ ] Verify grid output against original game saves
-- [ ] Implement building-to-grid mapping (sub_1352, requires external BuildingGen data)
+- [x] Implement building-to-grid mapping (sub_1352, requires external BuildingGen data)
 
 ### PlotGen
 - [x] Disassemble ArcD decompressor from PlotGen (offsets 0x302-0x520)
 - [x] Implement ArcD Huffman+LZSS decoder with full parity (arcd_decoder.c)
 - [x] Verify decompression against all three text files (PGE.txt, DTE.txt, CTE.txt)
-- [ ] Disassemble PlotGen main algorithm (building interiors, plot state machine)
-- [ ] Decode text table opcodes and dialogue branching
+- [x] Disassemble PlotGen main algorithm (building interiors, plot state machine)
+- [x] Decode text table opcodes and dialogue branching
 
 ### 3D rendering
 - [x] Decode VGM wall texture format (4 concatenated AmSp banks, 152 sprites per file, 71 wall sets)
@@ -103,10 +103,10 @@
 - [x] Decode Img format (MainSP 158, 3dView 23×6 multi-frame, Taxi 4, backpack 176)
 - [x] Decode FNT font format (2 variants: CHAR magic, 114 glyphs, 2-plane proportional)
 - [x] Decode spr format (GameMenu = standard AmSp bank)
-- [ ] Extract and verify all 71 VGM wall texture sets from CD32 disc image
+- [x] Extract and verify all 71 VGM wall texture sets from CD32 disc image
 
 ### Runtime
 - [x] Implement city navigation (grid-based movement, collision, smooth interpolation, wall rendering)
-- [ ] Implement shop/bar/business interaction
-- [ ] Implement NPC dialogue system
+- [x] Implement shop/bar/business interaction
+- [x] Implement NPC dialogue system
 - [x] Implement save system (LSAV binary format, roundtrip, mission bitmap)

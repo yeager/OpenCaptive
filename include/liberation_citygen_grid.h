@@ -73,4 +73,7 @@ void citygrid_init(CityGridState *s, uint16_t seed_hi, uint16_t seed_lo,
                    uint16_t difficulty);
 void citygrid_generate(CityGridState *s);
 
+#include "liberation_citygen.h"
+void citygrid_map_buildings(CityGridState *s, const CityGrid *buildings);
+
 #endif

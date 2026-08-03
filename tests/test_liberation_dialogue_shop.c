@@ -1,5 +1,6 @@
 #include "liberation_dialogue.h"
 #include "liberation_shop.h"
+#include "liberation_building_interact.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -183,6 +184,99 @@ static void test_deterministic_inventory(void) {
     }
 }
 
+static void test_building_interact_shop(void) {
+    CityGrid bg;
+    memset(&bg, 0, sizeof(bg));
+    bg.total_buildings = 1;
+    bg.buildings[0].type = BUILDING_SHOP;
+    strcpy(bg.buildings[0].name, "Astro Parts");
+
+    CityGridState grid;
+    memset(&grid, 0, sizeof(grid));
+    grid.plane2[10 * CITYGRID_WIDTH + 5] = 1;
+
+    BuildingInteraction bi;
+    building_interact_init(&bi);
+
+    uint32_t gold = 5000;
+    assert(building_interact_enter(&bi, &grid, &bg, 5, 10, &gold));
+    assert(bi.active);
+    assert(bi.type == INTERACT_SHOP);
+    assert(bi.shop.item_count > 0);
+
+    const char *text = building_interact_text(&bi);
+    assert(text != NULL);
+    assert(building_interact_choice_count(&bi) > 0);
+
+    building_interact_leave(&bi);
+    assert(!bi.active);
+}
+
+static void test_building_interact_bar(void) {
+    CityGrid bg;
+    memset(&bg, 0, sizeof(bg));
+    bg.total_buildings = 1;
+    bg.buildings[0].type = BUILDING_BAR;
+    strcpy(bg.buildings[0].name, "Cosmic Lounge");
+
+    CityGridState grid;
+    memset(&grid, 0, sizeof(grid));
+    grid.plane2[5 * CITYGRID_WIDTH + 3] = 1;
+
+    BuildingInteraction bi;
+    building_interact_init(&bi);
+    uint32_t gold = 100;
+    assert(building_interact_enter(&bi, &grid, &bg, 3, 5, &gold));
+    assert(bi.type == INTERACT_BAR);
+    assert(bi.shop.item_count >= 3);
+}
+
+static void test_building_interact_generic(void) {
+    CityGrid bg;
+    memset(&bg, 0, sizeof(bg));
+    bg.total_buildings = 1;
+    bg.buildings[0].type = BUILDING_POLICE;
+    strcpy(bg.buildings[0].name, "Station Alpha");
+
+    CityGridState grid;
+    memset(&grid, 0, sizeof(grid));
+    grid.plane2[2 * CITYGRID_WIDTH + 2] = 1;
+
+    BuildingInteraction bi;
+    building_interact_init(&bi);
+    uint32_t gold = 0;
+    assert(building_interact_enter(&bi, &grid, &bg, 2, 2, &gold));
+    assert(bi.type == INTERACT_POLICE);
+    assert(bi.active);
+
+    const char *text = building_interact_text(&bi);
+    assert(text != NULL);
+
+    building_interact_choose(&bi, 0);
+    assert(!bi.active);
+}
+
+static void test_building_interact_buy(void) {
+    CityGrid bg;
+    memset(&bg, 0, sizeof(bg));
+    bg.total_buildings = 1;
+    bg.buildings[0].type = BUILDING_SHOP;
+    strcpy(bg.buildings[0].name, "Gear Shop");
+
+    CityGridState grid;
+    memset(&grid, 0, sizeof(grid));
+    grid.plane2[1 * CITYGRID_WIDTH + 1] = 1;
+
+    BuildingInteraction bi;
+    building_interact_init(&bi);
+    uint32_t gold = 10000;
+    building_interact_enter(&bi, &grid, &bg, 1, 1, &gold);
+
+    uint16_t price = bi.shop.items[0].price;
+    assert(building_interact_buy(&bi, 0));
+    assert(gold == 10000 - price);
+}
+
 int main(void) {
     test_dialogue_text_flow();
     test_dialogue_choices();
@@ -192,6 +286,10 @@ int main(void) {
     test_bar_menu();
     test_shop_dialogue();
     test_deterministic_inventory();
+    test_building_interact_shop();
+    test_building_interact_bar();
+    test_building_interact_generic();
+    test_building_interact_buy();
     printf("All dialogue/shop tests passed\n");
     return 0;
 }

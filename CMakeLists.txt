@@ -45,15 +45,20 @@ set(OPENCAPTIVE_SOURCES
     src/data/iso9660_reader.c
     src/data/liberation_data.c
     src/data/liberation_string_tables.c
+    src/data/liberation_text_table.c
     src/data/amos_sprite.c
     src/data/liberation_fnt.c
     src/data/liberation_img.c
     src/game/liberation_city_nav.c
     src/game/liberation_dialogue.c
     src/game/liberation_shop.c
+    src/game/liberation_building_interact.c
+    src/game/liberation_npc_dialogue.c
+    src/engine/liberation_plotgen.c
     src/game/liberation_save.c
     src/render/liberation_viewport_3d.c
     src/data/liberation_vgm.c
+    src/data/liberation_vgm_hashes.c
     src/data/liberation_x3g.c
     src/data/st_disk_reader.c
     src/audio/sound.c
@@ -164,6 +169,7 @@ add_test(NAME frame_compare COMMAND test_frame_compare)
 add_executable(test_data_vfs
     tests/test_data_vfs.c
     src/data/data_vfs.c
+    src/data/amiga_ofs.c
     src/data/sha256.c
 )
 target_include_directories(test_data_vfs PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -223,9 +229,28 @@ target_link_libraries(test_liberation_city_nav m)
 add_test(NAME liberation_city_nav COMMAND test_liberation_city_nav)
 
 add_executable(test_liberation_dialogue_shop tests/test_liberation_dialogue_shop.c
-    src/game/liberation_dialogue.c src/game/liberation_shop.c)
+    src/game/liberation_dialogue.c src/game/liberation_shop.c
+    src/game/liberation_building_interact.c
+    src/engine/liberation_citygen.c src/engine/liberation_citygen_grid.c
+    src/data/liberation_string_tables.c)
 target_include_directories(test_liberation_dialogue_shop PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME liberation_dialogue_shop COMMAND test_liberation_dialogue_shop)
+
+add_executable(test_liberation_text_table tests/test_liberation_text_table.c
+    src/data/liberation_text_table.c src/engine/arcd_decoder.c)
+target_include_directories(test_liberation_text_table PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation_text_table COMMAND test_liberation_text_table)
+
+add_executable(test_liberation_npc_dialogue tests/test_liberation_npc_dialogue.c
+    src/game/liberation_npc_dialogue.c src/data/liberation_text_table.c
+    src/engine/arcd_decoder.c src/game/liberation_dialogue.c)
+target_include_directories(test_liberation_npc_dialogue PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation_npc_dialogue COMMAND test_liberation_npc_dialogue)
+
+add_executable(test_liberation_plotgen tests/test_liberation_plotgen.c
+    src/engine/liberation_plotgen.c src/data/liberation_string_tables.c)
+target_include_directories(test_liberation_plotgen PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation_plotgen COMMAND test_liberation_plotgen)
 
 add_executable(test_liberation_save tests/test_liberation_save.c
     src/game/liberation_save.c src/game/liberation_city_nav.c
@@ -396,17 +421,17 @@ add_executable(iso_list
 )
 target_include_directories(iso_list PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
-add_executable(hash_find tools/hash_find.c src/data/data_vfs.c src/data/sha256.c)
+add_executable(hash_find tools/hash_find.c src/data/data_vfs.c src/data/amiga_ofs.c src/data/sha256.c)
 target_include_directories(hash_find PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(hash_find PRIVATE ZLIB::ZLIB)
 
 
-add_executable(hash_extract tools/hash_extract.c src/data/data_vfs.c src/data/sha256.c)
+add_executable(hash_extract tools/hash_extract.c src/data/data_vfs.c src/data/amiga_ofs.c src/data/sha256.c)
 target_include_directories(hash_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(hash_extract PRIVATE ZLIB::ZLIB)
 
 add_executable(liberation_cd32_cue tools/liberation_cd32_cue.c
-    src/data/data_vfs.c src/data/sha256.c)
+    src/data/data_vfs.c src/data/amiga_ofs.c src/data/sha256.c)
 target_include_directories(liberation_cd32_cue PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(liberation_cd32_cue PRIVATE ZLIB::ZLIB)
 
@@ -427,6 +452,7 @@ add_executable(verify_liberation
     src/data/rnc_decoder.c
     src/data/iso9660_reader.c
     src/data/data_vfs.c
+    src/data/amiga_ofs.c
     src/data/sha256.c
 )
 target_include_directories(verify_liberation PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -439,6 +465,7 @@ add_executable(liberation_extract
     src/data/rnc_decoder.c
     src/data/iso9660_reader.c
     src/data/data_vfs.c
+    src/data/amiga_ofs.c
     src/data/sha256.c
 )
 target_include_directories(liberation_extract PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -452,6 +479,7 @@ add_executable(liberation_hunk_info
     src/data/rnc_decoder.c
     src/data/iso9660_reader.c
     src/data/data_vfs.c
+    src/data/amiga_ofs.c
     src/data/sha256.c
 )
 target_include_directories(liberation_hunk_info PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -460,6 +488,7 @@ target_link_libraries(liberation_hunk_info PRIVATE ZLIB::ZLIB)
 add_executable(liberation_inventory
     tools/liberation_inventory.c
     src/data/data_vfs.c
+    src/data/amiga_ofs.c
     src/data/iso9660_reader.c
     src/data/liberation_data.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c
@@ -471,6 +500,7 @@ target_link_libraries(liberation_inventory PRIVATE ZLIB::ZLIB)
 add_executable(liberation_form_inventory
     tools/liberation_form_inventory.c
     src/data/data_vfs.c
+    src/data/amiga_ofs.c
     src/data/iso9660_reader.c
     src/data/liberation_data.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c
@@ -486,6 +516,7 @@ add_executable(liberation_presentation_inventory
     src/data/rnc_decoder.c
     src/data/iso9660_reader.c
     src/data/data_vfs.c
+    src/data/amiga_ofs.c
     src/data/sha256.c
 )
 target_include_directories(liberation_presentation_inventory PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -498,21 +529,53 @@ add_executable(liberation_presentation_capture
     src/data/rnc_decoder.c
     src/data/iso9660_reader.c
     src/data/data_vfs.c
+    src/data/amiga_ofs.c
     src/data/sha256.c
 )
 target_include_directories(liberation_presentation_capture PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(liberation_presentation_capture PRIVATE ZLIB::ZLIB)
 
+add_executable(liberation_vgm_verify
+    tools/liberation_vgm_verify.c
+    src/data/liberation_data.c src/data/liberation_string_tables.c
+    src/data/liberation_anim.c src/data/liberation_vgm.c
+    src/data/amos_sprite.c
+    src/data/rnc_decoder.c
+    src/data/iso9660_reader.c
+    src/data/data_vfs.c
+    src/data/amiga_ofs.c
+    src/data/sha256.c
+)
+target_include_directories(liberation_vgm_verify PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(liberation_vgm_verify PRIVATE ZLIB::ZLIB)
+
 add_executable(amos_sprite_dump tools/amos_sprite_dump.c src/data/amos_sprite.c
-    src/data/data_vfs.c src/data/iso9660_reader.c src/data/liberation_data.c src/data/liberation_string_tables.c
+    src/data/data_vfs.c src/data/amiga_ofs.c src/data/iso9660_reader.c src/data/liberation_data.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c src/data/rnc_decoder.c src/data/sha256.c)
 target_include_directories(amos_sprite_dump PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(amos_sprite_dump PRIVATE ZLIB::ZLIB)
 
 add_executable(captive_panel_match tools/captive_panel_match.c
-    src/data/captive_scene_assets.c src/data/pl5_decoder.c src/data/data_vfs.c src/data/sha256.c)
+    src/data/captive_scene_assets.c src/data/pl5_decoder.c src/data/data_vfs.c src/data/amiga_ofs.c src/data/sha256.c)
 target_include_directories(captive_panel_match PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(captive_panel_match PRIVATE ZLIB::ZLIB)
+
+add_executable(dump_pge tools/dump_pge.c
+    src/data/liberation_data.c src/data/liberation_string_tables.c
+    src/data/liberation_anim.c src/data/rnc_decoder.c
+    src/data/iso9660_reader.c src/data/data_vfs.c
+    src/data/amiga_ofs.c src/data/sha256.c
+    src/engine/arcd_decoder.c)
+target_include_directories(dump_pge PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(dump_pge PRIVATE ZLIB::ZLIB)
+
+add_executable(dump_plotgen tools/dump_plotgen.c
+    src/data/liberation_data.c src/data/liberation_string_tables.c
+    src/data/liberation_anim.c src/data/rnc_decoder.c
+    src/data/iso9660_reader.c src/data/data_vfs.c
+    src/data/amiga_ofs.c src/data/sha256.c)
+target_include_directories(dump_plotgen PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(dump_plotgen PRIVATE ZLIB::ZLIB)
 
 add_executable(st_list tools/st_list.c src/data/st_disk_reader.c src/data/sha256.c)
 target_include_directories(st_list PRIVATE ${CMAKE_SOURCE_DIR}/include)

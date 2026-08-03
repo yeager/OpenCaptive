@@ -15,6 +15,7 @@ static const char intro_presentation_sha256[] =
     "e7e35f1b491fafd95da260abcb1c1c402140601840c5f98ae7282069fd30b269";
 static const char city_presentation_sha256[] =
     "b94a450c12428af9a22b8bb8c31fca74cdc2b2bd3be3dc9c7a1eadd7e6576101";
+/* CD32 resource content hashes. */
 static const char *const resource_sha256[LIBERATION_RESOURCE_COUNT] = {
     [LIBERATION_RESOURCE_GAME_BINARY] =
         "db61f7e39fd31ac19b82216ea963711728d25518454fae42fd89c5bab52f2215",
@@ -30,6 +31,26 @@ static const char *const resource_sha256[LIBERATION_RESOURCE_COUNT] = {
         "e154d250c1acdbed66835bb356a699efdb6f9f8b5e6d586ca07080414610a94c",
     [LIBERATION_RESOURCE_MISSION_MENU] =
         "d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2",
+};
+
+/* Amiga OCS/AGA floppy resource hashes.  CityGen and PlotGen are byte-
+   identical across platforms; the game binary, text tables, and mission
+   menu differ. */
+static const char *const amiga_resource_sha256[LIBERATION_RESOURCE_COUNT] = {
+    [LIBERATION_RESOURCE_GAME_BINARY] =
+        "c9472ad779b4c48f0210627296ef238b61ec19718421d24808c3319e754cc6de",
+    [LIBERATION_RESOURCE_CITY_GENERATOR] =
+        "e54540c3bf8dfaf569380a135ac039f1438e9efb85cf6d5e3e487e25d4c7c13e",
+    [LIBERATION_RESOURCE_PLOT_GENERATOR] =
+        "bc9c922801661eb66024d0bcf822c03e38ffea7f3576693e0512692ccf6d6705",
+    [LIBERATION_RESOURCE_PLOT_TEXT] =
+        "8134f8b1dc241a92d22963ce12401b7fa82799655db569fcb36b5e01d01a8b34",
+    [LIBERATION_RESOURCE_CITY_TEXT] =
+        "8d2b0082bcb98df7f64a55a51635da1f146c02beea2a6722b5b57a19561d6734",
+    [LIBERATION_RESOURCE_DIALOGUE_TEXT] =
+        "4dbdbd20f26b6f4c8cfd637f5b917d71876e1130ef0282ead4c1a0dde41ecced",
+    [LIBERATION_RESOURCE_MISSION_MENU] =
+        "9664753e362deccbcd1f4a55e4c63ae4a6763de620306373a275fb7052b4e11b",
 };
 
 static uint32_t read_be32(const uint8_t *data) {
@@ -90,23 +111,44 @@ static void load_optional_presentation_frames(LiberationData *data) {
 
 bool liberation_data_open(LiberationData *data, const DataVFS *vfs) {
     memset(data, 0, sizeof(*data));
+    data->vfs = vfs;
+
+    /* Try CD32 ISO first */
     data->disc_data = vfs_find_sha256(vfs, cd32_track_sha256, &data->disc_size);
-    if (!data->disc_data || !iso_open_raw(&data->iso, data->disc_data, data->disc_size)) {
-        liberation_data_close(data);
-        return false;
+    if (data->disc_data && iso_open_raw(&data->iso, data->disc_data, data->disc_size)) {
+        bool all_found = true;
+        for (int i = 0; i < LIBERATION_RESOURCE_COUNT; i++) {
+            uint8_t *file = iso_read_file_sha256(&data->iso, resource_sha256[i], NULL);
+            if (!file) { all_found = false; break; }
+            free(file);
+        }
+        if (all_found) {
+            data->verified = true;
+            data->source = LIBERATION_SOURCE_CD32;
+            load_optional_presentation_frames(data);
+            return true;
+        }
     }
 
+    /* Fall back to Amiga ADF: resources found directly via VFS SHA-256
+     * (the VFS now searches inside ADF disk images in ZIP archives) */
+    if (data->disc_data) { free(data->disc_data); data->disc_data = NULL; }
+    memset(&data->iso, 0, sizeof(data->iso));
+
+    int found = 0;
     for (int i = 0; i < LIBERATION_RESOURCE_COUNT; i++) {
-        uint8_t *file = iso_read_file_sha256(&data->iso, resource_sha256[i], NULL);
-        if (!file) {
-            liberation_data_close(data);
-            return false;
-        }
-        free(file);
+        uint8_t *file = vfs_find_sha256(vfs, amiga_resource_sha256[i], NULL);
+        if (file) { found++; free(file); }
     }
-    data->verified = true;
-    load_optional_presentation_frames(data);
-    return true;
+
+    if (found == LIBERATION_RESOURCE_COUNT) {
+        data->verified = true;
+        data->source = LIBERATION_SOURCE_AMIGA_ADF;
+        return true;
+    }
+
+    liberation_data_close(data);
+    return false;
 }
 
 uint8_t *liberation_data_read(const LiberationData *data,
@@ -114,6 +156,8 @@ uint8_t *liberation_data_read(const LiberationData *data,
     if (out_size) *out_size = 0;
     if (!data || !data->verified || resource < 0 ||
         resource >= LIBERATION_RESOURCE_COUNT) return NULL;
+    if (data->source == LIBERATION_SOURCE_AMIGA_ADF && data->vfs)
+        return vfs_find_sha256(data->vfs, amiga_resource_sha256[resource], out_size);
     return iso_read_file_sha256(&data->iso, resource_sha256[resource], out_size);
 }
 

@@ -1,4 +1,5 @@
 #include "data_vfs.h"
+#include "amiga_ofs.h"
 #include "sha256.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -299,6 +300,11 @@ static uint8_t *zip_find_sha256_memory(const uint8_t *archive, size_t archive_si
                                                       out_size, depth + 1U);
             if (nested) { free(data); return nested; }
         }
+        if (size == 901120U || size == 1802240U) {
+            uint8_t *adf_file = amiga_ofs_find_file_sha256(data, size,
+                                                            expected_sha256, out_size);
+            if (adf_file) { free(data); return adf_file; }
+        }
         free(data);
     }
     return NULL;
@@ -352,6 +358,12 @@ static uint8_t *zip_find_sha256(const char *zip_path, const char expected_sha256
             uint8_t *nested = zip_find_sha256_memory(data, size, expected_sha256,
                                                       out_size, 1U);
             if (nested) { free(data); fclose(f); return nested; }
+        }
+        /* Amiga ADF disk images (880KB DD or 1760KB HD) */
+        if (size == 901120U || size == 1802240U) {
+            uint8_t *adf_file = amiga_ofs_find_file_sha256(data, size,
+                                                            expected_sha256, out_size);
+            if (adf_file) { free(data); fclose(f); return adf_file; }
         }
         free(data);
     }
@@ -480,6 +492,11 @@ static uint8_t *find_hash_in_directory(const char *path, const char expected_sha
             if (sha256_matches_hex(digest, expected_sha256)) {
                 closedir(dir); if (out_size) *out_size = size; return data;
             }
+            if (size == 901120U || size == 1802240U) {
+                uint8_t *adf_file = amiga_ofs_find_file_sha256(data, size,
+                                                                expected_sha256, out_size);
+                if (adf_file) { free(data); closedir(dir); return adf_file; }
+            }
             free(data);
         }
     }
@@ -510,6 +527,11 @@ static uint8_t *find_hash_in_directory(const char *path, const char expected_sha
             uint8_t digest[32]; sha256_digest(data, size, digest);
             if (sha256_matches_hex(digest, expected_sha256)) {
                 FindClose(handle); if (out_size) *out_size = size; return data;
+            }
+            if (size == 901120U || size == 1802240U) {
+                uint8_t *adf_file = amiga_ofs_find_file_sha256(data, size,
+                                                                expected_sha256, out_size);
+                if (adf_file) { free(data); FindClose(handle); return adf_file; }
             }
             free(data);
         }

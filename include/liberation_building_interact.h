@@ -1,0 +1,51 @@
+#ifndef LIBERATION_BUILDING_INTERACT_H
+#define LIBERATION_BUILDING_INTERACT_H
+
+#include <stdbool.h>
+#include <stdint.h>
+#include "liberation_citygen.h"
+#include "liberation_citygen_grid.h"
+#include "liberation_shop.h"
+#include "liberation_dialogue.h"
+
+typedef enum {
+    INTERACT_NONE,
+    INTERACT_SHOP,
+    INTERACT_BAR,
+    INTERACT_BUSINESS,
+    INTERACT_LIBRARY,
+    INTERACT_POLICE,
+    INTERACT_RECORDS,
+    INTERACT_RESIDENCE,
+    INTERACT_INDUSTRIAL,
+    INTERACT_SPECIAL,
+} InteractionType;
+
+typedef struct {
+    InteractionType type;
+    bool active;
+    LibShopState shop;
+    DialogueState dialogue;
+    int building_index;
+    uint32_t *player_gold;
+} BuildingInteraction;
+
+void building_interact_init(BuildingInteraction *bi);
+
+bool building_interact_enter(BuildingInteraction *bi,
+                             const CityGridState *grid,
+                             const CityGrid *buildings,
+                             int cell_x, int cell_y,
+                             uint32_t *player_gold);
+
+void building_interact_choose(BuildingInteraction *bi, unsigned choice);
+void building_interact_advance(BuildingInteraction *bi);
+bool building_interact_buy(BuildingInteraction *bi, unsigned item_idx);
+void building_interact_leave(BuildingInteraction *bi);
+
+const char *building_interact_text(const BuildingInteraction *bi);
+unsigned building_interact_choice_count(const BuildingInteraction *bi);
+const char *building_interact_choice_label(const BuildingInteraction *bi,
+                                            unsigned idx);
+
+#endif

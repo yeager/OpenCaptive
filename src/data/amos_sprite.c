@@ -8,26 +8,32 @@ static uint32_t rgb(uint16_t c) {
 }
 
 bool amos_sprite_get(const uint8_t *data, size_t size, unsigned index, AmosSprite *out) {
-    if (!data || !out || size < 70 || memcmp(data, "AmSp", 4)) return false;
+    if (!data || !out || size < 6 || memcmp(data, "AmSp", 4)) return false;
     unsigned count = be16(data + 4); size_t pos = 6;
     if (index >= count) return false;
+    bool has_palette = size >= 70;
     for (unsigned n = 0; n < count; ++n) {
-        if (pos + 10 > size - 64) return false;
+        if (pos + 10 > size) return false;
         unsigned width_field = be16(data + pos), height = be16(data + pos + 2), depth = be16(data + pos + 4);
         bool has_mask = (be16(data + pos + 6) & 0x8000u) != 0;
         unsigned bytes_per_row = (width_field & 0x7fff) * 2 - (width_field >> 15);
         if (!bytes_per_row || !height || !depth || depth > 5) return false;
-        /* A negative X hotspot requests a transparency mask plane. */
         size_t bytes = (size_t)bytes_per_row * height * (depth + (has_mask ? 1 : 0));
-        if (bytes > size - 64 - pos - 10) return false;
+        if (pos + 10 + bytes > size) return false;
         if (n == index) {
-            memset(out, 0, sizeof(*out)); out->width = bytes_per_row * 8; out->height = height; out->depth = depth; out->bytes_per_row = bytes_per_row; out->has_mask = has_mask; out->planes = data + pos + 10;
-            for (int p = 0; p < 32; ++p) out->palette[p] = rgb(be16(data + size - 64 + p * 2));
+            memset(out, 0, sizeof(*out));
+            out->width = bytes_per_row * 8;
+            out->height = height;
+            out->depth = depth;
+            out->bytes_per_row = bytes_per_row;
+            out->has_mask = has_mask;
+            out->planes = data + pos + 10;
+            if (has_palette && size >= 64) {
+                for (int p = 0; p < 32; ++p)
+                    out->palette[p] = rgb(be16(data + size - 64 + p * 2));
+            }
             return true;
         }
-        /* Object records are word aligned.  An odd planar payload gets one
-         * padding byte before the next record, exactly as the 68000 loader
-         * advances its source pointer. */
         pos += (10 + bytes + 1) & ~(size_t)1;
     }
     return false;

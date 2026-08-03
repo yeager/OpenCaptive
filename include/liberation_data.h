@@ -6,11 +6,19 @@
 #include "liberation_anim.h"
 #include <stdbool.h>
 
+typedef enum {
+    LIBERATION_SOURCE_NONE,
+    LIBERATION_SOURCE_CD32,
+    LIBERATION_SOURCE_AMIGA_ADF,
+} LiberationSource;
+
 typedef struct {
     uint8_t *disc_data;
     size_t disc_size;
     ISOImage iso;
     bool verified;
+    LiberationSource source;
+    const DataVFS *vfs;
     LiberationAnimFrame city_frame;
     LiberationAnimFrame intro_frame;
     LiberationAnimScript city_script;

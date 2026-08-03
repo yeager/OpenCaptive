@@ -36,7 +36,34 @@ void game_state_new_mission(GameState *gs, int mission) {
     // Architect creates one flattened 64x32 base whose 16x8 sections are
     // connected by stairs and elevators.  map_generate_base exposes those
     // logical floors through levels[] for the current game-state API.
-    map_generate_base(gs->levels, &gs->num_levels, gs->mission_seed);
+    int base_levels = 0;
+    DungeonLevel base_buf[MAX_LEVELS - 1];
+    map_generate_base(base_buf, &base_levels, gs->mission_seed);
+
+    /* Find base entrance x on floor 0 row 0 */
+    int entrance_x = MAP_WIDTH / 2;
+    for (int x = 0; x < MAP_WIDTH; x++) {
+        if (base_buf[0].cells[0][x].type != CELL_WALL) {
+            entrance_x = x;
+            break;
+        }
+    }
+
+    /* Exterior landing zone is level 0; base levels follow */
+    map_generate_exterior(&gs->levels[0], entrance_x, gs->mission_seed);
+    for (int i = 0; i < base_levels && i + 1 < MAX_LEVELS; i++)
+        gs->levels[i + 1] = base_buf[i];
+    gs->num_levels = (base_levels + 1 <= MAX_LEVELS) ? base_levels + 1 : MAX_LEVELS;
+
+    /* Place a STAIRS_UP at the base entrance so the exterior connects back */
+    if (gs->num_levels > 1) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (gs->levels[1].cells[0][x].type == CELL_FLOOR) {
+                gs->levels[1].cells[0][x].type = CELL_STAIRS_UP;
+                break;
+            }
+        }
+    }
 
     gs->generators_total = 0;
     for (int i = 0; i < gs->num_levels; i++) {

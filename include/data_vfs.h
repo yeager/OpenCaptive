@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define VFS_MAX_ZIPS 16
+#define VFS_MAX_ZIPS 64
 
 typedef struct {
     char data_path[512];

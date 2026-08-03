@@ -20,4 +20,9 @@ void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
  * output fixtures are available. */
 void mapgen_original_prng_sequence(uint16_t seed, uint16_t *out, size_t count);
 
+/* Generate the exterior landing zone level prepended to a base.
+ * The exterior is a flat open area with the base entrance at one edge.
+ * entrance_x is the x coordinate of the base entrance on floor 0 row 0. */
+void map_generate_exterior(DungeonLevel *exterior, int entrance_x, uint32_t seed);
+
 #endif
