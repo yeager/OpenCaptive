@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include "liberation_combat.h"
 
+static GameState test_gs_storage;
+
 static void init_test_gs(GameState *gs) {
     memset(gs, 0, sizeof(*gs));
     for (int i = 0; i < 4; i++) {
@@ -52,46 +54,46 @@ static void test_deterministic(void) {
 
 static void test_droid_attack(void) {
     LibCombatState cs;
-    GameState gs;
-    init_test_gs(&gs);
+    GameState *gs = &test_gs_storage;
+    init_test_gs(gs);
     lib_combat_init(&cs);
     lib_combat_generate_encounter(&cs, 99, 1);
     int16_t hp_before = cs.enemies[0].hp;
-    bool ok = lib_combat_droid_attack(&cs, &gs, 0);
+    bool ok = lib_combat_droid_attack(&cs, gs, 0);
     assert(ok);
     assert(cs.enemies[0].hp < hp_before);
-    assert(gs.droids[0].energy == 47);
+    assert(gs->droids[0].energy == 47);
     printf("  PASS droid_attack\n");
 }
 
 static void test_energy_required(void) {
     LibCombatState cs;
-    GameState gs;
-    init_test_gs(&gs);
-    gs.droids[0].energy = 2;
+    GameState *gs = &test_gs_storage;
+    init_test_gs(gs);
+    gs->droids[0].energy = 2;
     lib_combat_init(&cs);
     lib_combat_generate_encounter(&cs, 99, 1);
-    bool ok = lib_combat_droid_attack(&cs, &gs, 0);
+    bool ok = lib_combat_droid_attack(&cs, gs, 0);
     assert(!ok);
     printf("  PASS energy_required\n");
 }
 
 static void test_combat_full_round(void) {
     LibCombatState cs;
-    GameState gs;
-    init_test_gs(&gs);
+    GameState *gs = &test_gs_storage;
+    init_test_gs(gs);
     lib_combat_init(&cs);
     lib_combat_generate_encounter(&cs, 77, 1);
     int rounds = 0;
-    while (!lib_combat_is_over(&cs, &gs) && rounds < 100) {
+    while (!lib_combat_is_over(&cs, gs) && rounds < 100) {
         for (int d = 0; d < 4; d++) {
-            lib_combat_droid_attack(&cs, &gs, d);
+            lib_combat_droid_attack(&cs, gs, d);
         }
-        if (!lib_combat_is_over(&cs, &gs))
-            lib_combat_enemy_turn(&cs, &gs);
+        if (!lib_combat_is_over(&cs, gs))
+            lib_combat_enemy_turn(&cs, gs);
         rounds++;
     }
-    assert(lib_combat_is_over(&cs, &gs));
+    assert(lib_combat_is_over(&cs, gs));
     printf("  PASS full_round (%d turns)\n", rounds);
 }
 

@@ -169,7 +169,7 @@ static void test_replay(void) {
 }
 
 static void test_cross_save(void) {
-    GameState gs;
+    static GameState gs;
     memset(&gs, 0, sizeof(gs));
     gs.game_type = GAME_CAPTIVE;
     gs.party_x = 10;
@@ -237,7 +237,7 @@ static void test_minimap_render(void) {
 }
 
 static void test_debug_hud_render(void) {
-    GameState gs;
+    static GameState gs;
     memset(&gs, 0, sizeof(gs));
     gs.party_x = 10;
     gs.party_y = 20;

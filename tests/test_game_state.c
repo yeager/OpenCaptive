@@ -60,7 +60,7 @@ static void test_combat_respects_closed_doors(void) {
 }
 
 static void test_first_mission_uses_architect_seed_zero(void) {
-    GameState gs;
+    static GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
     assert(gs.base_id == 0);
     game_state_new_mission(&gs, 1);
