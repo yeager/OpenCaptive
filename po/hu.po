@@ -1,4 +1,4 @@
-# Swedish translation for OpenCaptive
+# Hungarian translation for OpenCaptive
 # Copyright (C) 2026 Daniel Nylander
 # This file is distributed under the MIT license.
 #
@@ -9,8 +9,8 @@ msgstr ""
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
 "Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
-"Language-Team: Swedish\n"
-"Language: sv\n"
+"Language-Team: Hungarian\n"
+"Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,10 +20,10 @@ msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
 msgid "BY DANIEL NYLANDER"
-msgstr "AV DANIEL NYLANDER"
+msgstr "KESZITETTE DANIEL NYLANDER"
 
 msgid "SELECT GAME"
-msgstr "VALJ SPEL"
+msgstr "JATEK VALASZTASA"
 
 msgid "CAPTIVE (1990)"
 msgstr "CAPTIVE (1990)"
@@ -32,156 +32,141 @@ msgid "LIBERATION: CAPTIVE 2"
 msgstr "LIBERATION: CAPTIVE 2"
 
 msgid "SETTINGS"
-msgstr "INSTALLNINGAR"
+msgstr "BEALLITASOK"
 
 msgid "QUIT"
-msgstr "AVSLUTA"
+msgstr "KILEPES"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "UPP-NER: VALJ  ENTER: STARTA  ESC: AVSLUTA"
+msgstr "FEL-LE: VALASZTAS  ENTER: INDITAS  ESC: KILEPES"
 
 #. Settings menu
 msgid "RENDERER:"
-msgstr "RENDERARE:"
+msgstr "MEGJELENIETO:"
 
 msgid "SCANLINES:"
-msgstr "SKANLINJER:"
+msgstr "PASZTAZAS:"
 
 msgid "CRT CURVE:"
-msgstr "CRT-KURVA:"
+msgstr "CRT GORBE:"
 
 msgid "BILINEAR:"
-msgstr "BILINJAR:"
+msgstr "BILINEARIS:"
 
 msgid "INT SCALE:"
-msgstr "HEL SKALA:"
+msgstr "INT MERETEZES:"
 
 msgid "SCALE:"
-msgstr "SKALA:"
+msgstr "MERETEZES:"
 
 msgid "FULLSCREEN:"
-msgstr "HELSKARM:"
+msgstr "TELJES KEPERNYOE:"
 
 msgid "VSYNC:"
 msgstr "VSYNC:"
 
 msgid "FPS LIMIT:"
-msgstr "FPS-GRANS:"
+msgstr "FPS KORLAT:"
 
 msgid "BRIGHTNESS:"
-msgstr "LJUSSTYRKA:"
+msgstr "FENYEROE:"
 
 msgid "CONTRAST:"
-msgstr "KONTRAST:"
+msgstr "KONTRASZT:"
 
 msgid "MUSIC:"
-msgstr "MUSIK:"
+msgstr "ZENE:"
 
 msgid "SFX:"
-msgstr "LJUDEFFEKTER:"
+msgstr "HANGEFFEKTEK:"
 
 msgid "DATA PATH:"
-msgstr "DATASOKVAG:"
-
-msgid "LANGUAGE:"
-msgstr "SPRAK:"
+msgstr "ADAT ELERESI UT:"
 
 msgid "BACK"
-msgstr "TILLBAKA"
+msgstr "VISSZA"
 
 msgid "ON"
-msgstr "PA"
+msgstr "BE"
 
 msgid "OFF"
-msgstr "AV"
+msgstr "KI"
 
 msgid "UNLIMITED"
-msgstr "OBEGRANSAD"
+msgstr "KORLATLAN"
 
-msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
-msgstr "SKRIV SOKVAG  ENTER: BEKRAFTA  ESC: AVBRYT"
+msgid "ENTER: EDIT PATH  ESC: CANCEL"
+msgstr "ENTER: UT SZERKESZTESE  ESC: MEGSE"
 
-msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
-msgstr "UPP-NER: VALJ  VANTER-HOGER: ANDRA  ESC: TILLBAKA"
+msgid "ENTER: SAVE PATH  ESC: CANCEL"
+msgstr "ENTER: UT MENTESE  ESC: MEGSE"
 
 #. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Det har ar %s. Vi tar inte emot besokare just nu."
+msgstr "Ez %s. Jelenleg nem fogadunk latogatokat."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Valkommen till %s. Arkiven ar oppna for allmanheten."
+msgstr "Udvozoljuk a %s-ben. Az archivum nyilvanos hozzaferesre elerheto."
 
 msgid "This is the %s police station. State your business."
-msgstr "Det har ar %s polisstation. Vad vill du?"
+msgstr "Ez a %s rendorkapitanysag. Mi jaratban?"
 
 msgid "City Records Office. How can we help?"
-msgstr "Stadsarkivet. Hur kan vi hjalpa dig?"
-
-msgid "This is a private residence. What do you want?"
-msgstr "Det har ar en privatbostad. Vad vill du?"
-
-msgid "Welcome to %s. This area is restricted."
-msgstr "Valkommen till %s. Omradet ar begransat."
+msgstr "Varosi Nyilvantartasi Hivatal. Miben segithetunk?"
 
 msgid "%s. Come in and browse."
-msgstr "%s. Kom in och titta runt."
+msgstr "%s. Jonnek be es nezzek korul."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Valkommen till %s! Vad far det vara?"
+msgstr "Udvozoljuk a %s-ben! Mit keresnek?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Valkommen till %s. Hur kan vi hjalpa dig idag?"
+msgstr "Udvozoljuk a %s-ben. Miben segithetunk ma?"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. Du borde inte vara har."
-
-msgid "Take a look at what I have."
-msgstr "Titta pa vad jag har."
-
-msgid "I might have heard something. Check back later."
-msgstr "Jag kan ha hort nagot. Kom tillbaka senare."
+msgstr "%s. Nem kellene itt lennie."
 
 msgid "You leave the building."
-msgstr "Du lamnar byggnaden."
+msgstr "Elhagyja az epuletet."
 
 #. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Valkommen till %s! Vad kan jag gora for dig?"
+msgstr "Udvozoljuk a %s-ben! Miben segithetek?"
 
 msgid "Goodbye!"
-msgstr "Hejda!"
+msgstr "Viszontlatasra!"
 
 msgid "Buy/Sell"
-msgstr "Kop/Salj"
+msgstr "Vetel/Eladas"
 
 msgid "Any news?"
-msgstr "Nagra nyheter?"
+msgstr "Van valami ujsag?"
 
 msgid "Leave"
-msgstr "Ga"
+msgstr "Tavozas"
 
 #. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Du gar."
+msgstr "Tavozik."
 
 msgid "Trade"
-msgstr "Handla"
+msgstr "Kereskedelem"
 
 msgid "Ask around"
-msgstr "Fraga runt"
+msgstr "Kerdezoeskodes"
 
 #. Error messages
 msgid "Failed to initialize renderer"
-msgstr "Kunde inte starta renderaren"
+msgstr "A megjelenieto inicializalasa sikertelen"
 
 msgid "Missing game data"
-msgstr "Speldata saknas"
+msgstr "Hianyzik a jatekadatok"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Ingen speldata hittades. Ange datasokvagen i Installningar eller anvand --data pa kommandoraden."
+msgstr "Nem talalhato jatekadat. Allitsa be az eleresi utat a Beallitasokban vagy hasznaljon --data parameterrel a parancssorban."
 
 msgid "You can also change the data path in Settings."
-msgstr "Du kan ocksa andra datasokvagen i Installningar."
+msgstr "Az eleresi utat a Beallitasokban is megvaltoztathatja."
 
 msgid "Missing Liberation data"
-msgstr "Liberation-data saknas"
+msgstr "Hianyzik a Liberation adatok"

@@ -1,4 +1,4 @@
-# Swedish translation for OpenCaptive
+# Chinese translation for OpenCaptive
 # Copyright (C) 2026 Daniel Nylander
 # This file is distributed under the MIT license.
 #
@@ -9,8 +9,8 @@ msgstr ""
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
 "Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
-"Language-Team: Swedish\n"
-"Language: sv\n"
+"Language-Team: Chinese\n"
+"Language: zh\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,10 +20,10 @@ msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
 msgid "BY DANIEL NYLANDER"
-msgstr "AV DANIEL NYLANDER"
+msgstr "ZUOZHE DANIEL NYLANDER"
 
 msgid "SELECT GAME"
-msgstr "VALJ SPEL"
+msgstr "XUANZE YOUXI"
 
 msgid "CAPTIVE (1990)"
 msgstr "CAPTIVE (1990)"
@@ -32,156 +32,141 @@ msgid "LIBERATION: CAPTIVE 2"
 msgstr "LIBERATION: CAPTIVE 2"
 
 msgid "SETTINGS"
-msgstr "INSTALLNINGAR"
+msgstr "SHEZHI"
 
 msgid "QUIT"
-msgstr "AVSLUTA"
+msgstr "TUICHU"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "UPP-NER: VALJ  ENTER: STARTA  ESC: AVSLUTA"
+msgstr "SHANG-XIA: XUANZE  ENTER: KAISHI  ESC: TUICHU"
 
 #. Settings menu
 msgid "RENDERER:"
-msgstr "RENDERARE:"
+msgstr "XUANRANQI:"
 
 msgid "SCANLINES:"
-msgstr "SKANLINJER:"
+msgstr "SAOMIAOXIAN:"
 
 msgid "CRT CURVE:"
-msgstr "CRT-KURVA:"
+msgstr "CRT QULV:"
 
 msgid "BILINEAR:"
-msgstr "BILINJAR:"
+msgstr "SHUANGXIANXING:"
 
 msgid "INT SCALE:"
-msgstr "HEL SKALA:"
+msgstr "ZHENGSHU SUOFANG:"
 
 msgid "SCALE:"
-msgstr "SKALA:"
+msgstr "SUOFANG:"
 
 msgid "FULLSCREEN:"
-msgstr "HELSKARM:"
+msgstr "QUANPING:"
 
 msgid "VSYNC:"
 msgstr "VSYNC:"
 
 msgid "FPS LIMIT:"
-msgstr "FPS-GRANS:"
+msgstr "FPS XIANZHI:"
 
 msgid "BRIGHTNESS:"
-msgstr "LJUSSTYRKA:"
+msgstr "LIANGDU:"
 
 msgid "CONTRAST:"
-msgstr "KONTRAST:"
+msgstr "DUIBIDU:"
 
 msgid "MUSIC:"
-msgstr "MUSIK:"
+msgstr "YINYUE:"
 
 msgid "SFX:"
-msgstr "LJUDEFFEKTER:"
+msgstr "YINXIAO:"
 
 msgid "DATA PATH:"
-msgstr "DATASOKVAG:"
-
-msgid "LANGUAGE:"
-msgstr "SPRAK:"
+msgstr "SHUJU LUJING:"
 
 msgid "BACK"
-msgstr "TILLBAKA"
+msgstr "FANHUI"
 
 msgid "ON"
-msgstr "PA"
+msgstr "KAI"
 
 msgid "OFF"
-msgstr "AV"
+msgstr "GUAN"
 
 msgid "UNLIMITED"
-msgstr "OBEGRANSAD"
+msgstr "WUXIAN"
 
-msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
-msgstr "SKRIV SOKVAG  ENTER: BEKRAFTA  ESC: AVBRYT"
+msgid "ENTER: EDIT PATH  ESC: CANCEL"
+msgstr "ENTER: BIANJI LUJING  ESC: QUXIAO"
 
-msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
-msgstr "UPP-NER: VALJ  VANTER-HOGER: ANDRA  ESC: TILLBAKA"
+msgid "ENTER: SAVE PATH  ESC: CANCEL"
+msgstr "ENTER: BAOCUN LUJING  ESC: QUXIAO"
 
 #. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Det har ar %s. Vi tar inte emot besokare just nu."
+msgstr "Zhe shi %s. Women xianzai bu jiedai fangke."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Valkommen till %s. Arkiven ar oppna for allmanheten."
+msgstr "Huanying lai dao %s. Dang'an dui gonzhong kaifang."
 
 msgid "This is the %s police station. State your business."
-msgstr "Det har ar %s polisstation. Vad vill du?"
+msgstr "Zhe shi %s jingchaju. Qing shuo nin de layi."
 
 msgid "City Records Office. How can we help?"
-msgstr "Stadsarkivet. Hur kan vi hjalpa dig?"
-
-msgid "This is a private residence. What do you want?"
-msgstr "Det har ar en privatbostad. Vad vill du?"
-
-msgid "Welcome to %s. This area is restricted."
-msgstr "Valkommen till %s. Omradet ar begransat."
+msgstr "Chengshi dang'an shi. You shenme keyi bangmang de?"
 
 msgid "%s. Come in and browse."
-msgstr "%s. Kom in och titta runt."
+msgstr "%s. Qing jin lai kankan."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Valkommen till %s! Vad far det vara?"
+msgstr "Huanying lai dao %s! Nin xiang yao shenme?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Valkommen till %s. Hur kan vi hjalpa dig idag?"
+msgstr "Huanying lai dao %s. Jintian you shenme keyi bangmang de?"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. Du borde inte vara har."
-
-msgid "Take a look at what I have."
-msgstr "Titta pa vad jag har."
-
-msgid "I might have heard something. Check back later."
-msgstr "Jag kan ha hort nagot. Kom tillbaka senare."
+msgstr "%s. Ni bu yinggai zai zheli."
 
 msgid "You leave the building."
-msgstr "Du lamnar byggnaden."
+msgstr "Ni likai le dalou."
 
 #. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Valkommen till %s! Vad kan jag gora for dig?"
+msgstr "Huanying lai dao %s! You shenme keyi wei nin fuwu de?"
 
 msgid "Goodbye!"
-msgstr "Hejda!"
+msgstr "Zaijian!"
 
 msgid "Buy/Sell"
-msgstr "Kop/Salj"
+msgstr "Mai/Mai"
 
 msgid "Any news?"
-msgstr "Nagra nyheter?"
+msgstr "You shenme xinwen ma?"
 
 msgid "Leave"
-msgstr "Ga"
+msgstr "Likai"
 
 #. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Du gar."
+msgstr "Ni likai le."
 
 msgid "Trade"
-msgstr "Handla"
+msgstr "Jiaoyi"
 
 msgid "Ask around"
-msgstr "Fraga runt"
+msgstr "Datingsixia"
 
 #. Error messages
 msgid "Failed to initialize renderer"
-msgstr "Kunde inte starta renderaren"
+msgstr "Xuanranqi chushihua shibai"
 
 msgid "Missing game data"
-msgstr "Speldata saknas"
+msgstr "Quesha youxi shuju"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Ingen speldata hittades. Ange datasokvagen i Installningar eller anvand --data pa kommandoraden."
+msgstr "Wei zhao dao youxi shuju. Qing zai Shezhi zhong sheding shuju lujing huo zai minglingxing zhong shiyong --data."
 
 msgid "You can also change the data path in Settings."
-msgstr "Du kan ocksa andra datasokvagen i Installningar."
+msgstr "Nin ye keyi zai Shezhi zhong gengai shuju lujing."
 
 msgid "Missing Liberation data"
-msgstr "Liberation-data saknas"
+msgstr "Quesha Liberation shuju"

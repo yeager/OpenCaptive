@@ -1,0 +1,171 @@
+# German translation for OpenCaptive
+# Copyright (C) 2026 Daniel Nylander
+# This file is distributed under the same license as the OpenCaptive package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
+"POT-Creation-Date: 2026-08-03\n"
+"PO-Revision-Date: 2026-08-03\n"
+"Last-Translator: Daniel Nylander\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Menu
+msgid "OPENCAPTIVE"
+msgstr "OPENCAPTIVE"
+
+msgid "BY DANIEL NYLANDER"
+msgstr "VON DANIEL NYLANDER"
+
+msgid "SELECT GAME"
+msgstr "SPIEL WAEHLEN"
+
+msgid "CAPTIVE (1990)"
+msgstr "CAPTIVE (1990)"
+
+msgid "LIBERATION: CAPTIVE 2"
+msgstr "LIBERATION: CAPTIVE 2"
+
+msgid "SETTINGS"
+msgstr "EINSTELLUNGEN"
+
+msgid "QUIT"
+msgstr "BEENDEN"
+
+msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
+msgstr "AUF-AB: WAEHLEN  ENTER: START  ESC: BEENDEN"
+
+# Settings
+msgid "RENDERER:"
+msgstr "RENDERER:"
+
+msgid "SCANLINES:"
+msgstr "SCANZEILEN:"
+
+msgid "CRT CURVE:"
+msgstr "CRT KRUEMMUNG:"
+
+msgid "BILINEAR:"
+msgstr "BILINEAR:"
+
+msgid "INT SCALE:"
+msgstr "INT SKALIERUNG:"
+
+msgid "SCALE:"
+msgstr "SKALIERUNG:"
+
+msgid "FULLSCREEN:"
+msgstr "VOLLBILD:"
+
+msgid "VSYNC:"
+msgstr "VSYNC:"
+
+msgid "FPS LIMIT:"
+msgstr "FPS LIMIT:"
+
+msgid "BRIGHTNESS:"
+msgstr "HELLIGKEIT:"
+
+msgid "CONTRAST:"
+msgstr "KONTRAST:"
+
+msgid "MUSIC:"
+msgstr "MUSIK:"
+
+msgid "SFX:"
+msgstr "EFFEKTE:"
+
+msgid "DATA PATH:"
+msgstr "DATENPFAD:"
+
+msgid "BACK"
+msgstr "ZURUECK"
+
+msgid "ON"
+msgstr "AN"
+
+msgid "OFF"
+msgstr "AUS"
+
+msgid "UNLIMITED"
+msgstr "UNBEGRENZT"
+
+msgid "ENTER: EDIT PATH  ESC: CANCEL"
+msgstr "ENTER: PFAD BEARBEITEN  ESC: ABBRECHEN"
+
+msgid "ENTER: SAVE PATH  ESC: CANCEL"
+msgstr "ENTER: PFAD SPEICHERN  ESC: ABBRECHEN"
+
+# Building interactions
+msgid "This is %s. We're not taking visitors right now."
+msgstr "Hier ist %s. Wir empfangen gerade keine Besucher."
+
+msgid "Welcome to %s. The archives are available for public access."
+msgstr "Willkommen bei %s. Die Archive sind oeffentlich zugaenglich."
+
+msgid "This is the %s police station. State your business."
+msgstr "Hier ist die Polizeistation %s. Was ist Ihr Anliegen?"
+
+msgid "City Records Office. How can we help?"
+msgstr "Stadtarchiv. Wie koennen wir helfen?"
+
+msgid "%s. Come in and browse."
+msgstr "%s. Kommen Sie herein und sehen Sie sich um."
+
+msgid "Welcome to %s! What'll it be?"
+msgstr "Willkommen bei %s! Was darf es sein?"
+
+msgid "Welcome to %s. How can we help you today?"
+msgstr "Willkommen bei %s. Wie koennen wir Ihnen heute helfen?"
+
+msgid "%s. You shouldn't be here."
+msgstr "%s. Sie sollten nicht hier sein."
+
+msgid "You leave the building."
+msgstr "Sie verlassen das Gebaeude."
+
+# Shop
+msgid "Welcome to %s! What can I do for you?"
+msgstr "Willkommen bei %s! Was kann ich fuer Sie tun?"
+
+msgid "Goodbye!"
+msgstr "Auf Wiedersehen!"
+
+msgid "Buy/Sell"
+msgstr "Kaufen/Verkaufen"
+
+msgid "Any news?"
+msgstr "Irgendwelche Neuigkeiten?"
+
+msgid "Leave"
+msgstr "Gehen"
+
+msgid "You leave."
+msgstr "Sie gehen."
+
+msgid "Trade"
+msgstr "Handeln"
+
+msgid "Ask around"
+msgstr "Sich umhoeren"
+
+# Errors
+msgid "Failed to initialize renderer"
+msgstr "Renderer konnte nicht initialisiert werden"
+
+msgid "Missing game data"
+msgstr "Fehlende Spieldaten"
+
+msgid "No game data found. Please set the data path in Settings or use --data on the command line."
+msgstr "Keine Spieldaten gefunden. Bitte setzen Sie den Datenpfad in den Einstellungen oder verwenden Sie --data auf der Kommandozeile."
+
+msgid "You can also change the data path in Settings."
+msgstr "Sie koennen den Datenpfad auch in den Einstellungen aendern."
+
+msgid "Missing Liberation data"
+msgstr "Fehlende Liberation-Daten"

@@ -117,7 +117,7 @@
 - [x] Wire `_()` into start menu, settings, building interaction, shop, NPC dialogue
 - [x] Create POT template with all translatable strings
 - [x] Swedish (sv) translation
-- [ ] Add remaining 17 languages (cs, da, de, es, fi, fr, hu, it, ja, ko, nl, no, pl, pt, ro, ru, zh)
-- [ ] Add `--lang` to `--help` output
-- [ ] Add language selector to settings menu
+- [x] Add remaining 17 languages (cs, da, de, es, fi, fr, hu, it, ja, ko, nl, no, pl, pt, ro, ru, zh)
+- [x] Add `--lang` to `--help` output
+- [x] Add language selector to settings menu (left/right cycling through 19 languages)
 - [ ] Unicode/extended character support in bitmap font renderer

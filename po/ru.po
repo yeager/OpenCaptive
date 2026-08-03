@@ -1,4 +1,4 @@
-# Swedish translation for OpenCaptive
+# Russian translation for OpenCaptive
 # Copyright (C) 2026 Daniel Nylander
 # This file is distributed under the MIT license.
 #
@@ -9,8 +9,8 @@ msgstr ""
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
 "Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
-"Language-Team: Swedish\n"
-"Language: sv\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,10 +20,10 @@ msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
 msgid "BY DANIEL NYLANDER"
-msgstr "AV DANIEL NYLANDER"
+msgstr "OT DANIEL NYLANDER"
 
 msgid "SELECT GAME"
-msgstr "VALJ SPEL"
+msgstr "VYBRAT IGRU"
 
 msgid "CAPTIVE (1990)"
 msgstr "CAPTIVE (1990)"
@@ -32,156 +32,141 @@ msgid "LIBERATION: CAPTIVE 2"
 msgstr "LIBERATION: CAPTIVE 2"
 
 msgid "SETTINGS"
-msgstr "INSTALLNINGAR"
+msgstr "NASTROIKI"
 
 msgid "QUIT"
-msgstr "AVSLUTA"
+msgstr "VYKHOD"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "UPP-NER: VALJ  ENTER: STARTA  ESC: AVSLUTA"
+msgstr "VVERKH-VNIZ: VYBRAT  ENTER: START  ESC: VYKHOD"
 
 #. Settings menu
 msgid "RENDERER:"
-msgstr "RENDERARE:"
+msgstr "RENDERER:"
 
 msgid "SCANLINES:"
-msgstr "SKANLINJER:"
+msgstr "STROKI SKANIROVANIYA:"
 
 msgid "CRT CURVE:"
-msgstr "CRT-KURVA:"
+msgstr "KRIVIZNA CRT:"
 
 msgid "BILINEAR:"
-msgstr "BILINJAR:"
+msgstr "BILINEINYI:"
 
 msgid "INT SCALE:"
-msgstr "HEL SKALA:"
+msgstr "TSELYI MASSHTAB:"
 
 msgid "SCALE:"
-msgstr "SKALA:"
+msgstr "MASSHTAB:"
 
 msgid "FULLSCREEN:"
-msgstr "HELSKARM:"
+msgstr "POLNYI EKRAN:"
 
 msgid "VSYNC:"
 msgstr "VSYNC:"
 
 msgid "FPS LIMIT:"
-msgstr "FPS-GRANS:"
+msgstr "LIMIT FPS:"
 
 msgid "BRIGHTNESS:"
-msgstr "LJUSSTYRKA:"
+msgstr "YARKOST:"
 
 msgid "CONTRAST:"
 msgstr "KONTRAST:"
 
 msgid "MUSIC:"
-msgstr "MUSIK:"
+msgstr "MUZYKA:"
 
 msgid "SFX:"
-msgstr "LJUDEFFEKTER:"
+msgstr "ZVUKI:"
 
 msgid "DATA PATH:"
-msgstr "DATASOKVAG:"
-
-msgid "LANGUAGE:"
-msgstr "SPRAK:"
+msgstr "PUT K DANNYM:"
 
 msgid "BACK"
-msgstr "TILLBAKA"
+msgstr "NAZAD"
 
 msgid "ON"
-msgstr "PA"
+msgstr "VKL"
 
 msgid "OFF"
-msgstr "AV"
+msgstr "VYKL"
 
 msgid "UNLIMITED"
-msgstr "OBEGRANSAD"
+msgstr "BEZ OGRANICHENII"
 
-msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
-msgstr "SKRIV SOKVAG  ENTER: BEKRAFTA  ESC: AVBRYT"
+msgid "ENTER: EDIT PATH  ESC: CANCEL"
+msgstr "ENTER: REDAKTIROVAT PUT  ESC: OTMENA"
 
-msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
-msgstr "UPP-NER: VALJ  VANTER-HOGER: ANDRA  ESC: TILLBAKA"
+msgid "ENTER: SAVE PATH  ESC: CANCEL"
+msgstr "ENTER: SOKHRANIT PUT  ESC: OTMENA"
 
 #. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Det har ar %s. Vi tar inte emot besokare just nu."
+msgstr "Eto %s. My seichas ne prinimaem posetitelei."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Valkommen till %s. Arkiven ar oppna for allmanheten."
+msgstr "Dobro pozhalovat v %s. Arkhivy otkryty dlya publichnogo dostupa."
 
 msgid "This is the %s police station. State your business."
-msgstr "Det har ar %s polisstation. Vad vill du?"
+msgstr "Eto politseiskii uchastok %s. Po kakomu delu?"
 
 msgid "City Records Office. How can we help?"
-msgstr "Stadsarkivet. Hur kan vi hjalpa dig?"
-
-msgid "This is a private residence. What do you want?"
-msgstr "Det har ar en privatbostad. Vad vill du?"
-
-msgid "Welcome to %s. This area is restricted."
-msgstr "Valkommen till %s. Omradet ar begransat."
+msgstr "Gorodskoi arkhiv. Chem mozhem pomoch?"
 
 msgid "%s. Come in and browse."
-msgstr "%s. Kom in och titta runt."
+msgstr "%s. Zakhodite i osmatrivaites."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Valkommen till %s! Vad far det vara?"
+msgstr "Dobro pozhalovat v %s! Chto zhelaete?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Valkommen till %s. Hur kan vi hjalpa dig idag?"
+msgstr "Dobro pozhalovat v %s. Chem mozhem pomoch segodnya?"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. Du borde inte vara har."
-
-msgid "Take a look at what I have."
-msgstr "Titta pa vad jag har."
-
-msgid "I might have heard something. Check back later."
-msgstr "Jag kan ha hort nagot. Kom tillbaka senare."
+msgstr "%s. Vam ne sleduet zdes byt."
 
 msgid "You leave the building."
-msgstr "Du lamnar byggnaden."
+msgstr "Vy pokinuli zdanie."
 
 #. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Valkommen till %s! Vad kan jag gora for dig?"
+msgstr "Dobro pozhalovat v %s! Chem mogu pomoch?"
 
 msgid "Goodbye!"
-msgstr "Hejda!"
+msgstr "Do svidaniya!"
 
 msgid "Buy/Sell"
-msgstr "Kop/Salj"
+msgstr "Kupit/Prodat"
 
 msgid "Any news?"
-msgstr "Nagra nyheter?"
+msgstr "Est novosti?"
 
 msgid "Leave"
-msgstr "Ga"
+msgstr "Uiti"
 
 #. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Du gar."
+msgstr "Vy ukhodite."
 
 msgid "Trade"
-msgstr "Handla"
+msgstr "Torgovlya"
 
 msgid "Ask around"
-msgstr "Fraga runt"
+msgstr "Rassprosity"
 
 #. Error messages
 msgid "Failed to initialize renderer"
-msgstr "Kunde inte starta renderaren"
+msgstr "Ne udalos initsializirovat renderer"
 
 msgid "Missing game data"
-msgstr "Speldata saknas"
+msgstr "Dannye igry otsutstvuyut"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Ingen speldata hittades. Ange datasokvagen i Installningar eller anvand --data pa kommandoraden."
+msgstr "Dannye igry ne naideny. Ukazhite put k dannym v Nastroikakh ili ispolzuite --data v komandnoi stroke."
 
 msgid "You can also change the data path in Settings."
-msgstr "Du kan ocksa andra datasokvagen i Installningar."
+msgstr "Vy takzhe mozhete izmenit put k dannym v Nastroikakh."
 
 msgid "Missing Liberation data"
-msgstr "Liberation-data saknas"
+msgstr "Dannye Liberation otsutstvuyut"

@@ -4,6 +4,18 @@
 #include <string.h>
 #include <stdio.h>
 
+static const char *const lang_codes[] = {
+    "en", "sv", "cs", "da", "de", "es", "fi", "fr", "hu", "it",
+    "ja", "ko", "nl", "no", "pl", "pt", "ro", "ru", "zh",
+};
+static const char *const lang_labels[] = {
+    "ENGLISH", "SVENSKA", "CESKY", "DANSK", "DEUTSCH",
+    "ESPANOL", "SUOMI", "FRANCAIS", "MAGYAR", "ITALIANO",
+    "NIHONGO", "HANGUGEO", "NEDERLANDS", "NORSK", "POLSKI",
+    "PORTUGUES", "ROMANA", "RUSSKIJ", "ZHONGWEN",
+};
+#define LANG_COUNT 19
+
 // Simple 5x7 bitmap font for menu text
 static const uint8_t font_5x7[][7] = {
     ['A'] = {0x0E,0x11,0x11,0x1F,0x11,0x11,0x11},
@@ -120,22 +132,37 @@ void start_menu_init(StartMenu *menu) {
     menu->brightness = 50;
     menu->contrast = 50;
     menu->fps_limit = 60;
+
+    const char *cur_lang = i18n_get_lang();
+    menu->lang_index = 0;
+    for (int i = 0; i < LANG_COUNT; i++) {
+        if (strcmp(lang_codes[i], cur_lang) == 0) {
+            menu->lang_index = i;
+            break;
+        }
+    }
 }
 
 MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
     if (!menu || menu->in_settings) return MENU_RESULT_NONE;
 
-    /* Keep the clickable bounds aligned with start_menu_render(). */
-    const float menu_x = 40.0f;
-    const float menu_width = 240.0f;
-    const float menu_y = 78.0f;
-    const float item_height = 20.0f;
-    if (x < menu_x || x >= menu_x + menu_width || y < menu_y ||
-        y >= menu_y + item_height * menu->num_items)
-        return MENU_RESULT_NONE;
+    /* Card layout: two game cards on top row, settings/quit on bottom.
+     * Coordinates must match start_menu_render(). */
+    const int card_w = 130, card_h = 90, card_y = 38, gap = 10;
+    const int total_w = card_w * 2 + gap;
+    const int card_x0 = (320 - total_w) / 2;
+    const int card_x1 = card_x0 + card_w + gap;
+    const int bottom_y = card_y + card_h + 25;
 
-    int item = (int)((y - menu_y) / item_height);
-    if (item < 0 || item >= menu->num_items) return MENU_RESULT_NONE;
+    int item = -1;
+    if (y >= card_y && y < card_y + card_h) {
+        if (x >= card_x0 && x < card_x0 + card_w) item = 0;
+        else if (x >= card_x1 && x < card_x1 + card_w) item = 1;
+    } else if (y >= bottom_y && y < bottom_y + 12) {
+        if (x >= card_x0 && x < card_x0 + card_w) item = 2;
+        else if (x >= card_x1 && x < card_x1 + card_w) item = 3;
+    }
+    if (item < 0) return MENU_RESULT_NONE;
     menu->selected_item = item;
     switch (item) {
         case 0: return MENU_RESULT_START_CAPTIVE;
@@ -209,7 +236,7 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
     if (event->type != SDL_EVENT_KEY_DOWN) return MENU_RESULT_NONE;
 
     if (menu->in_settings) {
-        #define SETTINGS_COUNT 15
+        #define SETTINGS_COUNT 16
         switch (event->key.key) {
             case SDLK_UP:
                 if (menu->settings_cursor > 0) menu->settings_cursor--;
@@ -269,7 +296,14 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
                             SDL_StartTextInput(NULL);
                         }
                         break;
-                    case 14: menu->in_settings = false; break;
+                    case 14:
+                        if (event->key.key == SDLK_RIGHT)
+                            menu->lang_index = (menu->lang_index + 1) % LANG_COUNT;
+                        else if (event->key.key == SDLK_LEFT)
+                            menu->lang_index = (menu->lang_index + LANG_COUNT - 1) % LANG_COUNT;
+                        i18n_init(lang_codes[menu->lang_index]);
+                        break;
+                    case 15: menu->in_settings = false; break;
                 }
                 break;
             case SDLK_ESCAPE:
@@ -287,10 +321,18 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
 
     switch (event->key.key) {
         case SDLK_UP:
-            menu->selected_item = (menu->selected_item + menu->num_items - 1) % menu->num_items;
+            if (menu->selected_item >= 2) menu->selected_item -= 2;
             break;
         case SDLK_DOWN:
-            menu->selected_item = (menu->selected_item + 1) % menu->num_items;
+            if (menu->selected_item < 2) menu->selected_item += 2;
+            break;
+        case SDLK_LEFT:
+            if (menu->selected_item == 1) menu->selected_item = 0;
+            else if (menu->selected_item == 3) menu->selected_item = 2;
+            break;
+        case SDLK_RIGHT:
+            if (menu->selected_item == 0) menu->selected_item = 1;
+            else if (menu->selected_item == 2) menu->selected_item = 3;
             break;
         case SDLK_RETURN:
         case SDLK_KP_ENTER:
@@ -327,6 +369,7 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
         _("MUSIC:"),
         _("SFX:"),
         _("DATA PATH:"),
+        _("LANGUAGE:"),
         _("BACK"),
     };
     char values[SETTINGS_COUNT][20];
@@ -345,7 +388,8 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
     snprintf(values[11], 20, "%s", menu->music_enabled ? _("ON") : _("OFF"));
     snprintf(values[12], 20, "%s", menu->sfx_enabled ? _("ON") : _("OFF"));
     values[13][0] = '\0';
-    values[14][0] = '\0';
+    snprintf(values[14], 20, "%s", lang_labels[menu->lang_index]);
+    values[15][0] = '\0';
 
     int menu_y = 50;
     int item_h = 14;
@@ -406,6 +450,137 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
     draw_border(pixels, width, height, 5, 5, width - 10, height - 10, 0xFF444488, 1);
 }
 
+static uint32_t hash_pixel(int x, int y, int seed) {
+    uint32_t h = (uint32_t)(x * 374761393 + y * 668265263 + seed * 1274126177);
+    h = (h ^ (h >> 13)) * 1103515245;
+    return h ^ (h >> 16);
+}
+
+static void draw_captive_card(uint32_t *pixels, int pw, int ph,
+                              int cx, int cy, int cw, int ch,
+                              bool selected, uint32_t tick) {
+    uint32_t wall_dark  = 0xFF2A1A3A;
+    uint32_t wall_mid   = 0xFF3D2D50;
+    uint32_t wall_light = 0xFF504068;
+    uint32_t floor_col  = 0xFF1A1020;
+    uint32_t torch_col  = 0xFFFF8800;
+
+    for (int y = 0; y < ch; y++) {
+        for (int x = 0; x < cw; x++) {
+            int px = cx + x, py = cy + y;
+            if (px < 0 || px >= pw || py < 0 || py >= ph) continue;
+
+            uint32_t h = hash_pixel(x, y, 42);
+            uint32_t col;
+
+            if (y < 3 || y >= ch - 3 || x < 3 || x >= cw - 3) {
+                col = wall_light;
+            } else if (y < ch / 3) {
+                col = (h % 5 == 0) ? wall_light : wall_mid;
+            } else if (y > ch * 2 / 3) {
+                col = floor_col;
+                if ((x % 16) < 2 || (y % 8) < 1) col = wall_dark;
+            } else {
+                col = wall_dark;
+                if ((x + 2) % 24 < 4 && y == ch / 2)
+                    col = (h % 3 == 0) ? wall_light : wall_mid;
+            }
+
+            if (x > cw / 3 && x < cw * 2 / 3 && y > ch / 4 && y < ch * 3 / 4) {
+                int corridor_shade = (int)(y - ch / 4) * 2;
+                uint32_t r = ((col >> 16) & 0xFF);
+                uint32_t g = ((col >> 8) & 0xFF);
+                uint32_t b = (col & 0xFF);
+                r = r > (uint32_t)corridor_shade ? r - corridor_shade : 0;
+                g = g > (uint32_t)corridor_shade ? g - corridor_shade : 0;
+                b = b > (uint32_t)corridor_shade ? b - corridor_shade : 0;
+                col = 0xFF000000 | (r << 16) | (g << 8) | b;
+            }
+
+            int torch_x1 = cw / 4, torch_x2 = cw * 3 / 4;
+            int torch_y = ch / 2 - 5;
+            int flicker = (int)((tick / 4 + h) % 4);
+            if (((x > torch_x1 - 3 && x < torch_x1 + 3) ||
+                 (x > torch_x2 - 3 && x < torch_x2 + 3)) &&
+                y > torch_y - 2 - flicker && y < torch_y + 3) {
+                col = torch_col;
+            }
+
+            pixels[py * pw + px] = col;
+        }
+    }
+
+    if (selected) {
+        uint32_t sel_col = ((tick / 8) % 2) ? 0xFFFF8800 : 0xFFFFAA44;
+        draw_border(pixels, pw, ph, cx, cy, cw, ch, sel_col, 2);
+    } else {
+        draw_border(pixels, pw, ph, cx, cy, cw, ch, 0xFF444466, 1);
+    }
+}
+
+static void draw_liberation_card(uint32_t *pixels, int pw, int ph,
+                                 int cx, int cy, int cw, int ch,
+                                 bool selected, uint32_t tick) {
+    uint32_t sky_top    = 0xFF0A0A2A;
+    uint32_t sky_bot    = 0xFF1A1A4A;
+    uint32_t bldg_dark  = 0xFF222244;
+    uint32_t bldg_mid   = 0xFF333366;
+    uint32_t bldg_light = 0xFF444488;
+    uint32_t window_on  = 0xFFFFDD66;
+    uint32_t window_off = 0xFF111133;
+    uint32_t road_col   = 0xFF181828;
+
+    for (int y = 0; y < ch; y++) {
+        for (int x = 0; x < cw; x++) {
+            int px = cx + x, py = cy + y;
+            if (px < 0 || px >= pw || py < 0 || py >= ph) continue;
+
+            uint32_t h = hash_pixel(x, y, 99);
+            uint32_t col;
+
+            int horizon = ch * 3 / 5;
+
+            if (y < horizon) {
+                uint32_t r1 = (sky_top >> 16) & 0xFF, g1 = (sky_top >> 8) & 0xFF, b1 = sky_top & 0xFF;
+                uint32_t r2 = (sky_bot >> 16) & 0xFF, g2 = (sky_bot >> 8) & 0xFF, b2 = sky_bot & 0xFF;
+                int t = y * 256 / horizon;
+                col = 0xFF000000 |
+                    (((r1 * (256 - t) + r2 * t) >> 8) << 16) |
+                    (((g1 * (256 - t) + g2 * t) >> 8) << 8) |
+                    ((b1 * (256 - t) + b2 * t) >> 8);
+
+                int bx = x % 28;
+                int building_height = (int)(10 + (h % 25));
+                if (y > horizon - building_height && bx > 2 && bx < 26) {
+                    col = (h % 3 == 0) ? bldg_light :
+                          (h % 3 == 1) ? bldg_mid : bldg_dark;
+                    if ((bx - 5) % 6 < 3 && (y - (horizon - building_height)) % 5 > 1) {
+                        uint32_t wh = hash_pixel(x / 6, y / 5, 77);
+                        int blink = (int)((tick / 30 + wh) % 8);
+                        col = (blink < 3) ? window_on : window_off;
+                    }
+                }
+
+                if (h % 200 == 0 && y < horizon / 2) col = 0xFFCCCCDD;
+            } else {
+                col = road_col;
+                if ((y - horizon) < 2) col = bldg_dark;
+                if ((x % 32) < 2 && (y - horizon) > 5)
+                    col = 0xFF333344;
+            }
+
+            pixels[py * pw + px] = col;
+        }
+    }
+
+    if (selected) {
+        uint32_t sel_col = ((tick / 8) % 2) ? 0xFF4488FF : 0xFF66AAFF;
+        draw_border(pixels, pw, ph, cx, cy, cw, ch, sel_col, 2);
+    } else {
+        draw_border(pixels, pw, ph, cx, cy, cw, ch, 0xFF444466, 1);
+    }
+}
+
 void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height) {
     menu->anim_tick++;
     memset(pixels, 0, width * height * sizeof(uint32_t));
@@ -415,39 +590,61 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
         return;
     }
 
-    // Title
-    draw_text_centered(pixels, width, height, 15, _("OPENCAPTIVE"), 0xFFFF8800, 3);
-    draw_text_centered(pixels, width, height, 42, _("BY DANIEL NYLANDER"), 0xFF666688, 1);
-    draw_text_centered(pixels, width, height, 55, _("SELECT GAME"), 0xFF888888, 1);
+    draw_text_centered(pixels, width, height, 6, _("OPENCAPTIVE"), 0xFFFF8800, 2);
+    draw_text_centered(pixels, width, height, 22, _("BY DANIEL NYLANDER"), 0xFF666688, 1);
 
-    const char *items[] = {
-        _("CAPTIVE (1990)"),
-        _("LIBERATION: CAPTIVE 2"),
-        _("SETTINGS"),
-        _("QUIT"),
-    };
+    int card_w = 130;
+    int card_h = 90;
+    int card_y = 38;
+    int gap = 10;
+    int total_w = card_w * 2 + gap;
+    int card_x0 = (width - total_w) / 2;
+    int card_x1 = card_x0 + card_w + gap;
 
-    int menu_y = 80;
-    int item_h = 20;
+    draw_captive_card(pixels, width, height,
+                      card_x0, card_y, card_w, card_h,
+                      menu->selected_item == 0, menu->anim_tick);
+    draw_liberation_card(pixels, width, height,
+                         card_x1, card_y, card_w, card_h,
+                         menu->selected_item == 1, menu->anim_tick);
 
-    for (int i = 0; i < menu->num_items; i++) {
-        int y = menu_y + i * item_h;
-        bool selected = (i == menu->selected_item);
+    draw_text_centered(pixels, width, height,
+                       card_y + card_h + 3, "CAPTIVE", 0xFFCCCCCC, 1);
+    draw_text(pixels, width, height,
+              card_x1 + (card_w - 11 * 6) / 2, card_y + card_h + 3,
+              "LIBERATION", 0xFFCCCCCC, 1);
 
-        if (selected) {
-            draw_rect(pixels, width, height, 40, y - 2, width - 80, item_h - 2, 0xFF333366);
-            int pulse = (menu->anim_tick / 8) % 2;
-            uint32_t arrow_col = pulse ? 0xFFFFFF00 : 0xFFFF8800;
-            draw_text(pixels, width, height, 44, y, ">", arrow_col, 2);
+    draw_text_centered(pixels, width, height,
+                       card_y + card_h + 12, "1990",
+                       0xFF888888, 1);
+    draw_text(pixels, width, height,
+              card_x1 + (card_w - 4 * 6) / 2, card_y + card_h + 12,
+              "1993", 0xFF888888, 1);
+
+    int bottom_y = card_y + card_h + 25;
+    int btn_items = 2;
+    const char *bottom_labels[] = { _("SETTINGS"), _("QUIT") };
+    int bottom_idx[] = { 2, 3 };
+
+    for (int i = 0; i < btn_items; i++) {
+        int bx = card_x0 + i * (card_w + gap);
+        int by = bottom_y;
+        bool sel = (menu->selected_item == bottom_idx[i]);
+
+        if (sel) {
+            draw_rect(pixels, width, height, bx, by - 1, card_w, 12, 0xFF333366);
+            uint32_t ac = ((menu->anim_tick / 8) % 2) ? 0xFFFFFF00 : 0xFFFF8800;
+            draw_text(pixels, width, height, bx + 2, by, ">", ac, 1);
         }
-
-        uint32_t color = selected ? 0xFFFFFFFF : 0xFFAAAAAA;
-        draw_text(pixels, width, height, 65, y, items[i], color, 2);
+        uint32_t col = sel ? 0xFFFFFFFF : 0xFFAAAAAA;
+        int tw = (int)strlen(bottom_labels[i]) * 6;
+        draw_text(pixels, width, height, bx + (card_w - tw) / 2, by,
+                  bottom_labels[i], col, 1);
     }
 
-    draw_text_centered(pixels, width, height, height - 20,
+    draw_text_centered(pixels, width, height, height - 10,
                        _("UP-DOWN: SELECT  ENTER: START  ESC: QUIT"),
-                       0xFF555555, 1);
+                       0xFF444444, 1);
     draw_border(pixels, width, height, 5, 5, width - 10, height - 10, 0xFF444488, 1);
     char ver[32];
     snprintf(ver, sizeof(ver), "V%d.%d.%d",

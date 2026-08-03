@@ -1,4 +1,4 @@
-# Swedish translation for OpenCaptive
+# Portuguese translation for OpenCaptive
 # Copyright (C) 2026 Daniel Nylander
 # This file is distributed under the MIT license.
 #
@@ -9,8 +9,8 @@ msgstr ""
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
 "Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
-"Language-Team: Swedish\n"
-"Language: sv\n"
+"Language-Team: Portuguese\n"
+"Language: pt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,10 +20,10 @@ msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
 msgid "BY DANIEL NYLANDER"
-msgstr "AV DANIEL NYLANDER"
+msgstr "POR DANIEL NYLANDER"
 
 msgid "SELECT GAME"
-msgstr "VALJ SPEL"
+msgstr "SELECIONAR JOGO"
 
 msgid "CAPTIVE (1990)"
 msgstr "CAPTIVE (1990)"
@@ -32,156 +32,141 @@ msgid "LIBERATION: CAPTIVE 2"
 msgstr "LIBERATION: CAPTIVE 2"
 
 msgid "SETTINGS"
-msgstr "INSTALLNINGAR"
+msgstr "CONFIGURACOES"
 
 msgid "QUIT"
-msgstr "AVSLUTA"
+msgstr "SAIR"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "UPP-NER: VALJ  ENTER: STARTA  ESC: AVSLUTA"
+msgstr "CIMA-BAIXO: SELECIONAR  ENTER: INICIAR  ESC: SAIR"
 
 #. Settings menu
 msgid "RENDERER:"
-msgstr "RENDERARE:"
+msgstr "RENDERIZADOR:"
 
 msgid "SCANLINES:"
-msgstr "SKANLINJER:"
+msgstr "LINHAS DE VARREDURA:"
 
 msgid "CRT CURVE:"
-msgstr "CRT-KURVA:"
+msgstr "CURVA CRT:"
 
 msgid "BILINEAR:"
-msgstr "BILINJAR:"
+msgstr "BILINEAR:"
 
 msgid "INT SCALE:"
-msgstr "HEL SKALA:"
+msgstr "ESCALA INTEIRA:"
 
 msgid "SCALE:"
-msgstr "SKALA:"
+msgstr "ESCALA:"
 
 msgid "FULLSCREEN:"
-msgstr "HELSKARM:"
+msgstr "TELA CHEIA:"
 
 msgid "VSYNC:"
 msgstr "VSYNC:"
 
 msgid "FPS LIMIT:"
-msgstr "FPS-GRANS:"
+msgstr "LIMITE FPS:"
 
 msgid "BRIGHTNESS:"
-msgstr "LJUSSTYRKA:"
+msgstr "BRILHO:"
 
 msgid "CONTRAST:"
-msgstr "KONTRAST:"
+msgstr "CONTRASTE:"
 
 msgid "MUSIC:"
-msgstr "MUSIK:"
+msgstr "MUSICA:"
 
 msgid "SFX:"
-msgstr "LJUDEFFEKTER:"
+msgstr "EFEITOS:"
 
 msgid "DATA PATH:"
-msgstr "DATASOKVAG:"
-
-msgid "LANGUAGE:"
-msgstr "SPRAK:"
+msgstr "CAMINHO DOS DADOS:"
 
 msgid "BACK"
-msgstr "TILLBAKA"
+msgstr "VOLTAR"
 
 msgid "ON"
-msgstr "PA"
+msgstr "LIGADO"
 
 msgid "OFF"
-msgstr "AV"
+msgstr "DESLIGADO"
 
 msgid "UNLIMITED"
-msgstr "OBEGRANSAD"
+msgstr "SEM LIMITE"
 
-msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
-msgstr "SKRIV SOKVAG  ENTER: BEKRAFTA  ESC: AVBRYT"
+msgid "ENTER: EDIT PATH  ESC: CANCEL"
+msgstr "ENTER: EDITAR CAMINHO  ESC: CANCELAR"
 
-msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
-msgstr "UPP-NER: VALJ  VANTER-HOGER: ANDRA  ESC: TILLBAKA"
+msgid "ENTER: SAVE PATH  ESC: CANCEL"
+msgstr "ENTER: SALVAR CAMINHO  ESC: CANCELAR"
 
 #. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Det har ar %s. Vi tar inte emot besokare just nu."
+msgstr "Aqui e %s. Nao estamos recebendo visitantes agora."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Valkommen till %s. Arkiven ar oppna for allmanheten."
+msgstr "Bem-vindo a %s. Os arquivos estao disponiveis ao publico."
 
 msgid "This is the %s police station. State your business."
-msgstr "Det har ar %s polisstation. Vad vill du?"
+msgstr "Esta e a delegacia de %s. Qual e o seu assunto?"
 
 msgid "City Records Office. How can we help?"
-msgstr "Stadsarkivet. Hur kan vi hjalpa dig?"
-
-msgid "This is a private residence. What do you want?"
-msgstr "Det har ar en privatbostad. Vad vill du?"
-
-msgid "Welcome to %s. This area is restricted."
-msgstr "Valkommen till %s. Omradet ar begransat."
+msgstr "Cartorio Municipal. Como podemos ajudar?"
 
 msgid "%s. Come in and browse."
-msgstr "%s. Kom in och titta runt."
+msgstr "%s. Entre e de uma olhada."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Valkommen till %s! Vad far det vara?"
+msgstr "Bem-vindo a %s! O que vai ser?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Valkommen till %s. Hur kan vi hjalpa dig idag?"
+msgstr "Bem-vindo a %s. Como podemos ajuda-lo hoje?"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. Du borde inte vara har."
-
-msgid "Take a look at what I have."
-msgstr "Titta pa vad jag har."
-
-msgid "I might have heard something. Check back later."
-msgstr "Jag kan ha hort nagot. Kom tillbaka senare."
+msgstr "%s. Voce nao deveria estar aqui."
 
 msgid "You leave the building."
-msgstr "Du lamnar byggnaden."
+msgstr "Voce sai do predio."
 
 #. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Valkommen till %s! Vad kan jag gora for dig?"
+msgstr "Bem-vindo a %s! O que posso fazer por voce?"
 
 msgid "Goodbye!"
-msgstr "Hejda!"
+msgstr "Adeus!"
 
 msgid "Buy/Sell"
-msgstr "Kop/Salj"
+msgstr "Comprar/Vender"
 
 msgid "Any news?"
-msgstr "Nagra nyheter?"
+msgstr "Alguma novidade?"
 
 msgid "Leave"
-msgstr "Ga"
+msgstr "Sair"
 
 #. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Du gar."
+msgstr "Voce sai."
 
 msgid "Trade"
-msgstr "Handla"
+msgstr "Comercio"
 
 msgid "Ask around"
-msgstr "Fraga runt"
+msgstr "Perguntar"
 
 #. Error messages
 msgid "Failed to initialize renderer"
-msgstr "Kunde inte starta renderaren"
+msgstr "Falha ao inicializar o renderizador"
 
 msgid "Missing game data"
-msgstr "Speldata saknas"
+msgstr "Dados do jogo ausentes"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Ingen speldata hittades. Ange datasokvagen i Installningar eller anvand --data pa kommandoraden."
+msgstr "Dados do jogo nao encontrados. Defina o caminho dos dados em Configuracoes ou use --data na linha de comando."
 
 msgid "You can also change the data path in Settings."
-msgstr "Du kan ocksa andra datasokvagen i Installningar."
+msgstr "Voce tambem pode alterar o caminho dos dados em Configuracoes."
 
 msgid "Missing Liberation data"
-msgstr "Liberation-data saknas"
+msgstr "Dados de Liberation ausentes"

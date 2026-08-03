@@ -23,16 +23,18 @@ int main(void) {
     assert(!menu.sfx_enabled);
     assert(menu.music_enabled);
 
-    menu.settings_cursor = 14; /* Back */
+    menu.settings_cursor = 15; /* Back */
     event = key_event(SDLK_RETURN);
     assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_NONE);
     assert(!menu.in_settings);
 
-    assert(start_menu_handle_click(&menu, 100.0f, 85.0f) ==
+    /* Card layout: cards at y=38..128, x0=20..150, x1=160..290 */
+    assert(start_menu_handle_click(&menu, 80.0f, 70.0f) ==
            MENU_RESULT_START_CAPTIVE);
-    assert(start_menu_handle_click(&menu, 100.0f, 105.0f) ==
+    assert(start_menu_handle_click(&menu, 200.0f, 70.0f) ==
            MENU_RESULT_START_LIBERATION);
-    assert(start_menu_handle_click(&menu, 100.0f, 125.0f) == MENU_RESULT_NONE);
+    /* Settings button at bottom row, left card x */
+    assert(start_menu_handle_click(&menu, 80.0f, 156.0f) == MENU_RESULT_NONE);
     assert(menu.in_settings);
 
     puts("All start menu tests passed");

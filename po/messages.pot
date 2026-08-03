@@ -83,6 +83,9 @@ msgstr ""
 msgid "DATA PATH:"
 msgstr ""
 
+msgid "LANGUAGE:"
+msgstr ""
+
 msgid "BACK"
 msgstr ""
 
@@ -95,10 +98,10 @@ msgstr ""
 msgid "UNLIMITED"
 msgstr ""
 
-msgid "ENTER: EDIT PATH  ESC: CANCEL"
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
 msgstr ""
 
-msgid "ENTER: SAVE PATH  ESC: CANCEL"
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
 msgstr ""
 
 #. Liberation building interactions
@@ -114,6 +117,12 @@ msgstr ""
 msgid "City Records Office. How can we help?"
 msgstr ""
 
+msgid "This is a private residence. What do you want?"
+msgstr ""
+
+msgid "Welcome to %s. This area is restricted."
+msgstr ""
+
 msgid "%s. Come in and browse."
 msgstr ""
 
@@ -124,6 +133,12 @@ msgid "Welcome to %s. How can we help you today?"
 msgstr ""
 
 msgid "%s. You shouldn't be here."
+msgstr ""
+
+msgid "Take a look at what I have."
+msgstr ""
+
+msgid "I might have heard something. Check back later."
 msgstr ""
 
 msgid "You leave the building."

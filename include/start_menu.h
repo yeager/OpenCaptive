@@ -36,6 +36,7 @@ typedef struct {
     char data_path[512];
     bool data_path_editing;
     int data_path_cursor;
+    int lang_index;
 } StartMenu;
 
 void start_menu_init(StartMenu *menu);

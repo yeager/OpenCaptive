@@ -1,0 +1,171 @@
+# Czech translation for OpenCaptive
+# Copyright (C) 2026 Daniel Nylander
+# This file is distributed under the same license as the OpenCaptive package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
+"POT-Creation-Date: 2026-08-03\n"
+"PO-Revision-Date: 2026-08-03\n"
+"Last-Translator: Daniel Nylander\n"
+"Language-Team: Czech\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Menu
+msgid "OPENCAPTIVE"
+msgstr "OPENCAPTIVE"
+
+msgid "BY DANIEL NYLANDER"
+msgstr "OD DANIELA NYLANDERA"
+
+msgid "SELECT GAME"
+msgstr "VYBER HRU"
+
+msgid "CAPTIVE (1990)"
+msgstr "CAPTIVE (1990)"
+
+msgid "LIBERATION: CAPTIVE 2"
+msgstr "LIBERATION: CAPTIVE 2"
+
+msgid "SETTINGS"
+msgstr "NASTAVENI"
+
+msgid "QUIT"
+msgstr "UKONCIT"
+
+msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
+msgstr "NAHORU-DOLU: VYBER  ENTER: START  ESC: UKONCIT"
+
+# Settings
+msgid "RENDERER:"
+msgstr "RENDERER:"
+
+msgid "SCANLINES:"
+msgstr "RADKY:"
+
+msgid "CRT CURVE:"
+msgstr "CRT ZAKRIVENI:"
+
+msgid "BILINEAR:"
+msgstr "BILINEARNI:"
+
+msgid "INT SCALE:"
+msgstr "INT MERITKO:"
+
+msgid "SCALE:"
+msgstr "MERITKO:"
+
+msgid "FULLSCREEN:"
+msgstr "CELA OBRAZOVKA:"
+
+msgid "VSYNC:"
+msgstr "VSYNC:"
+
+msgid "FPS LIMIT:"
+msgstr "FPS LIMIT:"
+
+msgid "BRIGHTNESS:"
+msgstr "JAS:"
+
+msgid "CONTRAST:"
+msgstr "KONTRAST:"
+
+msgid "MUSIC:"
+msgstr "HUDBA:"
+
+msgid "SFX:"
+msgstr "ZVUKY:"
+
+msgid "DATA PATH:"
+msgstr "CESTA K DATUM:"
+
+msgid "BACK"
+msgstr "ZPET"
+
+msgid "ON"
+msgstr "ZAP"
+
+msgid "OFF"
+msgstr "VYP"
+
+msgid "UNLIMITED"
+msgstr "NEOMEZENO"
+
+msgid "ENTER: EDIT PATH  ESC: CANCEL"
+msgstr "ENTER: UPRAVIT CESTU  ESC: ZRUSIT"
+
+msgid "ENTER: SAVE PATH  ESC: CANCEL"
+msgstr "ENTER: ULOZIT CESTU  ESC: ZRUSIT"
+
+# Building interactions
+msgid "This is %s. We're not taking visitors right now."
+msgstr "Toto je %s. Prave neprijimame navstevy."
+
+msgid "Welcome to %s. The archives are available for public access."
+msgstr "Vitejte v %s. Archivy jsou verejne pristupne."
+
+msgid "This is the %s police station. State your business."
+msgstr "Toto je policejni stanice %s. Jaky je vas pozadavek?"
+
+msgid "City Records Office. How can we help?"
+msgstr "Mestsky archiv. Jak vam muzeme pomoci?"
+
+msgid "%s. Come in and browse."
+msgstr "%s. Pojdte dal a rozhlednete se."
+
+msgid "Welcome to %s! What'll it be?"
+msgstr "Vitejte v %s! Co to bude?"
+
+msgid "Welcome to %s. How can we help you today?"
+msgstr "Vitejte v %s. Jak vam dnes muzeme pomoci?"
+
+msgid "%s. You shouldn't be here."
+msgstr "%s. Nemeli byste tu byt."
+
+msgid "You leave the building."
+msgstr "Opoustite budovu."
+
+# Shop
+msgid "Welcome to %s! What can I do for you?"
+msgstr "Vitejte v %s! Co pro vas mohu udelat?"
+
+msgid "Goodbye!"
+msgstr "Nashledanou!"
+
+msgid "Buy/Sell"
+msgstr "Koupit/Prodat"
+
+msgid "Any news?"
+msgstr "Nejake novinky?"
+
+msgid "Leave"
+msgstr "Odejit"
+
+msgid "You leave."
+msgstr "Odchazite."
+
+msgid "Trade"
+msgstr "Obchod"
+
+msgid "Ask around"
+msgstr "Poptat se"
+
+# Errors
+msgid "Failed to initialize renderer"
+msgstr "Nepodarilo se inicializovat renderer"
+
+msgid "Missing game data"
+msgstr "Chybi herni data"
+
+msgid "No game data found. Please set the data path in Settings or use --data on the command line."
+msgstr "Nebyla nalezena zadna herni data. Nastavte cestu k datum v Nastaveni nebo pouzijte --data na prikazovem radku."
+
+msgid "You can also change the data path in Settings."
+msgstr "Cestu k datum muzete zmenit take v Nastaveni."
+
+msgid "Missing Liberation data"
+msgstr "Chybi data Liberation"
