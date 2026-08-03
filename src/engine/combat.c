@@ -227,6 +227,13 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
         target->respawn_timer = 600;
         d->xp = xp_add(d->xp, target->hp_max / 10);
         gs->gold += target->hp_max / 5 + 1;
+        if (target->x >= 0 && target->x < MAP_WIDTH &&
+            target->y >= 0 && target->y < MAP_HEIGHT) {
+            MapCell *drop_cell = &gs->levels[gs->current_level].cells[target->y][target->x];
+            if (drop_cell->item_id == 0 && (combat_rand() % 3) == 0) {
+                drop_cell->item_id = (uint8_t)(1 + combat_rand() % 20);
+            }
+        }
         {
             uint16_t old_lvl = xp_to_display_level(d->xp - target->hp_max / 10);
             uint16_t new_lvl = xp_to_display_level(d->xp);

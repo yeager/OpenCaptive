@@ -1025,6 +1025,23 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 if (gs->droids[di].energy > 0) gs->droids[di].energy--;
             }
             puzzle_check_step(&puzzles, gs, nx, ny);
+            {
+                MapCell *step_cell = &gs->levels[gs->current_level].cells[ny][nx];
+                if (step_cell->item_id > 0) {
+                    Droid *d = &gs->droids[gs->selected_droid];
+                    for (int si = 0; si < 10; si++) {
+                        if (d->items[si] == 0) {
+                            d->items[si] = step_cell->item_id;
+                            char pickup_msg[64];
+                            snprintf(pickup_msg, sizeof(pickup_msg),
+                                     "Droid %d picked up item", gs->selected_droid + 1);
+                            msg_push(pickup_msg, 0xFF44AAFF);
+                            step_cell->item_id = 0;
+                            break;
+                        }
+                    }
+                }
+            }
             sfx_play(&sfx, SFX_STEP);
         } else if (cell == CELL_DOOR_LOCKED) {
             sfx_play(&sfx, SFX_DOOR_LOCKED);

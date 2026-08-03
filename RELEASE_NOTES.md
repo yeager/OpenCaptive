@@ -1,5 +1,12 @@
 # OpenCaptive Release Notes
 
+## v1.1.44 (2026-08-03)
+
+### Item drops and floor pickup
+- Killed creatures have 1/3 chance to drop an item on their tile
+- Walking over items auto-picks up to selected droid's inventory
+- Pickup message shown in combat log
+
 ## v1.1.43 (2026-08-03)
 
 ### Combat feedback system

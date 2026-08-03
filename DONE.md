@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Item drops + pickup — v1.1.44)
+
+### Loot system
+- Creatures drop items on death (1/3 chance, random item ID)
+- Floor items auto-collected when party walks over them
+
 ## 2026-08-03 (Combat feedback — v1.1.43)
 
 ### Damage flash + message log
