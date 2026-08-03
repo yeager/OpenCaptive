@@ -133,6 +133,7 @@
 - [x] Building type interactions: library, police, records, residence, industrial, special
 - [x] NPC dialogue Trade and Ask around options give useful responses
 - [x] Liberation combat system (turn-based, random encounters, energy cost, XP rewards)
+- [x] PlotGen wired into Liberation session (mission briefing, city name, victim objective)
 
 ## Internationalization (i18n)
 

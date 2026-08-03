@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Liberation mission briefing — v1.1.38)
+
+### PlotGen integration
+- PlotGen wired into Liberation game loop
+- Mission briefing screen with city name, victim name/title, news source
+- ENTER to dismiss and begin city exploration
+
 ## 2026-08-03 (Creature respawning — v1.1.37)
 
 ### Creature respawn system

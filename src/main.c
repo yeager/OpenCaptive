@@ -30,6 +30,7 @@
 #include "liberation_viewport_3d.h"
 #include "liberation_save.h"
 #include "liberation_combat.h"
+#include "liberation_plotgen.h"
 #include "amos_sprite.h"
 #include "dos_vga_reference.h"
 #include "frame_compare.h"
@@ -383,6 +384,8 @@ static BuildingInteraction lib_interact;
 static bool lib_city_generated;
 static bool lib_in_building;
 static LibCombatState lib_combat;
+static PlotgenState lib_plot;
+static bool lib_mission_briefing;
 static bool lib_in_combat;
 
 
@@ -619,6 +622,11 @@ static void start_liberation_session(GameState *gs_ptr) {
         lib_combat_init(&lib_combat);
         lib_in_combat = false;
         lib_city_generated = true;
+
+        plotgen_init(&lib_plot, seed);
+        plotgen_generate_buildings(&lib_plot);
+        plotgen_generate_names(&lib_plot);
+        lib_mission_briefing = true;
     }
 }
 
@@ -1516,8 +1524,12 @@ int main(int argc, char *argv[]) {
                             if (x >= 89 && x < 233 &&
                                 local_y >= 89 && local_y < liberation_mission_menu_height)
                                 liberation_mission_menu_active = false;
+                        } else if (lib_mission_briefing &&
+                                   event.type == SDL_EVENT_KEY_DOWN &&
+                                   event.key.key == SDLK_RETURN) {
+                            lib_mission_briefing = false;
                         } else if (!liberation_intro_active && !liberation_mission_menu_active &&
-                                   lib_city_generated) {
+                                   !lib_mission_briefing && lib_city_generated) {
                             liberation_handle_input(&gs, &event);
                         }
                     } else {
@@ -1695,6 +1707,28 @@ int main(int argc, char *argv[]) {
                                    (size_t)y * liberation_mission_menu_width,
                                    (size_t)liberation_mission_menu_width * sizeof(*framebuffer));
                         }
+                    } else if (lib_mission_briefing && lib_city_generated) {
+                        draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                      LIBERATION_SCREEN_HEIGHT, 30,
+                                      "MISSION BRIEFING", 0xFF44FF44, 2);
+                        char line[128];
+                        snprintf(line, sizeof(line), "City: %s", lib_plot.city_name);
+                        draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                      LIBERATION_SCREEN_HEIGHT, 70, line, 0xFFFFFF44, 1);
+                        snprintf(line, sizeof(line), "Find: %s (%s)",
+                                 lib_plot.victim_name, lib_plot.victim_title);
+                        draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                      LIBERATION_SCREEN_HEIGHT, 90, line, 0xFFFFAAAA, 1);
+                        snprintf(line, sizeof(line), "Source: %s", lib_plot.news_source);
+                        draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                      LIBERATION_SCREEN_HEIGHT, 110, line, 0xFF8888CC, 1);
+                        snprintf(line, sizeof(line), "%d buildings in city",
+                                 lib_plot.num_buildings);
+                        draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                      LIBERATION_SCREEN_HEIGHT, 140, line, 0xFFAAAAAA, 1);
+                        draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                      LIBERATION_SCREEN_HEIGHT, 180,
+                                      "PRESS ENTER TO BEGIN", 0xFF888888, 1);
                     } else if (lib_city_generated) {
                         uint32_t now = SDL_GetTicks();
                         float dt = (now - gs.last_frame_ms) / 1000.0f;
@@ -1721,7 +1755,7 @@ int main(int argc, char *argv[]) {
                         }
                         char pos_str[64];
                         snprintf(pos_str, sizeof(pos_str), "%s (%d,%d) %s",
-                            lib_buildings.city_name,
+                            lib_plot.city_name[0] ? lib_plot.city_name : lib_buildings.city_name,
                             lib_nav.cell_x, lib_nav.cell_y,
                             city_nav_is_building_entrance(&lib_grid,
                                 lib_nav.cell_x, lib_nav.cell_y) ? "[ENTER]" : "");

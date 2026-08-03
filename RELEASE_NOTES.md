@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.38 (2026-08-03)
+
+### Liberation mission briefing
+- PlotGen wired into Liberation session — generates city name, victim, news source
+- Mission briefing screen shown before city entry with objective details
+- ENTER dismisses briefing and starts city exploration
+- City HUD uses PlotGen-generated city name
+
 ## v1.1.37 (2026-08-03)
 
 ### Creature respawning
