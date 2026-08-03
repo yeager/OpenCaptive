@@ -2,9 +2,18 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef _WIN32
+#include <io.h>
+#define unlink _unlink
+#else
 #include <unistd.h>
+#endif
 
+#ifdef _WIN32
+static const char *TEST_PATH = "test_liberation_save.bin";
+#else
 static const char *TEST_PATH = "/tmp/test_liberation_save.bin";
+#endif
 
 static void test_write_read_roundtrip(void) {
     LibSaveData out;

@@ -4,6 +4,13 @@ project(OpenCaptive VERSION 1.1.29 LANGUAGES C)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+if(UNIX)
+  set(MATH_LIBRARY m)
+else()
+  set(MATH_LIBRARY "")
+  add_compile_definitions(_USE_MATH_DEFINES)
+endif()
+
 find_package(SDL3 REQUIRED)
 find_package(SDL3_ttf QUIET)
 if(NOT SDL3_ttf_FOUND)
@@ -110,10 +117,7 @@ target_include_directories(opencaptive PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
-target_link_libraries(opencaptive PRIVATE SDL3::SDL3 ${SDL3_TTF_TARGET} ZLIB::ZLIB)
-if(UNIX AND NOT APPLE)
-    target_link_libraries(opencaptive PRIVATE m)
-endif()
+target_link_libraries(opencaptive PRIVATE SDL3::SDL3 ${SDL3_TTF_TARGET} ZLIB::ZLIB ${MATH_LIBRARY})
 
 # --- Tests ---
 
@@ -229,13 +233,13 @@ add_test(NAME liberation_fnt COMMAND test_liberation_fnt)
 add_executable(test_liberation_viewport_3d tests/test_liberation_viewport_3d.c
     src/render/liberation_viewport_3d.c)
 target_include_directories(test_liberation_viewport_3d PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(test_liberation_viewport_3d m)
+target_link_libraries(test_liberation_viewport_3d ${MATH_LIBRARY})
 add_test(NAME liberation_viewport_3d COMMAND test_liberation_viewport_3d)
 
 add_executable(test_liberation_city_nav tests/test_liberation_city_nav.c
     src/game/liberation_city_nav.c src/render/liberation_viewport_3d.c)
 target_include_directories(test_liberation_city_nav PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(test_liberation_city_nav m)
+target_link_libraries(test_liberation_city_nav ${MATH_LIBRARY})
 add_test(NAME liberation_city_nav COMMAND test_liberation_city_nav)
 
 add_executable(test_liberation_dialogue_shop tests/test_liberation_dialogue_shop.c
@@ -273,7 +277,7 @@ add_executable(test_liberation_save tests/test_liberation_save.c
     src/game/liberation_save.c src/game/liberation_city_nav.c
     src/render/liberation_viewport_3d.c)
 target_include_directories(test_liberation_save PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(test_liberation_save m)
+target_link_libraries(test_liberation_save ${MATH_LIBRARY})
 add_test(NAME liberation_save COMMAND test_liberation_save)
 
 add_executable(test_liberation_x3g tests/test_liberation_x3g.c
@@ -296,7 +300,7 @@ add_test(NAME custom_features COMMAND test_custom_features)
 
 add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c src/data/i18n.c src/data/stb_image_impl.c)
 target_include_directories(test_start_menu PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(test_start_menu PRIVATE SDL3::SDL3 ${SDL3_TTF_TARGET} $<$<BOOL:${UNIX}>:m>)
+target_link_libraries(test_start_menu PRIVATE SDL3::SDL3 ${SDL3_TTF_TARGET} ${MATH_LIBRARY})
 add_test(NAME start_menu COMMAND test_start_menu)
 
 add_executable(test_game_state tests/test_game_state.c
@@ -340,7 +344,7 @@ add_test(NAME adlib_data COMMAND test_adlib_data)
 add_executable(test_opl2_emu tests/test_opl2_emu.c src/audio/opl2_emu.c)
 target_include_directories(test_opl2_emu PRIVATE ${CMAKE_SOURCE_DIR}/include)
 if(UNIX)
-    target_link_libraries(test_opl2_emu PRIVATE m)
+    target_link_libraries(test_opl2_emu PRIVATE ${MATH_LIBRARY})
 endif()
 add_test(NAME opl2_emu COMMAND test_opl2_emu)
 
@@ -348,7 +352,7 @@ add_executable(test_midi_player tests/test_midi_player.c
     src/audio/midi_player.c src/audio/opl2_emu.c src/audio/adlib_data.c)
 target_include_directories(test_midi_player PRIVATE ${CMAKE_SOURCE_DIR}/include)
 if(UNIX)
-    target_link_libraries(test_midi_player PRIVATE m)
+    target_link_libraries(test_midi_player PRIVATE ${MATH_LIBRARY})
 endif()
 add_test(NAME midi_player COMMAND test_midi_player)
 
@@ -391,7 +395,7 @@ add_executable(test_adlib_sfx tests/test_adlib_sfx.c
     src/audio/adlib_sfx.c src/audio/opl2_emu.c src/audio/adlib_data.c)
 target_include_directories(test_adlib_sfx PRIVATE ${CMAKE_SOURCE_DIR}/include)
 if(UNIX)
-    target_link_libraries(test_adlib_sfx PRIVATE m)
+    target_link_libraries(test_adlib_sfx PRIVATE ${MATH_LIBRARY})
 endif()
 add_test(NAME adlib_sfx COMMAND test_adlib_sfx)
 
