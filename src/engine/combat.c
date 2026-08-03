@@ -108,6 +108,7 @@ static bool combat_has_line_of_sight(const GameState *gs,
 }
 
 void combat_tick(CreatureList *cl, GameState *gs) {
+    cl->attack_occurred = false;
     for (int i = 0; i < cl->num_creatures; i++) {
         Creature *c = &cl->creatures[i];
         if (c->level != gs->current_level) continue;
@@ -140,6 +141,9 @@ void combat_tick(CreatureList *cl, GameState *gs) {
             d->hp -= damage;
             if (d->hp < 0) d->hp = 0;
             c->cooldown = c->speed;
+            cl->last_attack_damage = damage;
+            cl->last_attack_target = target;
+            cl->attack_occurred = true;
         } else {
             int move_dx = 0, move_dy = 0;
             if (c->x < gs->party_x) move_dx = 1;

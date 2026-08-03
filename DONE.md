@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Combat feedback — v1.1.43)
+
+### Damage flash + message log
+- Red viewport flash when droids take creature damage
+- 4-message log with TTL, shows attack events over viewport
+
 ## 2026-08-03 (Liberation inventory + controls — v1.1.42)
 
 ### Liberation inventory screen

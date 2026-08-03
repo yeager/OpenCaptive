@@ -359,6 +359,23 @@ static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *conf
 
 static CreatureList creatures;
 static PuzzleList puzzles;
+
+#define MSG_LOG_SIZE 4
+#define MSG_LOG_TTL  180
+static struct {
+    char text[64];
+    uint32_t color;
+    int ttl;
+} msg_log[MSG_LOG_SIZE];
+
+static void msg_push(const char *text, uint32_t color) {
+    for (int i = MSG_LOG_SIZE - 1; i > 0; i--) msg_log[i] = msg_log[i-1];
+    snprintf(msg_log[0].text, sizeof(msg_log[0].text), "%s", text);
+    msg_log[0].color = color;
+    msg_log[0].ttl = MSG_LOG_TTL;
+}
+
+static int damage_flash_ttl;
 static SoundSystem sound_sys;
 static MusicSystem music_sys;
 static ItemDatabase item_db;
@@ -910,6 +927,10 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_SPACE:
             if (combat_droid_attack(gs, &creatures, gs->selected_droid)) {
                 sfx_play(&sfx, SFX_SHOOT);
+                char atk_msg[64];
+                snprintf(atk_msg, sizeof(atk_msg), "Droid %d fires!",
+                         gs->selected_droid + 1);
+                msg_push(atk_msg, 0xFF44FF44);
                 if (all_droids_dead(gs)) gs->mode = STATE_GAMEOVER;
             }
             return;
@@ -1855,8 +1876,19 @@ int main(int argc, char *argv[]) {
                             }
                         }
                     }
-                    if (gs.tick % 10 == 0)
+                    if (gs.tick % 10 == 0) {
                         combat_tick(&creatures, &gs);
+                        if (creatures.attack_occurred) {
+                            char msg[64];
+                            snprintf(msg, sizeof(msg), "Droid %d hit for %d!",
+                                     creatures.last_attack_target + 1,
+                                     creatures.last_attack_damage);
+                            msg_push(msg, 0xFFFF4444);
+                            damage_flash_ttl = 8;
+                        }
+                    }
+                    for (int mi = 0; mi < MSG_LOG_SIZE; mi++)
+                        if (msg_log[mi].ttl > 0) msg_log[mi].ttl--;
                     /* Captive: the verified original GAME SCRN shell. */
                     if (hud_bg) {
                         memcpy(framebuffer, hud_bg,
@@ -1870,6 +1902,24 @@ int main(int argc, char *argv[]) {
                             viewport_render_creatures(&gs, &creatures, &atlas,
                                             framebuffer, CAPTIVE_ORIGINAL_WIDTH,
                                             CAPTIVE_ORIGINAL_HEIGHT);
+                            if (damage_flash_ttl > 0) {
+                                damage_flash_ttl--;
+                                for (int fy = CAPTIVE_VIEWPORT_Y; fy < CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT; fy++)
+                                    for (int fx = CAPTIVE_VIEWPORT_X; fx < CAPTIVE_VIEWPORT_X + CAPTIVE_VIEWPORT_WIDTH; fx++) {
+                                        uint32_t *p = &framebuffer[fy * CAPTIVE_ORIGINAL_WIDTH + fx];
+                                        uint32_t r = (*p >> 16) & 0xFF;
+                                        r = r + 60 > 255 ? 255 : r + 60;
+                                        *p = (*p & 0xFF00FFFF) | (r << 16);
+                                    }
+                            }
+                            for (int mi = 0; mi < MSG_LOG_SIZE; mi++) {
+                                if (msg_log[mi].ttl <= 0) continue;
+                                draw_simple_text(framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                                    CAPTIVE_ORIGINAL_HEIGHT,
+                                    CAPTIVE_VIEWPORT_X + 4,
+                                    CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT - 12 - mi * 10,
+                                    msg_log[mi].text, msg_log[mi].color, 1);
+                            }
                         } else {
                             for (int y = 0; y < CAPTIVE_VIEWPORT_HEIGHT; ++y) {
                                 uint32_t *row = framebuffer +

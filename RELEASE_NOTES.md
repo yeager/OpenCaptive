@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.43 (2026-08-03)
+
+### Combat feedback system
+- Red flash on viewport when droids take damage
+- Combat message log shows attack events (4 messages, fade over 3 seconds)
+- "Droid N fires!" on player attack, "Droid N hit for X!" on creature attack
+- Messages rendered over viewport at bottom of 3D view
+
 ## v1.1.42 (2026-08-03)
 
 ### Liberation inventory screen

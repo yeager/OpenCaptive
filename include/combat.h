@@ -39,6 +39,9 @@ typedef struct {
 typedef struct {
     Creature creatures[MAX_CREATURES];
     int      num_creatures;
+    int      last_attack_damage;
+    int      last_attack_target;
+    bool     attack_occurred;
 } CreatureList;
 
 void combat_init(CreatureList *cl);
