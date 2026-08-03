@@ -29,14 +29,16 @@ static uint8_t apply_channel(uint8_t value) {
 }
 
 bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
-    int w = CAPTIVE_ORIGINAL_WIDTH * config->scale_factor;
-    int h = CAPTIVE_ORIGINAL_HEIGHT * config->scale_factor;
+    int w = 1280;
+    int h = 800;
 
     r->window = SDL_CreateWindow("OpenCaptive", w, h, SDL_WINDOW_RESIZABLE);
     if (!r->window) {
         fprintf(stderr, "SDL_CreateWindow: %s\n", SDL_GetError());
         return false;
     }
+    SDL_SetWindowSize(r->window, w, h);
+    SDL_SetWindowPosition(r->window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
     r->renderer = SDL_CreateRenderer(r->window, NULL);
     if (!r->renderer) {
@@ -66,13 +68,6 @@ bool renderer_set_canvas(OpenCaptiveRenderer *r, int width, int height,
     if (r->canvas_width != width || r->canvas_height != height) {
         if (!renderer_create_framebuffer(r, width, height)) return false;
     }
-    if (!config->fullscreen) {
-        int sf = config->scale_factor;
-        if (width > 640 || height > 480) sf = 1;
-        r->window_width = width * sf;
-        r->window_height = height * sf;
-        SDL_SetWindowSize(r->window, r->window_width, r->window_height);
-    }
     return true;
 }
 
@@ -83,11 +78,6 @@ void renderer_apply_display(OpenCaptiveRenderer *r, const OpenCaptiveConfig *con
     r->mode = config->render_mode;
     SDL_SetRenderVSync(r->renderer, config->vsync ? 1 : 0);
     SDL_SetWindowFullscreen(r->window, config->fullscreen);
-    if (!config->fullscreen) {
-        r->window_width = r->canvas_width * config->scale_factor;
-        r->window_height = r->canvas_height * config->scale_factor;
-        SDL_SetWindowSize(r->window, r->window_width, r->window_height);
-    }
 }
 
 void renderer_set_effects(OpenCaptiveRenderer *r, bool bilinear, bool scanlines,

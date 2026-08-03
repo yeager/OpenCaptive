@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.34 (2026-08-03)
+
+### Rendering fixes
+- Window starts at 1280x800, no longer resizes on canvas switch
+- Liberation 3D viewport scales to fill screen (256x160 → 320x216)
+- Smooth scaling by default (integer_scaling off)
+- Window centered on launch
+
 ## v1.1.33 (2026-08-03)
 
 ### Captive energy regeneration

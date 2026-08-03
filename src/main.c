@@ -986,7 +986,7 @@ int main(int argc, char *argv[]) {
         .data_path = default_data_path,
         .scale_factor = 3,
         .vsync = true,
-        .integer_scaling = true,
+        .integer_scaling = false,
         .brightness = 50,
         .contrast = 50,
         .fps_limit = 60,
@@ -1697,12 +1697,13 @@ int main(int argc, char *argv[]) {
                         }
                         city_nav_render(&lib_nav, &lib_grid, &lib_render,
                                         NULL, NULL, 0);
-                        for (int i = 0; i < LIB3D_VP_WIDTH * LIB3D_VP_HEIGHT; i++) {
-                            uint32_t c = lib_render.framebuffer[i];
-                            int vx = i % LIB3D_VP_WIDTH;
-                            int vy = i / LIB3D_VP_WIDTH;
-                            if (vx < LIBERATION_SCREEN_WIDTH && vy < LIBERATION_SCREEN_HEIGHT)
-                                framebuffer[vy * LIBERATION_SCREEN_WIDTH + vx] = c;
+                        for (int dy = 0; dy < LIBERATION_SCREEN_HEIGHT - 40; dy++) {
+                            int sy = dy * LIB3D_VP_HEIGHT / (LIBERATION_SCREEN_HEIGHT - 40);
+                            for (int dx = 0; dx < LIBERATION_SCREEN_WIDTH; dx++) {
+                                int sx = dx * LIB3D_VP_WIDTH / LIBERATION_SCREEN_WIDTH;
+                                framebuffer[dy * LIBERATION_SCREEN_WIDTH + dx] =
+                                    lib_render.framebuffer[sy * LIB3D_VP_WIDTH + sx];
+                            }
                         }
                         char pos_str[64];
                         snprintf(pos_str, sizeof(pos_str), "%s (%d,%d) %s",

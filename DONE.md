@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Rendering fixes — v1.1.34)
+
+### Window and viewport scaling
+- Fixed window starting too small (now 1280x800)
+- Liberation viewport fills screen instead of rendering at native 256x160
+- Window no longer resizes when switching between menu/game modes
+- Smooth scaling as default
+
 ## 2026-08-03 (Captive energy regen + mission flow — v1.1.33)
 
 ### Captive energy regeneration
