@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Combat depth + day/night + bar fights — v1.1.56)
+
+### Armor and combat
+- Body part condition now reduces incoming damage (armor_reduce = condition/32)
+- Melee weapons (items 13-17) have range 1, all other weapons range 6
+- Terminal map shows all new cell types
+
+### Liberation atmosphere
+- Day/night cycle: 3 phases (day 6-18h, dusk 18-21h, night 21-6h) with distinct sky/ground colors
+- Bar fights: 25% chance of combat encounter after buying drinks at a bar
+
 ## 2026-08-03 (100% parity verification — v1.1.55)
 
 ### Parity verification

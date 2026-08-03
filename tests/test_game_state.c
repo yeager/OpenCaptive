@@ -33,6 +33,8 @@ static void test_combat_respects_closed_doors(void) {
     gs.party_x = 1;
     gs.party_y = 1;
     gs.party_dir = DIR_EAST;
+    gs.droids[0].weapons[0] = 18;
+    gs.droids[0].weapon_damage = 0x0505;
 
     for (int y = 0; y < MAP_HEIGHT; y++)
         for (int x = 0; x < MAP_WIDTH; x++)

@@ -1,5 +1,15 @@
 # OpenCaptive Release Notes
 
+## v1.1.56 (2026-08-03)
+
+### Combat depth and Liberation atmosphere
+- Armor damage reduction: equipped body parts reduce incoming damage based on condition
+- Ranged vs melee weapon distinction: melee weapons (KNUCLE-DUSTER through FIRE-AXE) hit at range 1, ranged weapons at range 6
+- Terminal map now renders all cell types including teleporters, pits, pressure plates
+- Liberation day/night cycle: sky/ground colors change with tick-based time (day/dusk/night)
+- Bar fight encounters: 25% chance of combat when leaving a bar after buying drinks
+- Lib3dState now carries sky_color/ground_color fields for time-of-day rendering
+
 ## v1.1.55 (2026-08-03)
 
 ### 100% parity verification complete

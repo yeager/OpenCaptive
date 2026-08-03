@@ -92,6 +92,11 @@ static void render_map(const TerminalState *ts, const GameState *gs,
                 case CELL_STAIRS_UP: case CELL_STAIRS_DOWN: c = 0xFF00AA00; break;
                 case CELL_GENERATOR: c = 0xFFAA0000; break;
                 case CELL_SHOP: c = 0xFFAAAA00; break;
+                case CELL_TELEPORTER: c = 0xFF8800AA; break;
+                case CELL_TERMINAL: c = 0xFF00AAFF; break;
+                case CELL_PIT: c = 0xFF330000; break;
+                case CELL_PRESSURE_PLATE: c = 0xFF888844; break;
+                case CELL_ELEVATOR: c = 0xFF00FF88; break;
                 default: break;
             }
             if (c) {

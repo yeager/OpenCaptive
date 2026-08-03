@@ -34,6 +34,7 @@ typedef struct {
     } purchased[20];
     int purchased_count;
     bool mission_complete;
+    bool bar_fight;
 } BuildingInteraction;
 
 void building_interact_init(BuildingInteraction *bi);

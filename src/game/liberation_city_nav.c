@@ -216,7 +216,9 @@ void city_nav_render(CityNavState *nav, const CityGridState *grid,
 
     lib3d_set_camera(render, nav->smooth_x, CITY_EYE_HEIGHT, nav->smooth_y,
                      nav->smooth_yaw);
-    lib3d_clear(render, 0xFF4466AA, 0xFF446644);
+    lib3d_clear(render,
+        render->sky_color ? render->sky_color : 0xFF4466AA,
+        render->ground_color ? render->ground_color : 0xFF446644);
 
     int view_range = 8;
     for (int dy = -view_range; dy <= view_range; dy++) {
@@ -289,7 +291,9 @@ void city_nav_render_textured(CityNavState *nav, const CityGridState *grid,
 
     lib3d_set_camera(render, nav->smooth_x, CITY_EYE_HEIGHT, nav->smooth_y,
                      nav->smooth_yaw);
-    lib3d_clear(render, 0xFF4466AA, 0xFF446644);
+    lib3d_clear(render,
+        render->sky_color ? render->sky_color : 0xFF4466AA,
+        render->ground_color ? render->ground_color : 0xFF446644);
 
     int view_range = 8;
     for (int dy = -view_range; dy <= view_range; dy++) {

@@ -791,6 +791,13 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 building_interact_leave(&lib_interact);
                 lib_transfer_purchases(gs);
                 lib_in_building = false;
+                if (lib_interact.bar_fight) {
+                    lib_interact.bar_fight = false;
+                    lib_combat_generate_encounter(&lib_combat,
+                        (uint16_t)(gs->tick * 0x5E5), gs->mission);
+                    lib_in_combat = true;
+                    msg_push("Bar fight!", 0xFFFF4444);
+                }
                 return;
             case SDLK_UP: {
                 unsigned count = building_interact_choice_count(&lib_interact);
@@ -816,7 +823,13 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 if (!lib_interact.active) {
                     lib_transfer_purchases(gs);
                     lib_in_building = false;
-                    if (lib_interact.mission_complete) {
+                    if (lib_interact.bar_fight) {
+                        lib_interact.bar_fight = false;
+                        lib_combat_generate_encounter(&lib_combat,
+                            (uint16_t)(gs->tick * 0x5E5), gs->mission);
+                        lib_in_combat = true;
+                        msg_push("Bar fight!", 0xFFFF4444);
+                    } else if (lib_interact.mission_complete) {
                         lib_interact.mission_complete = false;
                         lib_in_dungeon = true;
                         lib_dungeon_entry_x = lib_nav.cell_x;
@@ -2128,6 +2141,19 @@ int main(int argc, char *argv[]) {
                             if ((encounter_roll & 0x1F) == 0) {
                                 lib_combat_generate_encounter(&lib_combat, encounter_roll, gs.mission);
                                 lib_in_combat = true;
+                            }
+                        }
+                        {
+                            int hour = (int)((gs.tick / 60) % 24);
+                            if (hour >= 6 && hour < 18) {
+                                lib_render.sky_color = 0xFF4466AA;
+                                lib_render.ground_color = 0xFF446644;
+                            } else if (hour >= 18 && hour < 21) {
+                                lib_render.sky_color = 0xFF332255;
+                                lib_render.ground_color = 0xFF333322;
+                            } else {
+                                lib_render.sky_color = 0xFF111133;
+                                lib_render.ground_color = 0xFF222211;
                             }
                         }
                         city_nav_render(&lib_nav, &lib_grid, &lib_render,

@@ -109,6 +109,15 @@
 ### Creature stats
 - [x] Creature damage/defense/range derived from category table (not placeholder values)
 
+### Armor and combat
+- [x] Armor damage reduction (body part condition reduces incoming damage)
+- [x] Ranged vs melee weapon distinction (melee range 1, ranged range 6)
+- [x] Terminal map shows all cell types (teleporter, terminal, pit, pressure plate, elevator)
+
+### Liberation day/night and bar fights
+- [x] Day/night cycle (tick-based sky/ground color: day 6-18h, dusk 18-21h, night 21-6h)
+- [x] Bar fight encounters (25% chance after buying drinks, triggers combat on exit)
+
 ### Viewport rendering
 - [x] Original ALIEN1-6.PL5 creature sprites (SHA-256 verified)
 - [x] Floor item rendering in viewport

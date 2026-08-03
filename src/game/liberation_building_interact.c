@@ -203,6 +203,8 @@ bool building_interact_buy(BuildingInteraction *bi, unsigned item_idx) {
         bi->purchased[bi->purchased_count].item_type = item->item_type;
         bi->purchased_count++;
     }
+    if (bi->type == INTERACT_BAR && (bi->purchased_count & 3) == 0)
+        bi->bar_fight = true;
     return true;
 }
 

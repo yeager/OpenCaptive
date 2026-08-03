@@ -149,6 +149,9 @@ void combat_tick(CreatureList *cl, GameState *gs) {
                          (combat_rand() % (c->damage_max - c->damage_min + 1));
             int part = combat_rand() % 6;
             if (d->body_parts[part] != 0 && d->body_part_hp[part] > 0) {
+                int armor_reduce = d->body_part_hp[part] / 32;
+                if (armor_reduce > 0) damage -= armor_reduce;
+                if (damage < 1) damage = 1;
                 int part_dmg = damage / 4;
                 if (part_dmg < 1) part_dmg = 1;
                 if (part_dmg >= d->body_part_hp[part])
@@ -196,6 +199,13 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     int fwd_x = (int[]){0,1,0,-1}[gs->party_dir];
     int fwd_y = (int[]){-1,0,1,0}[gs->party_dir];
 
+    bool is_melee = (d->weapons[0] == 0 && d->weapons[1] == 0);
+    if (!is_melee) {
+        uint8_t wid = d->weapons[0] ? d->weapons[0] : d->weapons[1];
+        if (wid >= 13 && wid <= 17) is_melee = true;
+    }
+    int attack_range = is_melee ? 1 : 6;
+
     Creature *target = NULL;
     int best_dist = 9999;
 
@@ -210,7 +220,7 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
         if (dot <= 0) continue;
 
         int dist = distance(c->x, c->y, gs->party_x, gs->party_y);
-        if (dist < best_dist && dist <= 6 &&
+        if (dist < best_dist && dist <= attack_range &&
             combat_has_line_of_sight(gs, gs->party_x, gs->party_y, c->x, c->y)) {
             best_dist = dist;
             target = c;

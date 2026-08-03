@@ -48,6 +48,9 @@ typedef struct {
 
     Lib3dVisPoly   visible[LIB3D_MAX_VISIBLE_POLYS];
     unsigned       vis_count;
+
+    uint32_t sky_color;
+    uint32_t ground_color;
 } Lib3dState;
 
 void lib3d_init(Lib3dState *state);
