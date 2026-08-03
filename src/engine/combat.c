@@ -226,6 +226,7 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     if (target->hp <= 0) {
         target->active = false;
         target->respawn_timer = 600;
+        cl->creature_killed = true;
         d->xp = xp_add(d->xp, target->hp_max / 10);
         gs->gold += target->hp_max / 5 + 1;
         if (target->x >= 0 && target->x < MAP_WIDTH &&
@@ -243,6 +244,7 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
                 d->hp = d->hp_max;
                 d->energy_max += 5;
                 d->energy = d->energy_max;
+                cl->level_up_occurred = true;
             }
         }
     }

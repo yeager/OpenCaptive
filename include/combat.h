@@ -42,6 +42,8 @@ typedef struct {
     int      last_attack_damage;
     int      last_attack_target;
     bool     attack_occurred;
+    bool     creature_killed;
+    bool     level_up_occurred;
 } CreatureList;
 
 void combat_init(CreatureList *cl);

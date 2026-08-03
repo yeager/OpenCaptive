@@ -73,6 +73,13 @@
 ### Shop
 - [x] Shop repair (R key, restores HP/energy/body parts)
 
+### Sound effects
+- [x] SFX_HIT on creature attack
+- [x] SFX_DEATH on creature kill
+- [x] SFX_LEVEL_UP on droid level up
+- [x] SFX_PICKUP on floor item pickup
+- [x] SFX_GENERATOR on generator destruction
+
 ### Viewport rendering
 - [x] Original ALIEN1-6.PL5 creature sprites (SHA-256 verified)
 - [x] Floor item rendering in viewport

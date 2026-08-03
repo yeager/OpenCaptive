@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Combat SFX + level-up feedback — v1.1.47)
+
+### Combat sound effects
+- SFX_HIT plays when creatures attack droids
+- SFX_DEATH plays when droid kills a creature
+- SFX_LEVEL_UP plays on droid level up with "LEVEL UP!" message
+- SFX_PICKUP plays on floor item auto-pickup
+- SFX_GENERATOR plays on generator destruction
+- creature_killed and level_up_occurred flags added to CreatureList
+
 ## 2026-08-03 (Equip system + locked doors — v1.1.46)
 
 ### Liberation item equip system

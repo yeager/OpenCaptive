@@ -928,6 +928,15 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_SPACE:
             if (combat_droid_attack(gs, &creatures, gs->selected_droid)) {
                 sfx_play(&sfx, SFX_SHOOT);
+                if (creatures.creature_killed) {
+                    sfx_play(&sfx, SFX_DEATH);
+                    creatures.creature_killed = false;
+                }
+                if (creatures.level_up_occurred) {
+                    sfx_play(&sfx, SFX_LEVEL_UP);
+                    msg_push("LEVEL UP!", 0xFFFFFF00);
+                    creatures.level_up_occurred = false;
+                }
                 char atk_msg[64];
                 snprintf(atk_msg, sizeof(atk_msg), "Droid %d fires!",
                          gs->selected_droid + 1);
@@ -954,7 +963,10 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             int face = (gs->party_dir + 2) % 4;
             if (!puzzle_interact(&puzzles, gs, gs->party_x, gs->party_y, gs->party_dir) &&
                 !puzzle_interact(&puzzles, gs, tx, ty, face)) {
+                int gen_before = gs->generators_destroyed;
                 combat_interact(gs, &item_db);
+                if (gs->generators_destroyed > gen_before)
+                    sfx_play(&sfx, SFX_GENERATOR);
             }
             return;
         }
@@ -1037,6 +1049,7 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                             snprintf(pickup_msg, sizeof(pickup_msg),
                                      "Droid %d picked up item", gs->selected_droid + 1);
                             msg_push(pickup_msg, 0xFF44AAFF);
+                            sfx_play(&sfx, SFX_PICKUP);
                             step_cell->item_id = 0;
                             break;
                         }
@@ -1983,6 +1996,7 @@ int main(int argc, char *argv[]) {
                                      creatures.last_attack_damage);
                             msg_push(msg, 0xFFFF4444);
                             damage_flash_ttl = 8;
+                            sfx_play(&sfx, SFX_HIT);
                         }
                     }
                     for (int mi = 0; mi < MSG_LOG_SIZE; mi++)

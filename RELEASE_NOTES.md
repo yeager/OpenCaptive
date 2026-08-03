@@ -1,5 +1,12 @@
 # OpenCaptive Release Notes
 
+## v1.1.47 (2026-08-03)
+
+### Combat sound effects
+- SFX_HIT on creature attacks, SFX_DEATH on creature kill
+- SFX_LEVEL_UP with "LEVEL UP!" message on droid level up
+- SFX_PICKUP on floor item collection, SFX_GENERATOR on generator destruction
+
 ## v1.1.46 (2026-08-03)
 
 ### Liberation item equip system
