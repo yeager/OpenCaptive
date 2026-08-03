@@ -6,16 +6,22 @@ OpenCaptive's combat system implements Captive's real-time creature encounters w
 
 ## Creatures
 
-| Type | HP | Damage | Defense | Speed | Range | Notes |
-|------|-----|--------|---------|-------|-------|-------|
-| Drone | 15-25 | 3-6 | 1 | 8 | 1 | Weakest, early levels |
-| Guard | 30-50 | 5-10 | 3 | 6 | 1 | Standard melee |
-| Turret | 20-35 | 8-15 | 5 | 10 | 3 | Ranged, stationary |
-| Robot | 50-80 | 10-18 | 6 | 5 | 1 | Tanky melee |
-| Enforcer | 60-100 | 12-22 | 8 | 4 | 2 | Mid-boss |
-| Boss | 100-200 | 15-30 | 10 | 3 | 2 | Level boss |
+25 creature types grouped into 8 categories (0-7). Per-type HP/category/speed tables recovered from CAPPO.EXE (DS:0xA1BF, DS:0x9A42, DS:0xA1A4).
 
-Stats scale with dungeon level. Base HP multiplied by `1 + level * 0.3`.
+### Damage formula (from CAPPO.EXE at 0x5380)
+
+Creature damage is procedurally computed at spawn time, not stored in a per-type table:
+```
+base = min(20, 2 + category + dungeon_level)
+dmg_lo = (base >> 1) | 1
+dmg_hi = base
+damage_min = dmg_lo * dmg_hi
+damage_max = dmg_lo * dmg_hi + dmg_hi
+```
+Uses the same lo*hi byte encoding as weapon damage (formula at 0x97F2: `mul ah`, shift ×8, cap 0xFFFD).
+
+Defense scales with category and level: `category * 2 + level`.
+Range: categories 0-3 are melee (1-2), categories 4-7 are ranged (4-7).
 
 ## AI Behavior
 

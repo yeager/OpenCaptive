@@ -108,6 +108,7 @@
 
 ### Creature stats
 - [x] Creature damage/defense/range derived from category table (not placeholder values)
+- [x] Creature damage formula verified against CAPPO.EXE disassembly at 0x5380 (lo*hi encoding, same as weapons)
 
 ### Armor and combat
 - [x] Armor damage reduction (body part condition reduces incoming damage)

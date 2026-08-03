@@ -57,17 +57,23 @@ void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
                     const CreatureTypeDef *def = &creature_types[se->creature_type];
                     c->speed = def->speed;
                 }
-                if (se->creature_type < CREATURE_TYPE_COUNT) {
-                    const CreatureTypeDef *def2 = &creature_types[se->creature_type];
-                    c->damage_min = (int16_t)(def2->category * 3 + 3);
-                    c->damage_max = (int16_t)(def2->category * 5 + 10);
-                    c->defense = (int16_t)(def2->category * 2 + 1);
-                    c->range = (def2->category >= 4) ? 6 : 4;
-                } else {
-                    c->damage_min = 5 + level_num * 2;
-                    c->damage_max = 15 + level_num * 3;
-                    c->defense = 2 + level_num;
-                    c->range = 4;
+                {
+                    /* Creature damage formula from CAPPO.EXE at 0x5380:
+                     * base = min(20, combat_val / divisor + 1)
+                     * type 0x60: base ×4; type 0x61: base ×8
+                     * packed as lo*hi word (same encoding as weapons).
+                     * Simplified here using category as the scaling tier. */
+                    int cat = 0;
+                    if (se->creature_type < CREATURE_TYPE_COUNT)
+                        cat = creature_types[se->creature_type].category;
+                    int base = 2 + cat + level_num;
+                    if (base > 20) base = 20;
+                    int dmg_lo = (base >> 1) | 1;
+                    int dmg_hi = base;
+                    c->damage_min = (int16_t)(dmg_lo * dmg_hi);
+                    c->damage_max = (int16_t)(dmg_lo * dmg_hi + dmg_hi);
+                    c->defense = (int16_t)(cat * 2 + level_num);
+                    c->range = (cat >= 4) ? 4 + (cat - 4) : 1 + cat / 3;
                 }
                 c->x = x + (s % 2);
                 c->y = y + (s / 2);
