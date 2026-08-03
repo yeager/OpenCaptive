@@ -1,5 +1,10 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Documentation and release — v1.1.65)
+
+- Comprehensive README.md rewrite: full feature list, controls, CLI options, reverse engineering table, wiki links
+- Release documentation for all platforms (Linux/macOS/Windows packages)
+
 ## 2026-08-03 (Start menu enhancements — v1.1.64)
 
 ### Five new start menu features

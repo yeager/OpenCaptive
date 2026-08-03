@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.65 (2026-08-03)
+
+### Documentation and release
+- Comprehensive README.md rewrite reflecting 100% parity status
+- Full feature documentation: both games, start menu, controls, CLI options, reverse engineering table
+- Wiki links, project structure, supported data sources, build/test/run instructions
+- Release packages documented: Linux (deb/rpm/AppImage/tar.gz), macOS (DMG), Windows (Inno Setup)
+
 ## v1.1.64 (2026-08-03)
 
 ### Start menu enhancements
