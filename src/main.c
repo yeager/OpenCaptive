@@ -22,6 +22,11 @@
 #include "captive_amiga_data.h"
 #include "sha256.h"
 #include "liberation_data.h"
+#include "liberation_citygen.h"
+#include "liberation_citygen_grid.h"
+#include "liberation_city_nav.h"
+#include "liberation_building_interact.h"
+#include "liberation_viewport_3d.h"
 #include "amos_sprite.h"
 #include "dos_vga_reference.h"
 #include "frame_compare.h"
@@ -367,6 +372,14 @@ static uint16_t liberation_mission_menu_height;
 
 enum { LIBERATION_MISSION_MENU_Y = 56 };
 
+static CityGrid lib_buildings;
+static CityGridState lib_grid;
+static CityNavState lib_nav;
+static Lib3dState lib_render;
+static BuildingInteraction lib_interact;
+static bool lib_city_generated;
+static bool lib_in_building;
+
 
 typedef struct {
     bool open;
@@ -580,8 +593,26 @@ static void start_liberation_session(GameState *gs_ptr) {
     gs_ptr->mode = STATE_GAME;
     liberation_intro_active = !skip_liberation_intro_requested &&
                               liberation_data.intro_frame.bitplanes != NULL;
-    /* --skip-intro remains an automation route to the verified city frame. */
     liberation_mission_menu_active = false;
+
+    if (!lib_city_generated) {
+        uint16_t seed = (uint16_t)(gs_ptr->mission_seed & 0xFFFF);
+        uint16_t seed_hi = (uint16_t)((gs_ptr->mission_seed >> 16) & 0xFFFF);
+        if (!seed) seed = 0x1234;
+        if (!seed_hi) seed_hi = 0x5678;
+        citygen_generate(&lib_buildings, seed, (uint16_t)gs_ptr->mission);
+        citygrid_init(&lib_grid, seed_hi, seed, gs_ptr->mission);
+        citygrid_generate(&lib_grid);
+        citygrid_map_buildings(&lib_grid, &lib_buildings);
+        int start_x = lib_grid.entry_point % CITYGRID_WIDTH;
+        int start_y = lib_grid.entry_point / CITYGRID_WIDTH;
+        if (start_x == 0 && start_y == 0) { start_x = 32; start_y = 32; }
+        city_nav_init(&lib_nav, start_x, start_y, CITY_DIR_NORTH);
+        lib3d_init(&lib_render);
+        building_interact_init(&lib_interact);
+        lib_in_building = false;
+        lib_city_generated = true;
+    }
 }
 
 static bool load_liberation_mission_menu(void) {
@@ -615,6 +646,98 @@ static bool load_liberation_mission_menu(void) {
 
 static int quicksave_slot = 0;
 static CustomFeatures *custom_feat_ptr = NULL;
+
+static void lib_transfer_purchases(GameState *gs) {
+    for (int i = 0; i < lib_interact.purchased_count; i++) {
+        if (gs->lib_inventory_count >= 40) break;
+        snprintf(gs->lib_inventory[gs->lib_inventory_count].name,
+                 sizeof(gs->lib_inventory[0].name), "%s",
+                 lib_interact.purchased[i].name);
+        gs->lib_inventory[gs->lib_inventory_count].item_type =
+            lib_interact.purchased[i].item_type;
+        gs->lib_inventory_count++;
+    }
+    lib_interact.purchased_count = 0;
+}
+
+static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
+    if (event->type != SDL_EVENT_KEY_DOWN) return;
+
+    if (lib_in_building) {
+        switch (event->key.key) {
+            case SDLK_ESCAPE:
+                building_interact_leave(&lib_interact);
+                lib_transfer_purchases(gs);
+                lib_in_building = false;
+                return;
+            case SDLK_UP: {
+                unsigned count = building_interact_choice_count(&lib_interact);
+                if (count > 0) building_interact_choose(&lib_interact, 0);
+                return;
+            }
+            case SDLK_DOWN: {
+                unsigned count = building_interact_choice_count(&lib_interact);
+                if (count > 1) building_interact_choose(&lib_interact, 1);
+                return;
+            }
+            case SDLK_1: case SDLK_2: case SDLK_3: case SDLK_4:
+            case SDLK_5: case SDLK_6: case SDLK_7: case SDLK_8:
+            case SDLK_9: {
+                unsigned idx = (unsigned)(event->key.key - SDLK_1);
+                unsigned count = building_interact_choice_count(&lib_interact);
+                if (idx < count) building_interact_choose(&lib_interact, idx);
+                return;
+            }
+            case SDLK_RETURN:
+            case SDLK_SPACE:
+                building_interact_advance(&lib_interact);
+                if (!lib_interact.active) {
+                    lib_transfer_purchases(gs);
+                    lib_in_building = false;
+                }
+                return;
+            default: return;
+        }
+    }
+
+    if (lib_nav.moving) return;
+
+    switch (event->key.key) {
+        case SDLK_W:
+        case SDLK_UP:
+            if (city_nav_can_move_forward(&lib_nav, &lib_grid))
+                city_nav_move_forward(&lib_nav, &lib_grid);
+            break;
+        case SDLK_S:
+        case SDLK_DOWN:
+            if (city_nav_can_move_backward(&lib_nav, &lib_grid))
+                city_nav_move_backward(&lib_nav, &lib_grid);
+            break;
+        case SDLK_A:
+        case SDLK_LEFT:
+            city_nav_turn_left(&lib_nav);
+            break;
+        case SDLK_D:
+        case SDLK_RIGHT:
+            city_nav_turn_right(&lib_nav);
+            break;
+        case SDLK_Q:
+            city_nav_turn_around(&lib_nav);
+            break;
+        case SDLK_F:
+        case SDLK_RETURN:
+            if (city_nav_is_building_entrance(&lib_grid,
+                    lib_nav.cell_x, lib_nav.cell_y)) {
+                if (building_interact_enter(&lib_interact, &lib_grid,
+                        &lib_buildings, lib_nav.cell_x, lib_nav.cell_y,
+                        (uint32_t *)&gs->gold)) {
+                    lib_in_building = true;
+                }
+            }
+            break;
+        default: break;
+    }
+}
 
 static void game_handle_input(GameState *gs, const SDL_Event *event) {
     if (event->type == SDL_EVENT_MOUSE_MOTION && custom_feat_ptr &&
@@ -762,6 +885,9 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         if (cell != CELL_WALL && cell != CELL_DOOR && cell != CELL_DOOR_LOCKED) {
             gs->party_x = nx;
             gs->party_y = ny;
+            for (int di = 0; di < 4; di++) {
+                if (gs->droids[di].energy > 0) gs->droids[di].energy--;
+            }
             sfx_play(&sfx, SFX_STEP);
         } else if (cell == CELL_DOOR_LOCKED) {
             sfx_play(&sfx, SFX_DOOR_LOCKED);
@@ -1291,9 +1417,6 @@ int main(int argc, char *argv[]) {
                         } else if (liberation_mission_menu_active &&
                                    event.type == SDL_EVENT_KEY_DOWN &&
                                    (event.key.key == SDLK_RETURN || event.key.key == SDLK_SPACE)) {
-                            /* The original menu's Game on button is the only
-                             * implemented transition. City interaction stays
-                             * disabled until original state semantics exist. */
                             liberation_mission_menu_active = false;
                         } else if (liberation_mission_menu_active &&
                                    event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
@@ -1306,6 +1429,9 @@ int main(int argc, char *argv[]) {
                             if (x >= 89 && x < 233 &&
                                 local_y >= 89 && local_y < liberation_mission_menu_height)
                                 liberation_mission_menu_active = false;
+                        } else if (!liberation_intro_active && !liberation_mission_menu_active &&
+                                   lib_city_generated) {
+                            liberation_handle_input(&gs, &event);
                         }
                     } else {
                         /* Keep the input/state loop live while the final
@@ -1347,16 +1473,16 @@ int main(int argc, char *argv[]) {
                                 gs.mode = STATE_GAME;
                                 break;
                             case SDLK_UP:
-                                droid_ui_handle_key(&droid_ui, &gs, 0x50);
+                                droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x50);
                                 break;
                             case SDLK_DOWN:
-                                droid_ui_handle_key(&droid_ui, &gs, 0x51);
+                                droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x51);
                                 break;
                             case SDLK_TAB:
-                                droid_ui_handle_key(&droid_ui, &gs, 0x09);
+                                droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x09);
                                 break;
                             case SDLK_RETURN:
-                                droid_ui_handle_key(&droid_ui, &gs, 0x0D);
+                                droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x0D);
                                 break;
                             default: break;
                         }
@@ -1443,12 +1569,14 @@ int main(int argc, char *argv[]) {
             case STATE_GAME: {
                 if (!runtime_popup.open) popup_apply_cheats(&gs);
                 if (gs.game_type == GAME_LIBERATION) {
-                    /* Liberation has its own city/building loop.  Captive's
-                     * droid combat and generator completion conditions do not
-                     * apply here: running them caused an unattended city game
-                     * to advance or end after its timer elapsed. */
                     memset(framebuffer, 0, sizeof(framebuffer));
-                    if (liberation_mission_menu_active && liberation_mission_menu_pixels) {
+                    if (liberation_intro_active) {
+                        if (liberation_data.intro_frame.bitplanes) {
+                            liberation_anim_blit(&liberation_data.intro_frame,
+                                framebuffer, LIBERATION_SCREEN_WIDTH,
+                                LIBERATION_SCREEN_HEIGHT, 0, 47);
+                        }
+                    } else if (liberation_mission_menu_active && liberation_mission_menu_pixels) {
                         for (uint16_t y = 0; y < liberation_mission_menu_height; ++y) {
                             if (y + LIBERATION_MISSION_MENU_Y >= LIBERATION_SCREEN_HEIGHT) break;
                             memcpy(framebuffer + (size_t)(y + LIBERATION_MISSION_MENU_Y) *
@@ -1457,13 +1585,57 @@ int main(int argc, char *argv[]) {
                                    (size_t)y * liberation_mission_menu_width,
                                    (size_t)liberation_mission_menu_width * sizeof(*framebuffer));
                         }
+                    } else if (lib_city_generated) {
+                        uint32_t now = SDL_GetTicks();
+                        float dt = (now - gs.last_frame_ms) / 1000.0f;
+                        if (dt > 0.1f) dt = 0.1f;
+                        gs.last_frame_ms = now;
+                        city_nav_update(&lib_nav, dt);
+                        city_nav_render(&lib_nav, &lib_grid, &lib_render,
+                                        NULL, NULL, 0);
+                        for (int i = 0; i < LIB3D_VP_WIDTH * LIB3D_VP_HEIGHT; i++) {
+                            uint32_t c = lib_render.framebuffer[i];
+                            int vx = i % LIB3D_VP_WIDTH;
+                            int vy = i / LIB3D_VP_WIDTH;
+                            if (vx < LIBERATION_SCREEN_WIDTH && vy < LIBERATION_SCREEN_HEIGHT)
+                                framebuffer[vy * LIBERATION_SCREEN_WIDTH + vx] = c;
+                        }
+                        char pos_str[64];
+                        snprintf(pos_str, sizeof(pos_str), "%s (%d,%d) %s",
+                            lib_buildings.city_name,
+                            lib_nav.cell_x, lib_nav.cell_y,
+                            city_nav_is_building_entrance(&lib_grid,
+                                lib_nav.cell_x, lib_nav.cell_y) ? "[ENTER]" : "");
+                        draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                            LIBERATION_SCREEN_HEIGHT, 2, LIBERATION_SCREEN_HEIGHT - 10,
+                            pos_str, 0xFFFFFFFF, 1);
+                        if (lib_in_building) {
+                            const char *text = building_interact_text(&lib_interact);
+                            if (text) {
+                                for (int y = LIBERATION_SCREEN_HEIGHT / 2;
+                                     y < LIBERATION_SCREEN_HEIGHT; y++)
+                                    for (int x = 0; x < LIBERATION_SCREEN_WIDTH; x++)
+                                        framebuffer[y * LIBERATION_SCREEN_WIDTH + x] =
+                                            (framebuffer[y * LIBERATION_SCREEN_WIDTH + x] >> 2) & 0x3F3F3F;
+                                draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                    LIBERATION_SCREEN_HEIGHT, 8, LIBERATION_SCREEN_HEIGHT / 2 + 8,
+                                    text, 0xFFFFFFFF, 1);
+                                unsigned count = building_interact_choice_count(&lib_interact);
+                                for (unsigned ci = 0; ci < count && ci < 6; ci++) {
+                                    char label[64];
+                                    snprintf(label, sizeof(label), "%d. %s", ci + 1,
+                                        building_interact_choice_label(&lib_interact, ci));
+                                    draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                        LIBERATION_SCREEN_HEIGHT, 8,
+                                        LIBERATION_SCREEN_HEIGHT / 2 + 20 + (int)ci * 10,
+                                        label, 0xFFCCCCCC, 1);
+                                }
+                            }
+                        }
                     } else if (liberation_data.city_frame.bitplanes) {
-                        const LiberationAnimFrame *frame = liberation_intro_active
-                            ? &liberation_data.intro_frame : &liberation_data.city_frame;
-                        int y = liberation_intro_active ? 47 : 44;
-                        liberation_anim_blit(frame, framebuffer,
-                                             LIBERATION_SCREEN_WIDTH,
-                                             LIBERATION_SCREEN_HEIGHT, 0, y);
+                        liberation_anim_blit(&liberation_data.city_frame,
+                            framebuffer, LIBERATION_SCREEN_WIDTH,
+                            LIBERATION_SCREEN_HEIGHT, 0, 44);
                     } else {
                         draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
                                       LIBERATION_SCREEN_HEIGHT, 118,

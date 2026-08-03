@@ -6,7 +6,7 @@
 #include "liberation_citygen.h"
 #include "liberation_dialogue.h"
 
-#define SHOP_MAX_ITEMS 32
+#define LIB_SHOP_MAX_ITEMS 32
 #define SHOP_MAX_NAME 64
 
 typedef struct {
@@ -20,7 +20,7 @@ typedef struct {
 typedef struct {
     char shop_name[SHOP_MAX_NAME];
     BuildingType building_type;
-    LibShopItem items[SHOP_MAX_ITEMS];
+    LibShopItem items[LIB_SHOP_MAX_ITEMS];
     unsigned item_count;
     uint16_t prng_seed;
     DialogueTree dialogue;

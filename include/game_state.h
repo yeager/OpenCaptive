@@ -126,6 +126,13 @@ typedef struct {
     uint32_t    tick;
     uint32_t    last_frame_ms;
 
+    // Liberation inventory
+    struct {
+        char    name[24];
+        uint16_t item_type;
+    } lib_inventory[40];
+    int         lib_inventory_count;
+
     // UI state
     int         selected_droid;  // 0-3
     bool        map_overlay;

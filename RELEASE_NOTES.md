@@ -1,5 +1,23 @@
 # OpenCaptive Release Notes
 
+## v1.1.30 (2026-08-03)
+
+### Liberation city navigation
+- City grid generates from mission seed with 3D viewport rendering
+- WASD/arrow movement with smooth interpolation and wall collision
+- Building entrance detection and interaction (shop, bar, dialogue)
+- Purchased items stored in 40-slot Liberation inventory
+- City name and position HUD overlay
+
+### Captive equipment and energy parity
+- Equipping weapons updates droid weapon_damage from item database (lo*hi encoding)
+- Energy consumption: 3 per attack, 1 per movement step per droid
+
+### CI cross-platform fixes
+- Windows MSVC compatibility (math library, M_PI, unistd.h)
+- SDL3_ttf vendored submodules for Windows/Linux builds
+- Cross-platform CMake with find_package/pkg-config fallback
+
 ## v1.1.29 (2026-08-03)
 
 ### High-resolution UTF-8 menu

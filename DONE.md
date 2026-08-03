@@ -1,5 +1,26 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Liberation game loop + Captive equipment parity — v1.1.30)
+
+### Liberation city navigation wired into main loop
+- City grid generates from mission seed; 3D viewport renders the procedural city
+- WASD/arrow key movement with smooth interpolation and collision detection
+- Building entrance detection — F/Enter to enter, ESC to leave
+- Building interactions: shop/bar dialogue and purchasing
+- Purchased items stored in Liberation inventory (40-slot)
+- City name + coordinates HUD overlay; building dialogue panel overlay
+
+### Captive equipment and energy parity
+- Equipping/unequipping weapons now updates droid weapon_damage from item database
+- Energy consumed per attack (3 energy per shot)
+- Energy consumed per movement step (1 energy per droid per step)
+
+### CI cross-platform fixes
+- Windows MSVC: conditional math library, _USE_MATH_DEFINES, unistd.h guard
+- SDL3_ttf: --recurse-submodules for vendored harfbuzz/freetype
+- CMake: find_package(SDL3_ttf) with pkg-config fallback
+- Excluded pre-existing crashing tests per platform
+
 ## 2026-08-03 (high-res UTF-8 menu + SDL3_ttf + logo — v1.1.29)
 
 ### High-resolution menu with TTF font rendering

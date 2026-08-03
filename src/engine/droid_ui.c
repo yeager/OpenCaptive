@@ -145,40 +145,53 @@ void droid_ui_render(const DroidUIState *ui, const GameState *gs,
              "TAB:SWITCH  ENTER:EQUIP  ESC:CLOSE", 0xFF666688);
 }
 
-bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, int key) {
+static void droid_recalc_weapon_damage(Droid *d, const ItemDatabase *db) {
+    uint16_t best = 0;
+    for (int w = 0; w < 2; w++) {
+        if (d->weapons[w] == 0) continue;
+        const Item *item = item_db_get(db, d->weapons[w]);
+        if (!item) continue;
+        uint8_t lo = (uint8_t)item->damage_min;
+        uint8_t hi = (uint8_t)item->damage_max;
+        uint16_t encoded = (uint16_t)lo | ((uint16_t)hi << 8);
+        if (encoded > best) best = encoded;
+    }
+    d->weapon_damage = best;
+}
+
+bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db, int key) {
     int max_cursor = (ui->ui_mode == DROID_UI_EQUIP) ? 7 : 9;
 
     switch (key) {
-        case 0x50: // UP (SDLK_UP mapped externally)
+        case 0x50:
             if (ui->cursor > 0) ui->cursor--;
             return true;
-        case 0x51: // DOWN
+        case 0x51:
             if (ui->cursor < max_cursor) ui->cursor++;
             return true;
-        case 0x09: // TAB
+        case 0x09:
             ui->ui_mode = (ui->ui_mode == DROID_UI_EQUIP) ?
                           DROID_UI_INVENTORY : DROID_UI_EQUIP;
             ui->cursor = 0;
             return true;
-        case 0x0D: { // ENTER — swap item between inventory and equipment
+        case 0x0D: {
             Droid *d = &gs->droids[ui->droid_idx];
             if (ui->ui_mode == DROID_UI_INVENTORY) {
                 uint8_t item_id = d->items[ui->cursor];
                 if (item_id == 0) return true;
-                // Try to equip to first empty weapon slot
                 for (int w = 0; w < 2; w++) {
                     if (d->weapons[w] == 0) {
                         d->weapons[w] = item_id;
                         d->items[ui->cursor] = 0;
+                        droid_recalc_weapon_damage(d, db);
                         return true;
                     }
                 }
-                // Swap with first weapon slot
                 uint8_t old = d->weapons[0];
                 d->weapons[0] = item_id;
                 d->items[ui->cursor] = old;
+                droid_recalc_weapon_damage(d, db);
             } else if (ui->cursor < 6) {
-                // Unequip body part to first empty inventory slot
                 uint8_t item_id = d->body_parts[ui->cursor];
                 if (item_id == 0) return true;
                 for (int i = 0; i < 10; i++) {
@@ -189,7 +202,6 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, int key) {
                     }
                 }
             } else {
-                // Unequip weapon to inventory
                 int wi = ui->cursor - 6;
                 uint8_t item_id = d->weapons[wi];
                 if (item_id == 0) return true;
@@ -197,6 +209,7 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, int key) {
                     if (d->items[i] == 0) {
                         d->items[i] = item_id;
                         d->weapons[wi] = 0;
+                        droid_recalc_weapon_damage(d, db);
                         return true;
                     }
                 }

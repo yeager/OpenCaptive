@@ -28,6 +28,11 @@ typedef struct {
     DialogueState dialogue;
     int building_index;
     uint32_t *player_gold;
+    struct {
+        char     name[24];
+        uint16_t item_type;
+    } purchased[20];
+    int purchased_count;
 } BuildingInteraction;
 
 void building_interact_init(BuildingInteraction *bi);

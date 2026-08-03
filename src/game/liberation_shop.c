@@ -31,7 +31,7 @@ void lib_shop_init(LibShopState *shop, const CityBuilding *building, uint16_t se
 void lib_shop_generate_inventory(LibShopState *shop) {
     uint16_t state = shop->prng_seed;
     int count = 4 + (shop_prng(&state) & 7);
-    if (count > SHOP_MAX_ITEMS) count = SHOP_MAX_ITEMS;
+    if (count > LIB_SHOP_MAX_ITEMS) count = LIB_SHOP_MAX_ITEMS;
 
     shop->item_count = 0;
     for (int i = 0; i < count; i++) {
@@ -48,7 +48,7 @@ void lib_shop_generate_inventory(LibShopState *shop) {
 void lib_shop_generate_bar_menu(LibShopState *shop) {
     uint16_t state = shop->prng_seed;
     int count = 3 + (shop_prng(&state) & 3);
-    if (count > SHOP_MAX_ITEMS) count = SHOP_MAX_ITEMS;
+    if (count > LIB_SHOP_MAX_ITEMS) count = LIB_SHOP_MAX_ITEMS;
 
     shop->item_count = 0;
     for (int i = 0; i < count; i++) {
@@ -77,7 +77,7 @@ bool lib_shop_buy_item(LibShopState *shop, unsigned item_idx, uint32_t *gold) {
 bool lib_shop_sell_item(LibShopState *shop, const char *name, uint16_t price,
                     uint16_t type, uint32_t *gold) {
     if (!shop || !gold || !name) return false;
-    if (shop->item_count >= SHOP_MAX_ITEMS) return false;
+    if (shop->item_count >= LIB_SHOP_MAX_ITEMS) return false;
 
     uint16_t sell_price = price / 2;
     *gold += sell_price;

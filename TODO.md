@@ -45,6 +45,13 @@
 - [x] Map SFX sequence indices to game events (disassembled INT 61h call sites)
 - [x] Implement AdLib MIDI playback (OPL2 instrument bank for MIDI)
 
+### Combat
+- [x] Energy consumption per attack (3 energy per shot)
+- [x] Energy consumption per movement step (1 energy per droid per step)
+
+### Equipment
+- [x] Weapon equip/unequip updates droid weapon_damage from item database
+
 ### Save/load
 - [ ] Verify save format against original CAPTIVE1.SAV binary layout
 
@@ -107,9 +114,16 @@
 
 ### Runtime
 - [x] Implement city navigation (grid-based movement, collision, smooth interpolation, wall rendering)
+- [x] Wire city navigation into main game loop with 3D viewport rendering
+- [x] Wire building entrance detection and interaction into main game loop
+- [x] Wire Liberation input handling (WASD/arrows for city movement, F/Enter for building entry)
 - [x] Implement shop/bar/business interaction
 - [x] Implement NPC dialogue system
 - [x] Implement save system (LSAV binary format, roundtrip, mission bitmap)
+- [x] Shop purchase stores items in Liberation inventory
+- [ ] Wire Liberation save/load into main loop
+- [ ] Liberation combat system (NPC attack/follow states)
+- [ ] Implement remaining building type interactions (library, police, records, etc.)
 
 ## Internationalization (i18n)
 

@@ -177,6 +177,9 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
 
     if (!target) return false;
 
+    if (d->energy < 3) return false;
+    d->energy -= 3;
+
     /* Damage formula from CAPPO.EXE:
      * 0x9BF4: ax=[di+6]; mul ah → lo_byte × hi_byte = base damage
      * 0x9BFC: shl cx,1 up to 3 times (×8), cap at 0xFFFD on sign overflow */

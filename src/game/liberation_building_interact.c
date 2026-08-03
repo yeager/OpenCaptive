@@ -151,7 +151,16 @@ void building_interact_advance(BuildingInteraction *bi) {
 bool building_interact_buy(BuildingInteraction *bi, unsigned item_idx) {
     if (!bi || !bi->active || !bi->player_gold) return false;
     if (bi->type != INTERACT_SHOP && bi->type != INTERACT_BAR) return false;
-    return lib_shop_buy_item(&bi->shop, item_idx, bi->player_gold);
+    if (item_idx >= bi->shop.item_count) return false;
+    const LibShopItem *item = &bi->shop.items[item_idx];
+    if (!lib_shop_buy_item(&bi->shop, item_idx, bi->player_gold)) return false;
+    if (bi->purchased_count < 20) {
+        snprintf(bi->purchased[bi->purchased_count].name,
+                 sizeof(bi->purchased[0].name), "%s", item->name);
+        bi->purchased[bi->purchased_count].item_type = item->item_type;
+        bi->purchased_count++;
+    }
+    return true;
 }
 
 void building_interact_leave(BuildingInteraction *bi) {
