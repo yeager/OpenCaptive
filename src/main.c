@@ -667,6 +667,12 @@ static void lib_transfer_purchases(GameState *gs) {
     lib_interact.purchased_count = 0;
 }
 
+static bool all_droids_dead(const GameState *gs) {
+    for (int i = 0; i < 4; i++)
+        if (gs->droids[i].hp > 0) return false;
+    return true;
+}
+
 static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
     if (event->type != SDL_EVENT_KEY_DOWN) return;
 
@@ -719,11 +725,13 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                     if (lib_combat_is_over(&lib_combat, gs)) {
                         lib_in_combat = false;
                         lib_combat.active = false;
+                        if (all_droids_dead(gs)) gs->mode = STATE_GAMEOVER;
                     } else {
                         lib_combat_enemy_turn(&lib_combat, gs);
                         if (lib_combat_is_over(&lib_combat, gs)) {
                             lib_in_combat = false;
                             lib_combat.active = false;
+                            if (all_droids_dead(gs)) gs->mode = STATE_GAMEOVER;
                         }
                     }
                 }
@@ -871,8 +879,10 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_3: gs->selected_droid = 2; return;
         case SDLK_4: gs->selected_droid = 3; return;
         case SDLK_SPACE:
-            if (combat_droid_attack(gs, &creatures, gs->selected_droid))
+            if (combat_droid_attack(gs, &creatures, gs->selected_droid)) {
                 sfx_play(&sfx, SFX_SHOOT);
+                if (all_droids_dead(gs)) gs->mode = STATE_GAMEOVER;
+            }
             return;
         case SDLK_F: {
             const DungeonLevel *cur = &gs->levels[gs->current_level];
@@ -1581,6 +1591,9 @@ int main(int argc, char *argv[]) {
                             case SDLK_RETURN:
                                 shop_buy(&shop, &item_db, &gs);
                                 break;
+                            case SDLK_R:
+                                shop_repair(&shop, &gs, gs.selected_droid);
+                                break;
                             default: break;
                         }
                     }
@@ -1778,9 +1791,12 @@ int main(int argc, char *argv[]) {
                     gs.tick++;
                     if (gs.tick % 300 == 0) {
                         for (int di = 0; di < 4; di++) {
-                            if (gs.droids[di].hp > 0 &&
-                                gs.droids[di].energy < gs.droids[di].energy_max)
-                                gs.droids[di].energy++;
+                            if (gs.droids[di].hp > 0) {
+                                if (gs.droids[di].energy < gs.droids[di].energy_max)
+                                    gs.droids[di].energy++;
+                                if (gs.droids[di].hp < gs.droids[di].hp_max)
+                                    gs.droids[di].hp++;
+                            }
                         }
                     }
                     /* Captive: the verified original GAME SCRN shell. */

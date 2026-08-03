@@ -123,6 +123,9 @@ void shop_render(const ShopState *shop, const ItemDatabase *db,
 
     // Gold display
     draw_small_num(pixels, width, height, px + 8, py + ph - 12, shop->gold, 0xFFFFFF00);
+
+    // Repair hint
+    fill_rect_s(pixels, width, height, px + pw/2 - 20, py + ph - 12, 40, 8, 0xFF334433);
 }
 
 bool shop_buy(ShopState *shop, const ItemDatabase *db, GameState *gs) {
@@ -144,4 +147,21 @@ bool shop_buy(ShopState *shop, const ItemDatabase *db, GameState *gs) {
     // Inventory full
     shop->gold += item->price;
     return false;
+}
+
+bool shop_repair(ShopState *shop, GameState *gs, int droid_idx) {
+    if (droid_idx < 0 || droid_idx >= 4) return false;
+    Droid *d = &gs->droids[droid_idx];
+    if (d->hp >= d->hp_max && d->energy >= d->energy_max) return false;
+
+    int damage = (d->hp_max - d->hp) + (d->energy_max - d->energy);
+    int cost = damage * 2;
+    if (cost < 10) cost = 10;
+    if (shop->gold < cost) return false;
+
+    shop->gold -= cost;
+    d->hp = d->hp_max;
+    d->energy = d->energy_max;
+    for (int i = 0; i < 6; i++) d->body_parts[i] = 1;
+    return true;
 }

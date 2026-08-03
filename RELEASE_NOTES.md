@@ -1,5 +1,17 @@
 # OpenCaptive Release Notes
 
+## v1.1.35 (2026-08-03)
+
+### Game over detection
+- All droids dead triggers STATE_GAMEOVER in both Captive and Liberation combat
+
+### HP regeneration
+- Droids regenerate 1 HP every ~5 seconds alongside energy regen (Captive)
+
+### Shop repair
+- R key in shop repairs selected droid (restores HP, energy, body parts)
+- Repair cost: damage * 2 (minimum 10 gold)
+
 ## v1.1.34 (2026-08-03)
 
 ### Rendering fixes

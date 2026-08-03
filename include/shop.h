@@ -18,5 +18,6 @@ void shop_init(ShopState *shop, const ItemDatabase *db, int level, uint32_t seed
 void shop_render(const ShopState *shop, const ItemDatabase *db,
                  uint32_t *pixels, int width, int height);
 bool shop_buy(ShopState *shop, const ItemDatabase *db, GameState *gs);
+bool shop_repair(ShopState *shop, GameState *gs, int droid_idx);
 
 #endif
