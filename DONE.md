@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Creature respawning — v1.1.37)
+
+### Creature respawn system
+- Dead creatures respawn after 600 combat ticks with full HP
+- respawn_timer field added to Creature struct
+
 ## 2026-08-03 (Creature AI + trap activation — v1.1.36)
 
 ### Live creature movement

@@ -31,6 +31,7 @@ typedef struct {
     uint8_t cooldown;
     bool    active;
     bool    alerted;
+    uint16_t respawn_timer;
 } Creature;
 
 #define MAX_CREATURES 64

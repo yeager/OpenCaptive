@@ -1,5 +1,11 @@
 # OpenCaptive Release Notes
 
+## v1.1.37 (2026-08-03)
+
+### Creature respawning
+- Dead creatures respawn after 600 combat ticks (~100 seconds)
+- Respawned creatures reset to full HP, unalerted state
+
 ## v1.1.36 (2026-08-03)
 
 ### Creature AI movement (live combat)

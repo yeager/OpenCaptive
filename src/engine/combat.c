@@ -110,7 +110,19 @@ static bool combat_has_line_of_sight(const GameState *gs,
 void combat_tick(CreatureList *cl, GameState *gs) {
     for (int i = 0; i < cl->num_creatures; i++) {
         Creature *c = &cl->creatures[i];
-        if (!c->active || c->level != gs->current_level) continue;
+        if (c->level != gs->current_level) continue;
+        if (!c->active) {
+            if (c->respawn_timer > 0) {
+                c->respawn_timer--;
+                if (c->respawn_timer == 0) {
+                    c->hp = c->hp_max;
+                    c->active = true;
+                    c->alerted = false;
+                    c->cooldown = 0;
+                }
+            }
+            continue;
+        }
 
         int dist = distance(c->x, c->y, gs->party_x, gs->party_y);
 
@@ -201,6 +213,7 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     target->hp -= damage;
     if (target->hp <= 0) {
         target->active = false;
+        target->respawn_timer = 600;
         d->xp = xp_add(d->xp, target->hp_max / 10);
         gs->gold += target->hp_max / 5 + 1;
         {
