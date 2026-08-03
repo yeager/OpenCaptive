@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Custom resolution + aspect ratio — v1.1.48)
+
+### Custom resolution support
+- --resolution WxH CLI option (e.g. --resolution 1920x1080)
+- --scale now correctly sets window size (scale × native resolution)
+- Correct aspect ratio preserved via letterboxing on all resolutions (16:9, 16:10, etc.)
+- window_width/window_height added to OpenCaptiveConfig
+- renderer_init uses config dimensions instead of hardcoded 1280×800
+
 ## 2026-08-03 (Combat SFX + level-up feedback — v1.1.47)
 
 ### Combat sound effects

@@ -29,8 +29,8 @@ static uint8_t apply_channel(uint8_t value) {
 }
 
 bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
-    int w = 1280;
-    int h = 800;
+    int w = config->window_width > 0 ? config->window_width : 1280;
+    int h = config->window_height > 0 ? config->window_height : 800;
 
     r->window = SDL_CreateWindow("OpenCaptive", w, h, SDL_WINDOW_RESIZABLE);
     if (!r->window) {

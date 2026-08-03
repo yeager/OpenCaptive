@@ -1117,6 +1117,7 @@ int main(int argc, char *argv[]) {
                 "  --enhanced            Enable enhanced 3D renderer\n"
                 "  --platform <name>     Set platform: dos, atari, amiga\n"
                 "  --scale <n>           Window scale factor (1-5, default 3)\n"
+                "  --resolution <WxH>    Window resolution (e.g. 1920x1080)\n"
                 "  --fullscreen          Start in fullscreen mode\n"
                 "  --vsync               Enable vertical sync (default)\n"
                 "  --no-vsync            Disable vertical sync\n"
@@ -1190,6 +1191,15 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "--scale") == 0 && i + 1 < argc) {
             if (!parse_int_option(argv[++i], 1, 5, &config.scale_factor)) {
                 fprintf(stderr, "--scale must be an integer from 1 to 5\n");
+                return 2;
+            }
+        } else if (strcmp(argv[i], "--resolution") == 0 && i + 1 < argc) {
+            int rw = 0, rh = 0;
+            if (sscanf(argv[++i], "%dx%d", &rw, &rh) == 2 && rw >= 320 && rh >= 200) {
+                config.window_width = rw;
+                config.window_height = rh;
+            } else {
+                fprintf(stderr, "--resolution must be WxH (e.g. 1920x1080, min 320x200)\n");
                 return 2;
             }
         } else if (strcmp(argv[i], "--fullscreen") == 0) {
@@ -1385,6 +1395,13 @@ int main(int argc, char *argv[]) {
     }
 
     i18n_init(lang_override);
+
+    if (config.window_width <= 0 || config.window_height <= 0) {
+        config.window_width = CAPTIVE_ORIGINAL_WIDTH * config.scale_factor;
+        config.window_height = CAPTIVE_ORIGINAL_HEIGHT * config.scale_factor;
+        if (config.window_width < 640) config.window_width = 640;
+        if (config.window_height < 400) config.window_height = 400;
+    }
 
     OpenCaptiveRenderer renderer = {0};
     if (!renderer_init(&renderer, &config)) {

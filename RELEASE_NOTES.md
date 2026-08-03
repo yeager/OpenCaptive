@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.48 (2026-08-03)
+
+### Custom resolution and aspect ratio
+- `--resolution WxH` sets window size (e.g. `--resolution 1920x1080` for full HD)
+- `--scale` now controls initial window size (scale × 320×200)
+- Correct aspect ratio preserved via letterboxing on 16:9, 16:10, and any custom resolution
+- Window remains resizable at runtime
+
 ## v1.1.47 (2026-08-03)
 
 ### Combat sound effects

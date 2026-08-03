@@ -40,6 +40,8 @@ typedef struct {
     CaptiveRenderMode render_mode;
     const char *data_path;
     int scale_factor;
+    int window_width;
+    int window_height;
     bool fullscreen;
     bool vsync;
     bool scanlines;
