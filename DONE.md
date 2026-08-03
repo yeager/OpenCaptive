@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Creature damage disassembly verification — v1.1.62)
+
+### Creature damage formula from CAPPO.EXE
+- Unpacked LZEXE-compressed CAPPO.EXE with unlzexe, verified SHA-256
+- Disassembled creature spawn at 0x5380: damage is procedurally computed (no per-type table)
+- Uses lo*hi byte encoding matching weapon formula (mul ah at 0x97F2, shl ×8, cap 0xFFFD)
+- Formula: base = min(20, 2 + category + level), dmg_lo = (base >> 1) | 1, dmg_hi = base
+- Confirmed the original game's creature damage IS procedural — our implementation now matches
+
 ## 2026-08-03 (Real game data: items + viewport objects — v1.1.61)
 
 ### Item stats from CAPPO.EXE binary

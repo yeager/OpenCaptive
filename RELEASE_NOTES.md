@@ -1,5 +1,14 @@
 # OpenCaptive Release Notes
 
+## v1.1.62 (2026-08-03)
+
+### Creature damage formula verified via CAPPO.EXE disassembly
+- Unpacked CAPPO.EXE (LZEXE 0.91, SHA-256 fa7d5ca7...) and disassembled creature spawn routine at 0x5380
+- Confirmed creature damage uses lo*hi byte encoding identical to weapon damage (mul ah at 0x97F2)
+- No per-type damage table exists — the original computes damage procedurally from category + difficulty
+- Updated formula: `base = min(20, 2 + category + level)`, `dmg_lo = (base >> 1) | 1`, `dmg_hi = base`
+- Defense and range also scale with category, matching the original's procedural approach
+
 ## v1.1.61 (2026-08-03)
 
 ### Replace synthetic data with real game data
