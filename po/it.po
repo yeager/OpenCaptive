@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
@@ -38,23 +38,23 @@ msgid "QUIT"
 msgstr "ESCI"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "SU-GIU: SELEZIONA  INVIO: AVVIA  ESC: ESCI"
+msgstr "SU-GIÙ: SELEZIONA  INVIO: AVVIA  ESC: ESCI"
 
 #. Settings menu
 msgid "RENDERER:"
 msgstr "RENDERER:"
 
 msgid "SCANLINES:"
-msgstr "SCANLINES:"
+msgstr "LINEE DI SCANSIONE:"
 
 msgid "CRT CURVE:"
-msgstr "CURVA CRT:"
+msgstr "CURVATURA CRT:"
 
 msgid "BILINEAR:"
 msgstr "BILINEARE:"
 
 msgid "INT SCALE:"
-msgstr "SCALA INT:"
+msgstr "SCALA INTERA:"
 
 msgid "SCALE:"
 msgstr "SCALA:"
@@ -69,7 +69,7 @@ msgid "FPS LIMIT:"
 msgstr "LIMITE FPS:"
 
 msgid "BRIGHTNESS:"
-msgstr "LUMINOSITA:"
+msgstr "LUMINOSITÀ:"
 
 msgid "CONTRAST:"
 msgstr "CONTRASTO:"
@@ -83,55 +83,70 @@ msgstr "EFFETTI:"
 msgid "DATA PATH:"
 msgstr "PERCORSO DATI:"
 
+msgid "LANGUAGE:"
+msgstr "LINGUA:"
+
 msgid "BACK"
 msgstr "INDIETRO"
 
 msgid "ON"
-msgstr "ATTIVO"
+msgstr "SÌ"
 
 msgid "OFF"
-msgstr "DISATTIVO"
+msgstr "NO"
 
 msgid "UNLIMITED"
 msgstr "ILLIMITATO"
 
-msgid "ENTER: EDIT PATH  ESC: CANCEL"
-msgstr "INVIO: MODIFICA PERCORSO  ESC: ANNULLA"
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
+msgstr "DIGITA PERCORSO  INVIO: CONFERMA  ESC: ANNULLA"
 
-msgid "ENTER: SAVE PATH  ESC: CANCEL"
-msgstr "INVIO: SALVA PERCORSO  ESC: ANNULLA"
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
+msgstr "SU-GIÙ: SELEZIONA  SIN-DES: REGOLA  ESC: INDIETRO"
 
 #. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Questo e %s. Non accettiamo visitatori al momento."
+msgstr "Questo è %s. Non accettiamo visitatori al momento."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Benvenuti a %s. Gli archivi sono disponibili al pubblico."
+msgstr "Benvenuto a %s. Gli archivi sono accessibili al pubblico."
 
 msgid "This is the %s police station. State your business."
-msgstr "Questa e la stazione di polizia di %s. Dichiari il suo scopo."
+msgstr "Questa è la stazione di polizia di %s. Dica pure."
 
 msgid "City Records Office. How can we help?"
-msgstr "Ufficio Anagrafe Comunale. Come possiamo aiutarla?"
+msgstr "Ufficio anagrafe. Come possiamo aiutarla?"
+
+msgid "This is a private residence. What do you want?"
+msgstr "Questa è una residenza privata. Cosa vuole?"
+
+msgid "Welcome to %s. This area is restricted."
+msgstr "Benvenuto a %s. Quest'area è riservata."
 
 msgid "%s. Come in and browse."
-msgstr "%s. Entrate e guardate pure."
+msgstr "%s. Entri e dia un'occhiata."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Benvenuti da %s! Cosa desiderate?"
+msgstr "Benvenuto a %s! Cosa desidera?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Benvenuti a %s. Come possiamo aiutarvi oggi?"
+msgstr "Benvenuto a %s. Come possiamo aiutarla oggi?"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. Non dovreste essere qui."
+msgstr "%s. Non dovresti essere qui."
+
+msgid "Take a look at what I have."
+msgstr "Guarda cosa ho."
+
+msgid "I might have heard something. Check back later."
+msgstr "Potrei aver sentito qualcosa. Torni più tardi."
 
 msgid "You leave the building."
-msgstr "Lasciate l'edificio."
+msgstr "Lasci l'edificio."
 
 #. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Benvenuti da %s! Cosa posso fare per voi?"
+msgstr "Benvenuto a %s! Cosa posso fare per lei?"
 
 msgid "Goodbye!"
 msgstr "Arrivederci!"
@@ -140,17 +155,17 @@ msgid "Buy/Sell"
 msgstr "Compra/Vendi"
 
 msgid "Any news?"
-msgstr "Qualche novita?"
+msgstr "Novità?"
 
 msgid "Leave"
 msgstr "Esci"
 
 #. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Ve ne andate."
+msgstr "Te ne vai."
 
 msgid "Trade"
-msgstr "Commercio"
+msgstr "Commercia"
 
 msgid "Ask around"
 msgstr "Chiedi in giro"
@@ -163,10 +178,10 @@ msgid "Missing game data"
 msgstr "Dati di gioco mancanti"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Nessun dato di gioco trovato. Impostare il percorso dati nelle Impostazioni o usare --data nella riga di comando."
+msgstr "Nessun dato di gioco trovato. Imposta il percorso dati nelle Impostazioni o usa --data da riga di comando."
 
 msgid "You can also change the data path in Settings."
-msgstr "E possibile cambiare il percorso dati nelle Impostazioni."
+msgstr "Puoi anche cambiare il percorso dati nelle Impostazioni."
 
 msgid "Missing Liberation data"
-msgstr "Dati Liberation mancanti"
+msgstr "Dati di Liberation mancanti"

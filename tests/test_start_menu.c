@@ -28,13 +28,14 @@ int main(void) {
     assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_NONE);
     assert(!menu.in_settings);
 
-    /* Card layout: cards at y=38..128, x0=20..150, x1=160..290 */
-    assert(start_menu_handle_click(&menu, 80.0f, 70.0f) ==
+    /* 960x600 layout: cards at y=80, w=390, h=340, gap=30
+     * cx0=75, cx1=495, bottom_y=card_y+card_h+50=470 */
+    assert(start_menu_handle_click(&menu, 200.0f, 200.0f) ==
            MENU_RESULT_START_CAPTIVE);
-    assert(start_menu_handle_click(&menu, 200.0f, 70.0f) ==
+    assert(start_menu_handle_click(&menu, 600.0f, 200.0f) ==
            MENU_RESULT_START_LIBERATION);
     /* Settings button at bottom row, left card x */
-    assert(start_menu_handle_click(&menu, 80.0f, 156.0f) == MENU_RESULT_NONE);
+    assert(start_menu_handle_click(&menu, 200.0f, 490.0f) == MENU_RESULT_NONE);
     assert(menu.in_settings);
 
     puts("All start menu tests passed");

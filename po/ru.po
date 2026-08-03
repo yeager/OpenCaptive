@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
@@ -20,10 +20,10 @@ msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
 msgid "BY DANIEL NYLANDER"
-msgstr "OT DANIEL NYLANDER"
+msgstr "АВТОР: DANIEL NYLANDER"
 
 msgid "SELECT GAME"
-msgstr "VYBRAT IGRU"
+msgstr "ВЫБРАТЬ ИГРУ"
 
 msgid "CAPTIVE (1990)"
 msgstr "CAPTIVE (1990)"
@@ -32,141 +32,156 @@ msgid "LIBERATION: CAPTIVE 2"
 msgstr "LIBERATION: CAPTIVE 2"
 
 msgid "SETTINGS"
-msgstr "NASTROIKI"
+msgstr "НАСТРОЙКИ"
 
 msgid "QUIT"
-msgstr "VYKHOD"
+msgstr "ВЫХОД"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "VVERKH-VNIZ: VYBRAT  ENTER: START  ESC: VYKHOD"
+msgstr "ВВЕРХ-ВНИЗ: ВЫБРАТЬ  ENTER: СТАРТ  ESC: ВЫХОД"
 
 #. Settings menu
 msgid "RENDERER:"
-msgstr "RENDERER:"
+msgstr "РЕНДЕРЕР:"
 
 msgid "SCANLINES:"
-msgstr "STROKI SKANIROVANIYA:"
+msgstr "СТРОКИ РАЗВЁРТКИ:"
 
 msgid "CRT CURVE:"
-msgstr "KRIVIZNA CRT:"
+msgstr "ИЗГИБ CRT:"
 
 msgid "BILINEAR:"
-msgstr "BILINEINYI:"
+msgstr "БИЛИНЕЙНЫЙ:"
 
 msgid "INT SCALE:"
-msgstr "TSELYI MASSHTAB:"
+msgstr "ЦЕЛ. МАСШТАБ:"
 
 msgid "SCALE:"
-msgstr "MASSHTAB:"
+msgstr "МАСШТАБ:"
 
 msgid "FULLSCREEN:"
-msgstr "POLNYI EKRAN:"
+msgstr "ПОЛНЫЙ ЭКРАН:"
 
 msgid "VSYNC:"
 msgstr "VSYNC:"
 
 msgid "FPS LIMIT:"
-msgstr "LIMIT FPS:"
+msgstr "ЛИМИТ FPS:"
 
 msgid "BRIGHTNESS:"
-msgstr "YARKOST:"
+msgstr "ЯРКОСТЬ:"
 
 msgid "CONTRAST:"
-msgstr "KONTRAST:"
+msgstr "КОНТРАСТ:"
 
 msgid "MUSIC:"
-msgstr "MUZYKA:"
+msgstr "МУЗЫКА:"
 
 msgid "SFX:"
-msgstr "ZVUKI:"
+msgstr "SFX:"
 
 msgid "DATA PATH:"
-msgstr "PUT K DANNYM:"
+msgstr "ПУТЬ К ДАННЫМ:"
+
+msgid "LANGUAGE:"
+msgstr "ЯЗЫК:"
 
 msgid "BACK"
-msgstr "NAZAD"
+msgstr "НАЗАД"
 
 msgid "ON"
-msgstr "VKL"
+msgstr "ВКЛ"
 
 msgid "OFF"
-msgstr "VYKL"
+msgstr "ВЫКЛ"
 
 msgid "UNLIMITED"
-msgstr "BEZ OGRANICHENII"
+msgstr "БЕЗ ОГРАНИЧЕНИЙ"
 
-msgid "ENTER: EDIT PATH  ESC: CANCEL"
-msgstr "ENTER: REDAKTIROVAT PUT  ESC: OTMENA"
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
+msgstr "ВВЕДИТЕ ПУТЬ  ENTER: ПОДТВЕРДИТЬ  ESC: ОТМЕНА"
 
-msgid "ENTER: SAVE PATH  ESC: CANCEL"
-msgstr "ENTER: SOKHRANIT PUT  ESC: OTMENA"
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
+msgstr "ВВЕРХ-ВНИЗ: ВЫБРАТЬ  ВЛЕВО-ВПРАВО: НАСТРОИТЬ  ESC: НАЗАД"
 
 #. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Eto %s. My seichas ne prinimaem posetitelei."
+msgstr "Это %s. Мы сейчас не принимаем посетителей."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Dobro pozhalovat v %s. Arkhivy otkryty dlya publichnogo dostupa."
+msgstr "Добро пожаловать в %s. Архивы доступны для публичного доступа."
 
 msgid "This is the %s police station. State your business."
-msgstr "Eto politseiskii uchastok %s. Po kakomu delu?"
+msgstr "Это полицейское управление %s. По какому делу?"
 
 msgid "City Records Office. How can we help?"
-msgstr "Gorodskoi arkhiv. Chem mozhem pomoch?"
+msgstr "Городской архив. Чем можем помочь?"
+
+msgid "This is a private residence. What do you want?"
+msgstr "Это частное жильё. Что вам нужно?"
+
+msgid "Welcome to %s. This area is restricted."
+msgstr "Добро пожаловать в %s. Эта зона ограничена."
 
 msgid "%s. Come in and browse."
-msgstr "%s. Zakhodite i osmatrivaites."
+msgstr "%s. Заходите и осмотритесь."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Dobro pozhalovat v %s! Chto zhelaete?"
+msgstr "Добро пожаловать в %s! Что желаете?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Dobro pozhalovat v %s. Chem mozhem pomoch segodnya?"
+msgstr "Добро пожаловать в %s. Чем можем помочь сегодня?"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. Vam ne sleduet zdes byt."
+msgstr "%s. Вам не следует здесь быть."
+
+msgid "Take a look at what I have."
+msgstr "Посмотрите, что у меня есть."
+
+msgid "I might have heard something. Check back later."
+msgstr "Возможно, я что-то слышал. Загляните позже."
 
 msgid "You leave the building."
-msgstr "Vy pokinuli zdanie."
+msgstr "Вы покинули здание."
 
 #. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Dobro pozhalovat v %s! Chem mogu pomoch?"
+msgstr "Добро пожаловать в %s! Чем могу помочь?"
 
 msgid "Goodbye!"
-msgstr "Do svidaniya!"
+msgstr "До свидания!"
 
 msgid "Buy/Sell"
-msgstr "Kupit/Prodat"
+msgstr "Купить/Продать"
 
 msgid "Any news?"
-msgstr "Est novosti?"
+msgstr "Есть новости?"
 
 msgid "Leave"
-msgstr "Uiti"
+msgstr "Уйти"
 
 #. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Vy ukhodite."
+msgstr "Вы уходите."
 
 msgid "Trade"
-msgstr "Torgovlya"
+msgstr "Торговля"
 
 msgid "Ask around"
-msgstr "Rassprosity"
+msgstr "Расспросить"
 
 #. Error messages
 msgid "Failed to initialize renderer"
-msgstr "Ne udalos initsializirovat renderer"
+msgstr "Не удалось инициализировать рендерер"
 
 msgid "Missing game data"
-msgstr "Dannye igry otsutstvuyut"
+msgstr "Отсутствуют данные игры"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Dannye igry ne naideny. Ukazhite put k dannym v Nastroikakh ili ispolzuite --data v komandnoi stroke."
+msgstr "Данные игры не найдены. Укажите путь к данным в Настройках или используйте --data в командной строке."
 
 msgid "You can also change the data path in Settings."
-msgstr "Vy takzhe mozhete izmenit put k dannym v Nastroikakh."
+msgstr "Вы также можете изменить путь к данным в Настройках."
 
 msgid "Missing Liberation data"
-msgstr "Dannye Liberation otsutstvuyut"
+msgstr "Отсутствуют данные Liberation"

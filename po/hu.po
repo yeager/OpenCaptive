@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
@@ -20,10 +20,10 @@ msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
 msgid "BY DANIEL NYLANDER"
-msgstr "KESZITETTE DANIEL NYLANDER"
+msgstr "KÉSZÍTETTE DANIEL NYLANDER"
 
 msgid "SELECT GAME"
-msgstr "JATEK VALASZTASA"
+msgstr "JÁTÉK VÁLASZTÁSA"
 
 msgid "CAPTIVE (1990)"
 msgstr "CAPTIVE (1990)"
@@ -32,44 +32,44 @@ msgid "LIBERATION: CAPTIVE 2"
 msgstr "LIBERATION: CAPTIVE 2"
 
 msgid "SETTINGS"
-msgstr "BEALLITASOK"
+msgstr "BEÁLLÍTÁSOK"
 
 msgid "QUIT"
-msgstr "KILEPES"
+msgstr "KILÉPÉS"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "FEL-LE: VALASZTAS  ENTER: INDITAS  ESC: KILEPES"
+msgstr "FEL-LE: VÁLASZTÁS  ENTER: INDÍTÁS  ESC: KILÉPÉS"
 
 #. Settings menu
 msgid "RENDERER:"
-msgstr "MEGJELENIETO:"
+msgstr "MEGJELENÍTŐ:"
 
 msgid "SCANLINES:"
-msgstr "PASZTAZAS:"
+msgstr "PÁSZTÁZÁS:"
 
 msgid "CRT CURVE:"
-msgstr "CRT GORBE:"
+msgstr "CRT GÖRBÜLET:"
 
 msgid "BILINEAR:"
-msgstr "BILINEARIS:"
+msgstr "BILINEÁRIS:"
 
 msgid "INT SCALE:"
-msgstr "INT MERETEZES:"
+msgstr "EGÉSZ MÉRETEZÉS:"
 
 msgid "SCALE:"
-msgstr "MERETEZES:"
+msgstr "MÉRETEZÉS:"
 
 msgid "FULLSCREEN:"
-msgstr "TELJES KEPERNYOE:"
+msgstr "TELJES KÉPERNYŐ:"
 
 msgid "VSYNC:"
 msgstr "VSYNC:"
 
 msgid "FPS LIMIT:"
-msgstr "FPS KORLAT:"
+msgstr "FPS KORLÁT:"
 
 msgid "BRIGHTNESS:"
-msgstr "FENYEROE:"
+msgstr "FÉNYERŐ:"
 
 msgid "CONTRAST:"
 msgstr "KONTRASZT:"
@@ -81,7 +81,10 @@ msgid "SFX:"
 msgstr "HANGEFFEKTEK:"
 
 msgid "DATA PATH:"
-msgstr "ADAT ELERESI UT:"
+msgstr "ADATÚT:"
+
+msgid "LANGUAGE:"
+msgstr "NYELV:"
 
 msgid "BACK"
 msgstr "VISSZA"
@@ -93,80 +96,92 @@ msgid "OFF"
 msgstr "KI"
 
 msgid "UNLIMITED"
-msgstr "KORLATLAN"
+msgstr "KORLÁTLAN"
 
-msgid "ENTER: EDIT PATH  ESC: CANCEL"
-msgstr "ENTER: UT SZERKESZTESE  ESC: MEGSE"
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
+msgstr "ÚT MEGADÁSA  ENTER: MEGERŐSÍTÉS  ESC: MÉGSE"
 
-msgid "ENTER: SAVE PATH  ESC: CANCEL"
-msgstr "ENTER: UT MENTESE  ESC: MEGSE"
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
+msgstr "FEL-LE: VÁLASZTÁS  BALRA-JOBBRA: ÁLLÍTÁS  ESC: VISSZA"
 
 #. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Ez %s. Jelenleg nem fogadunk latogatokat."
+msgstr "Ez %s. Jelenleg nem fogadunk látogatókat."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Udvozoljuk a %s-ben. Az archivum nyilvanos hozzaferesre elerheto."
+msgstr "Üdvözöljük %s. Az archívum nyilvános hozzáférésű."
 
 msgid "This is the %s police station. State your business."
-msgstr "Ez a %s rendorkapitanysag. Mi jaratban?"
+msgstr "Ez a %s rendőrkapitányság. Mi járatban?"
 
 msgid "City Records Office. How can we help?"
-msgstr "Varosi Nyilvantartasi Hivatal. Miben segithetunk?"
+msgstr "Városi nyilvántartási hivatal. Miben segíthetünk?"
+
+msgid "This is a private residence. What do you want?"
+msgstr "Ez egy magánlakás. Mit akar?"
+
+msgid "Welcome to %s. This area is restricted."
+msgstr "Üdvözöljük %s. Ez a terület korlátozott."
 
 msgid "%s. Come in and browse."
-msgstr "%s. Jonnek be es nezzek korul."
+msgstr "%s. Jöjjön be és nézzen körül."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Udvozoljuk a %s-ben! Mit keresnek?"
+msgstr "Üdvözöljük %s! Mit parancsol?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Udvozoljuk a %s-ben. Miben segithetunk ma?"
+msgstr "Üdvözöljük %s. Miben segíthetünk ma?"
 
 msgid "%s. You shouldn't be here."
 msgstr "%s. Nem kellene itt lennie."
 
+msgid "Take a look at what I have."
+msgstr "Nézze meg, mim van."
+
+msgid "I might have heard something. Check back later."
+msgstr "Lehet, hogy hallottam valamit. Jöjjön vissza később."
+
 msgid "You leave the building."
-msgstr "Elhagyja az epuletet."
+msgstr "Elhagyja az épületet."
 
 #. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Udvozoljuk a %s-ben! Miben segithetek?"
+msgstr "Üdvözöljük %s! Miben segíthetek?"
 
 msgid "Goodbye!"
-msgstr "Viszontlatasra!"
+msgstr "Viszontlátásra!"
 
 msgid "Buy/Sell"
-msgstr "Vetel/Eladas"
+msgstr "Vétel/Eladás"
 
 msgid "Any news?"
-msgstr "Van valami ujsag?"
+msgstr "Van valami újság?"
 
 msgid "Leave"
-msgstr "Tavozas"
+msgstr "Távozás"
 
 #. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Tavozik."
+msgstr "Távozik."
 
 msgid "Trade"
-msgstr "Kereskedelem"
+msgstr "Kereskedés"
 
 msgid "Ask around"
-msgstr "Kerdezoeskodes"
+msgstr "Kérdezősködés"
 
 #. Error messages
 msgid "Failed to initialize renderer"
-msgstr "A megjelenieto inicializalasa sikertelen"
+msgstr "A megjelenítő inicializálása sikertelen"
 
 msgid "Missing game data"
-msgstr "Hianyzik a jatekadatok"
+msgstr "Hiányzik a játékadatok"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Nem talalhato jatekadat. Allitsa be az eleresi utat a Beallitasokban vagy hasznaljon --data parameterrel a parancssorban."
+msgstr "Nem található játékadat. Állítsa be az adatutat a Beállításokban vagy használja a --data kapcsolót."
 
 msgid "You can also change the data path in Settings."
-msgstr "Az eleresi utat a Beallitasokban is megvaltoztathatja."
+msgstr "Az adatutat a Beállításokban is megváltoztathatja."
 
 msgid "Missing Liberation data"
-msgstr "Hianyzik a Liberation adatok"
+msgstr "Hiányzik a Liberation adat"

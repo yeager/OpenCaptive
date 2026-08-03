@@ -1,5 +1,15 @@
 # OpenCaptive Release Notes
 
+## v1.1.29 (2026-08-03)
+
+### High-resolution UTF-8 menu
+- Menu renders at 960x600 with SDL3_ttf (DejaVu Sans Mono Bold, OFL licensed)
+- Full UTF-8 text rendering: proper ÅÄÖ, Ü, é, č, 日本語, 한국어, Русский, 中文
+- All 19 PO translation files updated with real Unicode characters
+- captivelogo.png logo displayed at top of start menu
+- stb_image.h for PNG image loading (logo + card art)
+- Renderer buffer overflow fix for large canvas sizes
+
 ## v1.1.28 (2026-08-03)
 
 ### Language selector and 19-language support

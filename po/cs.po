@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
@@ -23,7 +23,7 @@ msgid "BY DANIEL NYLANDER"
 msgstr "OD DANIELA NYLANDERA"
 
 msgid "SELECT GAME"
-msgstr "VYBER HRU"
+msgstr "VYBÉR HRU"
 
 msgid "CAPTIVE (1990)"
 msgstr "CAPTIVE (1990)"
@@ -32,35 +32,35 @@ msgid "LIBERATION: CAPTIVE 2"
 msgstr "LIBERATION: CAPTIVE 2"
 
 msgid "SETTINGS"
-msgstr "NASTAVENI"
+msgstr "NASTAVENÍ"
 
 msgid "QUIT"
-msgstr "UKONCIT"
+msgstr "UKONČIT"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "NAHORU-DOLU: VYBER  ENTER: START  ESC: UKONCIT"
+msgstr "NAHORU-DOLŮ: VÝBĚR  ENTER: START  ESC: UKONČIT"
 
 # Settings
 msgid "RENDERER:"
 msgstr "RENDERER:"
 
 msgid "SCANLINES:"
-msgstr "RADKY:"
+msgstr "ŘÁDKY:"
 
 msgid "CRT CURVE:"
-msgstr "CRT ZAKRIVENI:"
+msgstr "CRT ZAKŘIVENÍ:"
 
 msgid "BILINEAR:"
-msgstr "BILINEARNI:"
+msgstr "BILINEÁRNÍ:"
 
 msgid "INT SCALE:"
-msgstr "INT MERITKO:"
+msgstr "INT MĚŘÍTKO:"
 
 msgid "SCALE:"
-msgstr "MERITKO:"
+msgstr "MĚŘÍTKO:"
 
 msgid "FULLSCREEN:"
-msgstr "CELA OBRAZOVKA:"
+msgstr "CELÁ OBRAZOVKA:"
 
 msgid "VSYNC:"
 msgstr "VSYNC:"
@@ -81,10 +81,10 @@ msgid "SFX:"
 msgstr "ZVUKY:"
 
 msgid "DATA PATH:"
-msgstr "CESTA K DATUM:"
+msgstr "CESTA K DATŮM:"
 
 msgid "BACK"
-msgstr "ZPET"
+msgstr "ZPĚT"
 
 msgid "ON"
 msgstr "ZAP"
@@ -96,42 +96,42 @@ msgid "UNLIMITED"
 msgstr "NEOMEZENO"
 
 msgid "ENTER: EDIT PATH  ESC: CANCEL"
-msgstr "ENTER: UPRAVIT CESTU  ESC: ZRUSIT"
+msgstr "ENTER: UPRAVIT CESTU  ESC: ZRUŠIT"
 
 msgid "ENTER: SAVE PATH  ESC: CANCEL"
-msgstr "ENTER: ULOZIT CESTU  ESC: ZRUSIT"
+msgstr "ENTER: ULOŽIT CESTU  ESC: ZRUŠIT"
 
 # Building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Toto je %s. Prave neprijimame navstevy."
+msgstr "Toto je %s. Právě nepřijímáme návštěvy."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Vitejte v %s. Archivy jsou verejne pristupne."
+msgstr "Vítejte v %s. Archivy jsou veřejně přístupné."
 
 msgid "This is the %s police station. State your business."
-msgstr "Toto je policejni stanice %s. Jaky je vas pozadavek?"
+msgstr "Toto je policejní stanice %s. Jaký je váš požadavek?"
 
 msgid "City Records Office. How can we help?"
-msgstr "Mestsky archiv. Jak vam muzeme pomoci?"
+msgstr "Městský archiv. Jak vám můžeme pomoci?"
 
 msgid "%s. Come in and browse."
-msgstr "%s. Pojdte dal a rozhlednete se."
+msgstr "%s. Pojďte dál a rozhlédněte se."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Vitejte v %s! Co to bude?"
+msgstr "Vítejte v %s! Co to bude?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Vitejte v %s. Jak vam dnes muzeme pomoci?"
+msgstr "Vítejte v %s. Jak vám dnes můžeme pomoci?"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. Nemeli byste tu byt."
+msgstr "%s. Neměli byste tu být."
 
 msgid "You leave the building."
-msgstr "Opoustite budovu."
+msgstr "Opouštíte budovu."
 
 # Shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Vitejte v %s! Co pro vas mohu udelat?"
+msgstr "Vítejte v %s! Co pro vás mohu udělat?"
 
 msgid "Goodbye!"
 msgstr "Nashledanou!"
@@ -140,13 +140,13 @@ msgid "Buy/Sell"
 msgstr "Koupit/Prodat"
 
 msgid "Any news?"
-msgstr "Nejake novinky?"
+msgstr "Nějaké novinky?"
 
 msgid "Leave"
-msgstr "Odejit"
+msgstr "Odejít"
 
 msgid "You leave."
-msgstr "Odchazite."
+msgstr "Odcházíte."
 
 msgid "Trade"
 msgstr "Obchod"
@@ -156,16 +156,16 @@ msgstr "Poptat se"
 
 # Errors
 msgid "Failed to initialize renderer"
-msgstr "Nepodarilo se inicializovat renderer"
+msgstr "Nepodařilo se inicializovat renderer"
 
 msgid "Missing game data"
-msgstr "Chybi herni data"
+msgstr "Chybí herní data"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Nebyla nalezena zadna herni data. Nastavte cestu k datum v Nastaveni nebo pouzijte --data na prikazovem radku."
+msgstr "Nebyla nalezena žádná herní data. Nastavte cestu k datům v Nastavení nebo použijte --data na příkazovém řádku."
 
 msgid "You can also change the data path in Settings."
-msgstr "Cestu k datum muzete zmenit take v Nastaveni."
+msgstr "Cestu k datům můžete změnit také v Nastavení."
 
 msgid "Missing Liberation data"
-msgstr "Chybi data Liberation"
+msgstr "Chybí data Liberation"

@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
@@ -23,7 +23,7 @@ msgid "BY DANIEL NYLANDER"
 msgstr "AF DANIEL NYLANDER"
 
 msgid "SELECT GAME"
-msgstr "VAELG SPIL"
+msgstr "VÆLG SPIL"
 
 msgid "CAPTIVE (1990)"
 msgstr "CAPTIVE (1990)"
@@ -38,7 +38,7 @@ msgid "QUIT"
 msgstr "AFSLUT"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "OP-NED: VAELG  ENTER: START  ESC: AFSLUT"
+msgstr "OP-NED: VÆLG  ENTER: START  ESC: AFSLUT"
 
 # Settings
 msgid "RENDERER:"
@@ -51,7 +51,7 @@ msgid "CRT CURVE:"
 msgstr "CRT KURVE:"
 
 msgid "BILINEAR:"
-msgstr "BILINEAER:"
+msgstr "BILINEÆR:"
 
 msgid "INT SCALE:"
 msgstr "INT SKALA:"
@@ -60,13 +60,13 @@ msgid "SCALE:"
 msgstr "SKALA:"
 
 msgid "FULLSCREEN:"
-msgstr "FULDSKAERM:"
+msgstr "FULDSKÆRM:"
 
 msgid "VSYNC:"
 msgstr "VSYNC:"
 
 msgid "FPS LIMIT:"
-msgstr "FPS GRAENSE:"
+msgstr "FPS GRÆNSE:"
 
 msgid "BRIGHTNESS:"
 msgstr "LYSSTYRKE:"
@@ -93,66 +93,66 @@ msgid "OFF"
 msgstr "FRA"
 
 msgid "UNLIMITED"
-msgstr "UBEGRAENSET"
+msgstr "UBEGRÆNSET"
 
 msgid "ENTER: EDIT PATH  ESC: CANCEL"
-msgstr "ENTER: REDIGER STI  ESC: ANNULLER"
+msgstr "ENTER: REDIGÉR STI  ESC: ANNULLÉR"
 
 msgid "ENTER: SAVE PATH  ESC: CANCEL"
-msgstr "ENTER: GEM STI  ESC: ANNULLER"
+msgstr "ENTER: GEM STI  ESC: ANNULLÉR"
 
 # Building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Dette er %s. Vi tager ikke imod besogende lige nu."
+msgstr "Dette er %s. Vi tager ikke imod besøgende lige nu."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Velkommen til %s. Arkiverne er offentligt tilgaengelige."
+msgstr "Velkommen til %s. Arkiverne er offentligt tilgængelige."
 
 msgid "This is the %s police station. State your business."
 msgstr "Dette er %s politistation. Hvad drejer det sig om?"
 
 msgid "City Records Office. How can we help?"
-msgstr "Byens arkivkontor. Hvordan kan vi hjaelpe?"
+msgstr "Byens arkivkontor. Hvordan kan vi hjælpe?"
 
 msgid "%s. Come in and browse."
 msgstr "%s. Kom ind og se dig omkring."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Velkommen til %s! Hvad skal det vaere?"
+msgstr "Velkommen til %s! Hvad skal det være?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Velkommen til %s. Hvordan kan vi hjaelpe dig i dag?"
+msgstr "Velkommen til %s. Hvordan kan vi hjælpe dig i dag?"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. Du burde ikke vaere her."
+msgstr "%s. Du burde ikke være her."
 
 msgid "You leave the building."
 msgstr "Du forlader bygningen."
 
 # Shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Velkommen til %s! Hvad kan jeg goere for dig?"
+msgstr "Velkommen til %s! Hvad kan jeg gøre for dig?"
 
 msgid "Goodbye!"
 msgstr "Farvel!"
 
 msgid "Buy/Sell"
-msgstr "Koeb/Saelg"
+msgstr "Køb/Sælg"
 
 msgid "Any news?"
 msgstr "Nogle nyheder?"
 
 msgid "Leave"
-msgstr "Gaa"
+msgstr "Gå"
 
 msgid "You leave."
-msgstr "Du gaar."
+msgstr "Du går."
 
 msgid "Trade"
 msgstr "Handel"
 
 msgid "Ask around"
-msgstr "Spoerg omkring"
+msgstr "Spørg omkring"
 
 # Errors
 msgid "Failed to initialize renderer"
@@ -162,10 +162,10 @@ msgid "Missing game data"
 msgstr "Manglende spildata"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Ingen spildata fundet. Indstil datasti i Indstillinger eller brug --data paa kommandolinjen."
+msgstr "Ingen spildata fundet. Indstil datasti i Indstillinger eller brug --data på kommandolinjen."
 
 msgid "You can also change the data path in Settings."
-msgstr "Du kan ogsaa aendre datastien i Indstillinger."
+msgstr "Du kan også ændre datastien i Indstillinger."
 
 msgid "Missing Liberation data"
 msgstr "Manglende Liberation-data"

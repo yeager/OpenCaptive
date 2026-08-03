@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
@@ -20,10 +20,10 @@ msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
 msgid "BY DANIEL NYLANDER"
-msgstr "ZUOZHE DANIEL NYLANDER"
+msgstr "作者: DANIEL NYLANDER"
 
 msgid "SELECT GAME"
-msgstr "XUANZE YOUXI"
+msgstr "选择游戏"
 
 msgid "CAPTIVE (1990)"
 msgstr "CAPTIVE (1990)"
@@ -32,141 +32,156 @@ msgid "LIBERATION: CAPTIVE 2"
 msgstr "LIBERATION: CAPTIVE 2"
 
 msgid "SETTINGS"
-msgstr "SHEZHI"
+msgstr "设置"
 
 msgid "QUIT"
-msgstr "TUICHU"
+msgstr "退出"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "SHANG-XIA: XUANZE  ENTER: KAISHI  ESC: TUICHU"
+msgstr "上下: 选择  ENTER: 开始  ESC: 退出"
 
 #. Settings menu
 msgid "RENDERER:"
-msgstr "XUANRANQI:"
+msgstr "渲染器:"
 
 msgid "SCANLINES:"
-msgstr "SAOMIAOXIAN:"
+msgstr "扫描线:"
 
 msgid "CRT CURVE:"
-msgstr "CRT QULV:"
+msgstr "CRT曲线:"
 
 msgid "BILINEAR:"
-msgstr "SHUANGXIANXING:"
+msgstr "双线性:"
 
 msgid "INT SCALE:"
-msgstr "ZHENGSHU SUOFANG:"
+msgstr "整数缩放:"
 
 msgid "SCALE:"
-msgstr "SUOFANG:"
+msgstr "缩放:"
 
 msgid "FULLSCREEN:"
-msgstr "QUANPING:"
+msgstr "全屏:"
 
 msgid "VSYNC:"
 msgstr "VSYNC:"
 
 msgid "FPS LIMIT:"
-msgstr "FPS XIANZHI:"
+msgstr "FPS限制:"
 
 msgid "BRIGHTNESS:"
-msgstr "LIANGDU:"
+msgstr "亮度:"
 
 msgid "CONTRAST:"
-msgstr "DUIBIDU:"
+msgstr "对比度:"
 
 msgid "MUSIC:"
-msgstr "YINYUE:"
+msgstr "音乐:"
 
 msgid "SFX:"
-msgstr "YINXIAO:"
+msgstr "音效:"
 
 msgid "DATA PATH:"
-msgstr "SHUJU LUJING:"
+msgstr "数据路径:"
+
+msgid "LANGUAGE:"
+msgstr "语言:"
 
 msgid "BACK"
-msgstr "FANHUI"
+msgstr "返回"
 
 msgid "ON"
-msgstr "KAI"
+msgstr "开"
 
 msgid "OFF"
-msgstr "GUAN"
+msgstr "关"
 
 msgid "UNLIMITED"
-msgstr "WUXIAN"
+msgstr "无限"
 
-msgid "ENTER: EDIT PATH  ESC: CANCEL"
-msgstr "ENTER: BIANJI LUJING  ESC: QUXIAO"
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
+msgstr "输入路径  ENTER: 确认  ESC: 取消"
 
-msgid "ENTER: SAVE PATH  ESC: CANCEL"
-msgstr "ENTER: BAOCUN LUJING  ESC: QUXIAO"
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
+msgstr "上下: 选择  左右: 调整  ESC: 返回"
 
 #. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Zhe shi %s. Women xianzai bu jiedai fangke."
+msgstr "这是%s。我们现在不接待访客。"
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Huanying lai dao %s. Dang'an dui gonzhong kaifang."
+msgstr "欢迎来到%s。档案可公众查阅。"
 
 msgid "This is the %s police station. State your business."
-msgstr "Zhe shi %s jingchaju. Qing shuo nin de layi."
+msgstr "这是%s警察局。请说你的事情。"
 
 msgid "City Records Office. How can we help?"
-msgstr "Chengshi dang'an shi. You shenme keyi bangmang de?"
+msgstr "城市档案办公室。有什么可以帮忙的？"
+
+msgid "This is a private residence. What do you want?"
+msgstr "这是私人住宅。你想要什么？"
+
+msgid "Welcome to %s. This area is restricted."
+msgstr "欢迎来到%s。此区域受限。"
 
 msgid "%s. Come in and browse."
-msgstr "%s. Qing jin lai kankan."
+msgstr "%s。请进来看看。"
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Huanying lai dao %s! Nin xiang yao shenme?"
+msgstr "欢迎来到%s！要什么？"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Huanying lai dao %s. Jintian you shenme keyi bangmang de?"
+msgstr "欢迎来到%s。今天有什么可以帮忙的？"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. Ni bu yinggai zai zheli."
+msgstr "%s。你不应该在这里。"
+
+msgid "Take a look at what I have."
+msgstr "看看我有什么。"
+
+msgid "I might have heard something. Check back later."
+msgstr "我可能听到了些什么。过后再来吧。"
 
 msgid "You leave the building."
-msgstr "Ni likai le dalou."
+msgstr "你离开了建筑。"
 
 #. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Huanying lai dao %s! You shenme keyi wei nin fuwu de?"
+msgstr "欢迎来到%s！有什么可以为你效劳的？"
 
 msgid "Goodbye!"
-msgstr "Zaijian!"
+msgstr "再见！"
 
 msgid "Buy/Sell"
-msgstr "Mai/Mai"
+msgstr "买卖"
 
 msgid "Any news?"
-msgstr "You shenme xinwen ma?"
+msgstr "有什么新闻？"
 
 msgid "Leave"
-msgstr "Likai"
+msgstr "离开"
 
 #. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Ni likai le."
+msgstr "你离开了。"
 
 msgid "Trade"
-msgstr "Jiaoyi"
+msgstr "交易"
 
 msgid "Ask around"
-msgstr "Datingsixia"
+msgstr "四处打听"
 
 #. Error messages
 msgid "Failed to initialize renderer"
-msgstr "Xuanranqi chushihua shibai"
+msgstr "渲染器初始化失败"
 
 msgid "Missing game data"
-msgstr "Quesha youxi shuju"
+msgstr "缺少游戏数据"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Wei zhao dao youxi shuju. Qing zai Shezhi zhong sheding shuju lujing huo zai minglingxing zhong shiyong --data."
+msgstr "未找到游戏数据。请在设置中设定数据路径或在命令行中使用--data。"
 
 msgid "You can also change the data path in Settings."
-msgstr "Nin ye keyi zai Shezhi zhong gengai shuju lujing."
+msgstr "你也可以在设置中更改数据路径。"
 
 msgid "Missing Liberation data"
-msgstr "Quesha Liberation shuju"
+msgstr "缺少Liberation数据"

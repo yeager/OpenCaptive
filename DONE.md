@@ -1,5 +1,19 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (high-res UTF-8 menu + SDL3_ttf + logo — v1.1.29)
+
+### High-resolution menu with TTF font rendering
+- Menu now renders at 960x600 (was 320x200), game viewport unchanged
+- SDL3_ttf integration with DejaVu Sans Mono Bold (OFL license, full Unicode)
+- Three font sizes: title 36pt, body 18pt, small 14pt
+- Full UTF-8 support: Swedish ÅÄÖ, German Ü, French é, Czech č, CJK, Cyrillic, etc.
+- All 19 PO files updated with proper UTF-8 characters (no more ASCII approximations)
+- captivelogo.png displayed at top of menu (loaded from Downloads/ or data/)
+- stb_image.h integrated for PNG loading (card images + logo)
+- Card labels (CAPTIVE/LIBERATION) centered under their respective cards
+- Renderer buffer overflow fix: dynamic allocation for post-processing buffer
+- start_menu_free() for proper cleanup of fonts and images
+
 ## 2026-08-03 (language selector + card menu + 19 languages — v1.1.28)
 
 ### Language selector and translations

@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
@@ -23,7 +23,7 @@ msgid "BY DANIEL NYLANDER"
 msgstr "DE DANIEL NYLANDER"
 
 msgid "SELECT GAME"
-msgstr "SELECTEAZA JOC"
+msgstr "SELECTEAZĂ JOCUL"
 
 msgid "CAPTIVE (1990)"
 msgstr "CAPTIVE (1990)"
@@ -32,32 +32,32 @@ msgid "LIBERATION: CAPTIVE 2"
 msgstr "LIBERATION: CAPTIVE 2"
 
 msgid "SETTINGS"
-msgstr "SETARI"
+msgstr "SETĂRI"
 
 msgid "QUIT"
-msgstr "IESIRE"
+msgstr "IEȘIRE"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "SUS-JOS: SELECTEAZA  ENTER: START  ESC: IESIRE"
+msgstr "SUS-JOS: SELECTEAZĂ  ENTER: PORNIRE  ESC: IEȘIRE"
 
 #. Settings menu
 msgid "RENDERER:"
 msgstr "RENDERER:"
 
 msgid "SCANLINES:"
-msgstr "LINII SCANARE:"
+msgstr "LINII DE SCANARE:"
 
 msgid "CRT CURVE:"
-msgstr "CURBA CRT:"
+msgstr "CURBĂ CRT:"
 
 msgid "BILINEAR:"
 msgstr "BILINIAR:"
 
 msgid "INT SCALE:"
-msgstr "SCALA INTREAGA:"
+msgstr "SCARĂ INT:"
 
 msgid "SCALE:"
-msgstr "SCALA:"
+msgstr "SCARĂ:"
 
 msgid "FULLSCREEN:"
 msgstr "ECRAN COMPLET:"
@@ -66,7 +66,7 @@ msgid "VSYNC:"
 msgstr "VSYNC:"
 
 msgid "FPS LIMIT:"
-msgstr "LIMITA FPS:"
+msgstr "LIMITĂ FPS:"
 
 msgid "BRIGHTNESS:"
 msgstr "LUMINOZITATE:"
@@ -75,16 +75,19 @@ msgid "CONTRAST:"
 msgstr "CONTRAST:"
 
 msgid "MUSIC:"
-msgstr "MUZICA:"
+msgstr "MUZICĂ:"
 
 msgid "SFX:"
-msgstr "EFECTE:"
+msgstr "SFX:"
 
 msgid "DATA PATH:"
 msgstr "CALE DATE:"
 
+msgid "LANGUAGE:"
+msgstr "LIMBĂ:"
+
 msgid "BACK"
-msgstr "INAPOI"
+msgstr "ÎNAPOI"
 
 msgid "ON"
 msgstr "PORNIT"
@@ -95,78 +98,90 @@ msgstr "OPRIT"
 msgid "UNLIMITED"
 msgstr "NELIMITAT"
 
-msgid "ENTER: EDIT PATH  ESC: CANCEL"
-msgstr "ENTER: EDITEAZA CALEA  ESC: ANULEAZA"
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
+msgstr "TASTEAZĂ CALEA  ENTER: CONFIRMĂ  ESC: ANULEAZĂ"
 
-msgid "ENTER: SAVE PATH  ESC: CANCEL"
-msgstr "ENTER: SALVEAZA CALEA  ESC: ANULEAZA"
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
+msgstr "SUS-JOS: SELECTEAZĂ  STÂNGA-DREAPTA: AJUSTEAZĂ  ESC: ÎNAPOI"
 
 #. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Aceasta este %s. Nu primim vizitatori acum."
+msgstr "Aici e %s. Nu primim vizitatori acum."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Bine ati venit la %s. Arhivele sunt disponibile publicului."
+msgstr "Bine ați venit la %s. Arhivele sunt disponibile pentru acces public."
 
 msgid "This is the %s police station. State your business."
-msgstr "Aceasta este statia de politie %s. Cu ce va putem ajuta?"
+msgstr "Aceasta este secția de poliție %s. Cu ce vă putem ajuta?"
 
 msgid "City Records Office. How can we help?"
-msgstr "Biroul de Evidenta. Cum va putem ajuta?"
+msgstr "Biroul de Evidență al Orașului. Cum vă putem ajuta?"
+
+msgid "This is a private residence. What do you want?"
+msgstr "Aceasta este o locuință privată. Ce doriți?"
+
+msgid "Welcome to %s. This area is restricted."
+msgstr "Bine ați venit la %s. Această zonă este restricționată."
 
 msgid "%s. Come in and browse."
-msgstr "%s. Intrati si priviti."
+msgstr "%s. Intrați și priviți."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Bine ati venit la %s! Ce doriti?"
+msgstr "Bine ați venit la %s! Ce doriți?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Bine ati venit la %s. Cum va putem ajuta astazi?"
+msgstr "Bine ați venit la %s. Cum vă putem ajuta astăzi?"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. Nu ar trebui sa fiti aici."
+msgstr "%s. Nu ar trebui să fiți aici."
+
+msgid "Take a look at what I have."
+msgstr "Aruncați o privire la ce am."
+
+msgid "I might have heard something. Check back later."
+msgstr "Se poate să fi auzit ceva. Reveniți mai târziu."
 
 msgid "You leave the building."
-msgstr "Parasiti cladirea."
+msgstr "Părăsiți clădirea."
 
 #. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Bine ati venit la %s! Cu ce va pot ajuta?"
+msgstr "Bine ați venit la %s! Cu ce vă pot ajuta?"
 
 msgid "Goodbye!"
 msgstr "La revedere!"
 
 msgid "Buy/Sell"
-msgstr "Cumpara/Vinde"
+msgstr "Cumpără/Vinde"
 
 msgid "Any news?"
 msgstr "Vreo noutate?"
 
 msgid "Leave"
-msgstr "Pleaca"
+msgstr "Pleacă"
 
 #. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Plecati."
+msgstr "Plecați."
 
 msgid "Trade"
-msgstr "Comert"
+msgstr "Comerț"
 
 msgid "Ask around"
-msgstr "Intreaba"
+msgstr "Întreabă în jur"
 
 #. Error messages
 msgid "Failed to initialize renderer"
-msgstr "Initializarea rendererului a esuat"
+msgstr "Nu s-a putut inițializa renderer-ul"
 
 msgid "Missing game data"
-msgstr "Date de joc lipsa"
+msgstr "Lipsesc datele jocului"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Nu s-au gasit date de joc. Setati calea datelor in Setari sau folositi --data in linia de comanda."
+msgstr "Nu s-au găsit date de joc. Setați calea datelor în Setări sau folosiți --data în linia de comandă."
 
 msgid "You can also change the data path in Settings."
-msgstr "Puteti schimba calea datelor si din Setari."
+msgstr "Puteți schimba calea datelor și din Setări."
 
 msgid "Missing Liberation data"
-msgstr "Date Liberation lipsa"
+msgstr "Lipsesc datele Liberation"

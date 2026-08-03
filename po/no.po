@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
@@ -51,7 +51,7 @@ msgid "CRT CURVE:"
 msgstr "CRT KURVE:"
 
 msgid "BILINEAR:"
-msgstr "BILINEAER:"
+msgstr "BILINEÆR:"
 
 msgid "INT SCALE:"
 msgstr "INT SKALERING:"
@@ -87,7 +87,7 @@ msgid "BACK"
 msgstr "TILBAKE"
 
 msgid "ON"
-msgstr "PA"
+msgstr "PÅ"
 
 msgid "OFF"
 msgstr "AV"
@@ -103,7 +103,7 @@ msgstr "ENTER: LAGRE STI  ESC: AVBRYT"
 
 #. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Dette er %s. Vi tar ikke imot besoekende akkurat na."
+msgstr "Dette er %s. Vi tar ikke imot besøkende akkurat nå."
 
 msgid "Welcome to %s. The archives are available for public access."
 msgstr "Velkommen til %s. Arkivet er tilgjengelig for offentlig innsyn."
@@ -118,55 +118,55 @@ msgid "%s. Come in and browse."
 msgstr "%s. Kom inn og se deg rundt."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Velkommen til %s! Hva skal det vaere?"
+msgstr "Velkommen til %s! Hva skal det være?"
 
 msgid "Welcome to %s. How can we help you today?"
 msgstr "Velkommen til %s. Hvordan kan vi hjelpe deg i dag?"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. Du burde ikke vaere her."
+msgstr "%s. Du burde ikke være her."
 
 msgid "You leave the building."
 msgstr "Du forlater bygningen."
 
 #. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Velkommen til %s! Hva kan jeg gjore for deg?"
+msgstr "Velkommen til %s! Hva kan jeg gjøre for deg?"
 
 msgid "Goodbye!"
 msgstr "Ha det bra!"
 
 msgid "Buy/Sell"
-msgstr "Kjop/Salg"
+msgstr "Kjøp/Salg"
 
 msgid "Any news?"
 msgstr "Noen nyheter?"
 
 msgid "Leave"
-msgstr "Ga"
+msgstr "Gå"
 
 #. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Du gar."
+msgstr "Du går."
 
 msgid "Trade"
 msgstr "Handel"
 
 msgid "Ask around"
-msgstr "Spor rundt"
+msgstr "Spør rundt"
 
 #. Error messages
 msgid "Failed to initialize renderer"
-msgstr "Klarte ikke a initialisere rendereren"
+msgstr "Klarte ikke å initialisere rendereren"
 
 msgid "Missing game data"
 msgstr "Manglende spilldata"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Ingen spilldata funnet. Vennligst sett datastien i Innstillinger eller bruk --data pa kommandolinjen."
+msgstr "Ingen spilldata funnet. Vennligst sett datastien i Innstillinger eller bruk --data på kommandolinjen."
 
 msgid "You can also change the data path in Settings."
-msgstr "Du kan ogsa endre datastien i Innstillinger."
+msgstr "Du kan også endre datastien i Innstillinger."
 
 msgid "Missing Liberation data"
 msgstr "Manglende Liberation-data"

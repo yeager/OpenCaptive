@@ -1,26 +1,26 @@
 # Finnish translation for OpenCaptive
 # Copyright (C) 2026 Daniel Nylander
-# This file is distributed under the same license as the OpenCaptive package.
+# This file is distributed under the MIT license.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
-"Last-Translator: Daniel Nylander\n"
+"Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-# Menu
+#. Main menu title
 msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
 msgid "BY DANIEL NYLANDER"
-msgstr "TEKIJAE DANIEL NYLANDER"
+msgstr "TEKIJÄ DANIEL NYLANDER"
 
 msgid "SELECT GAME"
 msgstr "VALITSE PELI"
@@ -38,35 +38,35 @@ msgid "QUIT"
 msgstr "LOPETA"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "YLOES-ALAS: VALITSE  ENTER: ALOITA  ESC: LOPETA"
+msgstr "YLÖS-ALAS: VALITSE  ENTER: ALOITA  ESC: LOPETA"
 
-# Settings
+#. Settings menu
 msgid "RENDERER:"
-msgstr "RENDEROEIJA:"
+msgstr "PIIRRIN:"
 
 msgid "SCANLINES:"
-msgstr "JUOVAT:"
+msgstr "PYYHKÄISYVIIVAT:"
 
 msgid "CRT CURVE:"
-msgstr "CRT KAYREYS:"
+msgstr "CRT-KÄYREVÄ:"
 
 msgid "BILINEAR:"
 msgstr "BILINEAARINEN:"
 
 msgid "INT SCALE:"
-msgstr "INT SKAALAUS:"
+msgstr "KOKONAISLUKUSKAALAUS:"
 
 msgid "SCALE:"
 msgstr "SKAALAUS:"
 
 msgid "FULLSCREEN:"
-msgstr "KOKO NAEYTTOE:"
+msgstr "KOKONÄYTTÖ:"
 
 msgid "VSYNC:"
 msgstr "VSYNC:"
 
 msgid "FPS LIMIT:"
-msgstr "FPS RAJA:"
+msgstr "FPS-RAJA:"
 
 msgid "BRIGHTNESS:"
 msgstr "KIRKKAUS:"
@@ -78,16 +78,19 @@ msgid "MUSIC:"
 msgstr "MUSIIKKI:"
 
 msgid "SFX:"
-msgstr "AEAENET:"
+msgstr "TEHOSTEET:"
 
 msgid "DATA PATH:"
 msgstr "DATAPOLKU:"
+
+msgid "LANGUAGE:"
+msgstr "KIELI:"
 
 msgid "BACK"
 msgstr "TAKAISIN"
 
 msgid "ON"
-msgstr "PAEAELLAE"
+msgstr "PÄÄLLÄ"
 
 msgid "OFF"
 msgstr "POIS"
@@ -95,77 +98,90 @@ msgstr "POIS"
 msgid "UNLIMITED"
 msgstr "RAJOITTAMATON"
 
-msgid "ENTER: EDIT PATH  ESC: CANCEL"
-msgstr "ENTER: MUOKKAA POLKUA  ESC: PERUUTA"
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
+msgstr "KIRJOITA POLKU  ENTER: VAHVISTA  ESC: PERUUTA"
 
-msgid "ENTER: SAVE PATH  ESC: CANCEL"
-msgstr "ENTER: TALLENNA POLKU  ESC: PERUUTA"
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
+msgstr "YLÖS-ALAS: VALITSE  VASEN-OIKEA: SÄÄDÄ  ESC: TAKAISIN"
 
-# Building interactions
+#. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Taemae on %s. Emme ota vierailijoita vastaan juuri nyt."
+msgstr "Tämä on %s. Emme ota vierailijoita juuri nyt."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Tervetuloa kohteeseen %s. Arkistot ovat julkisesti saatavilla."
+msgstr "Tervetuloa %s. Arkistot ovat julkisesti saatavilla."
 
 msgid "This is the %s police station. State your business."
-msgstr "Taemae on %s poliisiasema. Kertokaa asianne."
+msgstr "Tämä on %s poliisiasema. Mitä asiaa?"
 
 msgid "City Records Office. How can we help?"
-msgstr "Kaupungin arkistotoimisto. Miten voimme auttaa?"
+msgstr "Kaupungin rekisteritoimisto. Miten voimme auttaa?"
+
+msgid "This is a private residence. What do you want?"
+msgstr "Tämä on yksityisasunto. Mitä haluat?"
+
+msgid "Welcome to %s. This area is restricted."
+msgstr "Tervetuloa %s. Tämä alue on rajoitettu."
 
 msgid "%s. Come in and browse."
-msgstr "%s. Tule sisaeaen ja katso ympaerilesi."
+msgstr "%s. Tule sisään ja katsele."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Tervetuloa kohteeseen %s! Mitae saisi olla?"
+msgstr "Tervetuloa %s! Mitä saisi olla?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Tervetuloa kohteeseen %s. Miten voimme auttaa taenaean?"
+msgstr "Tervetuloa %s. Miten voimme auttaa tänään?"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. Sinun ei pitaeisi olla taeaellae."
+msgstr "%s. Sinun ei pitäisi olla täällä."
+
+msgid "Take a look at what I have."
+msgstr "Katso mitä minulla on."
+
+msgid "I might have heard something. Check back later."
+msgstr "Saatoin kuulla jotain. Tule takaisin myöhemmin."
 
 msgid "You leave the building."
 msgstr "Poistut rakennuksesta."
 
-# Shop
+#. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Tervetuloa kohteeseen %s! Mitae voin tehdae hyvaeksesi?"
+msgstr "Tervetuloa %s! Miten voin auttaa?"
 
 msgid "Goodbye!"
-msgstr "Naekemiin!"
+msgstr "Näkemiin!"
 
 msgid "Buy/Sell"
 msgstr "Osta/Myy"
 
 msgid "Any news?"
-msgstr "Mitaen uutta?"
+msgstr "Mitään uutisia?"
 
 msgid "Leave"
-msgstr "Laehde"
+msgstr "Lähde"
 
+#. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Laehdet."
+msgstr "Lähdet."
 
 msgid "Trade"
-msgstr "Kauppa"
+msgstr "Kauppaa"
 
 msgid "Ask around"
-msgstr "Kysy ympaerilta"
+msgstr "Kysele"
 
-# Errors
+#. Error messages
 msgid "Failed to initialize renderer"
-msgstr "Renderoeijan alustaminen epaonnistui"
+msgstr "Piirtimen alustus epäonnistui"
 
 msgid "Missing game data"
 msgstr "Pelidata puuttuu"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Pelidataa ei loeydy. Aseta datapolku Asetuksissa tai kaeytae --data komentorivillae."
+msgstr "Pelidataa ei löytynyt. Aseta datapolku Asetuksissa tai käytä --data komentorivillä."
 
 msgid "You can also change the data path in Settings."
-msgstr "Voit myoes muuttaa datapolkua Asetuksissa."
+msgstr "Voit myös vaihtaa datapolkua Asetuksissa."
 
 msgid "Missing Liberation data"
 msgstr "Liberation-data puuttuu"

@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
@@ -20,10 +20,10 @@ msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
 msgid "BY DANIEL NYLANDER"
-msgstr "SAKUSHA DANIEL NYLANDER"
+msgstr "作者 DANIEL NYLANDER"
 
 msgid "SELECT GAME"
-msgstr "GEEMU SENTAKU"
+msgstr "ゲーム選択"
 
 msgid "CAPTIVE (1990)"
 msgstr "CAPTIVE (1990)"
@@ -32,141 +32,156 @@ msgid "LIBERATION: CAPTIVE 2"
 msgstr "LIBERATION: CAPTIVE 2"
 
 msgid "SETTINGS"
-msgstr "SETTEI"
+msgstr "設定"
 
 msgid "QUIT"
-msgstr "SHUURYOU"
+msgstr "終了"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "UE-SHITA: SENTAKU  ENTER: KAISHI  ESC: SHUURYOU"
+msgstr "上下: 選択  ENTER: 開始  ESC: 終了"
 
 #. Settings menu
 msgid "RENDERER:"
-msgstr "RENDERAA:"
+msgstr "レンダラー:"
 
 msgid "SCANLINES:"
-msgstr "SUKYANRAIN:"
+msgstr "走査線:"
 
 msgid "CRT CURVE:"
-msgstr "CRT KYOKUSEN:"
+msgstr "CRT曲線:"
 
 msgid "BILINEAR:"
-msgstr "BAIRIINIA:"
+msgstr "バイリニア:"
 
 msgid "INT SCALE:"
-msgstr "INT SUKERU:"
+msgstr "整数スケーリング:"
 
 msgid "SCALE:"
-msgstr "SUKERU:"
+msgstr "スケーリング:"
 
 msgid "FULLSCREEN:"
-msgstr "FURUSUKURIIN:"
+msgstr "全画面:"
 
 msgid "VSYNC:"
 msgstr "VSYNC:"
 
 msgid "FPS LIMIT:"
-msgstr "FPS SEIGEN:"
+msgstr "FPS制限:"
 
 msgid "BRIGHTNESS:"
-msgstr "AKURSA:"
+msgstr "明るさ:"
 
 msgid "CONTRAST:"
-msgstr "KONTORASUTO:"
+msgstr "コントラスト:"
 
 msgid "MUSIC:"
-msgstr "ONGAKU:"
+msgstr "音楽:"
 
 msgid "SFX:"
-msgstr "KOUKAON:"
+msgstr "効果音:"
 
 msgid "DATA PATH:"
-msgstr "DEETA PASU:"
+msgstr "データパス:"
+
+msgid "LANGUAGE:"
+msgstr "言語:"
 
 msgid "BACK"
-msgstr "MODORU"
+msgstr "戻る"
 
 msgid "ON"
-msgstr "ON"
+msgstr "オン"
 
 msgid "OFF"
-msgstr "OFF"
+msgstr "オフ"
 
 msgid "UNLIMITED"
-msgstr "MUSEIGEN"
+msgstr "無制限"
 
-msgid "ENTER: EDIT PATH  ESC: CANCEL"
-msgstr "ENTER: PASU HENSHUU  ESC: KYANSERU"
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
+msgstr "パス入力  ENTER: 確認  ESC: キャンセル"
 
-msgid "ENTER: SAVE PATH  ESC: CANCEL"
-msgstr "ENTER: PASU HOZON  ESC: KYANSERU"
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
+msgstr "上下: 選択  左右: 調整  ESC: 戻る"
 
 #. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Koko wa %s desu. Ima wa raikyaku wo uketsukete imasen."
+msgstr "ここは%sです。今は来客を受け付けていません。"
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "%s e youkoso. Aakaibu wa ippan koukai sarete imasu."
+msgstr "%sへようこそ。記録文書は公開されています。"
 
 msgid "This is the %s police station. State your business."
-msgstr "Koko wa %s keisatsusho desu. Goyouken wo douzo."
+msgstr "ここは%s警察署です。ご用件は？"
 
 msgid "City Records Office. How can we help?"
-msgstr "Shiyakusho Kiroku Ka desu. Nanika otetsudai shimasu ka?"
+msgstr "市役所記録部です。何かお手伝いしましょうか？"
+
+msgid "This is a private residence. What do you want?"
+msgstr "ここは個人宅です。何のご用ですか？"
+
+msgid "Welcome to %s. This area is restricted."
+msgstr "%sへようこそ。この区域は制限されています。"
 
 msgid "%s. Come in and browse."
-msgstr "%s desu. Douzo haitte goran kudasai."
+msgstr "%sです。どうぞお入りください。"
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "%s e youkoso! Nani ni shimasu ka?"
+msgstr "%sへようこそ！何にしましょうか？"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "%s e youkoso. Kyou wa nanika otetsudai shimasu ka?"
+msgstr "%sへようこそ。今日は何をお手伝いしましょうか？"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s desu. Koko ni iru beki dewa arimasen."
+msgstr "%s。ここにいるべきではありません。"
+
+msgid "Take a look at what I have."
+msgstr "私の品物を見てください。"
+
+msgid "I might have heard something. Check back later."
+msgstr "何か聞いたかもしれません。後で来てください。"
 
 msgid "You leave the building."
-msgstr "Tatemono wo demashita."
+msgstr "建物を出ました。"
 
 #. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "%s e youkoso! Nanika otetsudai shimasu ka?"
+msgstr "%sへようこそ！何をいたしましょうか？"
 
 msgid "Goodbye!"
-msgstr "Sayounara!"
+msgstr "さようなら！"
 
 msgid "Buy/Sell"
-msgstr "Baibai"
+msgstr "売買"
 
 msgid "Any news?"
-msgstr "Nanika nyuusu wa?"
+msgstr "何かニュースは？"
 
 msgid "Leave"
-msgstr "Saru"
+msgstr "去る"
 
 #. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Tachisarimashita."
+msgstr "去った。"
 
 msgid "Trade"
-msgstr "Torihiki"
+msgstr "取引"
 
 msgid "Ask around"
-msgstr "Kiite mawaru"
+msgstr "聞き込む"
 
 #. Error messages
 msgid "Failed to initialize renderer"
-msgstr "Renderaa no shokika ni shippai shimashita"
+msgstr "レンダラーの初期化に失敗しました"
 
 msgid "Missing game data"
-msgstr "Geemu deeta ga arimasen"
+msgstr "ゲームデータがありません"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Geemu deeta ga mitsukarimsen. Settei de deeta pasu wo setteishite kudasai. Matawa komandorain de --data wo shitei shite kudasai."
+msgstr "ゲームデータが見つかりません。設定でデータパスを指定するか、--dataを使用してください。"
 
 msgid "You can also change the data path in Settings."
-msgstr "Settei de deeta pasu wo henkou suru koto mo dekimasu."
+msgstr "設定でデータパスを変更することもできます。"
 
 msgid "Missing Liberation data"
-msgstr "Liberation deeta ga arimasen"
+msgstr "Liberationデータがありません"

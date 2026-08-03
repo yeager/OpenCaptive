@@ -1,21 +1,21 @@
 # Spanish translation for OpenCaptive
 # Copyright (C) 2026 Daniel Nylander
-# This file is distributed under the same license as the OpenCaptive package.
+# This file is distributed under the MIT license.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
-"Last-Translator: Daniel Nylander\n"
+"Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-# Menu
+#. Main menu title
 msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
@@ -40,12 +40,12 @@ msgstr "SALIR"
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
 msgstr "ARRIBA-ABAJO: SELECCIONAR  ENTER: INICIAR  ESC: SALIR"
 
-# Settings
+#. Settings menu
 msgid "RENDERER:"
-msgstr "RENDERER:"
+msgstr "RENDERIZADOR:"
 
 msgid "SCANLINES:"
-msgstr "LINEAS:"
+msgstr "LÍNEAS DE BARRIDO:"
 
 msgid "CRT CURVE:"
 msgstr "CURVA CRT:"
@@ -54,7 +54,7 @@ msgid "BILINEAR:"
 msgstr "BILINEAL:"
 
 msgid "INT SCALE:"
-msgstr "ESCALA INT:"
+msgstr "ESCALA ENTERA:"
 
 msgid "SCALE:"
 msgstr "ESCALA:"
@@ -66,7 +66,7 @@ msgid "VSYNC:"
 msgstr "VSYNC:"
 
 msgid "FPS LIMIT:"
-msgstr "LIMITE FPS:"
+msgstr "LÍMITE FPS:"
 
 msgid "BRIGHTNESS:"
 msgstr "BRILLO:"
@@ -75,7 +75,7 @@ msgid "CONTRAST:"
 msgstr "CONTRASTE:"
 
 msgid "MUSIC:"
-msgstr "MUSICA:"
+msgstr "MÚSICA:"
 
 msgid "SFX:"
 msgstr "EFECTOS:"
@@ -83,70 +83,86 @@ msgstr "EFECTOS:"
 msgid "DATA PATH:"
 msgstr "RUTA DE DATOS:"
 
+msgid "LANGUAGE:"
+msgstr "IDIOMA:"
+
 msgid "BACK"
 msgstr "VOLVER"
 
 msgid "ON"
-msgstr "SI"
+msgstr "SÍ"
 
 msgid "OFF"
 msgstr "NO"
 
 msgid "UNLIMITED"
-msgstr "ILIMITADO"
+msgstr "SIN LÍMITE"
 
-msgid "ENTER: EDIT PATH  ESC: CANCEL"
-msgstr "ENTER: EDITAR RUTA  ESC: CANCELAR"
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
+msgstr "ESCRIBIR RUTA  ENTER: CONFIRMAR  ESC: CANCELAR"
 
-msgid "ENTER: SAVE PATH  ESC: CANCEL"
-msgstr "ENTER: GUARDAR RUTA  ESC: CANCELAR"
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
+msgstr "ARRIBA-ABAJO: SELECCIONAR  IZQ-DER: AJUSTAR  ESC: VOLVER"
 
-# Building interactions
+#. Liberation building interactions
 msgid "This is %s. We're not taking visitors right now."
-msgstr "Esto es %s. No estamos recibiendo visitantes ahora mismo."
+msgstr "Esto es %s. No recibimos visitantes ahora mismo."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Bienvenido a %s. Los archivos estan disponibles para acceso publico."
+msgstr "Bienvenido a %s. Los archivos están disponibles al público."
 
 msgid "This is the %s police station. State your business."
-msgstr "Esta es la comisaria de %s. Diga su asunto."
+msgstr "Esta es la comisaría de %s. Diga qué desea."
 
 msgid "City Records Office. How can we help?"
-msgstr "Oficina de registros de la ciudad. Como podemos ayudar?"
+msgstr "Oficina de Registros. ¿En qué podemos ayudarle?"
+
+msgid "This is a private residence. What do you want?"
+msgstr "Esta es una residencia privada. ¿Qué desea?"
+
+msgid "Welcome to %s. This area is restricted."
+msgstr "Bienvenido a %s. Esta zona es restringida."
 
 msgid "%s. Come in and browse."
-msgstr "%s. Entre y eche un vistazo."
+msgstr "%s. Entre y mire."
 
 msgid "Welcome to %s! What'll it be?"
-msgstr "Bienvenido a %s! Que va a ser?"
+msgstr "¡Bienvenido a %s! ¿Qué va a ser?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Bienvenido a %s. Como podemos ayudarle hoy?"
+msgstr "Bienvenido a %s. ¿En qué podemos ayudarle hoy?"
 
 msgid "%s. You shouldn't be here."
-msgstr "%s. No deberia estar aqui."
+msgstr "%s. No debería estar aquí."
+
+msgid "Take a look at what I have."
+msgstr "Mire lo que tengo."
+
+msgid "I might have heard something. Check back later."
+msgstr "Puede que haya oído algo. Vuelva más tarde."
 
 msgid "You leave the building."
-msgstr "Sales del edificio."
+msgstr "Sale del edificio."
 
-# Shop
+#. Liberation shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Bienvenido a %s! Que puedo hacer por usted?"
+msgstr "¡Bienvenido a %s! ¿En qué puedo ayudarle?"
 
 msgid "Goodbye!"
-msgstr "Adios!"
+msgstr "¡Adiós!"
 
 msgid "Buy/Sell"
 msgstr "Comprar/Vender"
 
 msgid "Any news?"
-msgstr "Alguna novedad?"
+msgstr "¿Alguna novedad?"
 
 msgid "Leave"
 msgstr "Salir"
 
+#. Liberation NPC dialogue
 msgid "You leave."
-msgstr "Te vas."
+msgstr "Se va."
 
 msgid "Trade"
 msgstr "Comerciar"
@@ -154,18 +170,18 @@ msgstr "Comerciar"
 msgid "Ask around"
 msgstr "Preguntar"
 
-# Errors
+#. Error messages
 msgid "Failed to initialize renderer"
-msgstr "Error al inicializar el renderer"
+msgstr "Error al inicializar el renderizador"
 
 msgid "Missing game data"
 msgstr "Faltan datos del juego"
 
 msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "No se encontraron datos del juego. Por favor, establezca la ruta de datos en Ajustes o use --data en la linea de comandos."
+msgstr "No se encontraron datos del juego. Configure la ruta de datos en Ajustes o use --data en la línea de comandos."
 
 msgid "You can also change the data path in Settings."
-msgstr "Tambien puede cambiar la ruta de datos en Ajustes."
+msgstr "También puede cambiar la ruta de datos en Ajustes."
 
 msgid "Missing Liberation data"
 msgstr "Faltan datos de Liberation"

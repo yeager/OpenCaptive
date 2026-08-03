@@ -5,12 +5,17 @@
 #include "renderer.h"
 #include <SDL3/SDL.h>
 
+#define MENU_WIDTH  960
+#define MENU_HEIGHT 600
+
 typedef enum {
     MENU_RESULT_NONE,
     MENU_RESULT_START_CAPTIVE,
     MENU_RESULT_START_LIBERATION,
     MENU_RESULT_QUIT,
 } MenuResult;
+
+typedef struct TTF_Font TTF_Font;
 
 typedef struct {
     int selected_item;    // 0=Captive, 1=Liberation, 2=Settings, 3=Quit
@@ -37,11 +42,21 @@ typedef struct {
     bool data_path_editing;
     int data_path_cursor;
     int lang_index;
+    uint32_t *logo_img;
+    int logo_img_w, logo_img_h;
+    uint32_t *captive_img;
+    int captive_img_w, captive_img_h;
+    uint32_t *liberation_img;
+    int liberation_img_w, liberation_img_h;
+    TTF_Font *font_title;
+    TTF_Font *font_body;
+    TTF_Font *font_small;
+    bool ttf_ready;
 } StartMenu;
 
 void start_menu_init(StartMenu *menu);
+void start_menu_free(StartMenu *menu);
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event);
-/* Coordinates are in the 320x200 virtual framebuffer used by the menu. */
 MenuResult start_menu_handle_click(StartMenu *menu, float x, float y);
 void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height);
 

@@ -38,7 +38,7 @@
 #include <windows.h>
 #endif
 
-static uint32_t framebuffer[LIBERATION_SCREEN_WIDTH * LIBERATION_SCREEN_HEIGHT];
+static uint32_t framebuffer[MENU_WIDTH * MENU_HEIGHT];
 
 static bool write_frame_ppm(const char *path, const uint32_t *pixels,
                             int width, int height) {
@@ -1192,11 +1192,11 @@ int main(int argc, char *argv[]) {
                     MenuResult result;
                     if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                         event.button.button == SDL_BUTTON_LEFT) {
-                        int width = CAPTIVE_ORIGINAL_WIDTH;
-                        int height = CAPTIVE_ORIGINAL_HEIGHT;
+                        int width = MENU_WIDTH;
+                        int height = MENU_HEIGHT;
                         SDL_GetWindowSize(renderer.window, &width, &height);
-                        float x = event.button.x * CAPTIVE_ORIGINAL_WIDTH / width;
-                        float y = event.button.y * CAPTIVE_ORIGINAL_HEIGHT / height;
+                        float x = event.button.x * MENU_WIDTH / width;
+                        float y = event.button.y * MENU_HEIGHT / height;
                         result = start_menu_handle_click(&menu, x, y);
                     } else {
                         result = start_menu_handle_event(&menu, &event);
@@ -1399,19 +1399,25 @@ int main(int argc, char *argv[]) {
         /* Liberation is a PAL CD32 presentation and therefore uses a taller
          * canvas than Captive's 320x200 shell.  Switch at the game boundary,
          * not by stretching one game's framebuffer into the other. */
-        int frame_width = CAPTIVE_ORIGINAL_WIDTH;
-        int frame_height = (gs.mode == STATE_GAME && gs.game_type == GAME_LIBERATION)
-            ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
+        int frame_width, frame_height;
+        if (gs.mode == STATE_MENU) {
+            frame_width = MENU_WIDTH;
+            frame_height = MENU_HEIGHT;
+        } else if (gs.mode == STATE_GAME && gs.game_type == GAME_LIBERATION) {
+            frame_width = LIBERATION_SCREEN_WIDTH;
+            frame_height = LIBERATION_SCREEN_HEIGHT;
+        } else {
+            frame_width = CAPTIVE_ORIGINAL_WIDTH;
+            frame_height = CAPTIVE_ORIGINAL_HEIGHT;
+        }
         if (renderer.canvas_width != frame_width || renderer.canvas_height != frame_height)
             renderer_set_canvas(&renderer, frame_width, frame_height, &config);
 
-        // Render
         memset(framebuffer, 0, (size_t)frame_width * frame_height * sizeof(uint32_t));
 
         switch (gs.mode) {
             case STATE_MENU:
-                start_menu_render(&menu, framebuffer,
-                                  CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                start_menu_render(&menu, framebuffer, MENU_WIDTH, MENU_HEIGHT);
                 break;
 
             case STATE_INTRO:

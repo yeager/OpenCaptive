@@ -67,8 +67,10 @@ bool renderer_set_canvas(OpenCaptiveRenderer *r, int width, int height,
         if (!renderer_create_framebuffer(r, width, height)) return false;
     }
     if (!config->fullscreen) {
-        r->window_width = width * config->scale_factor;
-        r->window_height = height * config->scale_factor;
+        int sf = config->scale_factor;
+        if (width > 640 || height > 480) sf = 1;
+        r->window_width = width * sf;
+        r->window_height = height * sf;
         SDL_SetWindowSize(r->window, r->window_width, r->window_height);
     }
     return true;
@@ -102,7 +104,7 @@ void renderer_set_effects(OpenCaptiveRenderer *r, bool bilinear, bool scanlines,
 
 void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
     if (pixels) {
-        uint32_t processed[LIBERATION_SCREEN_WIDTH * LIBERATION_SCREEN_HEIGHT];
+        uint32_t *processed = (uint32_t *)SDL_malloc((size_t)r->canvas_width * r->canvas_height * sizeof(uint32_t));
         const uint32_t *source = pixels;
         if (renderer_scanlines || renderer_crt_curvature ||
             renderer_brightness != 50 || renderer_contrast != 50) {
@@ -136,6 +138,7 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
         }
         SDL_UpdateTexture(r->framebuffer, NULL, source,
                           r->canvas_width * sizeof(uint32_t));
+        if (processed && source == processed) SDL_free(processed);
     }
 
     SDL_SetRenderDrawColor(r->renderer, 0, 0, 0, 255);

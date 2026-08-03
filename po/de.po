@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCaptive 1.1.26\n"
+"Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
 "POT-Creation-Date: 2026-08-03\n"
 "PO-Revision-Date: 2026-08-03\n"
@@ -23,7 +23,7 @@ msgid "BY DANIEL NYLANDER"
 msgstr "VON DANIEL NYLANDER"
 
 msgid "SELECT GAME"
-msgstr "SPIEL WAEHLEN"
+msgstr "SPIEL WÄHLEN"
 
 msgid "CAPTIVE (1990)"
 msgstr "CAPTIVE (1990)"
@@ -38,7 +38,7 @@ msgid "QUIT"
 msgstr "BEENDEN"
 
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "AUF-AB: WAEHLEN  ENTER: START  ESC: BEENDEN"
+msgstr "AUF-AB: WÄHLEN  ENTER: START  ESC: BEENDEN"
 
 # Settings
 msgid "RENDERER:"
@@ -48,7 +48,7 @@ msgid "SCANLINES:"
 msgstr "SCANZEILEN:"
 
 msgid "CRT CURVE:"
-msgstr "CRT KRUEMMUNG:"
+msgstr "CRT KRÜMMUNG:"
 
 msgid "BILINEAR:"
 msgstr "BILINEAR:"
@@ -84,7 +84,7 @@ msgid "DATA PATH:"
 msgstr "DATENPFAD:"
 
 msgid "BACK"
-msgstr "ZURUECK"
+msgstr "ZURÜCK"
 
 msgid "ON"
 msgstr "AN"
@@ -106,13 +106,13 @@ msgid "This is %s. We're not taking visitors right now."
 msgstr "Hier ist %s. Wir empfangen gerade keine Besucher."
 
 msgid "Welcome to %s. The archives are available for public access."
-msgstr "Willkommen bei %s. Die Archive sind oeffentlich zugaenglich."
+msgstr "Willkommen bei %s. Die Archive sind öffentlich zugänglich."
 
 msgid "This is the %s police station. State your business."
 msgstr "Hier ist die Polizeistation %s. Was ist Ihr Anliegen?"
 
 msgid "City Records Office. How can we help?"
-msgstr "Stadtarchiv. Wie koennen wir helfen?"
+msgstr "Stadtarchiv. Wie können wir helfen?"
 
 msgid "%s. Come in and browse."
 msgstr "%s. Kommen Sie herein und sehen Sie sich um."
@@ -121,17 +121,17 @@ msgid "Welcome to %s! What'll it be?"
 msgstr "Willkommen bei %s! Was darf es sein?"
 
 msgid "Welcome to %s. How can we help you today?"
-msgstr "Willkommen bei %s. Wie koennen wir Ihnen heute helfen?"
+msgstr "Willkommen bei %s. Wie können wir Ihnen heute helfen?"
 
 msgid "%s. You shouldn't be here."
 msgstr "%s. Sie sollten nicht hier sein."
 
 msgid "You leave the building."
-msgstr "Sie verlassen das Gebaeude."
+msgstr "Sie verlassen das Gebäude."
 
 # Shop
 msgid "Welcome to %s! What can I do for you?"
-msgstr "Willkommen bei %s! Was kann ich fuer Sie tun?"
+msgstr "Willkommen bei %s! Was kann ich für Sie tun?"
 
 msgid "Goodbye!"
 msgstr "Auf Wiedersehen!"
@@ -152,7 +152,7 @@ msgid "Trade"
 msgstr "Handeln"
 
 msgid "Ask around"
-msgstr "Sich umhoeren"
+msgstr "Sich umhören"
 
 # Errors
 msgid "Failed to initialize renderer"
@@ -165,7 +165,7 @@ msgid "No game data found. Please set the data path in Settings or use --data on
 msgstr "Keine Spieldaten gefunden. Bitte setzen Sie den Datenpfad in den Einstellungen oder verwenden Sie --data auf der Kommandozeile."
 
 msgid "You can also change the data path in Settings."
-msgstr "Sie koennen den Datenpfad auch in den Einstellungen aendern."
+msgstr "Sie können den Datenpfad auch in den Einstellungen ändern."
 
 msgid "Missing Liberation data"
 msgstr "Fehlende Liberation-Daten"
