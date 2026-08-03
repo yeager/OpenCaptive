@@ -117,6 +117,8 @@
 ### Droid configuration
 - [x] Droid configuration screen (STATE_DROID_CONFIG) shown before mission start
 - [x] Displays all 4 droids with HP, energy, and body part condition
+- [x] Droid rename (R key, keyboard input, up to 14 characters)
+- [x] Weapon swap between droids (S key, swaps with next droid)
 
 ### City visual themes
 - [x] 8 city visual themes (wall color base varies by mission number)

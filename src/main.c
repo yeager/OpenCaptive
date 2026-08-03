@@ -411,6 +411,8 @@ static int lib_dungeon_entry_y;
 static int lib_inv_cursor;
 static int pause_cursor;
 static int droid_config_cursor;
+static bool droid_config_renaming;
+static int droid_config_name_pos;
 static int taxi_flash_ttl;
 
 
@@ -1812,12 +1814,50 @@ int main(int argc, char *argv[]) {
                     break;
                 case STATE_DROID_CONFIG:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
-                        if (event.key.key == SDLK_UP && droid_config_cursor > 0)
-                            droid_config_cursor--;
-                        else if (event.key.key == SDLK_DOWN && droid_config_cursor < 3)
-                            droid_config_cursor++;
-                        else if (event.key.key == SDLK_RETURN || event.key.key == SDLK_ESCAPE)
-                            gs.mode = STATE_GAME;
+                        if (droid_config_renaming) {
+                            SDL_Keycode k = event.key.key;
+                            Droid *rd = &gs.droids[droid_config_cursor];
+                            if (k == SDLK_RETURN || k == SDLK_ESCAPE) {
+                                droid_config_renaming = false;
+                            } else if (k == SDLK_BACKSPACE && droid_config_name_pos > 0) {
+                                rd->name[--droid_config_name_pos] = '\0';
+                            } else if (droid_config_name_pos < 14) {
+                                char ch = 0;
+                                if (k >= SDLK_A && k <= SDLK_Z)
+                                    ch = (char)('A' + (k - SDLK_A));
+                                else if (k >= SDLK_0 && k <= SDLK_9)
+                                    ch = (char)('0' + (k - SDLK_0));
+                                else if (k == SDLK_MINUS) ch = '-';
+                                else if (k == SDLK_SPACE) ch = ' ';
+                                if (ch) {
+                                    rd->name[droid_config_name_pos++] = ch;
+                                    rd->name[droid_config_name_pos] = '\0';
+                                }
+                            }
+                        } else {
+                            if (event.key.key == SDLK_UP && droid_config_cursor > 0)
+                                droid_config_cursor--;
+                            else if (event.key.key == SDLK_DOWN && droid_config_cursor < 3)
+                                droid_config_cursor++;
+                            else if (event.key.key == SDLK_R) {
+                                droid_config_renaming = true;
+                                droid_config_name_pos = (int)strlen(gs.droids[droid_config_cursor].name);
+                            } else if (event.key.key == SDLK_S) {
+                                // Swap weapons between selected droid and next
+                                int next = (droid_config_cursor + 1) % 4;
+                                uint8_t tmp[2];
+                                tmp[0] = gs.droids[droid_config_cursor].weapons[0];
+                                tmp[1] = gs.droids[droid_config_cursor].weapons[1];
+                                gs.droids[droid_config_cursor].weapons[0] = gs.droids[next].weapons[0];
+                                gs.droids[droid_config_cursor].weapons[1] = gs.droids[next].weapons[1];
+                                gs.droids[next].weapons[0] = tmp[0];
+                                gs.droids[next].weapons[1] = tmp[1];
+                                uint16_t td = gs.droids[droid_config_cursor].weapon_damage;
+                                gs.droids[droid_config_cursor].weapon_damage = gs.droids[next].weapon_damage;
+                                gs.droids[next].weapon_damage = td;
+                            } else if (event.key.key == SDLK_RETURN)
+                                gs.mode = STATE_GAME;
+                        }
                     }
                     break;
                 case STATE_GAME:
@@ -2599,6 +2639,14 @@ int main(int argc, char *argv[]) {
                              gs.droids[d].body_part_hp[2], gs.droids[d].body_part_hp[3],
                              gs.droids[d].body_part_hp[4], gs.droids[d].body_part_hp[5]);
                     draw_simple_text(framebuffer, cw, ch, 10, yy + 12, parts, 0xFF666666, 1);
+                }
+                if (droid_config_renaming) {
+                    char ren[48];
+                    snprintf(ren, sizeof(ren), "RENAME: %s_", gs.droids[droid_config_cursor].name);
+                    draw_centered(framebuffer, cw, ch, ch - 35, ren, 0xFFFFFF00, 1);
+                } else {
+                    draw_simple_text(framebuffer, cw, ch, 10, ch - 35,
+                                     "R:RENAME  S:SWAP WEAPONS", 0xFF666666, 1);
                 }
                 draw_centered(framebuffer, cw, ch, ch - 20, "ENTER: START MISSION", 0xFF00CC00, 1);
                 break;

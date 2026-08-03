@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Droid config editing — v1.1.59)
+
+### Droid configuration editing
+- Droid rename: R key enters rename mode, type new name (A-Z, 0-9, space, hyphen), ENTER confirms
+- Weapon swap: S key swaps weapons and damage stats between selected droid and next
+- Visual feedback: rename cursor shown, controls displayed at bottom of config screen
+
 ## 2026-08-03 (Droid config + city themes + reputation + hazards — v1.1.58)
 
 ### Droid configuration screen

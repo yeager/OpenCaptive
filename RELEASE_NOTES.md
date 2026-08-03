@@ -1,5 +1,12 @@
 # OpenCaptive Release Notes
 
+## v1.1.59 (2026-08-03)
+
+### Droid configuration editing
+- Droid rename: R key in config screen, type A-Z/0-9/space/hyphen, ENTER to confirm
+- Weapon swap: S key swaps weapons between selected droid and next droid
+- All Captive and Liberation parity features now complete
+
 ## v1.1.58 (2026-08-03)
 
 ### Droid config, city themes, reputation, and industrial hazards
