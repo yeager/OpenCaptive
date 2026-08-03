@@ -91,6 +91,17 @@
 - [x] SFX_GENERATOR on generator destruction
 - [x] SFX_DOOR_OPEN on door open and key unlock
 
+### Traps and hazards
+- [x] Pit cells (CELL_PIT) placed by mapgen, damage all droids on step
+- [x] Pressure plate cells (CELL_PRESSURE_PLATE) placed by mapgen
+- [x] Pit and pressure plate rendering in viewport
+- [x] Pit and pressure plate colors on minimap
+
+### Pause menu
+- [x] ESC opens pause menu (STATE_PAUSE) instead of returning to main menu
+- [x] Pause menu with Resume/Settings/Quit options and cursor navigation
+- [x] Dimmed game background behind pause overlay
+
 ### Viewport rendering
 - [x] Original ALIEN1-6.PL5 creature sprites (SHA-256 verified)
 - [x] Floor item rendering in viewport

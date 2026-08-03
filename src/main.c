@@ -405,6 +405,7 @@ static PlotgenState lib_plot;
 static bool lib_mission_briefing;
 static bool lib_in_combat;
 static int lib_inv_cursor;
+static int pause_cursor;
 
 
 typedef struct {
@@ -1171,6 +1172,21 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                     }
                 }
             }
+            if (cell == CELL_PIT) {
+                for (int di = 0; di < 4; di++) {
+                    if (gs->droids[di].hp > 0) {
+                        int dmg = 5 + (gs->current_level * 2);
+                        gs->droids[di].hp -= (int16_t)dmg;
+                        if (gs->droids[di].hp < 0) gs->droids[di].hp = 0;
+                    }
+                }
+                msg_push("Fell into a pit!", 0xFFFF4444);
+                sfx_play(&sfx, SFX_HIT);
+                if (all_droids_dead(gs)) gs->mode = STATE_GAMEOVER;
+            } else if (cell == CELL_PRESSURE_PLATE) {
+                msg_push("Click!", 0xFFAAAA44);
+                sfx_play(&sfx, SFX_DOOR_OPEN);
+            }
             sfx_play(&sfx, SFX_STEP);
         } else if (cell == CELL_DOOR_LOCKED) {
             sfx_play(&sfx, SFX_DOOR_LOCKED);
@@ -1704,10 +1720,8 @@ int main(int argc, char *argv[]) {
                             liberation_mission_menu_active =
                                 liberation_mission_menu_pixels != NULL;
                         } else {
-                            gs.mode = STATE_MENU;
-                            sync_menu_from_config(&menu, &config, music_sys.enabled,
-                                                  sound_sys.enabled);
-                            music_stop(&music_sys);
+                            gs.mode = STATE_PAUSE;
+                            gs.paused = true;
                         }
                     } else if (gs.game_type == GAME_LIBERATION) {
                         if (liberation_intro_active && event.type == SDL_EVENT_KEY_DOWN) {
@@ -1923,6 +1937,42 @@ int main(int argc, char *argv[]) {
                         gs.mode = STATE_MENU;
                         start_menu_init(&menu);
                         music_stop(&music_sys);
+                    }
+                    break;
+                case STATE_PAUSE:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        switch (event.key.key) {
+                            case SDLK_ESCAPE:
+                                gs.mode = STATE_GAME;
+                                gs.paused = false;
+                                break;
+                            case SDLK_UP:
+                                if (pause_cursor > 0) pause_cursor--;
+                                break;
+                            case SDLK_DOWN:
+                                if (pause_cursor < 2) pause_cursor++;
+                                break;
+                            case SDLK_RETURN:
+                            case SDLK_RETURN2:
+                                if (pause_cursor == 0) {
+                                    gs.mode = STATE_GAME;
+                                    gs.paused = false;
+                                } else if (pause_cursor == 1) {
+                                    gs.mode = STATE_MENU;
+                                    sync_menu_from_config(&menu, &config,
+                                                          music_sys.enabled,
+                                                          sound_sys.enabled);
+                                    music_stop(&music_sys);
+                                    gs.paused = false;
+                                } else if (pause_cursor == 2) {
+                                    gs.mode = STATE_MENU;
+                                    start_menu_init(&menu);
+                                    music_stop(&music_sys);
+                                    gs.paused = false;
+                                }
+                                break;
+                            default: break;
+                        }
                     }
                     break;
                 default: break;
@@ -2304,6 +2354,28 @@ int main(int argc, char *argv[]) {
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                               150, "PRESS ESCAPE", 0xFF888888, 1);
                 break;
+
+            case STATE_PAUSE: {
+                int pw = (gs.game_type == GAME_LIBERATION)
+                    ? LIBERATION_SCREEN_WIDTH : CAPTIVE_ORIGINAL_WIDTH;
+                int ph = (gs.game_type == GAME_LIBERATION)
+                    ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
+                for (int i = 0; i < pw * ph; i++)
+                    framebuffer[i] = (framebuffer[i] & 0xFF000000)
+                        | ((framebuffer[i] & 0xFEFEFE) >> 1);
+                draw_centered(framebuffer, pw, ph, 40, "PAUSED", 0xFFFFFFFF, 3);
+                const char *opts[] = {"RESUME", "SETTINGS", "QUIT"};
+                for (int i = 0; i < 3; i++) {
+                    uint32_t c = (i == pause_cursor) ? 0xFFFFFF44 : 0xFF888888;
+                    char buf[32];
+                    snprintf(buf, sizeof(buf), "%s %s",
+                             (i == pause_cursor) ? ">" : " ", opts[i]);
+                    draw_centered(framebuffer, pw, ph, 90 + i * 20, buf, c, 1);
+                }
+                draw_centered(framebuffer, pw, ph, ph - 20,
+                              "ESC: RESUME", 0xFF666666, 1);
+                break;
+            }
 
             default: break;
         }

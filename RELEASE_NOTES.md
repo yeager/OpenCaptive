@@ -1,5 +1,14 @@
 # OpenCaptive Release Notes
 
+## v1.1.52 (2026-08-03)
+
+### Pause menu and trap cells
+- ESC opens pause menu with Resume/Settings/Quit (dimmed game background)
+- Pit cells (CELL_PIT) deal scaling damage to all droids on step
+- Pressure plate cells (CELL_PRESSURE_PLATE) trigger with SFX
+- Pit/pressure plate rendering in viewport and minimap
+- New cell types: CELL_ELEVATOR, CELL_PRESSURE_PLATE, CELL_PIT
+
 ## v1.1.51 (2026-08-03)
 
 ### Unicode bitmap font support

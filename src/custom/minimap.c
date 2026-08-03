@@ -63,6 +63,9 @@ void minimap_render(uint32_t *fb, int fb_w, int fb_h,
                         case CELL_TELEPORTER:  color = 0xFF8A2BE2; break;
                         case CELL_GENERATOR:   color = 0xFFFF0000; break;
                         case CELL_TERMINAL:    color = 0xFF00BFFF; break;
+                        case CELL_ELEVATOR:    color = 0xFF00FF88; break;
+                        case CELL_PRESSURE_PLATE: color = 0xFF888844; break;
+                        case CELL_PIT:         color = 0xFF330000; break;
                     }
                 }
 

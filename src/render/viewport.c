@@ -406,6 +406,26 @@ void viewport_render(const CaptiveViewWindow *window,
                              scr_w - 2, scr_h - 2, 0xFF00AA00);
             }
 
+            if (cell->type == CELL_PIT) {
+                int pit_w = cell_w * 2 / 3;
+                int pit_h = rp->wall_height / 6;
+                int pit_x = cell_left + (cell_w - pit_w) / 2;
+                int pit_y = rp->top_y + rp->wall_height - pit_h;
+                fill_rect_vp(framebuffer, fb_width, fb_height,
+                             vp_x + pit_x, vp_y + pit_y,
+                             pit_w, pit_h, 0xFF111111);
+            }
+
+            if (cell->type == CELL_PRESSURE_PLATE) {
+                int pp_w = cell_w / 3;
+                int pp_h = 2;
+                int pp_x = cell_left + (cell_w - pp_w) / 2;
+                int pp_y = rp->top_y + rp->wall_height - 2;
+                fill_rect_vp(framebuffer, fb_width, fb_height,
+                             vp_x + pp_x, vp_y + pp_y,
+                             pp_w, pp_h, 0xFF888844);
+            }
+
             if (cell->item_id > 0) {
                 int item_w = cell_w / 5;
                 int item_h = rp->wall_height / 8;

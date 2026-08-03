@@ -171,6 +171,22 @@ void map_generate(DungeonLevel *level, uint32_t seed, int level_num) {
         }
     }
 
+    int pit_count = (prng_next() & 3) + 1;
+    for (int p = 0; p < pit_count; p++) {
+        int px = 1 + (prng_next() % (MAP_WIDTH - 2));
+        int py = 1 + (prng_next() % (MAP_HEIGHT - 2));
+        if (in_bounds(px, py) && level->cells[py][px].type == CELL_FLOOR)
+            level->cells[py][px].type = CELL_PIT;
+    }
+
+    int plate_count = (prng_next() & 3);
+    for (int p = 0; p < plate_count; p++) {
+        int px = 1 + (prng_next() % (MAP_WIDTH - 2));
+        int py = 1 + (prng_next() % (MAP_HEIGHT - 2));
+        if (in_bounds(px, py) && level->cells[py][px].type == CELL_FLOOR)
+            level->cells[py][px].type = CELL_PRESSURE_PLATE;
+    }
+
     // Place shops (one per level, usually)
     if (placed > 2) {
         int si = 1 + (prng_next() % (placed - 2));

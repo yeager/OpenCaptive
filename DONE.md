@@ -1,5 +1,18 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Pause menu + trap cells — v1.1.52)
+
+### Pause menu
+- ESC now opens STATE_PAUSE with Resume/Settings/Quit cursor menu
+- Game background dimmed (50% brightness) behind pause overlay
+- Resume returns to STATE_GAME, Settings goes to config menu, Quit to main menu
+
+### Trap cells
+- CELL_PIT: placed by mapgen (1-4 per level), deals 5+2*level damage to all droids
+- CELL_PRESSURE_PLATE: placed by mapgen (0-3 per level), triggers "Click!" message and SFX
+- Both render in viewport (dark pit rectangle, yellow plate strip) and on minimap
+- Added CELL_ELEVATOR enum value for future elevator mechanic
+
 ## 2026-08-03 (Unicode bitmap font — v1.1.51)
 
 ### Unicode/extended character support

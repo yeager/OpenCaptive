@@ -20,6 +20,9 @@ typedef enum {
     CELL_TELEPORTER,
     CELL_GENERATOR,
     CELL_TERMINAL,
+    CELL_ELEVATOR,
+    CELL_PRESSURE_PLATE,
+    CELL_PIT,
 } CellType;
 
 // Facing directions
@@ -97,6 +100,7 @@ typedef enum {
     STATE_VICTORY,
     STATE_INVENTORY,
     STATE_HOLAMAP,
+    STATE_PAUSE,
 } GameStateMode;
 
 typedef struct {
