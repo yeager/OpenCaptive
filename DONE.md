@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Liberation mission completion — v1.1.39)
+
+### Mission completion system
+- Special building "Investigate" option completes current Liberation mission
+- Advances to next city with new seed, regenerated grid, and fresh briefing
+- 256 missions → victory screen
+- Creature-to-creature collision prevents stacking
+
 ## 2026-08-03 (Liberation mission briefing — v1.1.38)
 
 ### PlotGen integration

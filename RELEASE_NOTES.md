@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.39 (2026-08-03)
+
+### Liberation mission completion
+- Investigating the special building completes the current mission
+- Mission advances to next city with new PlotGen seed and briefing
+- 256 missions total, then victory screen
+- Creature-to-creature collision prevents stacking during movement
+
 ## v1.1.38 (2026-08-03)
 
 ### Liberation mission briefing

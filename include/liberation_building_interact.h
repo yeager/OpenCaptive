@@ -33,6 +33,7 @@ typedef struct {
         uint16_t item_type;
     } purchased[20];
     int purchased_count;
+    bool mission_complete;
 } BuildingInteraction;
 
 void building_interact_init(BuildingInteraction *bi);

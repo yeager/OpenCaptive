@@ -184,8 +184,11 @@ void building_interact_choose(BuildingInteraction *bi, unsigned choice) {
 
 void building_interact_advance(BuildingInteraction *bi) {
     if (!bi || !bi->active) return;
-    if (!dialogue_state_advance(&bi->dialogue))
+    if (!dialogue_state_advance(&bi->dialogue)) {
+        if (bi->type == INTERACT_SPECIAL)
+            bi->mission_complete = true;
         bi->active = false;
+    }
 }
 
 bool building_interact_buy(BuildingInteraction *bi, unsigned item_idx) {

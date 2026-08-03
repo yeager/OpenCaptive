@@ -715,6 +715,17 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 if (!lib_interact.active) {
                     lib_transfer_purchases(gs);
                     lib_in_building = false;
+                    if (lib_interact.mission_complete) {
+                        gs->mission++;
+                        if (gs->mission >= 256) {
+                            gs->mode = STATE_VICTORY;
+                        } else {
+                            gs->mission_seed = gs->mission_seed * 0x5E5 + gs->mission;
+                            lib_city_generated = false;
+                            lib_interact.mission_complete = false;
+                            start_liberation_session(gs);
+                        }
+                    }
                 }
                 return;
             default: return;

@@ -151,8 +151,15 @@ void combat_tick(CreatureList *cl, GameState *gs) {
             int ny = c->y + move_dy;
             if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT &&
                 !blocks_movement_or_sight(gs->levels[gs->current_level].cells[ny][nx].type)) {
-                c->x = nx;
-                c->y = ny;
+                bool blocked = false;
+                for (int j = 0; j < cl->num_creatures; j++) {
+                    if (j != i && cl->creatures[j].active &&
+                        cl->creatures[j].x == nx && cl->creatures[j].y == ny) {
+                        blocked = true;
+                        break;
+                    }
+                }
+                if (!blocked) { c->x = nx; c->y = ny; }
             }
             c->cooldown = c->speed / 2;
         }
