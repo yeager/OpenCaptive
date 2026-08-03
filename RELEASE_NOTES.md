@@ -1,5 +1,14 @@
 # OpenCaptive Release Notes
 
+## v1.1.54 (2026-08-03)
+
+### Liberation building interior dungeons
+- Special buildings now contain multi-floor dungeon interiors (via map_generate_base)
+- "Investigate" dialogue option enters dungeon crawl with Captive viewport
+- Full combat, item pickup, generators, stairs inside building interiors
+- Destroying all generators completes the mission and advances to next city
+- ESC exits building interior back to city navigation
+
 ## v1.1.53 (2026-08-03)
 
 ### Help screen and creature stats

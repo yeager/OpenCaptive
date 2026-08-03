@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-03 (Liberation building interior dungeons — v1.1.54)
+
+### Building interior dungeon crawl
+- Special building "Investigate" option now generates a multi-floor dungeon interior
+- Reuses Captive dungeon systems: map_generate_base, combat, generators, viewport
+- Frame dimensions switch to Captive 320×200 inside building dungeons
+- Generator destruction inside building completes mission and advances to next city
+- ESC exits building interior back to Liberation city navigation
+
 ## 2026-08-03 (Help screen + creature stats — v1.1.53)
 
 ### Help screen

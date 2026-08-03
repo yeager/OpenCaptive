@@ -161,6 +161,13 @@
 - [x] Disassemble PlotGen main algorithm (building interiors, plot state machine)
 - [x] Decode text table opcodes and dialogue branching
 
+### Building interior dungeons
+- [x] Special building "Investigate" enters dungeon crawl (reuses Captive dungeon systems)
+- [x] Building interiors generated via map_generate_base with mission seed
+- [x] Dungeon navigation, combat, generators inside Liberation buildings
+- [x] ESC exits building interior, generator destruction completes mission
+- [x] Frame dimensions switch to Captive viewport inside building dungeons
+
 ### 3D rendering
 - [x] Decode VGM wall texture format (4 concatenated AmSp banks, 152 sprites per file, 71 wall sets)
 - [x] Decode x3g vector format header (IFF FORM O3DG, OFFS, VCDO objects with EXVL vertices + PLST polygons)

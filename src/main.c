@@ -6,6 +6,7 @@
 #include "anm_decoder.h"
 #include "pl5_decoder.h"
 #include "combat.h"
+#include "map_gen.h"
 #include "save_load.h"
 #include "texture_atlas.h"
 #include "viewport.h"
@@ -404,6 +405,9 @@ static LibCombatState lib_combat;
 static PlotgenState lib_plot;
 static bool lib_mission_briefing;
 static bool lib_in_combat;
+static bool lib_in_dungeon;
+static int lib_dungeon_entry_x;
+static int lib_dungeon_entry_y;
 static int lib_inv_cursor;
 static int pause_cursor;
 
@@ -813,15 +817,33 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                     lib_transfer_purchases(gs);
                     lib_in_building = false;
                     if (lib_interact.mission_complete) {
-                        gs->mission++;
-                        if (gs->mission >= 256) {
-                            gs->mode = STATE_VICTORY;
-                        } else {
-                            gs->mission_seed = gs->mission_seed * 0x5E5 + gs->mission;
-                            lib_city_generated = false;
-                            lib_interact.mission_complete = false;
-                            start_liberation_session(gs);
-                        }
+                        lib_interact.mission_complete = false;
+                        lib_in_dungeon = true;
+                        lib_dungeon_entry_x = lib_nav.cell_x;
+                        lib_dungeon_entry_y = lib_nav.cell_y;
+                        gs->current_level = 0;
+                        map_generate_base(gs->levels, &gs->num_levels,
+                                          gs->mission_seed + (uint32_t)gs->mission);
+                        gs->party_x = 1; gs->party_y = 1;
+                        for (int y2 = 0; y2 < MAP_HEIGHT; y2++)
+                            for (int x2 = 0; x2 < MAP_WIDTH; x2++)
+                                if (gs->levels[0].cells[y2][x2].type == CELL_FLOOR) {
+                                    gs->party_x = x2; gs->party_y = y2;
+                                    goto found_start;
+                                }
+                        found_start:
+                        gs->party_dir = DIR_SOUTH;
+                        gs->generators_total = 0;
+                        gs->generators_destroyed = 0;
+                        for (int f = 0; f < gs->num_levels; f++)
+                            for (int y3 = 0; y3 < MAP_HEIGHT; y3++)
+                                for (int x3 = 0; x3 < MAP_WIDTH; x3++)
+                                    if (gs->levels[f].cells[y3][x3].type == CELL_GENERATOR)
+                                        gs->generators_total++;
+                        combat_init(&creatures);
+                        combat_spawn_for_level(&creatures, &gs->levels[0], 0,
+                                               gs->mission_seed);
+                        msg_push("Entered building interior", 0xFF44AAFF);
                     }
                 }
                 return;
@@ -1752,7 +1774,29 @@ int main(int argc, char *argv[]) {
                             lib_mission_briefing = false;
                         } else if (!liberation_intro_active && !liberation_mission_menu_active &&
                                    !lib_mission_briefing && lib_city_generated) {
-                            liberation_handle_input(&gs, &event);
+                            if (lib_in_dungeon) {
+                                if (event.type == SDL_EVENT_KEY_DOWN &&
+                                    event.key.key == SDLK_ESCAPE) {
+                                    lib_in_dungeon = false;
+                                    msg_push("Left building", 0xFF44AAFF);
+                                } else {
+                                    game_handle_input(&gs, &event);
+                                    if (gs.generators_destroyed >= gs.generators_total &&
+                                        gs.generators_total > 0) {
+                                        lib_in_dungeon = false;
+                                        gs.mission++;
+                                        if (gs.mission >= 256) {
+                                            gs.mode = STATE_VICTORY;
+                                        } else {
+                                            gs.mission_seed = gs.mission_seed * 0x5E5 + gs.mission;
+                                            lib_city_generated = false;
+                                            start_liberation_session(&gs);
+                                        }
+                                    }
+                                }
+                            } else {
+                                liberation_handle_input(&gs, &event);
+                            }
                         }
                     } else {
                         /* Keep the input/state loop live while the final
@@ -1994,7 +2038,7 @@ int main(int argc, char *argv[]) {
         if (gs.mode == STATE_MENU) {
             frame_width = MENU_WIDTH;
             frame_height = MENU_HEIGHT;
-        } else if (gs.mode == STATE_GAME && gs.game_type == GAME_LIBERATION) {
+        } else if (gs.mode == STATE_GAME && gs.game_type == GAME_LIBERATION && !lib_in_dungeon) {
             frame_width = LIBERATION_SCREEN_WIDTH;
             frame_height = LIBERATION_SCREEN_HEIGHT;
         } else {
@@ -2033,7 +2077,7 @@ int main(int argc, char *argv[]) {
 
             case STATE_GAME: {
                 if (!runtime_popup.open) popup_apply_cheats(&gs);
-                if (gs.game_type == GAME_LIBERATION) {
+                if (gs.game_type == GAME_LIBERATION && !lib_in_dungeon) {
                     memset(framebuffer, 0, sizeof(framebuffer));
                     if (liberation_intro_active) {
                         if (liberation_data.intro_frame.bitplanes) {
