@@ -2270,7 +2270,43 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 case STATE_PAUSE:
-                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                    if (event.type == SDL_EVENT_MOUSE_MOTION) {
+                        int pw = (gs.game_type == GAME_LIBERATION)
+                            ? LIBERATION_SCREEN_WIDTH : CAPTIVE_ORIGINAL_WIDTH;
+                        int ph = (gs.game_type == GAME_LIBERATION)
+                            ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
+                        int ww, wh;
+                        SDL_GetWindowSize(renderer.window, &ww, &wh);
+                        float my = event.motion.y * ph / wh;
+                        for (int i = 0; i < 3; i++) {
+                            int iy = 90 + i * 20;
+                            if (my >= iy - 4 && my < iy + 14) {
+                                pause_cursor = i;
+                                break;
+                            }
+                        }
+                    } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
+                               event.button.button == SDL_BUTTON_LEFT) {
+                        int pw = (gs.game_type == GAME_LIBERATION)
+                            ? LIBERATION_SCREEN_WIDTH : CAPTIVE_ORIGINAL_WIDTH;
+                        int ph = (gs.game_type == GAME_LIBERATION)
+                            ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
+                        int ww, wh;
+                        SDL_GetWindowSize(renderer.window, &ww, &wh);
+                        float my = event.button.y * ph / wh;
+                        int clicked = -1;
+                        for (int i = 0; i < 3; i++) {
+                            int iy = 90 + i * 20;
+                            if (my >= iy - 4 && my < iy + 14) {
+                                clicked = i;
+                                break;
+                            }
+                        }
+                        if (clicked >= 0) {
+                            pause_cursor = clicked;
+                            goto pause_activate;
+                        }
+                    } else if (event.type == SDL_EVENT_KEY_DOWN) {
                         switch (event.key.key) {
                             case SDLK_ESCAPE:
                                 gs.mode = STATE_GAME;
@@ -2284,6 +2320,7 @@ int main(int argc, char *argv[]) {
                                 break;
                             case SDLK_RETURN:
                             case SDLK_RETURN2:
+                            pause_activate:
                                 if (pause_cursor == 0) {
                                     gs.mode = STATE_GAME;
                                     gs.paused = false;
@@ -2341,7 +2378,8 @@ int main(int argc, char *argv[]) {
                         intro_last_tick = now;
                         if (intro_frame >= intro_anim.frame_count) {
                             music_play(&music_sys, MUSIC_BASE);
-                            gs.mode = STATE_GAME;
+                            gs.mode = STATE_DROID_CONFIG;
+                            droid_config_cursor = 0;
                             break;
                         }
                     }
