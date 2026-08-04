@@ -380,6 +380,8 @@ jobs:
       - name: Build SDL3_ttf for iOS
         run: |
           git clone --depth 1 https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
+          # Remove GL text engine - iOS doesn't have desktop OpenGL headers
+          sed -i '' '/SDL_gl_textengine\.c/d' SDL3_ttf-src/CMakeLists.txt
           cmake -S SDL3_ttf-src -B SDL3_ttf-ios-build -G Ninja \
             -DCMAKE_SYSTEM_NAME=iOS \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
@@ -388,9 +390,10 @@ jobs:
             -DCMAKE_PREFIX_PATH="${{ github.workspace }}/SDL3-ios;${{ github.workspace }}/freetype-ios" \
             -DCMAKE_FIND_ROOT_PATH="${{ github.workspace }}/SDL3-ios;${{ github.workspace }}/freetype-ios" \
             -DCMAKE_BUILD_TYPE=Release \
-            -DSDL3TTF_SAMPLES=OFF \
-            -DSDL3TTF_VENDORED=OFF \
-            -DSDL3TTF_HARFBUZZ=OFF \
+            -DSDLTTF_SAMPLES=OFF \
+            -DSDLTTF_VENDORED=OFF \
+            -DSDLTTF_HARFBUZZ=OFF \
+            -DSDLTTF_PLUTOSVG=OFF \
             -DBUILD_SHARED_LIBS=OFF
           ninja -C SDL3_ttf-ios-build
           ninja -C SDL3_ttf-ios-build install
@@ -483,9 +486,10 @@ jobs:
               -DCMAKE_PREFIX_PATH=${{ github.workspace }}/SDL3-android/$abi \
               -DCMAKE_FIND_ROOT_PATH=${{ github.workspace }}/SDL3-android/$abi \
               -DCMAKE_BUILD_TYPE=Release \
-              -DSDL3TTF_SAMPLES=OFF \
-              -DSDL3TTF_VENDORED=ON \
-              -DSDL3TTF_HARFBUZZ=OFF
+              -DSDLTTF_SAMPLES=OFF \
+              -DSDLTTF_VENDORED=ON \
+              -DSDLTTF_HARFBUZZ=OFF \
+              -DSDLTTF_PLUTOSVG=OFF
             ninja -C SDL3_ttf-android-$abi
             ninja -C SDL3_ttf-android-$abi install
           done
