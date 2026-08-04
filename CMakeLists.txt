@@ -6,6 +6,9 @@ endif()
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+if(ANDROID)
+    add_compile_options(-Wno-format-security)
+endif()
 
 if(UNIX)
   set(MATH_LIBRARY m)

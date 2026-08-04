@@ -373,6 +373,7 @@ jobs:
             -DCMAKE_FIND_ROOT_PATH=${{ github.workspace }}/SDL3-ios \
             -DCMAKE_BUILD_TYPE=Release \
             -DSDL3TTF_SAMPLES=OFF \
+            -DSDL3TTF_VENDORED=ON \
             -DBUILD_SHARED_LIBS=OFF
           ninja -C SDL3_ttf-ios-build
           ninja -C SDL3_ttf-ios-build install
@@ -465,7 +466,8 @@ jobs:
               -DCMAKE_PREFIX_PATH=${{ github.workspace }}/SDL3-android/$abi \
               -DCMAKE_FIND_ROOT_PATH=${{ github.workspace }}/SDL3-android/$abi \
               -DCMAKE_BUILD_TYPE=Release \
-              -DSDL3TTF_SAMPLES=OFF
+              -DSDL3TTF_SAMPLES=OFF \
+              -DSDL3TTF_VENDORED=ON
             ninja -C SDL3_ttf-android-$abi
             ninja -C SDL3_ttf-android-$abi install
           done
