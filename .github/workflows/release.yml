@@ -361,19 +361,35 @@ jobs:
             -DSDL_SHARED=OFF -DSDL_STATIC=ON
           ninja -C SDL3-ios-build
           ninja -C SDL3-ios-build install
+      - name: Build freetype for iOS
+        run: |
+          git clone --depth 1 https://github.com/freetype/freetype.git freetype-src
+          cmake -S freetype-src -B freetype-ios-build -G Ninja \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/freetype-ios \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DFT_DISABLE_HARFBUZZ=ON \
+            -DFT_DISABLE_BZIP2=ON \
+            -DFT_DISABLE_PNG=ON \
+            -DFT_DISABLE_BROTLI=ON
+          ninja -C freetype-ios-build
+          ninja -C freetype-ios-build install
       - name: Build SDL3_ttf for iOS
         run: |
-          git clone --depth 1 --recurse-submodules https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
+          git clone --depth 1 https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
           cmake -S SDL3_ttf-src -B SDL3_ttf-ios-build -G Ninja \
             -DCMAKE_SYSTEM_NAME=iOS \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
             -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3_ttf-ios \
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/SDL3-ios \
-            -DCMAKE_FIND_ROOT_PATH=${{ github.workspace }}/SDL3-ios \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/SDL3-ios;${{ github.workspace }}/freetype-ios" \
+            -DCMAKE_FIND_ROOT_PATH="${{ github.workspace }}/SDL3-ios;${{ github.workspace }}/freetype-ios" \
             -DCMAKE_BUILD_TYPE=Release \
             -DSDL3TTF_SAMPLES=OFF \
-            -DSDL3TTF_VENDORED=ON \
+            -DSDL3TTF_VENDORED=OFF \
             -DSDL3TTF_HARFBUZZ=OFF \
             -DBUILD_SHARED_LIBS=OFF
           ninja -C SDL3_ttf-ios-build
@@ -439,7 +455,7 @@ jobs:
       - name: Install NDK and dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build
+          sudo apt-get install -y cmake ninja-build librsvg2-bin
           ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
           echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "ndk;27.0.12077973" "platforms;android-34" "build-tools;34.0.0"
           echo "NDK=$ANDROID_SDK_ROOT/ndk/27.0.12077973" >> "$GITHUB_ENV"
@@ -526,7 +542,20 @@ jobs:
           cp -r SDL3-src/android-project/app/src/main/java/org apk-project/app/src/main/java/
 
           # Generate app icon from SVG
-          rsvg-convert -w 192 -h 192 assets/icon.svg -o apk-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || true
+          rsvg-convert -w 192 -h 192 assets/icon.svg -o apk-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png || \
+            python3 -c "
+          import struct, zlib
+          w=h=192
+          raw=b''
+          for y in range(h):
+              raw+=b'\x00'+(b'\x33\x66\x99\xff')*w
+          def chunk(t,d):return struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
+          with open('apk-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png','wb') as f:
+              f.write(b'\x89PNG\r\n\x1a\n')
+              f.write(chunk(b'IHDR',struct.pack('>IIBBBBB',w,h,8,6,0,0,0)))
+              f.write(chunk(b'IDAT',zlib.compress(raw)))
+              f.write(chunk(b'IEND',b''))
+          "
 
           # AndroidManifest.xml
           cp assets/AndroidManifest.xml apk-project/app/src/main/AndroidManifest.xml
