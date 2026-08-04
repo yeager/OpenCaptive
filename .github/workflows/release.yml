@@ -414,8 +414,8 @@ jobs:
             -DCMAKE_SYSTEM_NAME=iOS \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/SDL3-ios;${{ github.workspace }}/SDL3_ttf-ios;${{ github.workspace }}/zlib-ios" \
-            -DCMAKE_FIND_ROOT_PATH="${{ github.workspace }}/SDL3-ios;${{ github.workspace }}/SDL3_ttf-ios;${{ github.workspace }}/zlib-ios" \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/SDL3-ios;${{ github.workspace }}/SDL3_ttf-ios;${{ github.workspace }}/freetype-ios;${{ github.workspace }}/zlib-ios" \
+            -DCMAKE_FIND_ROOT_PATH="${{ github.workspace }}/SDL3-ios;${{ github.workspace }}/SDL3_ttf-ios;${{ github.workspace }}/freetype-ios;${{ github.workspace }}/zlib-ios" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_COMPILER=cc \
             -DBUILD_TESTING=OFF
