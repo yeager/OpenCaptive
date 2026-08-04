@@ -374,6 +374,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DSDL3TTF_SAMPLES=OFF \
             -DSDL3TTF_VENDORED=ON \
+            -DSDL3TTF_HARFBUZZ=OFF \
             -DBUILD_SHARED_LIBS=OFF
           ninja -C SDL3_ttf-ios-build
           ninja -C SDL3_ttf-ios-build install
@@ -467,7 +468,8 @@ jobs:
               -DCMAKE_FIND_ROOT_PATH=${{ github.workspace }}/SDL3-android/$abi \
               -DCMAKE_BUILD_TYPE=Release \
               -DSDL3TTF_SAMPLES=OFF \
-              -DSDL3TTF_VENDORED=ON
+              -DSDL3TTF_VENDORED=ON \
+              -DSDL3TTF_HARFBUZZ=OFF
             ninja -C SDL3_ttf-android-$abi
             ninja -C SDL3_ttf-android-$abi install
           done
@@ -532,8 +534,30 @@ jobs:
           # Strings
           printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<resources>' '    <string name="app_name">OpenCaptive</string>' '</resources>' > apk-project/app/src/main/res/values/strings.xml
 
-          # settings.gradle
-          printf '%s\n' 'rootProject.name = "OpenCaptive"' "include ':app'" > apk-project/settings.gradle
+          # settings.gradle with plugin management
+          python3 -c "
+          import textwrap
+          settings = textwrap.dedent('''
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = \"OpenCaptive\"
+          include ':app'
+          ''').strip()
+          with open('apk-project/settings.gradle', 'w') as f:
+              f.write(settings + '\n')
+          "
           printf '%s\n' 'plugins {' "    id 'com.android.application' version '8.2.0' apply false" '}' > apk-project/build.gradle
 
           # App build.gradle
