@@ -502,18 +502,27 @@ MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
         return MENU_RESULT_NONE;
     }
     if (menu->in_settings) {
-        int menu_y = 90, item_h = 32, visible = 10;
-        if (x >= 80 && x < MENU_WIDTH - 80) {
-            int vi = (int)(y - menu_y) / item_h;
-            if (vi >= 0 && vi < visible) {
-                int i = vi + menu->settings_scroll;
-                if (i >= 0 && i < SETTINGS_COUNT) {
-                    menu->settings_cursor = i;
-                    SDL_Event fake = {0};
-                    fake.type = SDL_EVENT_KEY_DOWN;
-                    fake.key.key = SDLK_RETURN;
-                    return start_menu_handle_event(menu, &fake);
-                }
+        int menu_y = 90, item_h = 28;
+        int col_items = 12;
+        int back = SETTINGS_COUNT - 1;
+        int half = MENU_WIDTH / 2;
+        int back_y = menu_y + col_items * item_h + 10;
+        if (y >= back_y - 2 && y < back_y + item_h - 4 &&
+            x >= half - 80 && x < half + 80) {
+            menu->settings_cursor = back;
+            menu->in_settings = false;
+            return MENU_RESULT_NONE;
+        }
+        int col = (x >= half) ? 1 : 0;
+        int row = (int)(y - menu_y) / item_h;
+        if (row >= 0 && row < col_items) {
+            int i = col * col_items + row;
+            if (i < back) {
+                menu->settings_cursor = i;
+                SDL_Event fake = {0};
+                fake.type = SDL_EVENT_KEY_DOWN;
+                fake.key.key = SDLK_RETURN;
+                return start_menu_handle_event(menu, &fake);
             }
         }
         return MENU_RESULT_NONE;
@@ -605,8 +614,49 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
 
     if (menu->in_settings) {
         switch (event->key.key) {
-            case SDLK_UP: if (menu->settings_cursor > 0) menu->settings_cursor--; break;
-            case SDLK_DOWN: if (menu->settings_cursor < SETTINGS_COUNT - 1) menu->settings_cursor++; break;
+            case SDLK_UP: {
+                int c = menu->settings_cursor;
+                int col_items = 12;
+                int back = SETTINGS_COUNT - 1;
+                if (c == back) {
+                    menu->settings_cursor = col_items - 1;
+                } else if (c < col_items) {
+                    if (c > 0) menu->settings_cursor--;
+                } else {
+                    if (c > col_items) menu->settings_cursor--;
+                }
+                break;
+            }
+            case SDLK_DOWN: {
+                int c = menu->settings_cursor;
+                int col_items = 12;
+                int back = SETTINGS_COUNT - 1;
+                if (c == back) break;
+                if (c < col_items - 1) {
+                    menu->settings_cursor++;
+                } else if (c == col_items - 1) {
+                    menu->settings_cursor = back;
+                } else if (c < back - 1) {
+                    menu->settings_cursor++;
+                } else {
+                    menu->settings_cursor = back;
+                }
+                break;
+            }
+            case SDLK_TAB: {
+                int c = menu->settings_cursor;
+                int col_items = 12;
+                int back = SETTINGS_COUNT - 1;
+                if (c == back) break;
+                if (c < col_items) {
+                    int target = col_items + c;
+                    if (target >= back) target = back - 1;
+                    menu->settings_cursor = target;
+                } else {
+                    menu->settings_cursor = c - col_items;
+                }
+                break;
+            }
             case SDLK_RETURN: case SDLK_KP_ENTER: case SDLK_LEFT: case SDLK_RIGHT: {
                 bool right = (event->key.key == SDLK_RIGHT);
                 bool left = (event->key.key == SDLK_LEFT);
@@ -680,9 +730,7 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
             }
             case SDLK_ESCAPE: menu->in_settings = false; break;
         }
-        int visible = 12;
-        if (menu->settings_cursor < menu->settings_scroll) menu->settings_scroll = menu->settings_cursor;
-        if (menu->settings_cursor >= menu->settings_scroll + visible) menu->settings_scroll = menu->settings_cursor - visible + 1;
+        menu->settings_scroll = 0;
         return MENU_RESULT_NONE;
     }
 
@@ -765,36 +813,47 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
 
     int menu_y = 90;
     int item_h = 28;
-    int visible = 12;
+    int col_items = 12;
+    int col_left_x = 40;
+    int col_right_x = width / 2 + 10;
+    int val_offset = 200;
 
-    for (int vi = 0; vi < visible && vi + menu->settings_scroll < SETTINGS_COUNT; vi++) {
-        int i = vi + menu->settings_scroll;
-        int y = menu_y + vi * item_h;
+    for (int i = 0; i < SETTINGS_COUNT - 1; i++) {
+        int col = (i < col_items) ? 0 : 1;
+        int row = (i < col_items) ? i : i - col_items;
+        int x = col ? col_right_x : col_left_x;
+        int y = menu_y + row * item_h;
         bool sel = (i == menu->settings_cursor);
 
         if (sel) {
-            draw_rect(pixels, width, height, 80, y - 2, width - 160, item_h - 4, 0xFF333366);
-            ttf_text(pixels, width, height, 85, y, "\xe2\x96\xb6", body,
+            int rx = col ? col_right_x - 25 : col_left_x - 25;
+            draw_rect(pixels, width, height, rx, y - 2, width / 2 - 30, item_h - 4, 0xFF333366);
+            ttf_text(pixels, width, height, rx + 5, y, "\xe2\x96\xb6", body,
                      ((menu->anim_tick / 8) % 2) ? 0xFFFFFF00 : 0xFFFF8800);
         }
         uint32_t color = sel ? 0xFFFFFFFF : 0xFFAAAAAA;
-        ttf_text(pixels, width, height, 110, y, labels[i], body, color);
+        ttf_text(pixels, width, height, x, y, labels[i], body, color);
         if (values[i][0]) {
             uint32_t vc = sel ? 0xFFFFFF00 : 0xFF88AA88;
-            ttf_text(pixels, width, height, 480, y, values[i], body, vc);
+            ttf_text(pixels, width, height, x + val_offset, y, values[i], body, vc);
         }
     }
 
-    if (menu->settings_scroll > 0)
-        ttf_text_centered(pixels, width, height, menu_y - 20, "...", small, 0xFF555555);
-    if (menu->settings_scroll + visible < SETTINGS_COUNT)
-        ttf_text_centered(pixels, width, height, menu_y + visible * item_h, "...", small, 0xFF555555);
+    {
+        int back_i = SETTINGS_COUNT - 1;
+        int back_y = menu_y + col_items * item_h + 10;
+        bool sel = (back_i == menu->settings_cursor);
+        if (sel)
+            draw_rect(pixels, width, height, width / 2 - 80, back_y - 2, 160, item_h - 4, 0xFF333366);
+        ttf_text_centered(pixels, width, height, back_y, labels[back_i], body,
+                          sel ? 0xFFFFFF00 : 0xFFAAAAAA);
+    }
 
     if (menu->settings_cursor == 20) {
-        int py = menu_y + visible * item_h + 15;
-        draw_rect(pixels, width, height, 80, py, width - 160, 24, 0xFF222244);
+        int py = menu_y + col_items * item_h + 45;
+        draw_rect(pixels, width, height, 40, py, width - 80, 24, 0xFF222244);
         const char *dp = menu->data_path;
-        ttf_text(pixels, width, height, 90, py + 2, dp,
+        ttf_text(pixels, width, height, 50, py + 2, dp,
                  small, menu->data_path_editing ? 0xFF44FF44 : 0xFFAAAACC);
     }
 

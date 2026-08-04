@@ -743,6 +743,7 @@ static void start_liberation_session(GameState *gs_ptr) {
     liberation_intro_active = !skip_liberation_intro_requested &&
                               liberation_data.intro_frame.bitplanes != NULL;
     liberation_mission_menu_active = false;
+    lib_mission_briefing = false;
 
     if (!lib_city_generated) {
         uint16_t seed = (uint16_t)(gs_ptr->mission_seed & 0xFFFF);
@@ -753,8 +754,14 @@ static void start_liberation_session(GameState *gs_ptr) {
         citygrid_init(&lib_grid, seed_hi, seed, gs_ptr->mission);
         citygrid_generate(&lib_grid);
         citygrid_map_buildings(&lib_grid, &lib_buildings);
-        int start_x = lib_grid.entry_point % CITYGRID_WIDTH;
-        int start_y = lib_grid.entry_point / CITYGRID_WIDTH;
+        int start_x, start_y;
+        if (lib_grid.entry_point >= 0 && lib_grid.entry_point < CITYGRID_CELLS) {
+            start_x = lib_grid.entry_point % CITYGRID_WIDTH;
+            start_y = lib_grid.entry_point / CITYGRID_WIDTH;
+        } else {
+            start_x = 32;
+            start_y = 32;
+        }
         if (start_x == 0 && start_y == 0) { start_x = 32; start_y = 32; }
         city_nav_init(&lib_nav, start_x, start_y, CITY_DIR_NORTH);
         lib3d_init(&lib_render);
