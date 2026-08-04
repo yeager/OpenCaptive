@@ -44,6 +44,14 @@ typedef struct {
     bool data_path_editing;
     int data_path_cursor;
     int lang_index;
+    int renderer_backend;  // 0=auto, 1=gpu, 2=software
+    int window_size;       // 0=960x600, 1=1280x800, 2=1600x1000, 3=1920x1200
+    int gamma;             // 0-100
+    int master_volume;     // 0-100
+    int audio_sample_rate; // 0=22050, 1=44100, 2=48000
+    bool audio_reverb;
+    int game_speed;        // 0=0.5x, 1=1x, 2=2x
+    int mouse_sensitivity; // 1-10
     bool captive_data_ok;
     bool liberation_data_ok;
     bool captive_save_exists;

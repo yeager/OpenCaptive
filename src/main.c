@@ -321,7 +321,8 @@ static bool reload_captive_assets(TextureAtlas *atlas, const DataVFS *vfs,
     return true;
 }
 
-static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu) {
+static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu,
+                              CustomFeatures *feat) {
     config->data_path = menu->data_path;
     config->render_mode = menu->enhanced_mode
         ? CAPTIVE_RENDER_ENHANCED : CAPTIVE_RENDER_ORIGINAL;
@@ -335,9 +336,21 @@ static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu) 
     config->fps_limit = menu->fps_limit;
     config->brightness = menu->brightness;
     config->contrast = menu->contrast;
+    config->gamma = menu->gamma;
+    config->master_volume = menu->master_volume;
+    if (feat) {
+        static const int sample_rates[] = {22050, 44100, 48000};
+        feat->audio_sample_rate = sample_rates[menu->audio_sample_rate];
+        feat->audio_reverb = menu->audio_reverb;
+        static const float speeds[] = {0.5f, 1.0f, 2.0f};
+        feat->game_speed = speeds[menu->game_speed];
+        feat->speed_control = (menu->game_speed != 1);
+        feat->mouse_sensitivity = (float)menu->mouse_sensitivity;
+    }
 }
 
 static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *config,
+                                  const CustomFeatures *feat,
                                   bool music_enabled, bool sfx_enabled) {
     start_menu_init(menu);
     strncpy(menu->data_path, config->data_path, sizeof(menu->data_path) - 1);
@@ -356,6 +369,20 @@ static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *conf
     menu->brightness = config->brightness;
     menu->contrast = config->contrast;
     menu->scale_factor = config->scale_factor;
+    menu->gamma = config->gamma;
+    menu->master_volume = config->master_volume;
+    if (feat) {
+        if (feat->audio_sample_rate == 22050) menu->audio_sample_rate = 0;
+        else if (feat->audio_sample_rate == 48000) menu->audio_sample_rate = 2;
+        else menu->audio_sample_rate = 1;
+        menu->audio_reverb = feat->audio_reverb;
+        if (feat->game_speed <= 0.6f) menu->game_speed = 0;
+        else if (feat->game_speed >= 1.5f) menu->game_speed = 2;
+        else menu->game_speed = 1;
+        menu->mouse_sensitivity = (int)feat->mouse_sensitivity;
+        if (menu->mouse_sensitivity < 1) menu->mouse_sensitivity = 1;
+        if (menu->mouse_sensitivity > 10) menu->mouse_sensitivity = 10;
+    }
     start_menu_check_data(menu, menu->data_path);
     start_menu_check_saves(menu);
 }
@@ -1683,7 +1710,7 @@ int main(int argc, char *argv[]) {
 
     // State
     StartMenu menu = {0};
-    sync_menu_from_config(&menu, &config, true, true);
+    sync_menu_from_config(&menu, &config, &custom, true, true);
 
     GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
@@ -1793,7 +1820,7 @@ int main(int argc, char *argv[]) {
                     switch (result) {
                         case MENU_RESULT_START_CAPTIVE:
                             gs.game_type = GAME_CAPTIVE;
-                            apply_menu_config(&config, &menu);
+                            apply_menu_config(&config, &menu, &custom);
                             gs.config = config;
                             renderer_set_effects(&renderer, config.bilinear,
                                                  config.scanlines,
@@ -1827,7 +1854,7 @@ int main(int argc, char *argv[]) {
                             }
                             break;
                         case MENU_RESULT_START_LIBERATION:
-                            apply_menu_config(&config, &menu);
+                            apply_menu_config(&config, &menu, &custom);
                             gs.config = config;
                             renderer_set_effects(&renderer, config.bilinear,
                                                  config.scanlines,
@@ -1849,7 +1876,7 @@ int main(int argc, char *argv[]) {
                             break;
                         case MENU_RESULT_CONTINUE_CAPTIVE:
                             gs.game_type = GAME_CAPTIVE;
-                            apply_menu_config(&config, &menu);
+                            apply_menu_config(&config, &menu, &custom);
                             gs.config = config;
                             renderer_set_effects(&renderer, config.bilinear,
                                                  config.scanlines,
@@ -1882,7 +1909,7 @@ int main(int argc, char *argv[]) {
                             }
                             break;
                         case MENU_RESULT_CONTINUE_LIBERATION:
-                            apply_menu_config(&config, &menu);
+                            apply_menu_config(&config, &menu, &custom);
                             gs.config = config;
                             renderer_set_effects(&renderer, config.bilinear,
                                                  config.scanlines,
@@ -2262,7 +2289,7 @@ int main(int argc, char *argv[]) {
                                     gs.paused = false;
                                 } else if (pause_cursor == 1) {
                                     gs.mode = STATE_MENU;
-                                    sync_menu_from_config(&menu, &config,
+                                    sync_menu_from_config(&menu, &config, &custom,
                                                           music_sys.enabled,
                                                           sound_sys.enabled);
                                     music_stop(&music_sys);

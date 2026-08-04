@@ -17,13 +17,13 @@ int main(void) {
     assert(menu.music_enabled && menu.sfx_enabled);
 
     menu.in_settings = true;
-    menu.settings_cursor = 12; /* SFX */
+    menu.settings_cursor = 15; /* SFX */
     SDL_Event event = key_event(SDLK_RETURN);
     assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_NONE);
     assert(!menu.sfx_enabled);
     assert(menu.music_enabled);
 
-    menu.settings_cursor = 15; /* Back */
+    menu.settings_cursor = 23; /* Back */
     event = key_event(SDLK_RETURN);
     assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_NONE);
     assert(!menu.in_settings);

@@ -7,7 +7,7 @@
 
 #define OPENCAPTIVE_VERSION_MAJOR 1
 #define OPENCAPTIVE_VERSION_MINOR 1
-#define OPENCAPTIVE_VERSION_PATCH 68
+#define OPENCAPTIVE_VERSION_PATCH 69
 // Original Captive resolution: 320x200 (DOS/Atari ST), 320x256 (Amiga)
 #define CAPTIVE_ORIGINAL_WIDTH  320
 #define CAPTIVE_ORIGINAL_HEIGHT 200
@@ -50,6 +50,8 @@ typedef struct {
     int fps_limit;       // 0 = unlimited, 30, 60, 120
     int brightness;      // 0-100
     int contrast;        // 0-100
+    int gamma;           // 0-100
+    int master_volume;   // 0-100
 } OpenCaptiveConfig;
 
 #endif

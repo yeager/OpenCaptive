@@ -38,7 +38,7 @@ static const char *liberation_required_hashes[] = {
 };
 #define LIBERATION_HASH_COUNT (sizeof(liberation_required_hashes)/sizeof(liberation_required_hashes[0]))
 
-#define SETTINGS_COUNT 16
+#define SETTINGS_COUNT 24
 
 static uint32_t *load_card_image(const char *filename, int *w, int *h) {
     char path[1024];
@@ -350,7 +350,13 @@ void start_menu_init(StartMenu *menu) {
     menu->integer_scaling = true;
     menu->brightness = 50;
     menu->contrast = 50;
+    menu->gamma = 50;
     menu->fps_limit = 60;
+    menu->master_volume = 80;
+    menu->audio_sample_rate = 1;
+    menu->game_speed = 1;
+    menu->mouse_sensitivity = 5;
+    menu->window_size = 1;
 
     menu->logo_img = logo_img; menu->logo_img_w = logo_w; menu->logo_img_h = logo_h;
     menu->captive_img = cap_img; menu->captive_img_w = cap_w; menu->captive_img_h = cap_h;
@@ -601,52 +607,80 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
         switch (event->key.key) {
             case SDLK_UP: if (menu->settings_cursor > 0) menu->settings_cursor--; break;
             case SDLK_DOWN: if (menu->settings_cursor < SETTINGS_COUNT - 1) menu->settings_cursor++; break;
-            case SDLK_RETURN: case SDLK_KP_ENTER: case SDLK_LEFT: case SDLK_RIGHT:
+            case SDLK_RETURN: case SDLK_KP_ENTER: case SDLK_LEFT: case SDLK_RIGHT: {
+                bool right = (event->key.key == SDLK_RIGHT);
+                bool left = (event->key.key == SDLK_LEFT);
                 switch (menu->settings_cursor) {
-                    case 0: menu->enhanced_mode = false; break;
-                    case 1: menu->scanlines = !menu->scanlines; break;
-                    case 2: menu->crt_curvature = !menu->crt_curvature; break;
-                    case 3: menu->bilinear = !menu->bilinear; break;
-                    case 4: menu->integer_scaling = !menu->integer_scaling; break;
-                    case 5:
-                        if (event->key.key == SDLK_RIGHT && menu->scale_factor < 5) menu->scale_factor++;
-                        else if (event->key.key == SDLK_LEFT && menu->scale_factor > 1) menu->scale_factor--;
+                    case 0:
+                        if (right) menu->renderer_backend = (menu->renderer_backend + 1) % 3;
+                        else if (left) menu->renderer_backend = (menu->renderer_backend + 2) % 3;
                         break;
-                    case 6: menu->fullscreen = !menu->fullscreen; break;
-                    case 7: menu->vsync = !menu->vsync; break;
-                    case 8: {
+                    case 1:
+                        if (right && menu->window_size < 3) menu->window_size++;
+                        else if (left && menu->window_size > 0) menu->window_size--;
+                        break;
+                    case 2:
+                        if (right && menu->scale_factor < 5) menu->scale_factor++;
+                        else if (left && menu->scale_factor > 1) menu->scale_factor--;
+                        break;
+                    case 3: menu->fullscreen = !menu->fullscreen; break;
+                    case 4: menu->integer_scaling = !menu->integer_scaling; break;
+                    case 5: menu->vsync = !menu->vsync; break;
+                    case 6: {
                         int fps_vals[] = {0, 30, 60, 120};
                         int cur = 2;
                         for (int i = 0; i < 4; i++) if (fps_vals[i] == menu->fps_limit) cur = i;
-                        if (event->key.key == SDLK_RIGHT) cur = (cur + 1) % 4;
-                        else if (event->key.key == SDLK_LEFT) cur = (cur + 3) % 4;
+                        if (right) cur = (cur + 1) % 4;
+                        else if (left) cur = (cur + 3) % 4;
                         menu->fps_limit = fps_vals[cur];
                         break;
                     }
-                    case 9: if (event->key.key==SDLK_RIGHT&&menu->brightness<100) menu->brightness+=5;
-                            else if (event->key.key==SDLK_LEFT&&menu->brightness>0) menu->brightness-=5; break;
-                    case 10: if (event->key.key==SDLK_RIGHT&&menu->contrast<100) menu->contrast+=5;
-                             else if (event->key.key==SDLK_LEFT&&menu->contrast>0) menu->contrast-=5; break;
-                    case 11: menu->music_enabled = !menu->music_enabled; break;
-                    case 12: menu->sfx_enabled = !menu->sfx_enabled; break;
-                    case 13:
+                    case 7: menu->bilinear = !menu->bilinear; break;
+                    case 8: menu->scanlines = !menu->scanlines; break;
+                    case 9: menu->crt_curvature = !menu->crt_curvature; break;
+                    case 10: if (right && menu->brightness < 100) menu->brightness += 5;
+                             else if (left && menu->brightness > 0) menu->brightness -= 5; break;
+                    case 11: if (right && menu->contrast < 100) menu->contrast += 5;
+                             else if (left && menu->contrast > 0) menu->contrast -= 5; break;
+                    case 12: if (right && menu->gamma < 100) menu->gamma += 5;
+                             else if (left && menu->gamma > 0) menu->gamma -= 5; break;
+                    case 13: if (right && menu->master_volume < 100) menu->master_volume += 5;
+                             else if (left && menu->master_volume > 0) menu->master_volume -= 5; break;
+                    case 14: menu->music_enabled = !menu->music_enabled; break;
+                    case 15: menu->sfx_enabled = !menu->sfx_enabled; break;
+                    case 16: menu->audio_reverb = !menu->audio_reverb; break;
+                    case 17:
+                        if (right) menu->audio_sample_rate = (menu->audio_sample_rate + 1) % 3;
+                        else if (left) menu->audio_sample_rate = (menu->audio_sample_rate + 2) % 3;
+                        break;
+                    case 18:
+                        if (right && menu->game_speed < 2) menu->game_speed++;
+                        else if (left && menu->game_speed > 0) menu->game_speed--;
+                        break;
+                    case 19:
+                        if (right && menu->mouse_sensitivity < 10) menu->mouse_sensitivity++;
+                        else if (left && menu->mouse_sensitivity > 1) menu->mouse_sensitivity--;
+                        break;
+                    case 20:
                         if (event->key.key == SDLK_RETURN || event->key.key == SDLK_KP_ENTER) {
                             menu->data_path_editing = true;
                             menu->data_path_cursor = (int)strlen(menu->data_path);
                             SDL_StartTextInput(NULL);
                         }
                         break;
-                    case 14:
-                        if (event->key.key == SDLK_RIGHT) menu->lang_index = (menu->lang_index + 1) % LANG_COUNT;
-                        else if (event->key.key == SDLK_LEFT) menu->lang_index = (menu->lang_index + LANG_COUNT - 1) % LANG_COUNT;
+                    case 21:
+                        if (right) menu->lang_index = (menu->lang_index + 1) % LANG_COUNT;
+                        else if (left) menu->lang_index = (menu->lang_index + LANG_COUNT - 1) % LANG_COUNT;
                         i18n_init(lang_codes[menu->lang_index]);
                         break;
-                    case 15: menu->in_settings = false; break;
+                    case 22: menu->enhanced_mode = !menu->enhanced_mode; break;
+                    case 23: menu->in_settings = false; break;
                 }
                 break;
+            }
             case SDLK_ESCAPE: menu->in_settings = false; break;
         }
-        int visible = 10;
+        int visible = 12;
         if (menu->settings_cursor < menu->settings_scroll) menu->settings_scroll = menu->settings_cursor;
         if (menu->settings_cursor >= menu->settings_scroll + visible) menu->settings_scroll = menu->settings_cursor - visible + 1;
         return MENU_RESULT_NONE;
@@ -688,34 +722,50 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
     ttf_text_centered(pixels, width, height, 15, _("OPENCAPTIVE"), title, 0xFFFF8800);
     ttf_text_centered(pixels, width, height, 55, _("SETTINGS"), body, 0xFF888888);
 
+    static const char *renderer_names[] = { "AUTO", "GPU", "SOFTWARE" };
+    static const int win_w[] = { 960, 1280, 1600, 1920 };
+    static const int win_h[] = { 600, 800, 1000, 1200 };
+    static const int sample_rates[] = { 22050, 44100, 48000 };
+    static const char *speed_labels[] = { "0.5X", "1X", "2X" };
+
     const char *labels[] = {
-        _("RENDERER:"), _("SCANLINES:"), _("CRT CURVE:"), _("BILINEAR:"),
-        _("INT SCALE:"), _("SCALE:"), _("FULLSCREEN:"), _("VSYNC:"),
-        _("FPS LIMIT:"), _("BRIGHTNESS:"), _("CONTRAST:"), _("MUSIC:"),
-        _("SFX:"), _("DATA PATH:"), _("LANGUAGE:"), _("BACK"),
+        _("RENDERER:"), _("WINDOW SIZE:"), _("SCALE:"), _("FULLSCREEN:"),
+        _("INT SCALE:"), _("VSYNC:"), _("FPS LIMIT:"), _("FILTERING:"),
+        _("SCANLINES:"), _("CRT CURVE:"), _("BRIGHTNESS:"), _("CONTRAST:"),
+        _("GAMMA:"), _("VOLUME:"), _("MUSIC:"), _("SFX:"),
+        _("REVERB:"), _("SAMPLE RATE:"), _("GAME SPEED:"), _("MOUSE SENS:"),
+        _("DATA PATH:"), _("LANGUAGE:"), _("ENHANCED:"), _("BACK"),
     };
     char values[SETTINGS_COUNT][32];
-    snprintf(values[0], 32, "PENDING");
-    snprintf(values[1], 32, "%s", menu->scanlines ? _("ON") : _("OFF"));
-    snprintf(values[2], 32, "%s", menu->crt_curvature ? _("ON") : _("OFF"));
-    snprintf(values[3], 32, "%s", menu->bilinear ? _("ON") : _("OFF"));
+    snprintf(values[0], 32, "%s", renderer_names[menu->renderer_backend]);
+    snprintf(values[1], 32, "%dx%d", win_w[menu->window_size], win_h[menu->window_size]);
+    snprintf(values[2], 32, "%dX", menu->scale_factor);
+    snprintf(values[3], 32, "%s", menu->fullscreen ? _("ON") : _("OFF"));
     snprintf(values[4], 32, "%s", menu->integer_scaling ? _("ON") : _("OFF"));
-    snprintf(values[5], 32, "%dX", menu->scale_factor);
-    snprintf(values[6], 32, "%s", menu->fullscreen ? _("ON") : _("OFF"));
-    snprintf(values[7], 32, "%s", menu->vsync ? _("ON") : _("OFF"));
-    snprintf(values[8], 32, "%s", menu->fps_limit == 0 ? _("UNLIMITED") :
+    snprintf(values[5], 32, "%s", menu->vsync ? _("ON") : _("OFF"));
+    snprintf(values[6], 32, "%s", menu->fps_limit == 0 ? _("UNLIMITED") :
              (menu->fps_limit == 30 ? "30" : (menu->fps_limit == 60 ? "60" : "120")));
-    snprintf(values[9], 32, "%d%%", menu->brightness);
-    snprintf(values[10], 32, "%d%%", menu->contrast);
-    snprintf(values[11], 32, "%s", menu->music_enabled ? _("ON") : _("OFF"));
-    snprintf(values[12], 32, "%s", menu->sfx_enabled ? _("ON") : _("OFF"));
-    values[13][0] = '\0';
-    snprintf(values[14], 32, "%s", lang_labels[menu->lang_index]);
-    values[15][0] = '\0';
+    snprintf(values[7], 32, "%s", menu->bilinear ? _("BILINEAR") : _("NEAREST"));
+    snprintf(values[8], 32, "%s", menu->scanlines ? _("ON") : _("OFF"));
+    snprintf(values[9], 32, "%s", menu->crt_curvature ? _("ON") : _("OFF"));
+    snprintf(values[10], 32, "%d%%", menu->brightness);
+    snprintf(values[11], 32, "%d%%", menu->contrast);
+    snprintf(values[12], 32, "%d%%", menu->gamma);
+    snprintf(values[13], 32, "%d%%", menu->master_volume);
+    snprintf(values[14], 32, "%s", menu->music_enabled ? _("ON") : _("OFF"));
+    snprintf(values[15], 32, "%s", menu->sfx_enabled ? _("ON") : _("OFF"));
+    snprintf(values[16], 32, "%s", menu->audio_reverb ? _("ON") : _("OFF"));
+    snprintf(values[17], 32, "%d Hz", sample_rates[menu->audio_sample_rate]);
+    snprintf(values[18], 32, "%s", speed_labels[menu->game_speed]);
+    snprintf(values[19], 32, "%d", menu->mouse_sensitivity);
+    values[20][0] = '\0';
+    snprintf(values[21], 32, "%s", lang_labels[menu->lang_index]);
+    snprintf(values[22], 32, "%s", menu->enhanced_mode ? _("ON") : _("OFF"));
+    values[23][0] = '\0';
 
     int menu_y = 90;
-    int item_h = 32;
-    int visible = 10;
+    int item_h = 28;
+    int visible = 12;
 
     for (int vi = 0; vi < visible && vi + menu->settings_scroll < SETTINGS_COUNT; vi++) {
         int i = vi + menu->settings_scroll;
@@ -740,7 +790,7 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
     if (menu->settings_scroll + visible < SETTINGS_COUNT)
         ttf_text_centered(pixels, width, height, menu_y + visible * item_h, "...", small, 0xFF555555);
 
-    if (menu->settings_cursor == 13) {
+    if (menu->settings_cursor == 20) {
         int py = menu_y + visible * item_h + 15;
         draw_rect(pixels, width, height, 80, py, width - 160, 24, 0xFF222244);
         const char *dp = menu->data_path;
