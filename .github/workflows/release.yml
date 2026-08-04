@@ -73,27 +73,8 @@ jobs:
           cp README.md LICENSE deb/usr/share/doc/opencaptive/
           mkdir -p deb/usr/share/icons
           cp -r icons/hicolor deb/usr/share/icons/hicolor
-          cat > deb/usr/share/applications/opencaptive.desktop <<'EOF'
-[Desktop Entry]
-Name=OpenCaptive
-Comment=Reimplementation of Captive and Liberation: Captive 2
-Exec=opencaptive
-Icon=opencaptive
-Type=Application
-Categories=Game;ActionGame;
-EOF
-          cat > deb/DEBIAN/control <<EOF
-Package: opencaptive
-Version: ${PKG_VERSION}
-Section: games
-Priority: optional
-Architecture: amd64
-Maintainer: Daniel Nylander <daniel@danielnylander.se>
-Homepage: https://github.com/yeager/OpenCaptive
-Description: Reimplementation of Captive and Liberation: Captive 2
- A modern C/SDL3 reimplementation of the classic sci-fi dungeon
- crawlers Captive (1990) and Liberation: Captive 2 (1993).
-EOF
+          printf '%s\n' '[Desktop Entry]' 'Name=OpenCaptive' 'Comment=Reimplementation of Captive and Liberation: Captive 2' 'Exec=opencaptive' 'Icon=opencaptive' 'Type=Application' 'Categories=Game;ActionGame;' > deb/usr/share/applications/opencaptive.desktop
+          printf '%s\n' "Package: opencaptive" "Version: ${PKG_VERSION}" "Section: games" "Priority: optional" "Architecture: amd64" "Maintainer: Daniel Nylander <daniel@danielnylander.se>" "Homepage: https://github.com/yeager/OpenCaptive" "Description: Reimplementation of Captive and Liberation: Captive 2" " A modern C/SDL3 reimplementation of the classic sci-fi dungeon" " crawlers Captive (1990) and Liberation: Captive 2 (1993)." > deb/DEBIAN/control
           dpkg-deb --build deb opencaptive_${PKG_VERSION}_amd64.deb
       - name: Build rpm
         run: |
@@ -104,33 +85,37 @@ EOF
           cp README.md LICENSE rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/
           tar czf rpmbuild/SOURCES/opencaptive-${PKG_VERSION}.tar.gz \
             -C rpmbuild/SOURCES opencaptive-${PKG_VERSION}
-          cat > rpmbuild/SPECS/opencaptive.spec <<EOF
-Name:           opencaptive
-Version:        ${PKG_VERSION}
-Release:        1%{?dist}
-Summary:        Reimplementation of Captive and Liberation: Captive 2
-License:        MIT
-URL:            https://github.com/yeager/OpenCaptive
-Source0:        opencaptive-${PKG_VERSION}.tar.gz
+          python3 -c "
+          spec = '''Name:           opencaptive
+          Version:        ${PKG_VERSION}
+          Release:        1
+          Summary:        Reimplementation of Captive and Liberation: Captive 2
+          License:        MIT
+          URL:            https://github.com/yeager/OpenCaptive
+          Source0:        opencaptive-${PKG_VERSION}.tar.gz
 
-%description
-A modern C/SDL3 reimplementation of the classic sci-fi dungeon
-crawlers Captive (1990) and Liberation: Captive 2 (1993).
+          %%description
+          A modern C/SDL3 reimplementation of the classic sci-fi dungeon
+          crawlers Captive (1990) and Liberation: Captive 2 (1993).
 
-%prep
-%setup -q
+          %%prep
+          %%setup -q
 
-%install
-mkdir -p %{buildroot}/usr/bin
-cp opencaptive %{buildroot}/usr/bin/
-mkdir -p %{buildroot}/usr/share/doc/opencaptive
-cp README.md LICENSE %{buildroot}/usr/share/doc/opencaptive/
+          %%install
+          mkdir -p %{{buildroot}}/usr/bin
+          cp opencaptive %{{buildroot}}/usr/bin/
+          mkdir -p %{{buildroot}}/usr/share/doc/opencaptive
+          cp README.md LICENSE %{{buildroot}}/usr/share/doc/opencaptive/
 
-%files
-/usr/bin/opencaptive
-/usr/share/doc/opencaptive/README.md
-/usr/share/doc/opencaptive/LICENSE
-EOF
+          %%files
+          /usr/bin/opencaptive
+          /usr/share/doc/opencaptive/README.md
+          /usr/share/doc/opencaptive/LICENSE
+          '''
+          import textwrap
+          with open('rpmbuild/SPECS/opencaptive.spec', 'w') as f:
+              f.write(textwrap.dedent(spec))
+          "
           rpmbuild --define "_topdir $(pwd)/rpmbuild" -bb rpmbuild/SPECS/opencaptive.spec
           cp rpmbuild/RPMS/x86_64/*.rpm opencaptive-${PKG_VERSION}.x86_64.rpm
       - uses: actions/upload-artifact@v4
@@ -179,14 +164,7 @@ EOF
           cp build/opencaptive AppDir/usr/bin/
           cp data/DejaVuSansMono-Bold.ttf AppDir/usr/share/opencaptive/data/
           cp po/*.po AppDir/usr/share/opencaptive/po/
-          cat > AppDir/usr/share/applications/opencaptive.desktop <<'EOF'
-[Desktop Entry]
-Name=OpenCaptive
-Exec=opencaptive
-Icon=opencaptive
-Type=Application
-Categories=Game;
-EOF
+          printf '%s\n' '[Desktop Entry]' 'Name=OpenCaptive' 'Exec=opencaptive' 'Icon=opencaptive' 'Type=Application' 'Categories=Game;' > AppDir/usr/share/applications/opencaptive.desktop
           rsvg-convert -w 256 -h 256 assets/icon.svg -o AppDir/usr/share/icons/hicolor/256x256/apps/opencaptive.png
       - name: Download linuxdeploy
         run: |
@@ -550,58 +528,45 @@ EOF
           cp assets/AndroidManifest.xml apk-project/app/src/main/AndroidManifest.xml
 
           # Strings
-          cat > apk-project/app/src/main/res/values/strings.xml <<'EOF'
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">OpenCaptive</string>
-</resources>
-EOF
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<resources>' '    <string name="app_name">OpenCaptive</string>' '</resources>' > apk-project/app/src/main/res/values/strings.xml
 
           # settings.gradle
-          cat > apk-project/settings.gradle <<'EOF'
-rootProject.name = "OpenCaptive"
-include ':app'
-EOF
-
-          # Top-level build.gradle
-          cat > apk-project/build.gradle <<'EOF'
-plugins {
-    id 'com.android.application' version '8.2.0' apply false
-}
-EOF
+          printf '%s\n' 'rootProject.name = "OpenCaptive"' "include ':app'" > apk-project/settings.gradle
+          printf '%s\n' 'plugins {' "    id 'com.android.application' version '8.2.0' apply false" '}' > apk-project/build.gradle
 
           # App build.gradle
-          cat > apk-project/app/build.gradle <<EOF
-plugins {
-    id 'com.android.application'
-}
-android {
-    namespace 'se.danielnylander.opencaptive'
-    compileSdk 34
-    defaultConfig {
-        applicationId "se.danielnylander.opencaptive"
-        minSdk 24
-        targetSdk 34
-        versionCode $VERSION_CODE
-        versionName "$VERSION"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-        }
-    }
-    sourceSets {
-        main {
-            jniLibs.srcDirs = ['src/main/jniLibs']
-        }
-    }
-}
-EOF
-
-          # gradle.properties
-          cat > apk-project/gradle.properties <<'EOF'
-android.useAndroidX=true
-EOF
+          python3 -c "
+          import textwrap
+          gradle = textwrap.dedent('''
+          plugins {
+              id 'com.android.application'
+          }
+          android {
+              namespace 'se.danielnylander.opencaptive'
+              compileSdk 34
+              defaultConfig {
+                  applicationId \"se.danielnylander.opencaptive\"
+                  minSdk 24
+                  targetSdk 34
+                  versionCode $VERSION_CODE
+                  versionName \"$VERSION\"
+              }
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+              }
+              sourceSets {
+                  main {
+                      jniLibs.srcDirs = ['src/main/jniLibs']
+                  }
+              }
+          }
+          ''').strip()
+          with open('apk-project/app/build.gradle', 'w') as f:
+              f.write(gradle + '\n')
+          "
+          echo 'android.useAndroidX=true' > apk-project/gradle.properties
 
           # Build APK
           cd apk-project
