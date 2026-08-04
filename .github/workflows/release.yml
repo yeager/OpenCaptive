@@ -231,21 +231,24 @@ jobs:
           cp "$SDL3_DYLIB" "$APP/Contents/Frameworks/"
           install_name_tool -id @executable_path/../Frameworks/libSDL3.0.dylib \
             "$APP/Contents/Frameworks/libSDL3.0.dylib"
-          OLD_SDL3=$(otool -L "$APP/Contents/MacOS/OpenCaptive" | grep libSDL3 | awk '{print $1}')
-          install_name_tool -change "$OLD_SDL3" \
-            @executable_path/../Frameworks/libSDL3.0.dylib "$APP/Contents/MacOS/OpenCaptive"
           SDL3_TTF_DYLIB=$(brew --prefix sdl3_ttf)/lib/libSDL3_ttf.0.dylib
           cp "$SDL3_TTF_DYLIB" "$APP/Contents/Frameworks/"
           install_name_tool -id @executable_path/../Frameworks/libSDL3_ttf.0.dylib \
             "$APP/Contents/Frameworks/libSDL3_ttf.0.dylib"
-          OLD_TTF=$(otool -L "$APP/Contents/MacOS/OpenCaptive" | grep libSDL3_ttf | awk '{print $1}')
-          install_name_tool -change "$OLD_TTF" \
-            @executable_path/../Frameworks/libSDL3_ttf.0.dylib "$APP/Contents/MacOS/OpenCaptive"
-          TTF_SDL3_REF=$(otool -L "$APP/Contents/Frameworks/libSDL3_ttf.0.dylib" | grep libSDL3 | grep -v ttf | awk '{print $1}')
-          if [ -n "$TTF_SDL3_REF" ]; then
-            install_name_tool -change "$TTF_SDL3_REF" \
-              @executable_path/../Frameworks/libSDL3.0.dylib "$APP/Contents/Frameworks/libSDL3_ttf.0.dylib"
-          fi
+          # Rewrite all non-system dylib references in the binary
+          otool -L "$APP/Contents/MacOS/OpenCaptive" | awk '{print $1}' | while read -r ref; do
+            case "$ref" in
+              *libSDL3_ttf*) install_name_tool -change "$ref" @executable_path/../Frameworks/libSDL3_ttf.0.dylib "$APP/Contents/MacOS/OpenCaptive" ;;
+              *libSDL3*)     install_name_tool -change "$ref" @executable_path/../Frameworks/libSDL3.0.dylib "$APP/Contents/MacOS/OpenCaptive" ;;
+            esac
+          done
+          # Rewrite SDL3 reference inside SDL3_ttf
+          otool -L "$APP/Contents/Frameworks/libSDL3_ttf.0.dylib" | awk '{print $1}' | while read -r ref; do
+            case "$ref" in
+              *libSDL3_ttf*) ;;
+              *libSDL3*)     install_name_tool -change "$ref" @executable_path/../Frameworks/libSDL3.0.dylib "$APP/Contents/Frameworks/libSDL3_ttf.0.dylib" ;;
+            esac
+          done
           /usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string OpenCaptive" "$APP/Contents/Info.plist"
           /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string se.danielnylander.opencaptive" "$APP/Contents/Info.plist"
           /usr/libexec/PlistBuddy -c "Add :CFBundleName string OpenCaptive" "$APP/Contents/Info.plist"
