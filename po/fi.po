@@ -185,3 +185,156 @@ msgstr "Voit myös vaihtaa datapolkua Asetuksissa."
 
 msgid "Missing Liberation data"
 msgstr "Liberation-data puuttuu"
+
+msgid "ABOUT"
+msgstr "TIETOJA"
+
+msgid "CONTROLS"
+msgstr "OHJAUS"
+
+msgid "CONTINUE"
+msgstr "JATKA"
+
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "NUOLET: VALITSE  ENTER: ALOITA  D: SKANNAA DATA  F1: OHJAUS"
+
+msgid "ENHANCED:"
+msgstr "PARANNETTU:"
+
+msgid "FILTERING:"
+msgstr "SUODATUS:"
+
+msgid "BILINEAR"
+msgstr "BILINEAARINEN"
+
+msgid "NEAREST"
+msgstr "LÄHIN"
+
+msgid "GAMMA:"
+msgstr "GAMMA:"
+
+msgid "VOLUME:"
+msgstr "ÄÄNENVOIMAKKUUS:"
+
+msgid "SAMPLE RATE:"
+msgstr "NÄYTTEENOTTOTAAJUUS:"
+
+msgid "REVERB:"
+msgstr "KAIKU:"
+
+msgid "GAME SPEED:"
+msgstr "PELINOPEUS:"
+
+msgid "MOUSE SENS:"
+msgstr "HIIREN HERKKYYS:"
+
+msgid "WINDOW SIZE:"
+msgstr "IKKUNAN KOKO:"
+
+msgid "A reimplementation of:"
+msgstr "Uudelleentoteutus:"
+
+msgid "TECHNOLOGY"
+msgstr "TEKNOLOGIA"
+
+msgid "CREDITS"
+msgstr "TEKIJÄT"
+
+msgid "SYSTEM"
+msgstr "JÄRJESTELMÄ"
+
+msgid "PRESS ANY KEY TO RETURN"
+msgstr "PAINA MITÄ TAHANSA NÄPPÄINTÄ PALATAKSESI"
+
+msgid "MOVEMENT"
+msgstr "LIIKKUMINEN"
+
+msgid "COMBAT & ITEMS"
+msgstr "TAISTELU JA ESINEET"
+
+msgid "Move forward"
+msgstr "Liiku eteenpäin"
+
+msgid "Move backward"
+msgstr "Liiku taaksepäin"
+
+msgid "Turn left"
+msgstr "Käänny vasemmalle"
+
+msgid "Turn right"
+msgstr "Käänny oikealle"
+
+msgid "Fire weapon"
+msgstr "Ammu aseella"
+
+msgid "Inventory"
+msgstr "Varusteet"
+
+msgid "Use item / Interact"
+msgstr "Käytä esinettä / Vuorovaikuta"
+
+msgid "Cycle droids"
+msgstr "Vaihda droidi"
+
+msgid "Cycle save slots"
+msgstr "Vaihda tallennuspaikkaa"
+
+msgid "Save / Load game"
+msgstr "Tallenna / Lataa peli"
+
+msgid "Minimap / City map"
+msgstr "Minikartta / Kaupunkikartta"
+
+msgid "Help screen"
+msgstr "Ohjenäyttö"
+
+msgid "Pause menu"
+msgstr "Taukovalikko"
+
+msgid "ESC: BACK"
+msgstr "ESC: TAKAISIN"
+
+msgid "DATA SCANNER"
+msgstr "DATASKANNERI"
+
+msgid "Scanning Captive hashes..."
+msgstr "Skannataan Captive-tiivisteitä..."
+
+msgid "Scanning Liberation data..."
+msgstr "Skannataan Liberation-dataa..."
+
+msgid "ZIP archives found: %d"
+msgstr "ZIP-arkistoja löytyi: %d"
+
+msgid "VERIFICATION"
+msgstr "VAHVISTUS"
+
+msgid "Files identified by SHA-256 content hash, not filename."
+msgstr "Tiedostot tunnistetaan SHA-256-sisältötiivisteellä, ei tiedostonimellä."
+
+msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
+msgstr "Sisäkkäiset ZIP-, ADF-levykuvat ja ISO-raidat skannataan."
+
+msgid "No filenames are trusted; only content determines identity."
+msgstr "Mihinkään tiedostonimiin ei luoteta; vain sisältö määrittää identiteetin."
+
+msgid "GAME DATA NOT FOUND"
+msgstr "PELIDATAA EI LÖYTYNYT"
+
+msgid "OpenCaptive needs original game data files to run."
+msgstr "OpenCaptive tarvitsee alkuperäiset pelidatatiedostot toimiakseen."
+
+msgid "Place your game data in the following folder:"
+msgstr "Sijoita pelidata seuraavaan kansioon:"
+
+msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
+msgstr "Tuetut muodot: ZIP-arkistot, ADF, ISO, raakatiedostot."
+
+msgid "Files are identified by SHA-256 hash, not filename."
+msgstr "Tiedostot tunnistetaan SHA-256-tiivisteellä, ei tiedostonimellä."
+
+msgid "You can change the data path in Settings (S)."
+msgstr "Voit muuttaa datapolkua Asetuksissa (S)."
+
+msgid "PRESS ANY KEY TO CONTINUE"
+msgstr "PAINA MITÄ TAHANSA NÄPPÄINTÄ JATKAAKSESI"

@@ -169,3 +169,157 @@ msgstr "Sie können den Datenpfad auch in den Einstellungen ändern."
 
 msgid "Missing Liberation data"
 msgstr "Fehlende Liberation-Daten"
+
+#. Main menu
+msgid "ABOUT"
+msgstr "ÜBER"
+
+msgid "CONTROLS"
+msgstr "STEUERUNG"
+
+msgid "CONTINUE"
+msgstr "FORTSETZEN"
+
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "PFEILE: AUSWÄHLEN  ENTER: START  D: DATEN SCANNEN  F1: STEUERUNG"
+
+msgid "ENHANCED:"
+msgstr "ERWEITERT:"
+
+msgid "FILTERING:"
+msgstr "FILTERUNG:"
+
+msgid "BILINEAR"
+msgstr "BILINEAR"
+
+msgid "NEAREST"
+msgstr "NÄCHSTER"
+
+msgid "GAMMA:"
+msgstr "GAMMA:"
+
+msgid "VOLUME:"
+msgstr "LAUTSTÄRKE:"
+
+msgid "SAMPLE RATE:"
+msgstr "ABTASTRATE:"
+
+msgid "REVERB:"
+msgstr "NACHHALL:"
+
+msgid "GAME SPEED:"
+msgstr "SPIELGESCHWINDIGKEIT:"
+
+msgid "MOUSE SENS:"
+msgstr "MAUSEMPFINDLICHKEIT:"
+
+msgid "WINDOW SIZE:"
+msgstr "FENSTERGRÖSSE:"
+
+msgid "A reimplementation of:"
+msgstr "Eine Neuimplementierung von:"
+
+msgid "TECHNOLOGY"
+msgstr "TECHNOLOGIE"
+
+msgid "CREDITS"
+msgstr "MITWIRKENDE"
+
+msgid "SYSTEM"
+msgstr "SYSTEM"
+
+msgid "PRESS ANY KEY TO RETURN"
+msgstr "BELIEBIGE TASTE DRÜCKEN UM ZURÜCKZUKEHREN"
+
+msgid "MOVEMENT"
+msgstr "BEWEGUNG"
+
+msgid "COMBAT & ITEMS"
+msgstr "KAMPF UND GEGENSTÄNDE"
+
+msgid "Move forward"
+msgstr "Vorwärts gehen"
+
+msgid "Move backward"
+msgstr "Rückwärts gehen"
+
+msgid "Turn left"
+msgstr "Links drehen"
+
+msgid "Turn right"
+msgstr "Rechts drehen"
+
+msgid "Fire weapon"
+msgstr "Waffe abfeuern"
+
+msgid "Inventory"
+msgstr "Inventar"
+
+msgid "Use item / Interact"
+msgstr "Gegenstand benutzen / Interagieren"
+
+msgid "Cycle droids"
+msgstr "Droide wechseln"
+
+msgid "Cycle save slots"
+msgstr "Speicherplatz wechseln"
+
+msgid "Save / Load game"
+msgstr "Spiel speichern / laden"
+
+msgid "Minimap / City map"
+msgstr "Minikarte / Stadtkarte"
+
+msgid "Help screen"
+msgstr "Hilfebildschirm"
+
+msgid "Pause menu"
+msgstr "Pausenmenü"
+
+msgid "ESC: BACK"
+msgstr "ESC: ZURÜCK"
+
+msgid "DATA SCANNER"
+msgstr "DATENSCANNER"
+
+msgid "Scanning Captive hashes..."
+msgstr "Captive-Hashes werden gescannt..."
+
+msgid "Scanning Liberation data..."
+msgstr "Liberation-Daten werden gescannt..."
+
+msgid "ZIP archives found: %d"
+msgstr "ZIP-Archive gefunden: %d"
+
+msgid "VERIFICATION"
+msgstr "VERIFIZIERUNG"
+
+msgid "Files identified by SHA-256 content hash, not filename."
+msgstr "Dateien werden per SHA-256-Inhaltshash identifiziert, nicht per Dateiname."
+
+msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
+msgstr "Verschachtelte ZIPs, ADF-Diskimages und ISO-Spuren werden gescannt."
+
+msgid "No filenames are trusted; only content determines identity."
+msgstr "Keinen Dateinamen wird vertraut; nur der Inhalt bestimmt die Identität."
+
+msgid "GAME DATA NOT FOUND"
+msgstr "SPIELDATEN NICHT GEFUNDEN"
+
+msgid "OpenCaptive needs original game data files to run."
+msgstr "OpenCaptive benötigt originale Spieldaten zum Starten."
+
+msgid "Place your game data in the following folder:"
+msgstr "Platzieren Sie Ihre Spieldaten im folgenden Ordner:"
+
+msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
+msgstr "Unterstützte Formate: ZIP-Archive, ADF, ISO, Rohdateien."
+
+msgid "Files are identified by SHA-256 hash, not filename."
+msgstr "Dateien werden per SHA-256-Hash identifiziert, nicht per Dateiname."
+
+msgid "You can change the data path in Settings (S)."
+msgstr "Sie können den Datenpfad in den Einstellungen (S) ändern."
+
+msgid "PRESS ANY KEY TO CONTINUE"
+msgstr "BELIEBIGE TASTE DRÜCKEN UM FORTZUFAHREN"

@@ -170,3 +170,156 @@ msgstr "U kunt het gegevenspad ook wijzigen in Instellingen."
 
 msgid "Missing Liberation data"
 msgstr "Liberation gegevens ontbreken"
+
+msgid "ABOUT"
+msgstr "OVER"
+
+msgid "CONTROLS"
+msgstr "BESTURING"
+
+msgid "CONTINUE"
+msgstr "DOORGAAN"
+
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "PIJLEN: SELECTEREN  ENTER: STARTEN  D: DATA SCANNEN  F1: BESTURING"
+
+msgid "ENHANCED:"
+msgstr "VERBETERD:"
+
+msgid "FILTERING:"
+msgstr "FILTERING:"
+
+msgid "BILINEAR"
+msgstr "BILINEAIR"
+
+msgid "NEAREST"
+msgstr "DICHTSTBIJZIJNDE"
+
+msgid "GAMMA:"
+msgstr "GAMMA:"
+
+msgid "VOLUME:"
+msgstr "VOLUME:"
+
+msgid "SAMPLE RATE:"
+msgstr "SAMPLEFREQUENTIE:"
+
+msgid "REVERB:"
+msgstr "GALM:"
+
+msgid "GAME SPEED:"
+msgstr "SPELSNELHEID:"
+
+msgid "MOUSE SENS:"
+msgstr "MUISGEVOELIGHEID:"
+
+msgid "WINDOW SIZE:"
+msgstr "VENSTERGROOTTE:"
+
+msgid "A reimplementation of:"
+msgstr "Een herimplementatie van:"
+
+msgid "TECHNOLOGY"
+msgstr "TECHNOLOGIE"
+
+msgid "CREDITS"
+msgstr "MEDEWERKERS"
+
+msgid "SYSTEM"
+msgstr "SYSTEEM"
+
+msgid "PRESS ANY KEY TO RETURN"
+msgstr "DRUK OP EEN TOETS OM TERUG TE KEREN"
+
+msgid "MOVEMENT"
+msgstr "BEWEGING"
+
+msgid "COMBAT & ITEMS"
+msgstr "GEVECHT EN VOORWERPEN"
+
+msgid "Move forward"
+msgstr "Vooruit lopen"
+
+msgid "Move backward"
+msgstr "Achteruit lopen"
+
+msgid "Turn left"
+msgstr "Links draaien"
+
+msgid "Turn right"
+msgstr "Rechts draaien"
+
+msgid "Fire weapon"
+msgstr "Wapen afvuren"
+
+msgid "Inventory"
+msgstr "Inventaris"
+
+msgid "Use item / Interact"
+msgstr "Voorwerp gebruiken / Interactie"
+
+msgid "Cycle droids"
+msgstr "Droid wisselen"
+
+msgid "Cycle save slots"
+msgstr "Opslagplaats wisselen"
+
+msgid "Save / Load game"
+msgstr "Spel opslaan / laden"
+
+msgid "Minimap / City map"
+msgstr "Minikaart / Stadskaart"
+
+msgid "Help screen"
+msgstr "Helpscherm"
+
+msgid "Pause menu"
+msgstr "Pauzemenu"
+
+msgid "ESC: BACK"
+msgstr "ESC: TERUG"
+
+msgid "DATA SCANNER"
+msgstr "DATASCANNER"
+
+msgid "Scanning Captive hashes..."
+msgstr "Captive-hashes scannen..."
+
+msgid "Scanning Liberation data..."
+msgstr "Liberation-data scannen..."
+
+msgid "ZIP archives found: %d"
+msgstr "ZIP-archieven gevonden: %d"
+
+msgid "VERIFICATION"
+msgstr "VERIFICATIE"
+
+msgid "Files identified by SHA-256 content hash, not filename."
+msgstr "Bestanden worden geïdentificeerd op SHA-256-inhoudshash, niet op bestandsnaam."
+
+msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
+msgstr "Geneste ZIPs, ADF-schijfkopieën en ISO-sporen worden gescand."
+
+msgid "No filenames are trusted; only content determines identity."
+msgstr "Geen bestandsnamen worden vertrouwd; alleen de inhoud bepaalt de identiteit."
+
+msgid "GAME DATA NOT FOUND"
+msgstr "SPELDATA NIET GEVONDEN"
+
+msgid "OpenCaptive needs original game data files to run."
+msgstr "OpenCaptive heeft originele speldata nodig om te werken."
+
+msgid "Place your game data in the following folder:"
+msgstr "Plaats uw speldata in de volgende map:"
+
+msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
+msgstr "Ondersteunde formaten: ZIP-archieven, ADF, ISO, onbewerkte bestanden."
+
+msgid "Files are identified by SHA-256 hash, not filename."
+msgstr "Bestanden worden geïdentificeerd op SHA-256-hash, niet op bestandsnaam."
+
+msgid "You can change the data path in Settings (S)."
+msgstr "U kunt het datapad wijzigen in Instellingen (S)."
+
+msgid "PRESS ANY KEY TO CONTINUE"
+msgstr "DRUK OP EEN TOETS OM DOOR TE GAAN"

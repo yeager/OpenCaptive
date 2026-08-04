@@ -185,3 +185,162 @@ msgstr "Du kan också ändra datasökvägen i Inställningar."
 
 msgid "Missing Liberation data"
 msgstr "Liberation-data saknas"
+
+#. Main menu
+msgid "ABOUT"
+msgstr "OM"
+
+msgid "CONTROLS"
+msgstr "KONTROLLER"
+
+msgid "CONTINUE"
+msgstr "FORTSÄTT"
+
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "PILAR: VÄLJ  ENTER: STARTA  D: SKANNA DATA  F1: KONTROLLER"
+
+#. Settings menu (new entries)
+msgid "ENHANCED:"
+msgstr "FÖRBÄTTRAD:"
+
+msgid "FILTERING:"
+msgstr "FILTRERING:"
+
+msgid "BILINEAR"
+msgstr "BILINJÄR"
+
+msgid "NEAREST"
+msgstr "NÄRMSTA"
+
+msgid "GAMMA:"
+msgstr "GAMMA:"
+
+msgid "VOLUME:"
+msgstr "VOLYM:"
+
+msgid "SAMPLE RATE:"
+msgstr "SAMPLINGSFREKVENS:"
+
+msgid "REVERB:"
+msgstr "REVERB:"
+
+msgid "GAME SPEED:"
+msgstr "SPELHASTIGHET:"
+
+msgid "MOUSE SENS:"
+msgstr "MUSKÄNSLIGHET:"
+
+msgid "WINDOW SIZE:"
+msgstr "FÖNSTERSTORLEK:"
+
+#. About screen
+msgid "A reimplementation of:"
+msgstr "En omimplementering av:"
+
+msgid "TECHNOLOGY"
+msgstr "TEKNIK"
+
+msgid "CREDITS"
+msgstr "MEDVERKANDE"
+
+msgid "SYSTEM"
+msgstr "SYSTEM"
+
+msgid "PRESS ANY KEY TO RETURN"
+msgstr "TRYCK VALFRI TANGENT FÖR ATT GÅ TILLBAKA"
+
+#. Controls screen
+msgid "MOVEMENT"
+msgstr "RÖRELSE"
+
+msgid "COMBAT & ITEMS"
+msgstr "STRID & FÖREMÅL"
+
+msgid "Move forward"
+msgstr "Gå framåt"
+
+msgid "Move backward"
+msgstr "Gå bakåt"
+
+msgid "Turn left"
+msgstr "Sväng vänster"
+
+msgid "Turn right"
+msgstr "Sväng höger"
+
+msgid "Fire weapon"
+msgstr "Avfyra vapen"
+
+msgid "Inventory"
+msgstr "Utrustning"
+
+msgid "Use item / Interact"
+msgstr "Använd föremål / Interagera"
+
+msgid "Cycle droids"
+msgstr "Byt droid"
+
+msgid "Cycle save slots"
+msgstr "Byt sparplats"
+
+msgid "Save / Load game"
+msgstr "Spara / Ladda spel"
+
+msgid "Minimap / City map"
+msgstr "Minikarta / Stadskarta"
+
+msgid "Help screen"
+msgstr "Hjälpskärm"
+
+msgid "Pause menu"
+msgstr "Pausmeny"
+
+msgid "ESC: BACK"
+msgstr "ESC: TILLBAKA"
+
+#. Data scanner
+msgid "DATA SCANNER"
+msgstr "DATASKANNER"
+
+msgid "Scanning Captive hashes..."
+msgstr "Skannar Captive-hashar..."
+
+msgid "Scanning Liberation data..."
+msgstr "Skannar Liberation-data..."
+
+msgid "ZIP archives found: %d"
+msgstr "ZIP-arkiv hittade: %d"
+
+msgid "VERIFICATION"
+msgstr "VERIFIERING"
+
+msgid "Files identified by SHA-256 content hash, not filename."
+msgstr "Filer identifieras med SHA-256-innehållshash, inte filnamn."
+
+msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
+msgstr "Nästlade ZIP, ADF-diskavbilder och ISO-spår skannas."
+
+msgid "No filenames are trusted; only content determines identity."
+msgstr "Inga filnamn litas på; bara innehållet avgör identiteten."
+
+#. Setup popup
+msgid "GAME DATA NOT FOUND"
+msgstr "SPELDATA HITTADES INTE"
+
+msgid "OpenCaptive needs original game data files to run."
+msgstr "OpenCaptive behöver originalspeldata för att köras."
+
+msgid "Place your game data in the following folder:"
+msgstr "Placera din speldata i följande mapp:"
+
+msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
+msgstr "Format som stöds: ZIP-arkiv, ADF, ISO, råfiler."
+
+msgid "Files are identified by SHA-256 hash, not filename."
+msgstr "Filer identifieras med SHA-256-hash, inte filnamn."
+
+msgid "You can change the data path in Settings (S)."
+msgstr "Du kan ändra datasökvägen i Inställningar (S)."
+
+msgid "PRESS ANY KEY TO CONTINUE"
+msgstr "TRYCK VALFRI TANGENT FÖR ATT FORTSÄTTA"

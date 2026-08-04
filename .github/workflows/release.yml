@@ -49,7 +49,7 @@ jobs:
           mkdir -p opencaptive-linux-x86_64/data opencaptive-linux-x86_64/po
           cp build/opencaptive opencaptive-linux-x86_64/
           cp data/DejaVuSansMono-Bold.ttf opencaptive-linux-x86_64/data/
-          cp po/*.mo opencaptive-linux-x86_64/po/
+          cp po/*.po opencaptive-linux-x86_64/po/
           cp README.md LICENSE opencaptive-linux-x86_64/
           tar czf opencaptive-linux-x86_64.tar.gz opencaptive-linux-x86_64/
       - name: Generate icons
@@ -69,31 +69,31 @@ jobs:
           mkdir -p deb/usr/share/opencaptive/po
           cp build/opencaptive deb/usr/bin/
           cp data/DejaVuSansMono-Bold.ttf deb/usr/share/opencaptive/data/
-          cp po/*.mo deb/usr/share/opencaptive/po/
+          cp po/*.po deb/usr/share/opencaptive/po/
           cp README.md LICENSE deb/usr/share/doc/opencaptive/
           mkdir -p deb/usr/share/icons
           cp -r icons/hicolor deb/usr/share/icons/hicolor
           cat > deb/usr/share/applications/opencaptive.desktop <<'EOF'
-          [Desktop Entry]
-          Name=OpenCaptive
-          Comment=Reimplementation of Captive and Liberation: Captive 2
-          Exec=opencaptive
-          Icon=opencaptive
-          Type=Application
-          Categories=Game;ActionGame;
-          EOF
+[Desktop Entry]
+Name=OpenCaptive
+Comment=Reimplementation of Captive and Liberation: Captive 2
+Exec=opencaptive
+Icon=opencaptive
+Type=Application
+Categories=Game;ActionGame;
+EOF
           cat > deb/DEBIAN/control <<EOF
-          Package: opencaptive
-          Version: ${PKG_VERSION}
-          Section: games
-          Priority: optional
-          Architecture: amd64
-          Maintainer: Daniel Nylander <daniel@danielnylander.se>
-          Homepage: https://github.com/yeager/OpenCaptive
-          Description: Reimplementation of Captive and Liberation: Captive 2
-           A modern C/SDL3 reimplementation of the classic sci-fi dungeon
-           crawlers Captive (1990) and Liberation: Captive 2 (1993).
-          EOF
+Package: opencaptive
+Version: ${PKG_VERSION}
+Section: games
+Priority: optional
+Architecture: amd64
+Maintainer: Daniel Nylander <daniel@danielnylander.se>
+Homepage: https://github.com/yeager/OpenCaptive
+Description: Reimplementation of Captive and Liberation: Captive 2
+ A modern C/SDL3 reimplementation of the classic sci-fi dungeon
+ crawlers Captive (1990) and Liberation: Captive 2 (1993).
+EOF
           dpkg-deb --build deb opencaptive_${PKG_VERSION}_amd64.deb
       - name: Build rpm
         run: |
@@ -105,32 +105,32 @@ jobs:
           tar czf rpmbuild/SOURCES/opencaptive-${PKG_VERSION}.tar.gz \
             -C rpmbuild/SOURCES opencaptive-${PKG_VERSION}
           cat > rpmbuild/SPECS/opencaptive.spec <<EOF
-          Name:           opencaptive
-          Version:        ${PKG_VERSION}
-          Release:        1%{?dist}
-          Summary:        Reimplementation of Captive and Liberation: Captive 2
-          License:        MIT
-          URL:            https://github.com/yeager/OpenCaptive
-          Source0:        opencaptive-${PKG_VERSION}.tar.gz
+Name:           opencaptive
+Version:        ${PKG_VERSION}
+Release:        1%{?dist}
+Summary:        Reimplementation of Captive and Liberation: Captive 2
+License:        MIT
+URL:            https://github.com/yeager/OpenCaptive
+Source0:        opencaptive-${PKG_VERSION}.tar.gz
 
-          %description
-          A modern C/SDL3 reimplementation of the classic sci-fi dungeon
-          crawlers Captive (1990) and Liberation: Captive 2 (1993).
+%description
+A modern C/SDL3 reimplementation of the classic sci-fi dungeon
+crawlers Captive (1990) and Liberation: Captive 2 (1993).
 
-          %prep
-          %setup -q
+%prep
+%setup -q
 
-          %install
-          mkdir -p %{buildroot}/usr/bin
-          cp opencaptive %{buildroot}/usr/bin/
-          mkdir -p %{buildroot}/usr/share/doc/opencaptive
-          cp README.md LICENSE %{buildroot}/usr/share/doc/opencaptive/
+%install
+mkdir -p %{buildroot}/usr/bin
+cp opencaptive %{buildroot}/usr/bin/
+mkdir -p %{buildroot}/usr/share/doc/opencaptive
+cp README.md LICENSE %{buildroot}/usr/share/doc/opencaptive/
 
-          %files
-          /usr/bin/opencaptive
-          /usr/share/doc/opencaptive/README.md
-          /usr/share/doc/opencaptive/LICENSE
-          EOF
+%files
+/usr/bin/opencaptive
+/usr/share/doc/opencaptive/README.md
+/usr/share/doc/opencaptive/LICENSE
+EOF
           rpmbuild --define "_topdir $(pwd)/rpmbuild" -bb rpmbuild/SPECS/opencaptive.spec
           cp rpmbuild/RPMS/x86_64/*.rpm opencaptive-${PKG_VERSION}.x86_64.rpm
       - uses: actions/upload-artifact@v4
@@ -178,15 +178,15 @@ jobs:
           mkdir -p AppDir/usr/share/opencaptive/data AppDir/usr/share/opencaptive/po
           cp build/opencaptive AppDir/usr/bin/
           cp data/DejaVuSansMono-Bold.ttf AppDir/usr/share/opencaptive/data/
-          cp po/*.mo AppDir/usr/share/opencaptive/po/
+          cp po/*.po AppDir/usr/share/opencaptive/po/
           cat > AppDir/usr/share/applications/opencaptive.desktop <<'EOF'
-          [Desktop Entry]
-          Name=OpenCaptive
-          Exec=opencaptive
-          Icon=opencaptive
-          Type=Application
-          Categories=Game;
-          EOF
+[Desktop Entry]
+Name=OpenCaptive
+Exec=opencaptive
+Icon=opencaptive
+Type=Application
+Categories=Game;
+EOF
           rsvg-convert -w 256 -h 256 assets/icon.svg -o AppDir/usr/share/icons/hicolor/256x256/apps/opencaptive.png
       - name: Download linuxdeploy
         run: |
@@ -208,7 +208,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: brew install cmake ninja sdl3 sdl3_ttf
+        run: brew install cmake ninja sdl3 sdl3_ttf librsvg
       - name: Build
         run: |
           cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -226,7 +226,8 @@ jobs:
           cp assets/icon.icns "$APP/Contents/Resources/OpenCaptive.icns"
           cp build/opencaptive "$APP/Contents/MacOS/OpenCaptive"
           cp data/DejaVuSansMono-Bold.ttf "$APP/Contents/Resources/data/"
-          cp po/*.mo "$APP/Contents/Resources/po/"
+          cp po/*.po "$APP/Contents/Resources/po/"
+          cp -R assets/lproj/*.lproj "$APP/Contents/Resources/"
           # Bundle all non-system dylibs recursively
           bundle_dylib() {
             local binary="$1"
@@ -260,6 +261,13 @@ jobs:
           /usr/libexec/PlistBuddy -c "Add :LSMinimumSystemVersion string 14.0" "$APP/Contents/Info.plist"
           /usr/libexec/PlistBuddy -c "Add :NSHighResolutionCapable bool true" "$APP/Contents/Info.plist"
           /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string OpenCaptive" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleDevelopmentRegion string en" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations array" "$APP/Contents/Info.plist"
+          idx=0
+          for lang in en sv da de es fi fr hu it ja ko nl no pl pt ro ru cs zh; do
+            /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations:$idx string $lang" "$APP/Contents/Info.plist"
+            idx=$((idx + 1))
+          done
           codesign --force --deep -s - "$APP"
       - name: Create DMG
         run: |
@@ -315,7 +323,7 @@ jobs:
           copy ${{ github.workspace }}\SDL3_ttf-install\bin\SDL3_ttf.dll dist\
           copy ${{ github.workspace }}\zlib-install\bin\zlib.dll dist\ 2>nul || copy ${{ github.workspace }}\zlib-install\bin\zlib1.dll dist\ 2>nul || echo No zlib DLL found
           copy data\DejaVuSansMono-Bold.ttf dist\data\
-          copy po\*.mo dist\po\
+          copy po\*.po dist\po\
           copy README.md dist\
           copy LICENSE dist\
           copy assets\icon.ico dist\
@@ -360,8 +368,257 @@ jobs:
           name: windows-x64
           path: installer/OpenCaptive-*.exe
 
+  build-ios:
+    runs-on: macos-14
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: brew install cmake ninja librsvg
+      - name: Build SDL3 for iOS
+        run: |
+          git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
+          cmake -S SDL3-src -B SDL3-ios-build -G Ninja \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3-ios \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSDL_SHARED=OFF -DSDL_STATIC=ON
+          ninja -C SDL3-ios-build
+          ninja -C SDL3-ios-build install
+      - name: Build SDL3_ttf for iOS
+        run: |
+          git clone --depth 1 --recurse-submodules https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
+          cmake -S SDL3_ttf-src -B SDL3_ttf-ios-build -G Ninja \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3_ttf-ios \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/SDL3-ios \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSDL3TTF_SAMPLES=OFF \
+            -DBUILD_SHARED_LIBS=OFF
+          ninja -C SDL3_ttf-ios-build
+          ninja -C SDL3_ttf-ios-build install
+      - name: Build zlib for iOS
+        run: |
+          git clone --depth 1 https://github.com/madler/zlib.git zlib-src
+          cmake -S zlib-src -B zlib-ios-build -G Ninja \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/zlib-ios \
+            -DCMAKE_BUILD_TYPE=Release
+          ninja -C zlib-ios-build
+          ninja -C zlib-ios-build install
+      - name: Build OpenCaptive for iOS
+        run: |
+          cmake -S . -B build-ios -G Ninja \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/SDL3-ios;${{ github.workspace }}/SDL3_ttf-ios;${{ github.workspace }}/zlib-ios" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=cc \
+            -DBUILD_TESTING=OFF
+          ninja -C build-ios opencaptive
+      - name: Create .app and .ipa
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          APP=Payload/OpenCaptive.app
+          mkdir -p "$APP/data" "$APP/po"
+          cp build-ios/opencaptive "$APP/OpenCaptive"
+          cp data/DejaVuSansMono-Bold.ttf "$APP/data/"
+          cp po/*.po "$APP/po/"
+          sed "s/\$(VERSION)/$VERSION/g" assets/Info-iOS.plist > "$APP/Info.plist"
+          # Compile LaunchScreen storyboard
+          ibtool --compile "$APP/LaunchScreen.storyboardc" assets/LaunchScreen.storyboard \
+            --target-device iphone --target-device ipad \
+            --minimum-deployment-target 15.0 || true
+          # Generate app icons
+          for size in 40 60 76 84 1024; do
+            rsvg-convert -w $size -h $size assets/icon.svg -o "$APP/AppIcon${size}x${size}.png" 2>/dev/null || true
+          done
+          # Ad-hoc sign (required for AltStore sideloading)
+          codesign --force --deep -s - "$APP"
+          # Create .ipa
+          zip -r OpenCaptive-ios-arm64.ipa Payload/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-arm64
+          path: OpenCaptive-ios-arm64.ipa
+
+  build-android:
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Install NDK and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+          ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "ndk;27.0.12077973" "platforms;android-34" "build-tools;34.0.0"
+          echo "NDK=$ANDROID_SDK_ROOT/ndk/27.0.12077973" >> "$GITHUB_ENV"
+      - name: Build SDL3 for Android
+        run: |
+          git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
+          for abi in arm64-v8a armeabi-v7a; do
+            cmake -S SDL3-src -B SDL3-android-$abi -G Ninja \
+              -DCMAKE_TOOLCHAIN_FILE=$NDK/build/cmake/android.toolchain.cmake \
+              -DANDROID_ABI=$abi -DANDROID_PLATFORM=android-24 \
+              -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3-android/$abi \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DSDL_SHARED=ON -DSDL_STATIC=OFF
+            ninja -C SDL3-android-$abi
+            ninja -C SDL3-android-$abi install
+          done
+      - name: Build SDL3_ttf for Android
+        run: |
+          git clone --depth 1 --recurse-submodules https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
+          for abi in arm64-v8a armeabi-v7a; do
+            cmake -S SDL3_ttf-src -B SDL3_ttf-android-$abi -G Ninja \
+              -DCMAKE_TOOLCHAIN_FILE=$NDK/build/cmake/android.toolchain.cmake \
+              -DANDROID_ABI=$abi -DANDROID_PLATFORM=android-24 \
+              -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3_ttf-android/$abi \
+              -DCMAKE_PREFIX_PATH=${{ github.workspace }}/SDL3-android/$abi \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DSDL3TTF_SAMPLES=OFF
+            ninja -C SDL3_ttf-android-$abi
+            ninja -C SDL3_ttf-android-$abi install
+          done
+      - name: Build zlib for Android
+        run: |
+          git clone --depth 1 https://github.com/madler/zlib.git zlib-src
+          for abi in arm64-v8a armeabi-v7a; do
+            cmake -S zlib-src -B zlib-android-$abi -G Ninja \
+              -DCMAKE_TOOLCHAIN_FILE=$NDK/build/cmake/android.toolchain.cmake \
+              -DANDROID_ABI=$abi -DANDROID_PLATFORM=android-24 \
+              -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/zlib-android/$abi \
+              -DCMAKE_BUILD_TYPE=Release
+            ninja -C zlib-android-$abi
+            ninja -C zlib-android-$abi install
+          done
+      - name: Build OpenCaptive for Android
+        run: |
+          for abi in arm64-v8a armeabi-v7a; do
+            cmake -S . -B build-android-$abi -G Ninja \
+              -DCMAKE_TOOLCHAIN_FILE=$NDK/build/cmake/android.toolchain.cmake \
+              -DANDROID_ABI=$abi -DANDROID_PLATFORM=android-24 \
+              -DCMAKE_PREFIX_PATH="${{ github.workspace }}/SDL3-android/$abi;${{ github.workspace }}/SDL3_ttf-android/$abi;${{ github.workspace }}/zlib-android/$abi" \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_TESTING=OFF \
+              -DCMAKE_SHARED_LINKER_FLAGS="-u SDL_main"
+            ninja -C build-android-$abi opencaptive
+          done
+      - name: Create Gradle project and build APK
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          VERSION_CODE=$(echo "$VERSION" | awk -F. '{printf "%d%03d%03d", $1, $2, $3}')
+
+          mkdir -p apk-project/app/src/main/java/se/danielnylander/opencaptive
+          mkdir -p apk-project/app/src/main/res/values
+          mkdir -p apk-project/app/src/main/res/mipmap-xxxhdpi
+          mkdir -p apk-project/app/src/main/assets/data
+          mkdir -p apk-project/app/src/main/assets/po
+
+          # Copy game resources to APK assets
+          cp data/DejaVuSansMono-Bold.ttf apk-project/app/src/main/assets/data/
+          cp po/*.po apk-project/app/src/main/assets/po/
+
+          # Copy native libs
+          for abi in arm64-v8a armeabi-v7a; do
+            mkdir -p apk-project/app/src/main/jniLibs/$abi
+            cp build-android-$abi/libopencaptive.so apk-project/app/src/main/jniLibs/$abi/libmain.so 2>/dev/null || \
+              cp build-android-$abi/opencaptive apk-project/app/src/main/jniLibs/$abi/libmain.so
+            cp ${{ github.workspace }}/SDL3-android/$abi/lib/libSDL3.so apk-project/app/src/main/jniLibs/$abi/
+            cp ${{ github.workspace }}/SDL3_ttf-android/$abi/lib/libSDL3_ttf.so apk-project/app/src/main/jniLibs/$abi/
+          done
+
+          # Copy SDL Java sources
+          cp -r SDL3-src/android-project/app/src/main/java/org apk-project/app/src/main/java/
+
+          # Generate app icon from SVG
+          rsvg-convert -w 192 -h 192 assets/icon.svg -o apk-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || true
+
+          # AndroidManifest.xml
+          cp assets/AndroidManifest.xml apk-project/app/src/main/AndroidManifest.xml
+
+          # Strings
+          cat > apk-project/app/src/main/res/values/strings.xml <<'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OpenCaptive</string>
+</resources>
+EOF
+
+          # settings.gradle
+          cat > apk-project/settings.gradle <<'EOF'
+rootProject.name = "OpenCaptive"
+include ':app'
+EOF
+
+          # Top-level build.gradle
+          cat > apk-project/build.gradle <<'EOF'
+plugins {
+    id 'com.android.application' version '8.2.0' apply false
+}
+EOF
+
+          # App build.gradle
+          cat > apk-project/app/build.gradle <<EOF
+plugins {
+    id 'com.android.application'
+}
+android {
+    namespace 'se.danielnylander.opencaptive'
+    compileSdk 34
+    defaultConfig {
+        applicationId "se.danielnylander.opencaptive"
+        minSdk 24
+        targetSdk 34
+        versionCode $VERSION_CODE
+        versionName "$VERSION"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+}
+EOF
+
+          # gradle.properties
+          cat > apk-project/gradle.properties <<'EOF'
+android.useAndroidX=true
+EOF
+
+          # Build APK
+          cd apk-project
+          gradle wrapper --gradle-version 8.5
+          ./gradlew assembleRelease || ./gradlew assembleDebug
+          cd ..
+
+          # Copy APK
+          find apk-project -name "*.apk" -exec cp {} OpenCaptive-android.apk \;
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: OpenCaptive-android.apk
+
   create-release:
-    needs: [build-linux, build-linux-appimage, build-macos, build-windows]
+    if: always()
+    needs: [build-linux, build-linux-appimage, build-macos, build-windows, build-ios, build-android]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/download-artifact@v4
@@ -377,4 +634,6 @@ jobs:
             artifacts/linux-appimage/opencaptive-x86_64.AppImage
             artifacts/macos-arm64/OpenCaptive-macos-arm64.dmg
             artifacts/windows-x64/OpenCaptive-*.exe
+            artifacts/ios-arm64/OpenCaptive-ios-arm64.ipa
+            artifacts/android/OpenCaptive-android.apk
           generate_release_notes: true

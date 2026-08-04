@@ -1,5 +1,35 @@
 # OpenCaptive Release Notes
 
+## v1.1.72 (2026-08-04)
+
+### macOS localization
+- Native menu bar now shows localized text (Quit, Hide, Window, etc.) matching system language
+- Runtime patching via Objective-C bridges SDL3's hardcoded English menus to all 19 supported languages
+- System language detected via SDL_GetPreferredLocales (reads macOS AppleLanguages)
+
+### Data scanner progress bar
+- Real-time progress bar with percentage during SHA-256 hash scanning
+- Phase labels distinguish Captive hash scanning from Liberation data verification
+
+### Setup popup for missing data
+- First-run popup when data folder doesn't exist explaining what game data is needed
+- Shows expected data path and points to Settings for customization
+- Supported formats listed (ZIP, ADF, ISO, raw files)
+
+### i18n completions
+- 48 new translatable strings added across all 18 language .po files
+- Full coverage: scanner, setup popup, controls screen, about screen, settings additions
+
+### CI/CD improvements
+- iOS .ipa build (AltStore Classic sideload) added to release workflow
+- Android .apk build added to release workflow
+- Fixed heredoc indentation causing broken .desktop, .deb control, and .rpm spec files
+- Fixed packaging copying .mo instead of .po files (app loads .po at runtime)
+- Fixed iOS build linking Cocoa framework (macOS-only, guarded with CMAKE_SYSTEM_NAME check)
+- iOS/Android builds marked continue-on-error; release job runs with if: always()
+- Added librsvg to macOS/iOS CI for icon generation from SVG
+- Platform-specific default data paths: Android (/sdcard/OpenCaptive), iOS (Documents/OpenCaptive)
+
 ## v1.1.65 (2026-08-03)
 
 ### Documentation and release

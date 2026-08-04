@@ -185,3 +185,156 @@ msgstr "Puteți schimba calea datelor și din Setări."
 
 msgid "Missing Liberation data"
 msgstr "Lipsesc datele Liberation"
+
+msgid "ABOUT"
+msgstr "DESPRE"
+
+msgid "CONTROLS"
+msgstr "COMENZI"
+
+msgid "CONTINUE"
+msgstr "CONTINUARE"
+
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "SĂGEȚI: SELECTARE  ENTER: START  D: SCANARE DATE  F1: COMENZI"
+
+msgid "ENHANCED:"
+msgstr "ÎMBUNĂTĂȚIT:"
+
+msgid "FILTERING:"
+msgstr "FILTRARE:"
+
+msgid "BILINEAR"
+msgstr "BILINIAR"
+
+msgid "NEAREST"
+msgstr "CEL MAI APROPIAT"
+
+msgid "GAMMA:"
+msgstr "GAMMA:"
+
+msgid "VOLUME:"
+msgstr "VOLUM:"
+
+msgid "SAMPLE RATE:"
+msgstr "RATĂ DE EȘANTIONARE:"
+
+msgid "REVERB:"
+msgstr "REVERBERAȚIE:"
+
+msgid "GAME SPEED:"
+msgstr "VITEZA JOCULUI:"
+
+msgid "MOUSE SENS:"
+msgstr "SENSIBILITATE MOUSE:"
+
+msgid "WINDOW SIZE:"
+msgstr "DIMENSIUNE FEREASTRĂ:"
+
+msgid "A reimplementation of:"
+msgstr "O reimplementare a:"
+
+msgid "TECHNOLOGY"
+msgstr "TEHNOLOGIE"
+
+msgid "CREDITS"
+msgstr "CREDITE"
+
+msgid "SYSTEM"
+msgstr "SISTEM"
+
+msgid "PRESS ANY KEY TO RETURN"
+msgstr "APĂSAȚI O TASTĂ PENTRU A REVENI"
+
+msgid "MOVEMENT"
+msgstr "MIȘCARE"
+
+msgid "COMBAT & ITEMS"
+msgstr "LUPTĂ ȘI OBIECTE"
+
+msgid "Move forward"
+msgstr "Mergi înainte"
+
+msgid "Move backward"
+msgstr "Mergi înapoi"
+
+msgid "Turn left"
+msgstr "Rotire la stânga"
+
+msgid "Turn right"
+msgstr "Rotire la dreapta"
+
+msgid "Fire weapon"
+msgstr "Trage cu arma"
+
+msgid "Inventory"
+msgstr "Inventar"
+
+msgid "Use item / Interact"
+msgstr "Folosește obiect / Interacțiune"
+
+msgid "Cycle droids"
+msgstr "Schimbă droidul"
+
+msgid "Cycle save slots"
+msgstr "Schimbă slotul de salvare"
+
+msgid "Save / Load game"
+msgstr "Salvează / Încarcă jocul"
+
+msgid "Minimap / City map"
+msgstr "Minihart / Harta orașului"
+
+msgid "Help screen"
+msgstr "Ecran de ajutor"
+
+msgid "Pause menu"
+msgstr "Meniu de pauză"
+
+msgid "ESC: BACK"
+msgstr "ESC: ÎNAPOI"
+
+msgid "DATA SCANNER"
+msgstr "SCANNER DATE"
+
+msgid "Scanning Captive hashes..."
+msgstr "Scanare hashuri Captive..."
+
+msgid "Scanning Liberation data..."
+msgstr "Scanare date Liberation..."
+
+msgid "ZIP archives found: %d"
+msgstr "Arhive ZIP găsite: %d"
+
+msgid "VERIFICATION"
+msgstr "VERIFICARE"
+
+msgid "Files identified by SHA-256 content hash, not filename."
+msgstr "Fișierele sunt identificate prin hash SHA-256 al conținutului, nu prin nume."
+
+msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
+msgstr "ZIP-uri imbricate, imagini de disc ADF și piste ISO sunt scanate."
+
+msgid "No filenames are trusted; only content determines identity."
+msgstr "Niciun nume de fișier nu este de încredere; doar conținutul determină identitatea."
+
+msgid "GAME DATA NOT FOUND"
+msgstr "DATELE JOCULUI NU AU FOST GĂSITE"
+
+msgid "OpenCaptive needs original game data files to run."
+msgstr "OpenCaptive are nevoie de fișierele de date originale ale jocului pentru a rula."
+
+msgid "Place your game data in the following folder:"
+msgstr "Plasați datele jocului în următorul folder:"
+
+msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
+msgstr "Formate acceptate: arhive ZIP, ADF, ISO, fișiere brute."
+
+msgid "Files are identified by SHA-256 hash, not filename."
+msgstr "Fișierele sunt identificate prin hash SHA-256, nu prin nume."
+
+msgid "You can change the data path in Settings (S)."
+msgstr "Puteți schimba calea datelor în Setări (S)."
+
+msgid "PRESS ANY KEY TO CONTINUE"
+msgstr "APĂSAȚI O TASTĂ PENTRU A CONTINUA"

@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.71 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.72 LANGUAGES C)
+if(APPLE)
+    enable_language(OBJC)
+endif()
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -112,13 +115,27 @@ set(OPENCAPTIVE_SOURCES
     src/custom/cross_save.c
 )
 
-add_executable(opencaptive ${OPENCAPTIVE_SOURCES})
+if(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    list(APPEND OPENCAPTIVE_SOURCES src/platform/macos_menu.m)
+endif()
+
+if(ANDROID)
+    add_library(opencaptive SHARED ${OPENCAPTIVE_SOURCES})
+else()
+    add_executable(opencaptive ${OPENCAPTIVE_SOURCES})
+endif()
 
 target_include_directories(opencaptive PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
+if(TARGET SDL3::SDL3main)
+    target_link_libraries(opencaptive PRIVATE SDL3::SDL3main)
+endif()
 target_link_libraries(opencaptive PRIVATE SDL3::SDL3 ${SDL3_TTF_TARGET} ZLIB::ZLIB ${MATH_LIBRARY})
+if(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    target_link_libraries(opencaptive PRIVATE "-framework Cocoa")
+endif()
 
 # --- Tests ---
 

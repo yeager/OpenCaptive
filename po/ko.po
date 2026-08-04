@@ -185,3 +185,156 @@ msgstr "설정에서 데이터 경로를 변경할 수도 있습니다."
 
 msgid "Missing Liberation data"
 msgstr "Liberation 데이터 없음"
+
+msgid "ABOUT"
+msgstr "정보"
+
+msgid "CONTROLS"
+msgstr "조작법"
+
+msgid "CONTINUE"
+msgstr "계속"
+
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "화살표: 선택  ENTER: 시작  D: 데이터 스캔  F1: 조작법"
+
+msgid "ENHANCED:"
+msgstr "향상:"
+
+msgid "FILTERING:"
+msgstr "필터링:"
+
+msgid "BILINEAR"
+msgstr "바이리니어"
+
+msgid "NEAREST"
+msgstr "최근접"
+
+msgid "GAMMA:"
+msgstr "감마:"
+
+msgid "VOLUME:"
+msgstr "음량:"
+
+msgid "SAMPLE RATE:"
+msgstr "샘플링 레이트:"
+
+msgid "REVERB:"
+msgstr "리버브:"
+
+msgid "GAME SPEED:"
+msgstr "게임 속도:"
+
+msgid "MOUSE SENS:"
+msgstr "마우스 감도:"
+
+msgid "WINDOW SIZE:"
+msgstr "창 크기:"
+
+msgid "A reimplementation of:"
+msgstr "재구현:"
+
+msgid "TECHNOLOGY"
+msgstr "기술"
+
+msgid "CREDITS"
+msgstr "크레딧"
+
+msgid "SYSTEM"
+msgstr "시스템"
+
+msgid "PRESS ANY KEY TO RETURN"
+msgstr "아무 키나 눌러 돌아가기"
+
+msgid "MOVEMENT"
+msgstr "이동"
+
+msgid "COMBAT & ITEMS"
+msgstr "전투 및 아이템"
+
+msgid "Move forward"
+msgstr "앞으로 이동"
+
+msgid "Move backward"
+msgstr "뒤로 이동"
+
+msgid "Turn left"
+msgstr "왼쪽 회전"
+
+msgid "Turn right"
+msgstr "오른쪽 회전"
+
+msgid "Fire weapon"
+msgstr "무기 발사"
+
+msgid "Inventory"
+msgstr "인벤토리"
+
+msgid "Use item / Interact"
+msgstr "아이템 사용 / 상호작용"
+
+msgid "Cycle droids"
+msgstr "드로이드 전환"
+
+msgid "Cycle save slots"
+msgstr "저장 슬롯 전환"
+
+msgid "Save / Load game"
+msgstr "저장 / 불러오기"
+
+msgid "Minimap / City map"
+msgstr "미니맵 / 도시 맵"
+
+msgid "Help screen"
+msgstr "도움말 화면"
+
+msgid "Pause menu"
+msgstr "일시정지 메뉴"
+
+msgid "ESC: BACK"
+msgstr "ESC: 뒤로"
+
+msgid "DATA SCANNER"
+msgstr "데이터 스캐너"
+
+msgid "Scanning Captive hashes..."
+msgstr "Captive 해시 스캔 중..."
+
+msgid "Scanning Liberation data..."
+msgstr "Liberation 데이터 스캔 중..."
+
+msgid "ZIP archives found: %d"
+msgstr "ZIP 아카이브 발견: %d"
+
+msgid "VERIFICATION"
+msgstr "검증"
+
+msgid "Files identified by SHA-256 content hash, not filename."
+msgstr "파일은 SHA-256 콘텐츠 해시로 식별됩니다 (파일 이름이 아님)."
+
+msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
+msgstr "중첩된 ZIP, ADF 디스크 이미지 및 ISO 트랙이 스캔됩니다."
+
+msgid "No filenames are trusted; only content determines identity."
+msgstr "파일 이름은 신뢰하지 않습니다. 콘텐츠만이 동일성을 결정합니다."
+
+msgid "GAME DATA NOT FOUND"
+msgstr "게임 데이터를 찾을 수 없음"
+
+msgid "OpenCaptive needs original game data files to run."
+msgstr "OpenCaptive를 실행하려면 원본 게임 데이터 파일이 필요합니다."
+
+msgid "Place your game data in the following folder:"
+msgstr "게임 데이터를 다음 폴더에 넣어 주세요:"
+
+msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
+msgstr "지원 형식: ZIP 아카이브, ADF, ISO, 원시 파일."
+
+msgid "Files are identified by SHA-256 hash, not filename."
+msgstr "파일은 SHA-256 해시로 식별됩니다 (파일 이름이 아님)."
+
+msgid "You can change the data path in Settings (S)."
+msgstr "데이터 경로는 설정 (S)에서 변경할 수 있습니다."
+
+msgid "PRESS ANY KEY TO CONTINUE"
+msgstr "아무 키나 눌러 계속하기"

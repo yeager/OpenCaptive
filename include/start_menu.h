@@ -64,7 +64,11 @@ typedef struct {
     int scanner_liberation_found;
     int scanner_liberation_total;
     int scanner_zip_count;
+    int scanner_progress;
+    int scanner_total;
+    int scanner_phase;
     bool scanner_done;
+    bool show_setup_popup;
     uint32_t *logo_img;
     int logo_img_w, logo_img_h;
     uint32_t *captive_img;

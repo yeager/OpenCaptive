@@ -169,3 +169,157 @@ msgstr "Du kan også ændre datastien i Indstillinger."
 
 msgid "Missing Liberation data"
 msgstr "Manglende Liberation-data"
+
+#. Main menu
+msgid "ABOUT"
+msgstr "OM"
+
+msgid "CONTROLS"
+msgstr "KONTROLLER"
+
+msgid "CONTINUE"
+msgstr "FORTSÆT"
+
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "PILE: VÆLG  ENTER: START  D: SKAN DATA  F1: KONTROLLER"
+
+msgid "ENHANCED:"
+msgstr "FORBEDRET:"
+
+msgid "FILTERING:"
+msgstr "FILTRERING:"
+
+msgid "BILINEAR"
+msgstr "BILINEÆR"
+
+msgid "NEAREST"
+msgstr "NÆRMESTE"
+
+msgid "GAMMA:"
+msgstr "GAMMA:"
+
+msgid "VOLUME:"
+msgstr "LYDSTYRKE:"
+
+msgid "SAMPLE RATE:"
+msgstr "SAMPLINGSRATE:"
+
+msgid "REVERB:"
+msgstr "EFTERKLANG:"
+
+msgid "GAME SPEED:"
+msgstr "SPILHASTIGHED:"
+
+msgid "MOUSE SENS:"
+msgstr "MUSEFØLSOMHED:"
+
+msgid "WINDOW SIZE:"
+msgstr "VINDUESSTØRRELSE:"
+
+msgid "A reimplementation of:"
+msgstr "En genimplementering af:"
+
+msgid "TECHNOLOGY"
+msgstr "TEKNOLOGI"
+
+msgid "CREDITS"
+msgstr "MEDVIRKENDE"
+
+msgid "SYSTEM"
+msgstr "SYSTEM"
+
+msgid "PRESS ANY KEY TO RETURN"
+msgstr "TRYK EN VILKÅRLIG TAST FOR AT GÅ TILBAGE"
+
+msgid "MOVEMENT"
+msgstr "BEVÆGELSE"
+
+msgid "COMBAT & ITEMS"
+msgstr "KAMP OG GENSTANDE"
+
+msgid "Move forward"
+msgstr "Gå fremad"
+
+msgid "Move backward"
+msgstr "Gå baglæns"
+
+msgid "Turn left"
+msgstr "Drej til venstre"
+
+msgid "Turn right"
+msgstr "Drej til højre"
+
+msgid "Fire weapon"
+msgstr "Affyr våben"
+
+msgid "Inventory"
+msgstr "Udstyr"
+
+msgid "Use item / Interact"
+msgstr "Brug genstand / Interager"
+
+msgid "Cycle droids"
+msgstr "Skift droid"
+
+msgid "Cycle save slots"
+msgstr "Skift gemmeplads"
+
+msgid "Save / Load game"
+msgstr "Gem / Indlæs spil"
+
+msgid "Minimap / City map"
+msgstr "Minikort / Bykort"
+
+msgid "Help screen"
+msgstr "Hjælpeskærm"
+
+msgid "Pause menu"
+msgstr "Pausemenu"
+
+msgid "ESC: BACK"
+msgstr "ESC: TILBAGE"
+
+msgid "DATA SCANNER"
+msgstr "DATASCANNER"
+
+msgid "Scanning Captive hashes..."
+msgstr "Scanner Captive-hashes..."
+
+msgid "Scanning Liberation data..."
+msgstr "Scanner Liberation-data..."
+
+msgid "ZIP archives found: %d"
+msgstr "ZIP-arkiver fundet: %d"
+
+msgid "VERIFICATION"
+msgstr "VERIFIKATION"
+
+msgid "Files identified by SHA-256 content hash, not filename."
+msgstr "Filer identificeres med SHA-256-indholdshash, ikke filnavn."
+
+msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
+msgstr "Indlejrede ZIP, ADF-diskbilleder og ISO-spor scannes."
+
+msgid "No filenames are trusted; only content determines identity."
+msgstr "Ingen filnavne er betroede; kun indhold bestemmer identitet."
+
+msgid "GAME DATA NOT FOUND"
+msgstr "SPILDATA IKKE FUNDET"
+
+msgid "OpenCaptive needs original game data files to run."
+msgstr "OpenCaptive har brug for originale spildatafiler for at køre."
+
+msgid "Place your game data in the following folder:"
+msgstr "Placer dine spildata i følgende mappe:"
+
+msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
+msgstr "Understøttede formater: ZIP-arkiver, ADF, ISO, rå filer."
+
+msgid "Files are identified by SHA-256 hash, not filename."
+msgstr "Filer identificeres med SHA-256-hash, ikke filnavn."
+
+msgid "You can change the data path in Settings (S)."
+msgstr "Du kan ændre datastien i Indstillinger (S)."
+
+msgid "PRESS ANY KEY TO CONTINUE"
+msgstr "TRYK EN VILKÅRLIG TAST FOR AT FORTSÆTTE"

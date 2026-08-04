@@ -185,3 +185,156 @@ msgstr "你也可以在设置中更改数据路径。"
 
 msgid "Missing Liberation data"
 msgstr "缺少Liberation数据"
+
+msgid "ABOUT"
+msgstr "关于"
+
+msgid "CONTROLS"
+msgstr "操作"
+
+msgid "CONTINUE"
+msgstr "继续"
+
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "方向键: 选择  ENTER: 开始  D: 扫描数据  F1: 操作"
+
+msgid "ENHANCED:"
+msgstr "增强:"
+
+msgid "FILTERING:"
+msgstr "过滤:"
+
+msgid "BILINEAR"
+msgstr "双线性"
+
+msgid "NEAREST"
+msgstr "最近邻"
+
+msgid "GAMMA:"
+msgstr "伽马:"
+
+msgid "VOLUME:"
+msgstr "音量:"
+
+msgid "SAMPLE RATE:"
+msgstr "采样率:"
+
+msgid "REVERB:"
+msgstr "混响:"
+
+msgid "GAME SPEED:"
+msgstr "游戏速度:"
+
+msgid "MOUSE SENS:"
+msgstr "鼠标灵敏度:"
+
+msgid "WINDOW SIZE:"
+msgstr "窗口大小:"
+
+msgid "A reimplementation of:"
+msgstr "重新实现:"
+
+msgid "TECHNOLOGY"
+msgstr "技术"
+
+msgid "CREDITS"
+msgstr "制作人员"
+
+msgid "SYSTEM"
+msgstr "系统"
+
+msgid "PRESS ANY KEY TO RETURN"
+msgstr "按任意键返回"
+
+msgid "MOVEMENT"
+msgstr "移动"
+
+msgid "COMBAT & ITEMS"
+msgstr "战斗与物品"
+
+msgid "Move forward"
+msgstr "前进"
+
+msgid "Move backward"
+msgstr "后退"
+
+msgid "Turn left"
+msgstr "左转"
+
+msgid "Turn right"
+msgstr "右转"
+
+msgid "Fire weapon"
+msgstr "发射武器"
+
+msgid "Inventory"
+msgstr "物品栏"
+
+msgid "Use item / Interact"
+msgstr "使用物品 / 交互"
+
+msgid "Cycle droids"
+msgstr "切换机器人"
+
+msgid "Cycle save slots"
+msgstr "切换存档位"
+
+msgid "Save / Load game"
+msgstr "保存 / 加载"
+
+msgid "Minimap / City map"
+msgstr "小地图 / 城市地图"
+
+msgid "Help screen"
+msgstr "帮助界面"
+
+msgid "Pause menu"
+msgstr "暂停菜单"
+
+msgid "ESC: BACK"
+msgstr "ESC: 返回"
+
+msgid "DATA SCANNER"
+msgstr "数据扫描器"
+
+msgid "Scanning Captive hashes..."
+msgstr "正在扫描Captive哈希..."
+
+msgid "Scanning Liberation data..."
+msgstr "正在扫描Liberation数据..."
+
+msgid "ZIP archives found: %d"
+msgstr "发现ZIP归档: %d"
+
+msgid "VERIFICATION"
+msgstr "验证"
+
+msgid "Files identified by SHA-256 content hash, not filename."
+msgstr "文件通过SHA-256内容哈希识别，而非文件名。"
+
+msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
+msgstr "嵌套的ZIP、ADF磁盘映像和ISO轨道均会被扫描。"
+
+msgid "No filenames are trusted; only content determines identity."
+msgstr "不信任任何文件名；只有内容决定身份。"
+
+msgid "GAME DATA NOT FOUND"
+msgstr "未找到游戏数据"
+
+msgid "OpenCaptive needs original game data files to run."
+msgstr "OpenCaptive需要原版游戏数据文件才能运行。"
+
+msgid "Place your game data in the following folder:"
+msgstr "请将游戏数据放入以下文件夹："
+
+msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
+msgstr "支持格式：ZIP归档、ADF、ISO、原始文件。"
+
+msgid "Files are identified by SHA-256 hash, not filename."
+msgstr "文件通过SHA-256哈希识别，而非文件名。"
+
+msgid "You can change the data path in Settings (S)."
+msgstr "您可以在设置 (S) 中更改数据路径。"
+
+msgid "PRESS ANY KEY TO CONTINUE"
+msgstr "按任意键继续"

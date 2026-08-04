@@ -169,3 +169,162 @@ msgstr "Cestu k datům můžete změnit také v Nastavení."
 
 msgid "Missing Liberation data"
 msgstr "Chybí data Liberation"
+
+#. Main menu
+msgid "ABOUT"
+msgstr "O APLIKACI"
+
+msgid "CONTROLS"
+msgstr "OVLÁDÁNÍ"
+
+msgid "CONTINUE"
+msgstr "POKRAČOVAT"
+
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "ŠIPKY: VÝBĚR  ENTER: START  D: SKENOVAT DATA  F1: OVLÁDÁNÍ"
+
+#. Settings menu (new entries)
+msgid "ENHANCED:"
+msgstr "VYLEPŠENÝ:"
+
+msgid "FILTERING:"
+msgstr "FILTROVÁNÍ:"
+
+msgid "BILINEAR"
+msgstr "BILINEÁRNÍ"
+
+msgid "NEAREST"
+msgstr "NEJBLIŽŠÍ"
+
+msgid "GAMMA:"
+msgstr "GAMMA:"
+
+msgid "VOLUME:"
+msgstr "HLASITOST:"
+
+msgid "SAMPLE RATE:"
+msgstr "VZORKOVACÍ FREKVENCE:"
+
+msgid "REVERB:"
+msgstr "DOZVUK:"
+
+msgid "GAME SPEED:"
+msgstr "RYCHLOST HRY:"
+
+msgid "MOUSE SENS:"
+msgstr "CITLIVOST MYŠI:"
+
+msgid "WINDOW SIZE:"
+msgstr "VELIKOST OKNA:"
+
+#. About screen
+msgid "A reimplementation of:"
+msgstr "Reimplementace:"
+
+msgid "TECHNOLOGY"
+msgstr "TECHNOLOGIE"
+
+msgid "CREDITS"
+msgstr "AUTOŘI"
+
+msgid "SYSTEM"
+msgstr "SYSTÉM"
+
+msgid "PRESS ANY KEY TO RETURN"
+msgstr "STISKNĚTE LIBOVOLNOU KLÁVESU PRO NÁVRAT"
+
+#. Controls screen
+msgid "MOVEMENT"
+msgstr "POHYB"
+
+msgid "COMBAT & ITEMS"
+msgstr "BOJ A PŘEDMĚTY"
+
+msgid "Move forward"
+msgstr "Jít vpřed"
+
+msgid "Move backward"
+msgstr "Jít vzad"
+
+msgid "Turn left"
+msgstr "Otočit vlevo"
+
+msgid "Turn right"
+msgstr "Otočit vpravo"
+
+msgid "Fire weapon"
+msgstr "Vystřelit"
+
+msgid "Inventory"
+msgstr "Inventář"
+
+msgid "Use item / Interact"
+msgstr "Použít předmět / Interakce"
+
+msgid "Cycle droids"
+msgstr "Přepnout droida"
+
+msgid "Cycle save slots"
+msgstr "Přepnout pozici uložení"
+
+msgid "Save / Load game"
+msgstr "Uložit / Načíst hru"
+
+msgid "Minimap / City map"
+msgstr "Minimapa / Mapa města"
+
+msgid "Help screen"
+msgstr "Nápověda"
+
+msgid "Pause menu"
+msgstr "Pauza"
+
+msgid "ESC: BACK"
+msgstr "ESC: ZPĚT"
+
+#. Data scanner
+msgid "DATA SCANNER"
+msgstr "SKENER DAT"
+
+msgid "Scanning Captive hashes..."
+msgstr "Skenování hashů Captive..."
+
+msgid "Scanning Liberation data..."
+msgstr "Skenování dat Liberation..."
+
+msgid "ZIP archives found: %d"
+msgstr "Nalezené ZIP archivy: %d"
+
+msgid "VERIFICATION"
+msgstr "OVĚŘENÍ"
+
+msgid "Files identified by SHA-256 content hash, not filename."
+msgstr "Soubory identifikovány pomocí SHA-256 hashe obsahu, ne názvu."
+
+msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
+msgstr "Vnořené ZIP, ADF obrazy disků a ISO stopy jsou skenovány."
+
+msgid "No filenames are trusted; only content determines identity."
+msgstr "Žádným názvům souborů se nedůvěřuje; identitu určuje pouze obsah."
+
+#. Setup popup
+msgid "GAME DATA NOT FOUND"
+msgstr "HERNÍ DATA NENALEZENA"
+
+msgid "OpenCaptive needs original game data files to run."
+msgstr "OpenCaptive potřebuje originální herní data ke spuštění."
+
+msgid "Place your game data in the following folder:"
+msgstr "Umístěte herní data do následující složky:"
+
+msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
+msgstr "Podporované formáty: ZIP archivy, ADF, ISO, surové soubory."
+
+msgid "Files are identified by SHA-256 hash, not filename."
+msgstr "Soubory jsou identifikovány SHA-256 hashem, ne názvem."
+
+msgid "You can change the data path in Settings (S)."
+msgstr "Cestu k datům můžete změnit v Nastavení (S)."
+
+msgid "PRESS ANY KEY TO CONTINUE"
+msgstr "STISKNĚTE LIBOVOLNOU KLÁVESU PRO POKRAČOVÁNÍ"

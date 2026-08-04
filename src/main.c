@@ -1,4 +1,7 @@
 #include "opencaptive.h"
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
 #include "renderer.h"
 #include "game_state.h"
 #include "start_menu.h"
@@ -40,12 +43,16 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <errno.h>
+#include <sys/stat.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #ifdef _WIN32
 #include <windows.h>
+#endif
+#if defined(__APPLE__) && TARGET_OS_OSX
+#include "macos_menu.h"
 #endif
 
 static uint32_t framebuffer[MENU_WIDTH * MENU_HEIGHT];
@@ -239,6 +246,22 @@ static void get_default_data_path(char *buf, size_t bufsize) {
     char *last_sep = strrchr(exe_path, '\\');
     if (last_sep) *last_sep = '\0';
     snprintf(buf, bufsize, "%s\\data", exe_path);
+#elif defined(__ANDROID__)
+    // Android: /sdcard/OpenCaptive (external storage, accessible to user)
+    const char *ext = getenv("EXTERNAL_STORAGE");
+    if (ext) {
+        snprintf(buf, bufsize, "%s/OpenCaptive", ext);
+    } else {
+        snprintf(buf, bufsize, "/sdcard/OpenCaptive");
+    }
+#elif defined(__IPHONEOS__) || (defined(__APPLE__) && defined(TARGET_OS_IOS) && TARGET_OS_IOS)
+    // iOS: <app>/Documents/OpenCaptive (iTunes File Sharing / Files app)
+    const char *home = getenv("HOME");
+    if (home) {
+        snprintf(buf, bufsize, "%s/Documents/OpenCaptive", home);
+    } else {
+        snprintf(buf, bufsize, "Documents/OpenCaptive");
+    }
 #else
     // Linux/macOS: ~/.opencaptive
     const char *home = getenv("HOME");
@@ -1714,6 +1737,9 @@ int main(int argc, char *argv[]) {
         SDL_Quit();
         return 1;
     }
+#if defined(__APPLE__) && TARGET_OS_OSX
+    macos_localize_menus();
+#endif
 
     // State
     StartMenu menu = {0};
@@ -1726,6 +1752,13 @@ int main(int argc, char *argv[]) {
     // Virtual filesystem
     DataVFS vfs;
     vfs_init(&vfs, config.data_path);
+
+    {
+        struct stat st;
+        if (config.data_path && stat(config.data_path, &st) != 0) {
+            menu.show_setup_popup = true;
+        }
+    }
 
     // Audio
     sound_init(&sound_sys);

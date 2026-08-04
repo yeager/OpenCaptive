@@ -432,13 +432,18 @@ static void run_data_scanner(StartMenu *menu, const char *data_path) {
     menu->scanner_zip_count = vfs.num_zips;
     menu->scanner_captive_total = (int)CAPTIVE_HASH_COUNT;
     menu->scanner_captive_found = 0;
+    menu->scanner_liberation_total = (int)LIBERATION_RESOURCE_COUNT;
+    menu->scanner_liberation_found = 0;
+    menu->scanner_total = (int)CAPTIVE_HASH_COUNT + 1;
+    menu->scanner_progress = 0;
+    menu->scanner_phase = 0;
     for (size_t i = 0; i < CAPTIVE_HASH_COUNT; i++) {
         size_t sz = 0;
         uint8_t *d = vfs_find_sha256(&vfs, captive_required_hashes[i], &sz);
         if (d) { free(d); menu->scanner_captive_found++; }
+        menu->scanner_progress = (int)(i + 1);
     }
-    menu->scanner_liberation_total = (int)LIBERATION_RESOURCE_COUNT;
-    menu->scanner_liberation_found = 0;
+    menu->scanner_phase = 1;
     {
         LiberationData lib_data;
         if (liberation_data_open(&lib_data, &vfs)) {
@@ -446,6 +451,7 @@ static void run_data_scanner(StartMenu *menu, const char *data_path) {
             liberation_data_close(&lib_data);
         }
     }
+    menu->scanner_progress = menu->scanner_total;
     vfs_free(&vfs);
     menu->scanner_done = true;
 }
@@ -552,6 +558,12 @@ void start_menu_handle_mouse_motion(StartMenu *menu, float x, float y) {
 }
 
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
+    if (menu->show_setup_popup) {
+        if (event->type == SDL_EVENT_KEY_DOWN || event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+            menu->show_setup_popup = false;
+        }
+        return MENU_RESULT_NONE;
+    }
     if (menu->data_path_editing) {
         if (event->type == SDL_EVENT_TEXT_INPUT) {
             int len = (int)strlen(menu->data_path);
@@ -953,7 +965,26 @@ static void render_scanner(StartMenu *menu, uint32_t *pixels, int width, int hei
     ttf_text(pixels, width, height, 100, y, menu->data_path, small, 0xFFAAAACC); y += 30;
 
     if (!menu->scanner_done) {
-        ttf_text_centered(pixels, width, height, y + 40, _("SCANNING..."), body, 0xFFFFFF00);
+        const char *phase_label = menu->scanner_phase == 0
+            ? _("Scanning Captive hashes...")
+            : _("Scanning Liberation data...");
+        ttf_text_centered(pixels, width, height, y + 20, phase_label, body, 0xFFFFFF00);
+
+        int bar_x = 80, bar_w = width - 160, bar_h = 20, bar_y = y + 60;
+        draw_border(pixels, width, height, bar_x, bar_y, bar_w, bar_h, 0xFF666666, 1);
+        if (menu->scanner_total > 0) {
+            int fill_w = (menu->scanner_progress * (bar_w - 2)) / menu->scanner_total;
+            if (fill_w > 0) {
+                for (int py = bar_y + 1; py < bar_y + bar_h - 1; py++)
+                    for (int px = bar_x + 1; px < bar_x + 1 + fill_w && px < width; px++)
+                        pixels[py * width + px] = 0xFF44AAFF;
+            }
+        }
+        char pct[32];
+        int percent = menu->scanner_total > 0
+            ? (menu->scanner_progress * 100) / menu->scanner_total : 0;
+        snprintf(pct, sizeof(pct), "%d%%", percent);
+        ttf_text_centered(pixels, width, height, bar_y + bar_h + 6, pct, small, 0xFFCCCCCC);
     } else {
         snprintf(buf, sizeof(buf), _("ZIP archives found: %d"), menu->scanner_zip_count);
         ttf_text(pixels, width, height, 80, y, buf, body, 0xFFCCCCCC); y += 35;
@@ -988,10 +1019,48 @@ static void render_scanner(StartMenu *menu, uint32_t *pixels, int width, int hei
     draw_border(pixels, width, height, 10, 10, width - 20, height - 20, 0xFF444488, 2);
 }
 
+static void render_setup_popup(StartMenu *menu, uint32_t *pixels, int width, int height) {
+    TTF_Font *title = menu->font_title;
+    TTF_Font *body = menu->font_body;
+    TTF_Font *small = menu->font_small;
+
+    int pw = 700, ph = 340;
+    int px = (width - pw) / 2, py = (height - ph) / 2;
+
+    for (int y = py; y < py + ph && y < height; y++)
+        for (int x = px; x < px + pw && x < width; x++)
+            pixels[y * width + x] = 0xFF1A1A2E;
+    draw_border(pixels, width, height, px, py, pw, ph, 0xFFFF8800, 2);
+
+    int y = py + 20;
+    ttf_text_centered(pixels, width, height, y, _("GAME DATA NOT FOUND"), title, 0xFFFF4444);
+    y += 50;
+    ttf_text(pixels, width, height, px + 30, y,
+             _("OpenCaptive needs original game data files to run."), body, 0xFFCCCCCC);
+    y += 30;
+    ttf_text(pixels, width, height, px + 30, y,
+             _("Place your game data in the following folder:"), body, 0xFFCCCCCC);
+    y += 35;
+    ttf_text(pixels, width, height, px + 50, y, menu->data_path, small, 0xFF44AAFF);
+    y += 30;
+    ttf_text(pixels, width, height, px + 30, y,
+             _("Supported formats: ZIP archives, ADF, ISO, raw files."), small, 0xFF88AACC);
+    y += 22;
+    ttf_text(pixels, width, height, px + 30, y,
+             _("Files are identified by SHA-256 hash, not filename."), small, 0xFF88AACC);
+    y += 35;
+    ttf_text(pixels, width, height, px + 30, y,
+             _("You can change the data path in Settings (S)."), body, 0xFFFFCC44);
+    y += 40;
+    ttf_text_centered(pixels, width, height, py + ph - 35,
+                      _("PRESS ANY KEY TO CONTINUE"), small, 0xFF555555);
+}
+
 void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height) {
     menu->anim_tick++;
     memset(pixels, 0, (size_t)width * height * sizeof(uint32_t));
 
+    if (menu->show_setup_popup) { render_setup_popup(menu, pixels, width, height); return; }
     if (menu->in_settings) { render_settings(menu, pixels, width, height); return; }
     if (menu->in_about)    { render_about(menu, pixels, width, height);    return; }
     if (menu->in_controls) { render_controls(menu, pixels, width, height); return; }

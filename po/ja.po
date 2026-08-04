@@ -185,3 +185,156 @@ msgstr "設定でデータパスを変更することもできます。"
 
 msgid "Missing Liberation data"
 msgstr "Liberationデータがありません"
+
+msgid "ABOUT"
+msgstr "このアプリについて"
+
+msgid "CONTROLS"
+msgstr "操作方法"
+
+msgid "CONTINUE"
+msgstr "続ける"
+
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "矢印: 選択  ENTER: 開始  D: データスキャン  F1: 操作方法"
+
+msgid "ENHANCED:"
+msgstr "拡張:"
+
+msgid "FILTERING:"
+msgstr "フィルタリング:"
+
+msgid "BILINEAR"
+msgstr "バイリニア"
+
+msgid "NEAREST"
+msgstr "ニアレスト"
+
+msgid "GAMMA:"
+msgstr "ガンマ:"
+
+msgid "VOLUME:"
+msgstr "音量:"
+
+msgid "SAMPLE RATE:"
+msgstr "サンプリングレート:"
+
+msgid "REVERB:"
+msgstr "リバーブ:"
+
+msgid "GAME SPEED:"
+msgstr "ゲーム速度:"
+
+msgid "MOUSE SENS:"
+msgstr "マウス感度:"
+
+msgid "WINDOW SIZE:"
+msgstr "ウィンドウサイズ:"
+
+msgid "A reimplementation of:"
+msgstr "再実装:"
+
+msgid "TECHNOLOGY"
+msgstr "テクノロジー"
+
+msgid "CREDITS"
+msgstr "クレジット"
+
+msgid "SYSTEM"
+msgstr "システム"
+
+msgid "PRESS ANY KEY TO RETURN"
+msgstr "いずれかのキーを押して戻る"
+
+msgid "MOVEMENT"
+msgstr "移動"
+
+msgid "COMBAT & ITEMS"
+msgstr "戦闘とアイテム"
+
+msgid "Move forward"
+msgstr "前進"
+
+msgid "Move backward"
+msgstr "後退"
+
+msgid "Turn left"
+msgstr "左回転"
+
+msgid "Turn right"
+msgstr "右回転"
+
+msgid "Fire weapon"
+msgstr "武器発射"
+
+msgid "Inventory"
+msgstr "インベントリ"
+
+msgid "Use item / Interact"
+msgstr "アイテム使用 / 操作"
+
+msgid "Cycle droids"
+msgstr "ドロイド切替"
+
+msgid "Cycle save slots"
+msgstr "セーブスロット切替"
+
+msgid "Save / Load game"
+msgstr "セーブ / ロード"
+
+msgid "Minimap / City map"
+msgstr "ミニマップ / 都市マップ"
+
+msgid "Help screen"
+msgstr "ヘルプ画面"
+
+msgid "Pause menu"
+msgstr "ポーズメニュー"
+
+msgid "ESC: BACK"
+msgstr "ESC: 戻る"
+
+msgid "DATA SCANNER"
+msgstr "データスキャナー"
+
+msgid "Scanning Captive hashes..."
+msgstr "Captiveハッシュをスキャン中..."
+
+msgid "Scanning Liberation data..."
+msgstr "Liberationデータをスキャン中..."
+
+msgid "ZIP archives found: %d"
+msgstr "ZIPアーカイブ検出数: %d"
+
+msgid "VERIFICATION"
+msgstr "検証"
+
+msgid "Files identified by SHA-256 content hash, not filename."
+msgstr "ファイルはSHA-256コンテンツハッシュで識別されます（ファイル名ではありません）。"
+
+msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
+msgstr "ネストされたZIP、ADFディスクイメージ、ISOトラックがスキャンされます。"
+
+msgid "No filenames are trusted; only content determines identity."
+msgstr "ファイル名は信頼されません。コンテンツのみが同一性を決定します。"
+
+msgid "GAME DATA NOT FOUND"
+msgstr "ゲームデータが見つかりません"
+
+msgid "OpenCaptive needs original game data files to run."
+msgstr "OpenCaptiveの実行にはオリジナルのゲームデータファイルが必要です。"
+
+msgid "Place your game data in the following folder:"
+msgstr "ゲームデータを以下のフォルダに配置してください:"
+
+msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
+msgstr "対応形式: ZIPアーカイブ、ADF、ISO、生ファイル。"
+
+msgid "Files are identified by SHA-256 hash, not filename."
+msgstr "ファイルはSHA-256ハッシュで識別されます（ファイル名ではありません）。"
+
+msgid "You can change the data path in Settings (S)."
+msgstr "データパスは設定 (S) で変更できます。"
+
+msgid "PRESS ANY KEY TO CONTINUE"
+msgstr "いずれかのキーを押して続ける"
