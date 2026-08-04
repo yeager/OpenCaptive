@@ -227,27 +227,28 @@ jobs:
           cp build/opencaptive "$APP/Contents/MacOS/OpenCaptive"
           cp data/DejaVuSansMono-Bold.ttf "$APP/Contents/Resources/data/"
           cp po/*.mo "$APP/Contents/Resources/po/"
-          SDL3_DYLIB=$(brew --prefix sdl3)/lib/libSDL3.0.dylib
-          cp "$SDL3_DYLIB" "$APP/Contents/Frameworks/"
-          install_name_tool -id @executable_path/../Frameworks/libSDL3.0.dylib \
-            "$APP/Contents/Frameworks/libSDL3.0.dylib"
-          SDL3_TTF_DYLIB=$(brew --prefix sdl3_ttf)/lib/libSDL3_ttf.0.dylib
-          cp "$SDL3_TTF_DYLIB" "$APP/Contents/Frameworks/"
-          install_name_tool -id @executable_path/../Frameworks/libSDL3_ttf.0.dylib \
-            "$APP/Contents/Frameworks/libSDL3_ttf.0.dylib"
-          # Rewrite all non-system dylib references in the binary
-          otool -L "$APP/Contents/MacOS/OpenCaptive" | awk '{print $1}' | while read -r ref; do
-            case "$ref" in
-              *libSDL3_ttf*) install_name_tool -change "$ref" @executable_path/../Frameworks/libSDL3_ttf.0.dylib "$APP/Contents/MacOS/OpenCaptive" ;;
-              *libSDL3*)     install_name_tool -change "$ref" @executable_path/../Frameworks/libSDL3.0.dylib "$APP/Contents/MacOS/OpenCaptive" ;;
-            esac
-          done
-          # Rewrite SDL3 reference inside SDL3_ttf
-          otool -L "$APP/Contents/Frameworks/libSDL3_ttf.0.dylib" | awk '{print $1}' | while read -r ref; do
-            case "$ref" in
-              *libSDL3_ttf*) ;;
-              *libSDL3*)     install_name_tool -change "$ref" @executable_path/../Frameworks/libSDL3.0.dylib "$APP/Contents/Frameworks/libSDL3_ttf.0.dylib" ;;
-            esac
+          # Bundle all non-system dylibs recursively
+          bundle_dylib() {
+            local binary="$1"
+            otool -L "$binary" | awk 'NR>1{print $1}' | while read -r ref; do
+              case "$ref" in
+                /usr/lib/*|/System/*|@executable_path/*|@rpath/*|@loader_path/*) continue ;;
+              esac
+              local name=$(basename "$ref")
+              local dest="$APP/Contents/Frameworks/$name"
+              if [ ! -f "$dest" ]; then
+                cp "$ref" "$dest"
+                chmod 644 "$dest"
+                install_name_tool -id "@executable_path/../Frameworks/$name" "$dest"
+                bundle_dylib "$dest"
+              fi
+              install_name_tool -change "$ref" "@executable_path/../Frameworks/$name" "$binary"
+            done
+          }
+          bundle_dylib "$APP/Contents/MacOS/OpenCaptive"
+          # Also fix cross-references between bundled frameworks
+          for fw in "$APP/Contents/Frameworks/"*.dylib; do
+            bundle_dylib "$fw"
           done
           /usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string OpenCaptive" "$APP/Contents/Info.plist"
           /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string se.danielnylander.opencaptive" "$APP/Contents/Info.plist"
