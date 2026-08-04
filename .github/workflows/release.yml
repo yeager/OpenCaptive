@@ -425,7 +425,11 @@ jobs:
           VERSION=${GITHUB_REF_NAME#v}
           APP=Payload/OpenCaptive.app
           mkdir -p "$APP/data" "$APP/po"
-          cp build-ios/opencaptive "$APP/OpenCaptive"
+          # Find the built binary (cmake may place it in various locations)
+          BINARY=$(find build-ios -name "opencaptive" -type f -not -path "*/CMakeFiles/*" | head -1)
+          echo "Found binary at: $BINARY"
+          ls -la build-ios/opencaptive* 2>/dev/null || true
+          cp "$BINARY" "$APP/OpenCaptive"
           cp data/DejaVuSansMono-Bold.ttf "$APP/data/"
           cp po/*.po "$APP/po/"
           sed "s/\$(VERSION)/$VERSION/g" assets/Info-iOS.plist > "$APP/Info.plist"
