@@ -469,8 +469,9 @@ bool vfs_init(DataVFS *vfs, const char *data_path) {
     if (!vfs) return false;
     memset(vfs, 0, sizeof(*vfs));
     if (!data_path || !data_path[0]) return false;
-    strncpy(vfs->data_path, data_path, sizeof(vfs->data_path) - 1);
-    vfs->data_path[sizeof(vfs->data_path) - 1] = '\0';
+    size_t data_path_len = strlen(data_path);
+    if (data_path_len >= sizeof(vfs->data_path)) return false;
+    memcpy(vfs->data_path, data_path, data_path_len + 1U);
     scan_for_zips(vfs);
     qsort(vfs->zip_paths, (size_t)vfs->num_zips, sizeof(vfs->zip_paths[0]),
           compare_zip_paths);

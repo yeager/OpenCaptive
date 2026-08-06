@@ -101,6 +101,15 @@ static void test_rejects_invalid_hash_text(void) {
     vfs_free(&vfs);
 }
 
+static void test_rejects_overlong_data_path(void) {
+    char path[sizeof(((DataVFS *)0)->data_path) + 1U];
+    memset(path, 'x', sizeof(path) - 1U);
+    path[sizeof(path) - 1U] = '\0';
+
+    DataVFS vfs;
+    assert(!vfs_init(&vfs, path));
+}
+
 static void test_finds_hash_in_extracted_tree(void) {
     const unsigned char payload[] = { 9, 8, 7, 6 };
     FILE *f = fopen("test-vfs-loose.bin", "wb");
@@ -191,6 +200,7 @@ int main(void) {
     test_reads_prefixed_case_insensitive_zip_entry();
     test_rejects_overlong_archive_names();
     test_rejects_invalid_hash_text();
+    test_rejects_overlong_data_path();
     test_finds_hash_in_extracted_tree();
     test_reads_and_hashes_empty_file();
     test_reads_empty_stored_zip_entry();
