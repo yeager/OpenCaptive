@@ -600,17 +600,25 @@ typedef struct {
 } RuntimePopup;
 
 static RuntimePopup runtime_popup;
+/* The F10 renderer is defined before the game-loop setup that assigns this
+ * pointer, so the declaration must live with the other popup state. */
+static CustomFeatures *custom_feat_ptr = NULL;
 
 enum {
     POPUP_ENHANCED,
     POPUP_SCANLINES,
     POPUP_CRT,
     POPUP_BILINEAR,
+    POPUP_TEXTURE_FILTER,
+    POPUP_DYNAMIC_LIGHTING,
     POPUP_BRIGHTNESS,
     POPUP_MUSIC,
     POPUP_SFX,
     POPUP_INVULNERABLE,
     POPUP_INFINITE_ENERGY,
+    POPUP_MINIMAP,
+    POPUP_REVEAL_MAP,
+    POPUP_DEBUG_HUD,
     POPUP_COMPLETE_OBJECTIVE,
     POPUP_CLOSE,
     POPUP_ITEMS,
@@ -777,7 +785,8 @@ static void popup_apply_cheats(GameState *gs) {
 }
 
 static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
-                               OpenCaptiveRenderer *renderer, const SDL_Event *event) {
+                               OpenCaptiveRenderer *renderer,
+                               CustomFeatures *features, const SDL_Event *event) {
     if (!event || event->type != SDL_EVENT_KEY_DOWN) return;
     SDL_Keycode key = event->key.key;
     if (key == SDLK_F10 || key == SDLK_ESCAPE) {
@@ -797,16 +806,22 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
 
     switch (runtime_popup.selected) {
         case POPUP_ENHANCED:
-            /* There is verified Captive viewport media, but its original
-             * composition routine is not reconstructed yet.  Do not replace
-             * it with the former generated corridor just because F10 was
-             * pressed.  Keep old configuration files compatible by
-             * normalising this obsolete choice to the original path. */
-            config->render_mode = CAPTIVE_RENDER_ORIGINAL;
+            config->render_mode = config->render_mode == CAPTIVE_RENDER_ENHANCED
+                ? CAPTIVE_RENDER_ORIGINAL : CAPTIVE_RENDER_ENHANCED;
             break;
         case POPUP_SCANLINES: config->scanlines = !config->scanlines; break;
         case POPUP_CRT: config->crt_curvature = !config->crt_curvature; break;
         case POPUP_BILINEAR: config->bilinear = !config->bilinear; break;
+        case POPUP_TEXTURE_FILTER:
+            if (features) features->texture_filter = !features->texture_filter;
+            liberation_texture_filter = features && features->texture_filter;
+            lib3d_set_texture_filter(&lib_render, liberation_texture_filter);
+            break;
+        case POPUP_DYNAMIC_LIGHTING:
+            if (features) features->dynamic_lighting = !features->dynamic_lighting;
+            liberation_dynamic_lighting = features && features->dynamic_lighting;
+            lib3d_set_dynamic_lighting(&lib_render, liberation_dynamic_lighting);
+            break;
         case POPUP_BRIGHTNESS:
             config->brightness = config->brightness < 50 ? 50 :
                 (config->brightness < 75 ? 75 : 25);
@@ -818,6 +833,15 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
             break;
         case POPUP_INFINITE_ENERGY:
             runtime_popup.infinite_energy = !runtime_popup.infinite_energy;
+            break;
+        case POPUP_MINIMAP:
+            if (features) features->minimap = !features->minimap;
+            break;
+        case POPUP_REVEAL_MAP:
+            if (features) features->reveal_map = !features->reveal_map;
+            break;
+        case POPUP_DEBUG_HUD:
+            if (features) features->debug_hud = !features->debug_hud;
             break;
         case POPUP_COMPLETE_OBJECTIVE:
             if (gs->game_type == GAME_CAPTIVE && gs->generators_total > 0) {
@@ -833,39 +857,66 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
                          config->brightness, config->contrast);
 }
 
-static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
-    static const char *labels[POPUP_ITEMS] = {
-        "VIEW RECONSTRUCTION", "SCANLINES", "CRT CURVE", "BILINEAR",
-        "BRIGHTNESS", "MUSIC", "SFX", "GOD MODE", "INFINITE ENERGY",
-        "COMPLETE OBJECTIVE", "CLOSE",
-    };
-    int x = 30, y = 18, w = pw - 60, h = 164;
+static const char *popup_label(int item) {
+    switch (item) {
+        case POPUP_ENHANCED: return _("ENHANCED DISPLAY");
+        case POPUP_SCANLINES: return _("SCANLINES");
+        case POPUP_CRT: return _("CRT CURVE");
+        case POPUP_BILINEAR: return _("BILINEAR");
+        case POPUP_TEXTURE_FILTER: return _("TEXTURE FILTER");
+        case POPUP_DYNAMIC_LIGHTING: return _("DYNAMIC LIGHTING");
+        case POPUP_BRIGHTNESS: return _("BRIGHTNESS");
+        case POPUP_MUSIC: return _("MUSIC");
+        case POPUP_SFX: return _("SFX");
+        case POPUP_INVULNERABLE: return _("GOD MODE");
+        case POPUP_INFINITE_ENERGY: return _("INFINITE ENERGY");
+        case POPUP_MINIMAP: return _("MINIMAP");
+        case POPUP_REVEAL_MAP: return _("REVEAL MAP");
+        case POPUP_DEBUG_HUD: return _("DEBUG HUD");
+        case POPUP_COMPLETE_OBJECTIVE: return _("COMPLETE OBJECTIVE");
+        case POPUP_CLOSE: return _("CLOSE");
+        default: return "";
+    }
+}
+
+static void popup_render(const GameState *gs, const CustomFeatures *features,
+                         uint32_t *fb, int pw, int ph) {
+    int x = 6, y = 6, w = pw - 12, h = ph - 12;
     draw_rect(fb, pw, ph, x, y, w, h, 0xFF101420);
     draw_rect(fb, pw, ph, x, y, w, 2, 0xFF55CCFF);
     draw_rect(fb, pw, ph, x, y + h - 2, w, 2, 0xFF55CCFF);
-    draw_centered(fb, pw, ph, y + 8, _("RUNTIME OPTIONS"), 0xFFFFFFFF, 1);
-    draw_centered(fb, pw, ph, y + 19, _("ESC CLOSE"), 0xFF99AACC, 1);
+    draw_centered(fb, pw, ph, y + 7, _("RUNTIME OPTIONS"), 0xFFFFFFFF, 1);
+    draw_centered(fb, pw, ph, y + 17, _("F10 OR ESC CLOSE"), 0xFF99AACC, 1);
     for (int i = 0; i < POPUP_ITEMS; i++) {
-        int row_y = y + 34 + i * 13;
+        int row_y = y + 29 + i * 10;
         uint32_t color = i == runtime_popup.selected ? 0xFFFFFF44 : 0xFFCCDDEE;
-        draw_simple_text(fb, pw, ph, x + 12, row_y, _(labels[i]), color, 1);
+        draw_simple_text(fb, pw, ph, x + 12, row_y, popup_label(i), color, 1);
         const char *value = "";
         switch (i) {
-            case POPUP_ENHANCED: value = _("PENDING"); break;
+            case POPUP_ENHANCED:
+                value = popup_toggle(gs->config.render_mode == CAPTIVE_RENDER_ENHANCED);
+                break;
             case POPUP_SCANLINES: value = popup_toggle(gs->config.scanlines); break;
             case POPUP_CRT: value = popup_toggle(gs->config.crt_curvature); break;
             case POPUP_BILINEAR: value = popup_toggle(gs->config.bilinear); break;
+            case POPUP_TEXTURE_FILTER:
+                value = popup_toggle(features && features->texture_filter); break;
+            case POPUP_DYNAMIC_LIGHTING:
+                value = popup_toggle(features && features->dynamic_lighting); break;
             case POPUP_BRIGHTNESS: value = popup_brightness(gs->config.brightness); break;
             case POPUP_MUSIC: value = popup_toggle(music_sys.enabled); break;
             case POPUP_SFX: value = popup_toggle(sound_sys.enabled); break;
             case POPUP_INVULNERABLE: value = popup_toggle(runtime_popup.invulnerable); break;
             case POPUP_INFINITE_ENERGY: value = popup_toggle(runtime_popup.infinite_energy); break;
+            case POPUP_MINIMAP: value = popup_toggle(features && features->minimap); break;
+            case POPUP_REVEAL_MAP: value = popup_toggle(features && features->reveal_map); break;
+            case POPUP_DEBUG_HUD: value = popup_toggle(features && features->debug_hud); break;
             case POPUP_COMPLETE_OBJECTIVE: value = _("ACTIVATE"); break;
             default: break;
         }
         draw_simple_text(fb, pw, ph, x + w - 80, row_y, value, color, 1);
     }
-    draw_centered(fb, pw, ph, y + h - 14, _("UP DOWN ENTER"), 0xFF99AACC, 1);
+    draw_centered(fb, pw, ph, y + h - 10, _("UP DOWN ENTER TOGGLE"), 0xFF99AACC, 1);
 }
 
 static void restore_liberation_save_state(GameState *gs_ptr,
@@ -1012,8 +1063,6 @@ static bool load_liberation_mission_menu(void) {
     liberation_mission_menu_height = sprite.height;
     return true;
 }
-
-static CustomFeatures *custom_feat_ptr = NULL;
 
 static void lib_transfer_purchases(GameState *gs) {
     for (int i = 0; i < lib_interact.purchased_count; i++) {
@@ -2114,13 +2163,14 @@ int main(int argc, char *argv[]) {
                     replay_record_input(&replay, gs.tick, action, 0);
             }
 
-            if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_F10 &&
+            if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat &&
+                event.key.key == SDLK_F10 &&
                 gs.mode == STATE_GAME) {
                 runtime_popup.open = !runtime_popup.open;
                 continue;
             }
             if (runtime_popup.open) {
-                popup_handle_event(&gs, &config, &renderer, &event);
+                popup_handle_event(&gs, &config, &renderer, &custom, &event);
                 continue;
             }
 
@@ -2757,7 +2807,9 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_GAME: {
-                if (!runtime_popup.open) popup_apply_cheats(&gs);
+                /* Cheats stay live while the F10 overlay is open as well;
+                 * changing a toggle takes effect on the very next frame. */
+                popup_apply_cheats(&gs);
                 if (gs.game_type == GAME_LIBERATION && !lib_in_dungeon) {
                     memset(framebuffer, 0, sizeof(framebuffer));
                     if (liberation_intro_active) {
@@ -3271,12 +3323,13 @@ int main(int argc, char *argv[]) {
                 custom.automap)
                 automap_mark(&automap_state, gs.current_level, gs.party_x, gs.party_y);
 
-            if (custom.minimap && gs.current_level >= 0 &&
+        if (custom.minimap && gs.current_level >= 0 &&
                 gs.current_level < gs.num_levels && gs.num_levels <= MAX_LEVELS) {
                 const DungeonLevel *mlvl = &gs.levels[gs.current_level];
                 minimap_render(framebuffer, frame_width, frame_height,
                                mlvl, gs.party_x, gs.party_y, gs.party_dir,
-                               custom.automap ? automap_state.visited : NULL,
+                               custom.reveal_map ? NULL :
+                               (custom.automap ? automap_state.visited : NULL),
                                &custom);
             }
 
@@ -3288,7 +3341,7 @@ int main(int argc, char *argv[]) {
         }
 
         if (runtime_popup.open && gs.mode == STATE_GAME)
-            popup_render(&gs, framebuffer, frame_width, frame_height);
+            popup_render(&gs, &custom, framebuffer, frame_width, frame_height);
 
         if (capture_frame_path) {
             if (!write_frame_ppm(capture_frame_path, framebuffer, frame_width, frame_height)) {
