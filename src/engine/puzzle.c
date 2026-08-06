@@ -167,7 +167,12 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                         p->x = rx; p->y = ry;
                         p->level = level_num; p->face = d;
                         p->state = 0;
-                        p->solution = (uint8_t)(captive_prng(&puzzle_seed) & 0xFF);
+                        /* This prototype exposes one panel face, so only the
+                         * bit selected by that face can be toggled.  A full
+                         * 8-bit solution would make almost every generated
+                         * combination permanently unsolvable. */
+                        p->solution = (uint8_t)((captive_prng(&puzzle_seed) & 1U)
+                                                 << (d % 8));
                         p->solved = false;
                         p->target_x = -1; p->target_y = -1;
                         for (int sy = 1; sy < MAP_HEIGHT - 1; sy++)

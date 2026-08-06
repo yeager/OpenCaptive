@@ -10,6 +10,8 @@
 - Release creation verifies that every desktop and mobile artifact exists and is non-empty.
 - Added and expanded automated coverage for data readers, launcher, terminal, shop, game state, audio, lighting, and Liberation rendering.
 - Synchronized the 19-language catalog and compiled message catalogs.
+- Corrected generated Liberation button-combination puzzles so their solution
+  is reachable through the currently implemented single-panel interaction.
 
 ## v1.1.72 (2026-08-04)
 

@@ -29,6 +29,29 @@ static void test_puzzle_rejects_invalid_level(void) {
     assert(puzzles.num_puzzles == -1);
 }
 
+static void test_button_combo_solution_is_reachable(void) {
+    GameState gs;
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+
+    Puzzle *combo = &puzzles.puzzles[0];
+    *combo = (Puzzle){
+        .type = PUZZLE_BUTTON_COMBO,
+        .x = 4, .y = 4, .level = 0, .face = DIR_NORTH,
+        .solution = (uint8_t)(1U << DIR_NORTH),
+        .target_x = 5, .target_y = 5,
+    };
+    puzzles.num_puzzles = 1;
+    gs.levels[0].cells[5][5].type = CELL_DOOR_LOCKED;
+
+    assert(puzzle_interact(&puzzles, &gs, 4, 4, DIR_NORTH));
+    assert(combo->state == combo->solution);
+    assert(combo->solved);
+    assert(gs.levels[0].cells[5][5].type == CELL_DOOR);
+}
+
 static void move_to_stair(GameState *gs, CellType stair) {
     for (int y = 0; y < MAP_HEIGHT; y++)
         for (int x = 0; x < MAP_WIDTH; x++)
@@ -413,6 +436,7 @@ static void test_init_normalizes_invalid_mission(void) {
 int main(void) {
     test_init_normalizes_invalid_mission();
     test_puzzle_rejects_invalid_level();
+    test_button_combo_solution_is_reachable();
     test_first_mission_uses_architect_seed_zero();
     test_extreme_mission_seed_is_defined();
     test_combat_respects_closed_doors();

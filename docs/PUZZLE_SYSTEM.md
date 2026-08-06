@@ -28,6 +28,12 @@ Puzzles are wall-mounted interactive elements that control doors and provide res
 - 9 charges, each restores 420 energy to selected droid, capped at the droid's energy maximum
 - Placed on wall faces with ORNAMENT_PIPE visual
 
+### Button Combo (PUZZLE_BUTTON_COMBO)
+- The current prototype exposes one panel face and toggles the bit for that face.
+- Generation therefore chooses a reachable one-bit solution; arbitrary 8-bit
+  codes are not generated until the full eight-button panel is implemented.
+- Clipboard hints show the stored code in hexadecimal.
+
 ## Generation
 
 - Buttons placed near doors: walk door cells, check adjacent floor cells for viable wall face

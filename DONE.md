@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Reachable button-combination puzzles)
+
+- Begränsade knappkombinationslösningen till den panelbit som den nuvarande
+  interaktionen faktiskt kan toggla; tidigare blev nästan alla sådana pussel
+  olösbara.
+- Dokumenterade prototypens nuvarande enpanelbeteende och lade till regressionstest.
+
 ## 2026-08-06 (Liberation renderer clipping)
 
 - Klippade extrema projekterade X3G-koordinater till viewporten innan
