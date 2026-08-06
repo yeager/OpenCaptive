@@ -3236,3 +3236,6 @@
 - Startmenyn ignorerar nu musklick precis utanför inställningsraderna. Ett
   klick strax ovanför första raden kan därför inte längre feltolkas som ett
   klick på rendererinställningen på grund av negativ heltalsdivision.
+- Pausmenyn öppnar nu faktiskt startmenyns inställningsvy när `SETTINGS`
+  väljs. Alternativet kan därför inte längre bete sig som `QUIT` och kasta
+  bort användarens menyval.

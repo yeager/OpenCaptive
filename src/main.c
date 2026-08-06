@@ -3037,6 +3037,12 @@ int main(int argc, char *argv[]) {
                                     sync_menu_from_config(&menu, &config, &custom,
                                                           music_sys.enabled,
                                                           sound_sys.enabled);
+                                    /* SETTINGS must enter the settings view;
+                                     * otherwise it was indistinguishable from
+                                     * QUIT and silently discarded the user's
+                                     * selection. */
+                                    menu.in_settings = true;
+                                    menu.settings_cursor = 0;
                                     music_stop(&music_sys);
                                     gs.paused = false;
                                 } else if (pause_cursor == 2) {
