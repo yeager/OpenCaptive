@@ -3,7 +3,8 @@
 
 bool captive_compositor_blit(uint32_t *view, int stride,
                              const CaptivePanelBlit *panel) {
-    if (!view || !panel || !panel->pixels || !panel->mask || stride <= 0 ||
+    if (!view || !panel || !panel->pixels || !panel->mask ||
+        stride < CAPTIVE_VIEWPORT_WIDTH ||
         panel->source_width <= 0 || panel->source_height <= 0 ||
         panel->width < 0 || panel->height < 0) {
         return false;
@@ -23,7 +24,8 @@ bool captive_compositor_blit(uint32_t *view, int stride,
                 dx < 0 || dx >= CAPTIVE_VIEWPORT_WIDTH) {
                 continue;
             }
-            const int source = sy * panel->source_width + sx;
+            const size_t source = (size_t)sy * (size_t)panel->source_width +
+                                  (size_t)sx;
             if (panel->mask[source])
                 view[dy * stride + dx] = panel->pixels[source];
         }
@@ -34,7 +36,7 @@ bool captive_compositor_blit(uint32_t *view, int stride,
 bool captive_compositor_blit_all(uint32_t *view, int stride,
                                  const CaptivePanelBlit *panels,
                                  int panel_count) {
-    if (!view || stride <= 0 || panel_count < 0 ||
+    if (!view || stride < CAPTIVE_VIEWPORT_WIDTH || panel_count < 0 ||
         (panel_count > 0 && !panels)) {
         return false;
     }

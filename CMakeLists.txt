@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.78 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.79 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -232,6 +232,14 @@ add_executable(test_amiga_ofs tests/test_amiga_ofs.c src/data/amiga_ofs.c src/da
 target_include_directories(test_amiga_ofs PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME amiga_ofs COMMAND test_amiga_ofs)
 
+add_executable(test_adf_reader tests/test_adf_reader.c src/data/adf_reader.c)
+target_include_directories(test_adf_reader PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME adf_reader COMMAND test_adf_reader)
+
+add_executable(test_st_disk_reader tests/test_st_disk_reader.c src/data/st_disk_reader.c)
+target_include_directories(test_st_disk_reader PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME st_disk_reader COMMAND test_st_disk_reader)
+
 add_executable(test_amiga_planar tests/test_amiga_planar.c src/data/amiga_planar.c)
 target_include_directories(test_amiga_planar PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME amiga_planar COMMAND test_amiga_planar)
@@ -256,13 +264,14 @@ target_include_directories(test_liberation_fnt PRIVATE ${CMAKE_SOURCE_DIR}/inclu
 add_test(NAME liberation_fnt COMMAND test_liberation_fnt)
 
 add_executable(test_liberation_viewport_3d tests/test_liberation_viewport_3d.c
-    src/render/liberation_viewport_3d.c)
+    src/render/liberation_viewport_3d.c src/custom/lighting.c)
 target_include_directories(test_liberation_viewport_3d PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_liberation_viewport_3d ${MATH_LIBRARY})
 add_test(NAME liberation_viewport_3d COMMAND test_liberation_viewport_3d)
 
 add_executable(test_liberation_city_nav tests/test_liberation_city_nav.c
-    src/game/liberation_city_nav.c src/render/liberation_viewport_3d.c)
+    src/game/liberation_city_nav.c src/render/liberation_viewport_3d.c
+    src/custom/lighting.c)
 target_include_directories(test_liberation_city_nav PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_liberation_city_nav ${MATH_LIBRARY})
 add_test(NAME liberation_city_nav COMMAND test_liberation_city_nav)
@@ -277,7 +286,7 @@ target_link_libraries(test_liberation_dialogue_shop PRIVATE SDL3::SDL3)
 add_test(NAME liberation_dialogue_shop COMMAND test_liberation_dialogue_shop)
 
 add_executable(test_liberation_combat tests/test_liberation_combat.c
-    src/game/liberation_combat.c)
+    src/game/liberation_combat.c src/engine/xp_level.c)
 target_include_directories(test_liberation_combat PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME liberation_combat COMMAND test_liberation_combat)
 
@@ -305,7 +314,7 @@ add_test(NAME liberation_plotgen COMMAND test_liberation_plotgen)
 
 add_executable(test_liberation_save tests/test_liberation_save.c
     src/game/liberation_save.c src/game/liberation_city_nav.c
-    src/render/liberation_viewport_3d.c)
+    src/render/liberation_viewport_3d.c src/custom/lighting.c)
 target_include_directories(test_liberation_save PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_liberation_save ${MATH_LIBRARY})
 add_test(NAME liberation_save COMMAND test_liberation_save)
@@ -328,7 +337,7 @@ add_executable(test_custom_features tests/test_custom_features.c
 target_include_directories(test_custom_features PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME custom_features COMMAND test_custom_features)
 
-add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c src/data/i18n.c src/data/stb_image_impl.c src/data/data_vfs.c src/data/sha256.c src/data/amiga_ofs.c src/data/liberation_data.c src/data/liberation_string_tables.c src/data/rnc_decoder.c src/data/iso9660_reader.c src/data/liberation_anim.c)
+add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c src/data/i18n.c src/data/stb_image_impl.c src/data/data_vfs.c src/data/sha256.c src/data/amiga_ofs.c src/data/captive_amiga_data.c src/data/amiga_hunk.c src/data/amiga_planar.c src/data/liberation_data.c src/data/liberation_string_tables.c src/data/rnc_decoder.c src/data/iso9660_reader.c src/data/liberation_anim.c)
 target_include_directories(test_start_menu PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_start_menu PRIVATE SDL3::SDL3 ${SDL3_TTF_TARGET} ${MATH_LIBRARY} ZLIB::ZLIB)
 add_test(NAME start_menu COMMAND test_start_menu)
@@ -336,7 +345,8 @@ add_test(NAME start_menu COMMAND test_start_menu)
 add_executable(test_game_state tests/test_game_state.c
     src/engine/engine.c src/engine/map_gen.c src/engine/combat.c
     src/engine/captive_data.c src/engine/xp_level.c src/engine/inventory.c
-    src/engine/mapgen_ca.c src/engine/spawn.c src/engine/creature_stats.c)
+    src/engine/mapgen_ca.c src/engine/spawn.c src/engine/creature_stats.c
+    src/engine/puzzle.c)
 target_include_directories(test_game_state PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME game_state COMMAND test_game_state)
 
@@ -401,6 +411,23 @@ add_executable(test_item_price tests/test_item_price.c
 target_include_directories(test_item_price PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME item_price COMMAND test_item_price)
 
+add_executable(test_droid_ui tests/test_droid_ui.c
+    src/engine/droid_ui.c src/engine/inventory.c src/engine/captive_data.c
+    src/engine/xp_level.c)
+target_include_directories(test_droid_ui PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME droid_ui COMMAND test_droid_ui)
+
+add_executable(test_terminal tests/test_terminal.c src/engine/terminal.c
+    src/data/i18n.c)
+target_include_directories(test_terminal PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_terminal PRIVATE SDL3::SDL3)
+add_test(NAME terminal COMMAND test_terminal)
+
+add_executable(test_shop tests/test_shop.c
+    src/engine/shop.c src/engine/inventory.c src/engine/captive_data.c)
+target_include_directories(test_shop PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME shop COMMAND test_shop)
+
 add_executable(test_mapgen_ca tests/test_mapgen_ca.c
     src/engine/mapgen_ca.c)
 target_include_directories(test_mapgen_ca PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -412,8 +439,10 @@ target_include_directories(test_spawn PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME spawn COMMAND test_spawn)
 
 add_executable(test_liberation_citygen tests/test_liberation_citygen.c
-    src/engine/liberation_citygen.c src/data/liberation_string_tables.c)
+    src/engine/liberation_citygen.c src/data/liberation_string_tables.c
+    src/data/i18n.c)
 target_include_directories(test_liberation_citygen PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_liberation_citygen PRIVATE SDL3::SDL3)
 add_test(NAME liberation_citygen COMMAND test_liberation_citygen)
 
 add_executable(test_liberation_citygen_grid tests/test_liberation_citygen_grid.c
@@ -441,7 +470,7 @@ endfunction()
 
 foreach(test_target IN ITEMS
         test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_captive_compositor test_dos_vga_reference test_captive_dos_descriptor test_frame_compare test_data_vfs
-        test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_amiga_planar test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load test_ctv_decoder test_holamap test_creature_sprite test_object_sprite test_adlib_data test_opl2_emu test_adlib_sfx)
+        test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_adf_reader test_amiga_planar test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load test_ctv_decoder test_holamap test_creature_sprite test_object_sprite test_adlib_data test_opl2_emu test_adlib_sfx)
     opencaptive_enable_test_assertions(${test_target})
 endforeach()
 

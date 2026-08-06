@@ -29,6 +29,7 @@ typedef struct {
 } CityNavState;
 
 void city_nav_init(CityNavState *nav, int start_x, int start_y, CityDirection dir);
+bool city_nav_teleport(CityNavState *nav, int x, int y);
 
 bool city_nav_can_move_forward(const CityNavState *nav, const CityGridState *grid);
 bool city_nav_can_move_backward(const CityNavState *nav, const CityGridState *grid);

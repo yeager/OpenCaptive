@@ -31,8 +31,10 @@ typedef struct {
     int num_samples;
     SoundChannel channels[MAX_CHANNELS];
     float master_volume;
+    float reverb_amount;
     bool initialized;
     bool enabled;
+    bool reverb_enabled;
 } SoundSystem;
 
 bool sound_init(SoundSystem *snd);
@@ -43,6 +45,7 @@ void sound_play(SoundSystem *snd, int sample_id, float volume, float pitch);
 void sound_play_loop(SoundSystem *snd, int sample_id, float volume, float pitch);
 void sound_stop_all(SoundSystem *snd);
 void sound_set_enabled(SoundSystem *snd, bool enabled);
+void sound_set_reverb(SoundSystem *snd, bool enabled, float amount);
 void sound_mix(SoundSystem *snd);
 
 #endif

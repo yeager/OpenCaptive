@@ -1,4 +1,5 @@
 #include "terminal.h"
+#include "i18n.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -56,6 +57,7 @@ static void draw_t(uint32_t *fb, int pw, int ph,
 }
 
 void terminal_init(TerminalState *ts, int level) {
+    if (!ts) return;
     memset(ts, 0, sizeof(*ts));
     ts->page = TERM_MAIN;
     ts->level = level;
@@ -76,7 +78,7 @@ static void render_main(const TerminalState *ts, const GameState *gs,
 static void render_map(const TerminalState *ts, const GameState *gs,
                        uint32_t *fb, int w, int h, int px, int py) {
     (void)ts;
-    draw_t(fb, w, h, px + 14, py + 24, "LEVEL MAP", 0xFF00FF00);
+    draw_t(fb, w, h, px + 14, py + 24, _("LEVEL MAP"), 0xFF00FF00);
 
     const DungeonLevel *lvl = &gs->levels[gs->current_level];
     int scale = 2;
@@ -116,12 +118,12 @@ static void render_map(const TerminalState *ts, const GameState *gs,
 static void render_status(const TerminalState *ts, const GameState *gs,
                           uint32_t *fb, int w, int h, int px, int py) {
     (void)ts;
-    draw_t(fb, w, h, px + 14, py + 24, "DROID STATUS", 0xFF00FF00);
+    draw_t(fb, w, h, px + 14, py + 24, _("DROID STATUS"), 0xFF00FF00);
 
     char buf[64];
     for (int i = 0; i < 4; i++) {
         const Droid *d = &gs->droids[i];
-        snprintf(buf, sizeof(buf), "%s HP:%d/%d EN:%d/%d",
+        snprintf(buf, sizeof(buf), _("%s HP:%d/%d EN:%d/%d"),
                  d->name, d->hp, d->hp_max, d->energy, d->energy_max);
         draw_t(fb, w, h, px + 14, py + 38 + i * 12, buf, 0xFF00CC00);
     }
@@ -131,36 +133,46 @@ static void render_mission(const TerminalState *ts, const GameState *gs,
                            uint32_t *fb, int w, int h, int px, int py) {
     (void)ts;
     char buf[64];
-    draw_t(fb, w, h, px + 14, py + 24, "MISSION BRIEFING", 0xFF00FF00);
+    draw_t(fb, w, h, px + 14, py + 24, _("MISSION BRIEFING"), 0xFF00FF00);
 
-    snprintf(buf, sizeof(buf), "MISSION: %d", gs->mission);
+    snprintf(buf, sizeof(buf), _("MISSION: %d"), gs->mission);
     draw_t(fb, w, h, px + 14, py + 40, buf, 0xFF00CC00);
 
-    snprintf(buf, sizeof(buf), "LEVEL: %d/%d", gs->current_level + 1, gs->num_levels);
+    snprintf(buf, sizeof(buf), _("LEVEL: %d/%d"), gs->current_level + 1, gs->num_levels);
     draw_t(fb, w, h, px + 14, py + 52, buf, 0xFF00CC00);
 
-    snprintf(buf, sizeof(buf), "GENERATORS: %d/%d",
+    snprintf(buf, sizeof(buf), _("GENERATORS: %d/%d"),
              gs->generators_destroyed, gs->generators_total);
     draw_t(fb, w, h, px + 14, py + 64, buf, 0xFF00CC00);
 
-    draw_t(fb, w, h, px + 14, py + 84, "DESTROY ALL GENERATORS", 0xFF00AA00);
-    draw_t(fb, w, h, px + 14, py + 96, "TO COMPLETE THE MISSION", 0xFF00AA00);
+    draw_t(fb, w, h, px + 14, py + 84, _("DESTROY ALL GENERATORS"), 0xFF00AA00);
+    draw_t(fb, w, h, px + 14, py + 96, _("TO COMPLETE THE MISSION"), 0xFF00AA00);
 }
 
 void terminal_render(const TerminalState *ts, const GameState *gs,
                      uint32_t *pixels, int width, int height) {
+    if (!ts || !gs || !pixels || width <= 0 || height <= 0 ||
+        gs->current_level < 0 || gs->current_level >= MAX_LEVELS ||
+        gs->current_level >= gs->num_levels || gs->party_x < 0 ||
+        gs->party_x >= MAP_WIDTH || gs->party_y < 0 ||
+        gs->party_y >= MAP_HEIGHT) return;
     // Dark background
-    for (int i = 0; i < width * height; i++)
+    size_t pixel_count = (size_t)width * (size_t)height;
+    for (size_t i = 0; i < pixel_count; i++)
         pixels[i] = (pixels[i] & 0xFF000000) | ((pixels[i] & 0xFCFCFC) >> 2);
 
     int px = 30, py = 15, pw = 260, ph = 170;
     fill(pixels, width, height, px, py, pw, ph, 0xFF001100);
 
     // CRT scanline effect
-    for (int y = py; y < py + ph; y += 2)
-        for (int x = px; x < px + pw; x++)
+    for (int y = py; y < py + ph && y < height; y += 2) {
+        if (y < 0) continue;
+        for (int x = px; x < px + pw && x < width; x++) {
+            if (x < 0) continue;
             pixels[y * width + x] = (pixels[y * width + x] & 0xFF000000) |
                 ((pixels[y * width + x] & 0xFEFEFE) >> 1);
+        }
+    }
 
     // Border
     for (int x = px; x < px + pw; x++) {
@@ -172,7 +184,7 @@ void terminal_render(const TerminalState *ts, const GameState *gs,
         put_px(pixels, width, height, px + pw - 1, y, 0xFF00FF00);
     }
 
-    draw_t(pixels, width, height, px + 14, py + 6, "TERMINAL SYSTEM V2.1", 0xFF00FF00);
+    draw_t(pixels, width, height, px + 14, py + 6, _("TERMINAL SYSTEM V2.1"), 0xFF00FF00);
 
     switch (ts->page) {
         case TERM_MAIN:    render_main(ts, gs, pixels, width, height, px, py); break;
@@ -181,10 +193,11 @@ void terminal_render(const TerminalState *ts, const GameState *gs,
         case TERM_MISSION: render_mission(ts, gs, pixels, width, height, px, py); break;
     }
 
-    draw_t(pixels, width, height, px + 14, py + ph - 12, "ESC:BACK", 0xFF006600);
+    draw_t(pixels, width, height, px + 14, py + ph - 12, _("ESC:BACK"), 0xFF006600);
 }
 
 bool terminal_handle_key(TerminalState *ts, int key) {
+    if (!ts || !ts->active || ts->page < TERM_MAIN || ts->page > TERM_MISSION) return false;
     if (ts->page == TERM_MAIN) {
         switch (key) {
             case 0x50: if (ts->cursor > 0) ts->cursor--; return true;

@@ -65,6 +65,9 @@ static void place_corridor(DungeonLevel *level, int x1, int y1, int x2, int y2) 
 }
 
 void map_generate(DungeonLevel *level, uint32_t seed, int level_num) {
+    if (!level) return;
+    if (level_num < 0) level_num = 0;
+    if (level_num >= MAX_LEVELS) level_num = MAX_LEVELS - 1;
     memset(level, 0, sizeof(*level));
     level->level = level_num;
     level->seed = seed;
@@ -78,6 +81,9 @@ void map_generate(DungeonLevel *level, uint32_t seed, int level_num) {
     CAMapType type = (CAMapType)((seed + level_num) & 3);
     ca_apply_rules(&ca, type);
     ca_to_dungeon_level(&ca, level, level_num);
+    /* ca_to_dungeon_level() clears the destination before filling it, so
+     * restore the source seed that belongs to the generated level. */
+    level->seed = seed;
 
     prng_seed(seed + level_num * 7919);
 
@@ -401,6 +407,9 @@ static void architect_place_doors(DungeonLevel *level) {
 
 void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
                        uint32_t seed) {
+    if (!out_num_levels) return;
+    *out_num_levels = 0;
+    if (!levels) return;
     int section_floor[16];
     int sections[16], section_count = 0;
     prng_seed(seed);
@@ -408,6 +417,9 @@ void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
         section_floor[s] = -1;
         if (architect_allowed_section(seed, s)) sections[section_count++] = s;
     }
+    /* A malformed/future mask must still produce initialized geometry for the
+     * mission loader; the original layout always has at least one section. */
+    if (section_count == 0) sections[section_count++] = 0;
 
     int floors = (seed == 0) ? 1 : 2 + (int)(prng_next() % 4);
     if (floors > section_count) floors = section_count;
@@ -420,7 +432,9 @@ void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
     int root_sections[ARCH_SECTIONS_X], root_count = 0;
     for (int s = 0; s < ARCH_SECTIONS_X; s++)
         if (architect_allowed_section(seed, s)) root_sections[root_count++] = s;
-    int root_section = root_sections[prng_next() % root_count];
+    /* Keep malformed/future section masks from turning root selection into a
+     * modulo-zero operation. */
+    int root_section = root_count > 0 ? root_sections[prng_next() % root_count] : 0;
     section_floor[root_section] = 0;
 
     for (int i = 1; i < floors; i++) {
@@ -471,6 +485,7 @@ void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
 
     for (int f = 0; f < floors; f++) {
         memset(&levels[f], 0, sizeof(levels[f]));
+        levels[f].level = f;
         levels[f].seed = seed;
         for (int y = 0; y < MAP_HEIGHT; y++)
             for (int x = 0; x < MAP_WIDTH; x++)
@@ -516,7 +531,10 @@ void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
 }
 
 void map_generate_exterior(DungeonLevel *exterior, int entrance_x, uint32_t seed) {
+    if (!exterior) return;
     memset(exterior, 0, sizeof(*exterior));
+    if (entrance_x < 1) entrance_x = 1;
+    if (entrance_x >= MAP_WIDTH - 1) entrance_x = MAP_WIDTH - 2;
     exterior->level = -1;
     exterior->seed = seed;
 

@@ -1,4 +1,5 @@
 #include "creature_sprite.h"
+#include <stdint.h>
 #include <string.h>
 
 bool creature_sprite_load(const PL5Image *sheet, CreatureSpriteSet *out) {
@@ -18,7 +19,7 @@ bool creature_sprite_load(const PL5Image *sheet, CreatureSpriteSet *out) {
 
             for (int y = 0; y < CREATURE_FRAME_H; y++) {
                 for (int x = 0; x < CREATURE_FRAME_W; x++) {
-                    uint8_t px = sheet->pixel_data[(sy + y) * PL5_WIDTH + (sx + x)];
+                    uint8_t px = sheet->pixel_data[(size_t)(sy + y) * sheet->width + (sx + x)];
                     f->pixels[y][x] = px;
                     if (px != 0) all_zero = false;
                 }
@@ -35,6 +36,7 @@ void creature_sprite_blit(const CreatureFrame *frame, const uint32_t *palette,
                           uint32_t *framebuffer, int fb_width, int fb_height,
                           int dst_x, int dst_y, int scale) {
     if (!frame || !frame->valid || !palette || !framebuffer) return;
+    if (fb_width <= 0 || fb_height <= 0) return;
     if (scale < 1) scale = 1;
 
     for (int y = 0; y < CREATURE_FRAME_H; y++) {
@@ -44,10 +46,12 @@ void creature_sprite_blit(const CreatureFrame *frame, const uint32_t *palette,
             uint32_t color = palette[idx % PL5_COLORS];
             for (int sy = 0; sy < scale; sy++) {
                 for (int sx = 0; sx < scale; sx++) {
-                    int px = dst_x + x * scale + sx;
-                    int py = dst_y + y * scale + sy;
-                    if (px >= 0 && px < fb_width && py >= 0 && py < fb_height)
-                        framebuffer[py * fb_width + px] = color;
+                    int64_t px = (int64_t)dst_x + (int64_t)x * scale + sx;
+                    int64_t py = (int64_t)dst_y + (int64_t)y * scale + sy;
+                    if (px >= 0 && px < fb_width && py >= 0 && py < fb_height) {
+                        size_t offset = (size_t)py * (size_t)fb_width + (size_t)px;
+                        framebuffer[offset] = color;
+                    }
                 }
             }
         }

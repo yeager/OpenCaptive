@@ -1,4 +1,6 @@
 #include "liberation_combat.h"
+#include "xp_level.h"
+#include <limits.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -13,11 +15,15 @@ static const char *enemy_names[] = {
 };
 
 void lib_combat_init(LibCombatState *cs) {
+    if (!cs) return;
     memset(cs, 0, sizeof(*cs));
 }
 
 void lib_combat_generate_encounter(LibCombatState *cs, uint16_t seed,
                                     int difficulty) {
+    if (!cs) return;
+    if (difficulty < 0) difficulty = 0;
+    if (difficulty > 100) difficulty = 100;
     cs->prng_state = seed;
     cs->active = true;
     cs->turn = 0;
@@ -43,38 +49,57 @@ void lib_combat_generate_encounter(LibCombatState *cs, uint16_t seed,
 }
 
 bool lib_combat_droid_attack(LibCombatState *cs, GameState *gs, int droid_idx) {
-    if (!cs->active || droid_idx < 0 || droid_idx >= 4) return false;
+    if (!cs || !gs || !cs->active || droid_idx < 0 || droid_idx >= 4) return false;
+
+    int enemy_count = cs->enemy_count;
+    if (enemy_count < 0) enemy_count = 0;
+    if (enemy_count > LIB_COMBAT_MAX_ENEMIES)
+        enemy_count = LIB_COMBAT_MAX_ENEMIES;
+    if (cs->selected_target < 0 || cs->selected_target >= enemy_count)
+        return false;
+    LibCombatEnemy *target = &cs->enemies[cs->selected_target];
+    if (!target->alive) return false;
 
     Droid *d = &gs->droids[droid_idx];
     if (d->hp <= 0 || d->energy < 3) return false;
     d->energy -= 3;
-
-    if (cs->selected_target < 0 || cs->selected_target >= cs->enemy_count)
-        return false;
-    LibCombatEnemy *target = &cs->enemies[cs->selected_target];
-    if (!target->alive) return false;
 
     uint16_t dmg_word = d->weapon_damage;
     uint8_t lo = dmg_word & 0xFF;
     uint8_t hi = (dmg_word >> 8) & 0xFF;
     int base = (int)lo * (int)hi;
     if (base <= 0) base = 5;
-    int damage = base - target->defense / 2;
+    int defense = target->defense < 0 ? 0 : target->defense;
+    int damage = base - defense / 2;
     if (damage < 1) damage = 1;
+    if (damage > INT16_MAX) damage = INT16_MAX;
 
-    target->hp -= (int16_t)damage;
+    if (damage >= target->hp)
+        target->hp = 0;
+    else
+        target->hp = (int16_t)(target->hp - damage);
     if (target->hp <= 0) {
         target->alive = false;
-        d->xp += 50;
+        d->xp = xp_add(d->xp, 50U);
+        for (int i = 1; i <= enemy_count; i++) {
+            int next = (cs->selected_target + i) % enemy_count;
+            if (cs->enemies[next].alive) {
+                cs->selected_target = next;
+                break;
+            }
+        }
     }
 
     return true;
 }
 
 void lib_combat_enemy_turn(LibCombatState *cs, GameState *gs) {
-    if (!cs->active) return;
+    if (!cs || !gs || !cs->active) return;
 
-    for (int i = 0; i < cs->enemy_count; i++) {
+    int enemy_count = cs->enemy_count;
+    if (enemy_count < 0) enemy_count = 0;
+    if (enemy_count > LIB_COMBAT_MAX_ENEMIES) enemy_count = LIB_COMBAT_MAX_ENEMIES;
+    for (int i = 0; i < enemy_count; i++) {
         LibCombatEnemy *e = &cs->enemies[i];
         if (!e->alive) continue;
 
@@ -89,17 +114,25 @@ void lib_combat_enemy_turn(LibCombatState *cs, GameState *gs) {
 
         int damage = e->damage - 2;
         if (damage < 1) damage = 1;
-        d->hp -= (int16_t)damage;
+        if (damage >= d->hp)
+            d->hp = 0;
+        else
+            d->hp = (int16_t)(d->hp - damage);
     }
 
-    cs->turn++;
+    /* A corrupted/long-running combat state must not invoke signed overflow. */
+    if (cs->turn < INT_MAX)
+        cs->turn++;
 }
 
 bool lib_combat_is_over(const LibCombatState *cs, const GameState *gs) {
-    if (!cs->active) return true;
+    if (!cs || !gs || !cs->active) return true;
 
     bool enemies_alive = false;
-    for (int i = 0; i < cs->enemy_count; i++) {
+    int enemy_count = cs->enemy_count;
+    if (enemy_count < 0) enemy_count = 0;
+    if (enemy_count > LIB_COMBAT_MAX_ENEMIES) enemy_count = LIB_COMBAT_MAX_ENEMIES;
+    for (int i = 0; i < enemy_count; i++) {
         if (cs->enemies[i].alive) { enemies_alive = true; break; }
     }
     if (!enemies_alive) return true;
@@ -112,7 +145,11 @@ bool lib_combat_is_over(const LibCombatState *cs, const GameState *gs) {
 }
 
 bool lib_combat_player_won(const LibCombatState *cs) {
-    for (int i = 0; i < cs->enemy_count; i++) {
+    if (!cs) return false;
+    int enemy_count = cs->enemy_count;
+    if (enemy_count < 0) enemy_count = 0;
+    if (enemy_count > LIB_COMBAT_MAX_ENEMIES) enemy_count = LIB_COMBAT_MAX_ENEMIES;
+    for (int i = 0; i < enemy_count; i++) {
         if (cs->enemies[i].alive) return false;
     }
     return true;

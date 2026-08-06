@@ -2,6 +2,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <limits.h>
+
+#define LIB_TEXT_MAX_RECURSION 64U
 
 static uint32_t text_prng(uint32_t *state) {
     *state = *state * 0x5E5 + 0x29;
@@ -22,7 +25,9 @@ bool lib_text_table_parse(LibTextTable *table, const uint8_t *data, size_t size)
             unsigned id = 0;
             size_t j = i + 1;
             while (j < size && isdigit((unsigned char)text[j])) {
-                id = id * 10 + (text[j] - '0');
+                unsigned digit = (unsigned)(text[j] - '0');
+                if (id > (UINT_MAX - digit) / 10U) return false;
+                id = id * 10U + digit;
                 j++;
             }
             if (j < size && text[j] == '[') {
@@ -34,6 +39,7 @@ bool lib_text_table_parse(LibTextTable *table, const uint8_t *data, size_t size)
                     else if (text[j] == ']') depth--;
                     if (depth > 0) j++;
                 }
+                if (depth != 0) break;
                 LibTextSection *sec = &table->sections[table->section_count++];
                 sec->id = id;
                 sec->start = text + start;
@@ -57,6 +63,7 @@ const LibTextSection *lib_text_table_find(const LibTextTable *table, unsigned id
 }
 
 void lib_text_state_init(LibTextState *state, uint32_t seed) {
+    if (!state) return;
     memset(state, 0, sizeof(*state));
     state->prng_state = seed;
 }
@@ -80,10 +87,16 @@ static int parse_int(const char *s, size_t len, size_t *pos) {
     int sign = 1, val = 0;
     if (*pos < len && s[*pos] == '-') { sign = -1; (*pos)++; }
     while (*pos < len && isdigit((unsigned char)s[*pos])) {
-        val = val * 10 + (s[*pos] - '0');
+        int digit = s[*pos] - '0';
+        if (val > (INT_MAX - digit) / 10) {
+            val = INT_MAX;
+        } else {
+            val = val * 10 + digit;
+        }
         (*pos)++;
     }
-    return sign * val;
+    if (sign < 0 && val == INT_MAX) return INT_MIN;
+    return sign < 0 ? -val : val;
 }
 
 static void expand_range(const char *s, size_t len, size_t *pos,
@@ -93,8 +106,13 @@ static void expand_range(const char *s, size_t len, size_t *pos,
     if (p < len && s[p] == '-') { p++; }
     int hi = parse_int(s, len, &p);
     if (hi < lo) hi = lo;
-    int range = hi - lo + 1;
-    int val = lo + (int)(text_prng(&state->prng_state) % (unsigned)range);
+    int64_t range = (int64_t)hi - (int64_t)lo + 1;
+    int val = lo;
+    if (range > 0) {
+        int64_t offset = (int64_t)(text_prng(&state->prng_state) %
+                                   (uint32_t)(range > UINT32_MAX ? UINT32_MAX : range));
+        val = (int)((int64_t)lo + offset);
+    }
     char num[16];
     snprintf(num, sizeof(num), "%d", val);
     emit_str(buf, num);
@@ -102,25 +120,11 @@ static void expand_range(const char *s, size_t len, size_t *pos,
 }
 
 static void process_text(const char *s, size_t len, LibTextState *state,
-                         int case_value, OutBuf *buf);
-
-static size_t skip_option(const char *s, size_t len, size_t pos) {
-    int depth = 0;
-    while (pos < len) {
-        if (s[pos] == '[') depth++;
-        else if (s[pos] == ']') {
-            if (depth == 0) return pos;
-            depth--;
-        } else if (s[pos] == '|' && depth == 0) {
-            return pos;
-        }
-        pos++;
-    }
-    return pos;
-}
+                         int case_value, OutBuf *buf, unsigned depth);
 
 static void process_random_option(const char *s, size_t len, size_t *pos,
-                                  LibTextState *state, OutBuf *buf) {
+                                  LibTextState *state, OutBuf *buf,
+                                  unsigned recursion_depth) {
     size_t p = *pos;
     if (p >= len || s[p] != '[') { *pos = p; return; }
     p++;
@@ -152,13 +156,16 @@ static void process_random_option(const char *s, size_t len, size_t *pos,
     else
         opt_end = scan;
 
-    process_text(s + opt_start, opt_end - opt_start, state, 0, buf);
+    if (opt_start <= opt_end && recursion_depth < LIB_TEXT_MAX_RECURSION)
+        process_text(s + opt_start, opt_end - opt_start, state, 0, buf,
+                     recursion_depth + 1U);
 
     *pos = (scan < len) ? scan + 1 : scan;
 }
 
 static void process_case(const char *s, size_t len, size_t *pos,
-                         int case_value, LibTextState *state, OutBuf *buf) {
+                         int case_value, LibTextState *state, OutBuf *buf,
+                         unsigned recursion_depth) {
     size_t p = *pos;
     if (p >= len || s[p] != '[') { *pos = p; return; }
     p++;
@@ -173,7 +180,9 @@ static void process_case(const char *s, size_t len, size_t *pos,
         else if (s[p] == ']') {
             if (depth == 0) {
                 if (current_case == case_value && !found) {
-                    process_text(s + case_start, p - case_start, state, 0, buf);
+                    if (recursion_depth < LIB_TEXT_MAX_RECURSION)
+                        process_text(s + case_start, p - case_start, state, 0,
+                                     buf, recursion_depth + 1U);
                     found = true;
                 }
                 p++;
@@ -182,7 +191,9 @@ static void process_case(const char *s, size_t len, size_t *pos,
             depth--;
         } else if (s[p] == '|' && depth == 0) {
             if (current_case == case_value && !found) {
-                process_text(s + case_start, p - case_start, state, 0, buf);
+                if (recursion_depth < LIB_TEXT_MAX_RECURSION)
+                    process_text(s + case_start, p - case_start, state, 0, buf,
+                                 recursion_depth + 1U);
                 found = true;
             }
             current_case++;
@@ -194,7 +205,7 @@ static void process_case(const char *s, size_t len, size_t *pos,
 }
 
 static void process_text(const char *s, size_t len, LibTextState *state,
-                         int case_value, OutBuf *buf) {
+                         int case_value, OutBuf *buf, unsigned depth) {
     size_t i = 0;
     while (i < len) {
         if (s[i] == '^' && i + 1 < len) {
@@ -211,7 +222,7 @@ static void process_text(const char *s, size_t len, LibTextState *state,
             case 'O': {
                 i++;
                 while (i < len && isdigit((unsigned char)s[i])) i++;
-                process_random_option(s, len, &i, state, buf);
+                process_random_option(s, len, &i, state, buf, depth);
                 break;
             }
             case 'N': {
@@ -223,11 +234,11 @@ static void process_text(const char *s, size_t len, LibTextState *state,
                 i++;
                 if (i < len && s[i] == 'C' && i + 1 < len && s[i + 1] == 'A') {
                     i += 2;
-                    process_case(s, len, &i, case_value, state, buf);
+                    process_case(s, len, &i, case_value, state, buf, depth);
                 } else if (i < len && s[i] == 'O') {
                     i++;
                     while (i < len && isdigit((unsigned char)s[i])) i++;
-                    process_random_option(s, len, &i, state, buf);
+                    process_random_option(s, len, &i, state, buf, depth);
                 } else {
                     while (i < len && s[i] != '\r' && s[i] != '\n'
                            && s[i] != '[' && s[i] != ']' && s[i] != '|') i++;
@@ -293,9 +304,14 @@ bool lib_text_expand(const LibTextTable *table, const LibTextSection *section,
                      LibTextState *state, int case_value,
                      char *out, size_t out_size) {
     if (!table || !section || !state || !out || out_size < 2) return false;
-    (void)table;
+    if (!table->raw || section->length > table->raw_size) return false;
+    uintptr_t raw_start = (uintptr_t)table->raw;
+    uintptr_t section_start = (uintptr_t)section->start;
+    if (section_start < raw_start ||
+        section_start - raw_start > table->raw_size - section->length)
+        return false;
     OutBuf buf = { out, 0, out_size };
-    process_text(section->start, section->length, state, case_value, &buf);
+    process_text(section->start, section->length, state, case_value, &buf, 0U);
     out[buf.pos] = '\0';
     return buf.pos > 0;
 }

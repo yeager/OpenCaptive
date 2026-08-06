@@ -49,7 +49,9 @@ static void fill_rect_vp(uint32_t *fb, int fb_w, int fb_h,
 static void blit_object_scaled(const TextureAtlas *atlas, int frame_idx,
                                uint32_t *fb, int fb_w, int fb_h,
                                int dst_x, int dst_y, int dst_w, int dst_h) {
-    if (atlas->object_sheet < 0) return;
+    if (!atlas || !fb || fb_w <= 0 || fb_h <= 0 ||
+        dst_w <= 0 || dst_h <= 0 || frame_idx < 0 ||
+        atlas->object_sheet < 0) return;
     const Texture *tex = gfx_get(&atlas->gfx, atlas->object_sheet);
     if (!tex) return;
     int col = frame_idx % OBJECT_COLS;
@@ -121,6 +123,7 @@ static void draw_floor_ceiling(uint32_t *fb, int fb_w, int fb_h,
                                 int range, int lateral,
                                 int cell_left, int cell_right,
                                 int vp_x, int vp_y) {
+    (void)lateral;
     const RangeParams *rp = &range_params[range];
     int sheet = atlas->wall_sheets[range < 5 ? range : 4];
     if (sheet < 0) return;
@@ -229,7 +232,8 @@ static void draw_ornament(uint32_t *fb, int fb_w, int fb_h,
 void viewport_render(const CaptiveViewWindow *window,
                      const TextureAtlas *atlas,
                      uint32_t *framebuffer, int fb_width, int fb_height) {
-    if (!window || !atlas || !atlas->loaded || !framebuffer) return;
+    if (!window || !atlas || !atlas->loaded || !framebuffer ||
+        fb_width <= 0 || fb_height <= 0) return;
 
     int vp_x = CAPTIVE_VIEWPORT_X;
     int vp_y = CAPTIVE_VIEWPORT_Y;
@@ -542,12 +546,17 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
     int lx_table[] = {-1, 0, 1, 0};
     int ly_table[] = {0, -1, 0, 1};
 
-    int fwd_dx = dx_table[gs->party_dir];
-    int fwd_dy = dy_table[gs->party_dir];
-    int lat_dx = lx_table[gs->party_dir];
-    int lat_dy = ly_table[gs->party_dir];
+    int safe_dir = (gs->party_dir >= DIR_NORTH && gs->party_dir <= DIR_WEST)
+        ? gs->party_dir : DIR_NORTH;
+    int fwd_dx = dx_table[safe_dir];
+    int fwd_dy = dy_table[safe_dir];
+    int lat_dx = lx_table[safe_dir];
+    int lat_dy = ly_table[safe_dir];
 
-    for (int i = 0; i < cl->num_creatures; i++) {
+    int creature_count = cl->num_creatures;
+    if (creature_count < 0) creature_count = 0;
+    if (creature_count > MAX_CREATURES) creature_count = MAX_CREATURES;
+    for (int i = 0; i < creature_count; i++) {
         const Creature *c = &cl->creatures[i];
         if (!c->active || c->level != gs->current_level) continue;
 
@@ -571,7 +580,8 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
         int sx = cell_cx - sprite_w / 2;
         int sy = rp->top_y + rp->wall_height - sprite_h;
 
-        uint32_t color = (c->type < CREATURE_COUNT) ?
+        uint32_t color = (c->type >= CREATURE_ALIEN1 &&
+                          c->type <= CREATURE_ALIEN6) ?
             creature_colors[c->type] : 0xFF22AA22;
 
         int alien_idx = (c->type >= CREATURE_ALIEN1 && c->type <= CREATURE_ALIEN6)

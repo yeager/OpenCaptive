@@ -6,14 +6,14 @@
 
 static void test_load(void) {
     PL5Image sheet;
-    sheet.width = PL5_WIDTH;
+    sheet.width = PL5_WIDTH + 16;
     sheet.height = PL5_HEIGHT;
-    sheet.data_size = PL5_PIXEL_COUNT;
-    sheet.pixel_data = calloc(PL5_PIXEL_COUNT, 1);
+    sheet.data_size = (size_t)sheet.width * sheet.height;
+    sheet.pixel_data = calloc(sheet.data_size, 1);
     assert(sheet.pixel_data);
     memset(sheet.palette, 0, sizeof(sheet.palette));
 
-    sheet.pixel_data[3 * PL5_WIDTH + 3] = 5;
+    sheet.pixel_data[3 * sheet.width + 3] = 5;
 
     ObjectSpriteSet oss;
     assert(object_sprite_load(&sheet, &oss));

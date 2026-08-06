@@ -21,6 +21,7 @@ static const char *bar_item_names[] = {
 };
 
 void lib_shop_init(LibShopState *shop, const CityBuilding *building, uint16_t seed) {
+    if (!shop || !building) return;
     memset(shop, 0, sizeof(*shop));
     shop->prng_seed = seed;
     shop->building_type = (BuildingType)building->type;
@@ -29,6 +30,7 @@ void lib_shop_init(LibShopState *shop, const CityBuilding *building, uint16_t se
 }
 
 void lib_shop_generate_inventory(LibShopState *shop) {
+    if (!shop) return;
     uint16_t state = shop->prng_seed;
     int count = 4 + (shop_prng(&state) & 7);
     if (count > LIB_SHOP_MAX_ITEMS) count = LIB_SHOP_MAX_ITEMS;
@@ -46,6 +48,7 @@ void lib_shop_generate_inventory(LibShopState *shop) {
 }
 
 void lib_shop_generate_bar_menu(LibShopState *shop) {
+    if (!shop) return;
     uint16_t state = shop->prng_seed;
     int count = 3 + (shop_prng(&state) & 3);
     if (count > LIB_SHOP_MAX_ITEMS) count = LIB_SHOP_MAX_ITEMS;
@@ -63,7 +66,8 @@ void lib_shop_generate_bar_menu(LibShopState *shop) {
 }
 
 bool lib_shop_buy_item(LibShopState *shop, unsigned item_idx, uint32_t *gold) {
-    if (!shop || !gold || item_idx >= shop->item_count) return false;
+    if (!shop || !gold || shop->item_count > LIB_SHOP_MAX_ITEMS ||
+        item_idx >= shop->item_count || item_idx >= LIB_SHOP_MAX_ITEMS) return false;
 
     LibShopItem *item = &shop->items[item_idx];
     if (item->quantity == 0) return false;
@@ -80,6 +84,7 @@ bool lib_shop_sell_item(LibShopState *shop, const char *name, uint16_t price,
     if (shop->item_count >= LIB_SHOP_MAX_ITEMS) return false;
 
     uint16_t sell_price = price / 2;
+    if ((uint32_t)sell_price > UINT32_MAX - *gold) return false;
     *gold += sell_price;
 
     LibShopItem *item = &shop->items[shop->item_count++];
@@ -92,6 +97,7 @@ bool lib_shop_sell_item(LibShopState *shop, const char *name, uint16_t price,
 }
 
 void lib_shop_generate_dialogue(LibShopState *shop, const char *npc_name) {
+    if (!shop || !npc_name) return;
     DialogueTree *tree = &shop->dialogue;
     dialogue_tree_init(tree);
 
@@ -106,7 +112,7 @@ void lib_shop_generate_dialogue(LibShopState *shop, const char *npc_name) {
         _("I might have heard something. Check back later."), exit_node);
 
     unsigned choice = dialogue_tree_add_choice(tree, npc_name, greeting);
-    dialogue_tree_add_option(tree, choice, _("Buy/Sell"), trade_text);
+    dialogue_tree_add_option(tree, choice, _("Buy"), trade_text);
     dialogue_tree_add_option(tree, choice, _("Any news?"), info_text);
     dialogue_tree_add_option(tree, choice, _("Leave"), exit_node);
 }

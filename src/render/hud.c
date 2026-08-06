@@ -1,6 +1,7 @@
 #include "hud.h"
 #include "opencaptive.h"
 #include "xp_level.h"
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -64,10 +65,14 @@ static void draw_hp_bar(uint32_t *pixels, int w, int h,
     // Background
     fill_rect(pixels, w, h, x, y, bar_w, bar_h, 0xFF222222);
 
+    if (maximum <= 0) return;
+    if (current < 0) current = 0;
+    if (current > maximum) current = maximum;
+
     // Fill
-    int fill_w = (current * (bar_w - 2)) / maximum;
+    int fill_w = (int)(((int64_t)current * (bar_w - 2)) / maximum);
     uint32_t fill_color;
-    int pct = (current * 100) / maximum;
+    int pct = (int)(((int64_t)current * 100) / maximum);
     if (pct > 60) fill_color = 0xFF00AA00;
     else if (pct > 30) fill_color = 0xFFAAAA00;
     else fill_color = 0xFFAA0000;
@@ -87,6 +92,11 @@ static void draw_hp_bar(uint32_t *pixels, int w, int h,
 
 static void draw_minimap(const GameState *gs, uint32_t *pixels, int w, int h,
                          int ox, int oy, int mw, int mh) {
+    if (gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->current_level >= MAX_LEVELS) {
+        fill_rect(pixels, w, h, ox, oy, mw, mh, 0xFF111111);
+        return;
+    }
     const DungeonLevel *lvl = &gs->levels[gs->current_level];
 
     fill_rect(pixels, w, h, ox, oy, mw, mh, 0xFF111111);
@@ -143,6 +153,7 @@ static void draw_minimap(const GameState *gs, uint32_t *pixels, int w, int h,
 }
 
 void hud_render(const GameState *gs, uint32_t *pixels, int width, int height) {
+    if (!gs || !pixels || width <= 0 || height <= 0) return;
     // HUD area: below viewport (y >= CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT)
     int hud_y = CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT + 4;
 
@@ -214,8 +225,10 @@ void hud_render(const GameState *gs, uint32_t *pixels, int width, int height) {
     // Instead draw a directional indicator
     int cx = compass_x + 10;
     int cy = compass_y + 10;
-    int arrow_dx = dir_dx[gs->party_dir] * 6;
-    int arrow_dy = dir_dy[gs->party_dir] * 6;
+    int safe_dir = (gs->party_dir >= DIR_NORTH && gs->party_dir <= DIR_WEST)
+        ? gs->party_dir : DIR_NORTH;
+    int arrow_dx = dir_dx[safe_dir] * 6;
+    int arrow_dy = dir_dy[safe_dir] * 6;
     for (int i = -3; i <= 3; i++) {
         put_pixel(pixels, width, height, cx + arrow_dx + (arrow_dy ? 0 : i),
                   cy + arrow_dy + (arrow_dx ? 0 : i), 0xFFFFFF00);

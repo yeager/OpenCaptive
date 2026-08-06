@@ -1,5 +1,6 @@
 #include "custom_features.h"
 #include "game_state.h"
+#include <math.h>
 #include <string.h>
 
 static uint32_t alpha_blend(uint32_t bg, uint32_t fg, float opacity) {
@@ -19,13 +20,14 @@ void minimap_render(uint32_t *fb, int fb_w, int fb_h,
                     const void *level_ptr, int party_x, int party_y,
                     int party_dir, const bool *visited,
                     const CustomFeatures *feat) {
-    if (!feat->minimap || !level_ptr) return;
+    if (!feat || !feat->minimap || !fb || fb_w <= 0 || fb_h <= 0 || !level_ptr) return;
 
     const DungeonLevel *level = (const DungeonLevel *)level_ptr;
     int size = feat->minimap_size;
     if (size < 32) size = 32;
     if (size > 192) size = 192;
     float opacity = feat->minimap_opacity;
+    if (!isfinite(opacity)) opacity = 0.5f;
     if (opacity < 0.1f) opacity = 0.1f;
     if (opacity > 1.0f) opacity = 1.0f;
 
@@ -45,7 +47,7 @@ void minimap_render(uint32_t *fb, int fb_w, int fb_h,
 
             if (mx >= 0 && mx < MAP_WIDTH && my >= 0 && my < MAP_HEIGHT) {
                 bool show = true;
-                if (visited) {
+                if (visited && level->level >= 0 && level->level < MAX_LEVELS) {
                     int idx = level->level * MAP_WIDTH * MAP_HEIGHT + my * MAP_WIDTH + mx;
                     show = visited[idx];
                 }
@@ -88,9 +90,10 @@ void minimap_render(uint32_t *fb, int fb_w, int fb_h,
     int arrow_len = 3;
     static const int dir_dx[] = {0, 1, 0, -1};
     static const int dir_dy[] = {-1, 0, 1, 0};
+    int safe_dir = party_dir & 3;
     for (int i = 1; i <= arrow_len; i++) {
-        int ax = arrow_cx + dir_dx[party_dir] * i;
-        int ay = arrow_cy + dir_dy[party_dir] * i;
+        int ax = arrow_cx + dir_dx[safe_dir] * i;
+        int ay = arrow_cy + dir_dy[safe_dir] * i;
         if (ax >= 0 && ax < fb_w && ay >= 0 && ay < fb_h)
             fb[ay * fb_w + ax] = 0xFFFFFF00;
     }

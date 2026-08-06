@@ -7,8 +7,11 @@
 
 #define LIB3D_VP_WIDTH  256
 #define LIB3D_VP_HEIGHT 160
-#define LIB3D_MAX_PROJECTED 256
-#define LIB3D_MAX_VISIBLE_POLYS 512
+/* The city viewport submits one small object per visible ground/wall cell.
+ * Keep enough persistent projection slots for the complete 17x17 view, not
+ * just the first few objects encountered by the renderer. */
+#define LIB3D_MAX_PROJECTED 8192
+#define LIB3D_MAX_VISIBLE_POLYS 4096
 #define LIB3D_NEAR_CLIP 4
 #define LIB3D_MAX_TEX_SIZE 128
 
@@ -28,7 +31,7 @@ typedef struct {
 
 typedef struct {
     uint8_t  vertex_count;
-    uint8_t  vertex_indices[8];
+    uint16_t vertex_indices[8];
     uint16_t color;
     uint16_t flags;
     int16_t  normal_x, normal_y;
@@ -52,9 +55,13 @@ typedef struct {
     uint32_t sky_color;
     uint32_t ground_color;
     uint8_t  wall_color_base;
+    bool     texture_filter;
+    bool     dynamic_lighting;
 } Lib3dState;
 
 void lib3d_init(Lib3dState *state);
+void lib3d_set_texture_filter(Lib3dState *state, bool enabled);
+void lib3d_set_dynamic_lighting(Lib3dState *state, bool enabled);
 void lib3d_set_camera(Lib3dState *state, float x, float y, float z, float yaw);
 void lib3d_clear(Lib3dState *state, uint32_t sky_color, uint32_t ground_color);
 void lib3d_render_object(Lib3dState *state, const X3gObject *obj,

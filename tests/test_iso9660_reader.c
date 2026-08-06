@@ -51,9 +51,23 @@ int main(void) {
         "a5b612c96f272ac9ba5651c3326c6f74ec8212df0cf956c553a5ce9909594edf", NULL);
     assert(file && memcmp(file, "NESTED", 6) == 0);
     free(file);
+    file = iso_read_file(&iso, entries[0].lba, 0);
+    assert(file != NULL);
+    free(file);
+
+    assert(!iso_open_raw(&iso, NULL, 0));
+    assert(iso.data == NULL && iso.size == 0 && iso.root_lba == 0);
+    assert(!iso_open(&iso, NULL, 0));
+    assert(iso.data == NULL && iso.size == 0 && iso.root_lba == 0);
+
+    pvd[0] = 0; /* A failed reopen must leave no partially opened image. */
+    assert(!iso_open_raw(&iso, image, sizeof(image)));
+    assert(iso.data == NULL && iso.size == 0 && iso.root_lba == 0);
 
     root[0] = 250; root[32] = 250;
     assert(iso_list_root(&iso, entries, 2) == 0);
+    assert(iso_list_dir(&iso, UINT32_MAX, UINT32_MAX, entries, 2) == 0);
+    assert(!iso_read_file(&iso, UINT32_MAX, ISO_SECTOR_SIZE));
     puts("All ISO9660 reader tests passed");
     return 0;
 }

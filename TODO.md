@@ -16,6 +16,9 @@
 - [x] Implement damage formula: lo*hi byte encoding, shift-left scaling
 - [x] Recover real level-up and XP formulas
 - [x] Verify spawn placement algorithm against original
+- [ ] Reconstruct the original spawn-record modifier byte (`[di+9]`) and
+      feed it into HP calculation; current simplified spawning derives it
+      from creature type and does not yet model the original record.
 
 ### Map generation
 - [x] Recover cellular automaton rule types from 0x39CC-0x3C21 (maze/rooms/open/mixed)

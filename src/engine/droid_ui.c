@@ -1,5 +1,6 @@
 #include "droid_ui.h"
 #include "xp_level.h"
+#include <limits.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -56,6 +57,7 @@ static void draw_txt(uint32_t *fb, int pw, int ph,
 }
 
 void droid_ui_init(DroidUIState *ui, int droid_idx) {
+    if (!ui) return;
     memset(ui, 0, sizeof(*ui));
     ui->droid_idx = droid_idx;
     ui->active = true;
@@ -67,8 +69,11 @@ static const char *body_part_names[] = {
 
 void droid_ui_render(const DroidUIState *ui, const GameState *gs,
                      const ItemDatabase *db, uint32_t *pixels, int width, int height) {
+    if (!ui || !gs || !db || !pixels || width <= 0 || height <= 0 ||
+        ui->droid_idx < 0 || ui->droid_idx >= 4) return;
     // Dark overlay
-    for (int i = 0; i < width * height; i++)
+    size_t pixel_count = (size_t)width * (size_t)height;
+    for (size_t i = 0; i < pixel_count; i++)
         pixels[i] = (pixels[i] & 0xFF000000) | ((pixels[i] & 0xFEFEFE) >> 1);
 
     const Droid *d = &gs->droids[ui->droid_idx];
@@ -148,21 +153,36 @@ void droid_ui_render(const DroidUIState *ui, const GameState *gs,
 }
 
 void droid_recalc_weapon_damage(Droid *d, const ItemDatabase *db) {
+    if (!d || !db) return;
     uint16_t best = 0;
+    int best_damage = 0;
     for (int w = 0; w < 2; w++) {
         if (d->weapons[w] == 0) continue;
         const Item *item = item_db_get(db, d->weapons[w]);
         if (!item) continue;
+        /* Combat stores both components in one byte.  Do not let a malformed
+         * signed database value wrap into a high-damage weapon. */
+        if (item->damage_min < 0 || item->damage_min > UINT8_MAX ||
+            item->damage_max < 0 || item->damage_max > UINT8_MAX)
+            continue;
         uint8_t lo = (uint8_t)item->damage_min;
         uint8_t hi = (uint8_t)item->damage_max;
         uint16_t encoded = (uint16_t)lo | ((uint16_t)hi << 8);
-        if (encoded > best) best = encoded;
+        int damage = (int)lo * (int)hi;
+        if (damage > best_damage || (damage == best_damage && encoded > best)) {
+            best_damage = damage;
+            best = encoded;
+        }
     }
     d->weapon_damage = best;
 }
 
 bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db, int key) {
+    if (!ui || !gs || !db || !ui->active || ui->droid_idx < 0 || ui->droid_idx >= 4 ||
+        ui->cursor < 0 ||
+        (ui->ui_mode != DROID_UI_EQUIP && ui->ui_mode != DROID_UI_INVENTORY)) return false;
     int max_cursor = (ui->ui_mode == DROID_UI_EQUIP) ? 7 : 9;
+    if (ui->cursor > max_cursor) return false;
 
     switch (key) {
         case 0x50:
@@ -182,9 +202,14 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db
                 uint8_t item_id = d->items[ui->cursor];
                 if (item_id == 0) return true;
                 const Item *use_item = item_db_get(db, item_id);
+                if (!use_item) return false;
                 if (use_item && use_item->category == ITEM_BATTERY) {
-                    d->energy += 50;
-                    if (d->energy > d->energy_max) d->energy = d->energy_max;
+                    if (d->energy < 0 || d->energy_max < 0 ||
+                        d->energy > d->energy_max) return false;
+                    int charged = (int)d->energy + 50;
+                    if (charged > d->energy_max) charged = d->energy_max;
+                    if (charged > INT16_MAX) charged = INT16_MAX;
+                    d->energy = (int16_t)charged;
                     d->items[ui->cursor] = 0;
                     return true;
                 }
@@ -199,6 +224,9 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db
                         return true;
                     }
                 }
+                if (use_item->category < ITEM_WEAPON_MELEE ||
+                    use_item->category > ITEM_WEAPON_SPRAY)
+                    return false;
                 for (int w = 0; w < 2; w++) {
                     if (d->weapons[w] == 0) {
                         d->weapons[w] = item_id;

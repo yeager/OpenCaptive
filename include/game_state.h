@@ -3,6 +3,8 @@
 
 #include "opencaptive.h"
 
+#define LIBERATION_MISSION_BITMAP_BYTES 32
+
 // Map dimensions
 #define MAP_WIDTH   64
 #define MAP_HEIGHT  32
@@ -143,6 +145,7 @@ typedef struct {
 
     // Reputation (Liberation)
     int         reputation; // -100 to +100, starts at 0
+    uint8_t     lib_mission_complete[LIBERATION_MISSION_BITMAP_BYTES];
 
     // UI state
     int         selected_droid;  // 0-3
@@ -152,6 +155,7 @@ typedef struct {
 
 void game_state_init(GameState *gs, GameType type, int mission);
 void game_state_new_mission(GameState *gs, int mission);
+void game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed);
 bool game_state_change_floor(GameState *gs, int direction);
 bool game_state_complete_mission(GameState *gs);
 

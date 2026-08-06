@@ -9,6 +9,10 @@ static void test_init(void) {
     assert(!adlib_sfx_is_playing(&player));
 }
 
+static void test_null_is_playing(void) {
+    assert(!adlib_sfx_is_playing(NULL));
+}
+
 static void test_play_all_sequences(void) {
     /* Verify all 49 SFX sequences can be started and rendered without crashing */
     for (int i = 0; i < CAPTIVE_SFX_COUNT; i++) {
@@ -63,6 +67,7 @@ static void test_invalid_id(void) {
 
 int main(void) {
     test_init();
+    test_null_is_playing();
     test_play_all_sequences();
     test_produces_audio();
     test_stop_all();

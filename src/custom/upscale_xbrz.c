@@ -1,4 +1,5 @@
 #include "custom_features.h"
+#include <limits.h>
 #include <string.h>
 #include <math.h>
 
@@ -20,13 +21,6 @@ static inline uint32_t blend(uint32_t c1, uint32_t c2, int w1, int w2) {
         (uint8_t)((get_b(c1) * w1 + get_b(c2) * w2) / total));
 }
 
-static inline int color_dist(uint32_t c1, uint32_t c2) {
-    int dr = (int)get_r(c1) - (int)get_r(c2);
-    int dg = (int)get_g(c1) - (int)get_g(c2);
-    int db = (int)get_b(c1) - (int)get_b(c2);
-    return dr * dr + dg * dg + db * db;
-}
-
 static inline uint32_t sample(const uint32_t *src, int w, int h, int x, int y) {
     if (x < 0) x = 0;
     if (y < 0) y = 0;
@@ -35,8 +29,16 @@ static inline uint32_t sample(const uint32_t *src, int w, int h, int x, int y) {
     return src[y * w + x];
 }
 
+static inline bool upscale_args_valid(const uint32_t *src, int src_w,
+                                      int src_h, uint32_t *dst, int factor) {
+    return src != NULL && dst != NULL && src_w > 0 && src_h > 0 &&
+           factor > 0 && src_w <= INT_MAX / factor &&
+           src_h <= INT_MAX / factor;
+}
+
 void upscale_xbrz_2x(const uint32_t *src, int src_w, int src_h,
                       uint32_t *dst) {
+    if (!upscale_args_valid(src, src_w, src_h, dst, 2)) return;
     int dst_w = src_w * 2;
 
     for (int y = 0; y < src_h; y++) {
@@ -67,6 +69,7 @@ void upscale_xbrz_2x(const uint32_t *src, int src_w, int src_h,
 
 void upscale_xbrz_3x(const uint32_t *src, int src_w, int src_h,
                       uint32_t *dst) {
+    if (!upscale_args_valid(src, src_w, src_h, dst, 3)) return;
     int dst_w = src_w * 3;
 
     for (int y = 0; y < src_h; y++) {
@@ -106,6 +109,7 @@ void upscale_xbrz_3x(const uint32_t *src, int src_w, int src_h,
 
 void upscale_xbrz_4x(const uint32_t *src, int src_w, int src_h,
                       uint32_t *dst) {
+    if (!upscale_args_valid(src, src_w, src_h, dst, 4)) return;
     int dst_w = src_w * 4;
 
     for (int y = 0; y < src_h; y++) {
@@ -115,11 +119,6 @@ void upscale_xbrz_4x(const uint32_t *src, int src_w, int src_h,
             uint32_t d = sample(src, src_w, src_h, x - 1, y);
             uint32_t f = sample(src, src_w, src_h, x + 1, y);
             uint32_t h = sample(src, src_w, src_h, x, y + 1);
-            uint32_t a = sample(src, src_w, src_h, x - 1, y - 1);
-            uint32_t c = sample(src, src_w, src_h, x + 1, y - 1);
-            uint32_t g = sample(src, src_w, src_h, x - 1, y + 1);
-            uint32_t i = sample(src, src_w, src_h, x + 1, y + 1);
-
             uint32_t p[16];
             for (int k = 0; k < 16; k++) p[k] = e;
 

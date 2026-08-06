@@ -47,6 +47,11 @@ int main(void) {
                                                  &decoded, &decoded_size,
                                                  &progress));
 
+    uint8_t oversized[8] = {0, 0, 1, 0, 0x08, 0, 0, 0};
+    assert(!liberation_pack_decode_with_progress(oversized, sizeof(oversized),
+                                                 &decoded, &decoded_size,
+                                                 &progress));
+
     uint8_t form[12 + 8 + 64 + 8 + 28 + 8 + 8] = {0};
     memcpy(form, "FORM", 4);
     write_be32(form + 4, sizeof(form) - 8U);
@@ -100,5 +105,13 @@ int main(void) {
            record.timing_multiplier == 0x50 && record.bytes[2] == 0x50);
     assert(!liberation_anim_script_record_at(&script, 1, &record));
     liberation_anim_script_free(&script);
+
+    /* Chunks beyond the declared FORM extent must not be considered part of
+       the animation merely because the backing buffer contains more bytes. */
+    write_be32(form + 4, 76U); /* FORM ends immediately after PALL */
+    assert(!liberation_anim_decode_first_frame(form, sizeof(form), &frame));
+    assert(!liberation_anim_decode_pack(form, sizeof(form), &all_pack,
+                                        &all_pack_size));
+    assert(!liberation_anim_extract_script(form, sizeof(form), &script));
     return 0;
 }

@@ -1,5 +1,548 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Fast travel flag)
+
+- Liberation-taxi kräver nu `--fast-travel` eller motsvarande konfiguration,
+  i linje med kommandoradens dokumenterade betydelse.
+
+## 2026-08-06 (Audio mixer bounds)
+
+- Ljudmixern klipper nu extrema volymvärden innan flyttal konverteras till
+  heltal och använder 64-bitars ackumulering för att undvika odefinierat
+  beteende vid korrupta eller extrema ljudparametrar.
+
+## 2026-08-06 (Speed control without FPS cap)
+
+- Hastighetskontrollen fungerar nu även när FPS-begränsningen står på
+  `UNLIMITED`; den använder då 60 FPS som referenskadens.
+
+## 2026-08-06 (Creature movement collision)
+
+- Captive-fiender kan inte längre flytta in på spelarens ruta under jakt.
+  Spelarrutan behandlas nu som blockerad i fiendens rörelse.
+
+## 2026-08-06 (Game speed control)
+
+- Captives hastighetsinställning påverkar nu faktiskt frame-/tickfrekvensen;
+  tidigare ändrades värdet av meny och tangentbord men användes inte i
+  huvudloopen.
+
+## 2026-08-06 (Custom feature bounds)
+
+- Konfigurationsläsningen återställer nu ogiltiga numeriska värden för
+  upplösning, minimap, hastighet, mus, reverb och ljudsamplingsfrekvens innan
+  de når renderings- och ljudsystemen.
+
+## 2026-08-06 (Spawn direction validation)
+
+- Captive-spawn avvisar nu ogiltiga riktningar innan subcell- och flanklogik
+  körs. Regressionstest tillagt.
+
+## 2026-08-06 (Liberation game tick)
+
+- Liberation-stadsspelet ökar nu den gemensamma tickräknaren. Dygnscykel och
+  mötesslump fortsätter därför att utvecklas under stadsspel.
+
+## 2026-08-06 (POT project metadata)
+
+- Restored OpenCaptive project metadata in `po/messages.pot` after template
+  regeneration had replaced it with generic `PACKAGE VERSION` fields.
+- POT plus all 18 locale files pass `msgfmt --check`.
+
+## 2026-08-06 (Police fine refusal)
+
+- Leaving a police interaction after a bar fight now records a fine refusal
+  and starts a police encounter, matching the documented Liberation rule.
+- Added interaction regression coverage; strict build and all 54 CTest tests
+  pass.
+
+## 2026-08-06 (Dialogue choice validation)
+
+- Special-building mission state is now set only for a valid “Investigate”
+  choice; invalid choice indices cannot mutate the interaction state.
+- Added negative-path regression coverage; strict build and all 54 CTest tests
+  pass.
+
+## 2026-08-06 (Special-building dialogue choice)
+
+- Special buildings now enter their dungeon only after the player chooses
+  “Investigate”; choosing “Leave” no longer completes the mission.
+- Added regression coverage for both choices; strict build and all 54 CTest
+  tests pass.
+
+## 2026-08-06 (Liberation shop discount state reset)
+
+- Entering a new building now resets the one-time reputation pricing flag.
+- A second shop visit correctly applies the high-reputation discount again;
+  targeted and all 54 CTest tests pass.
+
+## 2026-08-06 (Holamap base placement fallback)
+
+- Holamap base generation now falls back to a deterministic valid land cell
+  when random placement attempts are exhausted, instead of leaving a base at
+  invalid coordinate `(0,0)`.
+- Added a 512-seed coordinate regression sweep; strict build and all 54 CTest
+  tests pass.
+
+## 2026-08-06 (Liberation font width saturation)
+
+- Font text-width calculation now saturates at `INT_MAX` instead of wrapping
+  for extremely long or corrupt text strings.
+- Added a long-string regression test; strict build and all 54 CTest tests
+  pass.
+
+## 2026-08-06 (CTV continuation length overflow)
+
+- CTV continuation blocks now combine sample lengths using `size_t` and
+  reject totals beyond the format's 32-bit length field before reallocating.
+- Empty-sample continuation is covered by a regression test; strict build and
+  all 54 CTest tests pass.
+
+## 2026-08-06 (PACK decompression allocation bound)
+
+- Liberation PACK decoding now rejects segments larger than the supported
+  output limit before growing its destination buffer.
+- Added an oversized-segment regression test; strict build and all 54 CTest
+  tests pass.
+
+## 2026-08-06 (ArcD decompression allocation bound)
+
+- ArcD now rejects zero or unreasonable advertised output sizes before
+  callers allocate the decompression buffer.
+- This prevents corrupt Liberation archives from requesting multi-gigabyte
+  allocations; decoder regression and all 54 CTest tests pass.
+
+## 2026-08-06 (CityGen road-feature boundary checks)
+
+- Road-feature placement now validates adjacent x/y coordinates before
+  indexing the 64×64 grid, preventing horizontal row wrapping at edges.
+- Advanced-generation seed sweep and all 54 CTest tests pass.
+
+## 2026-08-06 (CityGen row-boundary traversal)
+
+- CityGen's building-origin walk now validates grid coordinates before moving
+  to a neighbour, preventing east/west traversal from wrapping between rows.
+- Strict build and all 54 CTest tests pass.
+
+## 2026-08-06 (Cross-save droid-name termination)
+
+- Cross-save imports now NUL-terminate each fixed-width droid name before the
+  restored state can use it as a C string.
+- Prevents `%s` consumers from reading into following serialized fields.
+- Strict build and custom/save-load tests pass.
+
+## 2026-08-06 (PPM CRLF header handling)
+
+- PPM frame loading now consumes the complete CRLF separator before reading
+  binary RGB data, preventing Windows-formatted headers from shifting pixels.
+- Strict build and frame/start-menu tests pass.
+
+## 2026-08-06 (VFS path NUL termination)
+
+- The configured VFS data path is now explicitly NUL-terminated after the
+  bounded copy, including when the input reaches the field limit.
+- Data-VFS, start-menu, and i18n tests pass with the strict build.
+
+## 2026-08-06 (HUD HP-bar arithmetic overflow)
+
+- HP-bar fill-width and percentage calculations now use 64-bit intermediates,
+  preventing signed overflow from extreme or corrupt HP values.
+- Strict build and relevant HUD/game-state rendering tests pass.
+
+## 2026-08-06 (Creature sprite coordinate overflow)
+
+- Creature sprite blitting now uses 64-bit intermediate coordinates and
+  validates framebuffer dimensions before indexing.
+- Extreme scale or destination values can no longer overflow signed integers
+  before clipping.
+- Strict build and creature-sprite test pass.
+
+## 2026-08-06 (Object sprite coordinate overflow)
+
+- Sprite blitting now computes scaled destination coordinates in `int64_t`
+  before clipping, preventing signed overflow from corrupt scale or position
+  values.
+- Framebuffer dimensions are validated before calculating the pixel offset.
+- Strict build and object-sprite test pass.
+
+## 2026-08-06 (Texture sampling coordinate overflow)
+
+- Texture-region coordinates are now validated against the loaded texture
+  before offset arithmetic is performed.
+- Corrupt negative or excessively large regions now return the fallback color
+  without signed overflow or an invalid pixel index.
+- Strict build and relevant rendering tests pass.
+
+## 2026-08-06 (PO field NUL termination)
+
+- Localization entries now use bounded copies that always add a terminating
+  NUL byte, including at the maximum supported PO field length.
+- Prevents `strcmp` from reading past an unterminated `msgid` or `msgstr`.
+- The i18n test and strict build pass.
+
+## 2026-08-06 (Liberation combat turn-counter overflow)
+
+- The enemy-turn counter now saturates at `INT_MAX` instead of invoking signed
+  overflow after an extremely long or corrupted combat state.
+- Added a regression test; strict compilation and the Liberation combat test
+  pass.
+
+## 2026-08-06 (Sound playback position overflow)
+
+- Sound channel position updates now avoid `uint32_t` wraparound at extreme
+  pitch/sample-rate combinations.
+- Sample lookup now checks the floating-point position before converting it to
+  an integer, avoiding out-of-range float-to-integer casts.
+- Looping channels wrap modulo sample length; non-looping channels stop when
+  the advance reaches the sample end.
+- Audio-related tests and strict build pass.
+
+## 2026-08-06 (VFS cache-write file cleanup)
+
+- VFS cache writes now close the data file even when the cache payload write
+  fails, instead of relying on a short-circuiting condition.
+- Data-VFS regression test passes after the change.
+
+## 2026-08-06 (PPM reader file cleanup)
+
+- PPM frame loading now always closes its input file, including trailing-byte
+  and read-error paths.
+- The main executable rebuilds cleanly and frame-comparison tests pass.
+
+## 2026-08-06 (Config-save file descriptor cleanup)
+
+- Custom feature saving now evaluates write status and `fclose` separately,
+  ensuring the file is closed even when a write error occurs.
+- The custom-features regression test passes after the change.
+
+## 2026-08-06 (Config-load file descriptor cleanup)
+
+- Custom feature loading now always closes its configuration file, including
+  when `ferror()` reports a read failure.
+- The successful-load regression suite remains green.
+
+## 2026-08-06 (Dialogue start-state reset)
+
+- `dialogue_state_start` now clears `active` before validating the tree, so
+  reusing a state with an empty or corrupt tree cannot leave stale dialogue
+  activity enabled.
+- Added regression coverage for restarting with an invalid node count.
+
+## 2026-08-06 (Dialogue invalid-node shutdown)
+
+- `dialogue_state_advance` now deactivates the dialogue when its current node
+  is invalid, preventing a permanently active state after corrupted data.
+- Added regression coverage for an invalid current-node index.
+
+## 2026-08-06 (Building interaction failed-enter reset)
+
+- A failed Liberation building-enter attempt now clears any previously active
+  interaction state, preventing stale dialogue/shop state from remaining live.
+- Added regression coverage for reusing an interaction object after failure.
+
+## 2026-08-06 (Invalid Liberation building type)
+
+- Building interaction now rejects catalog entries with an unknown building
+  type instead of activating an `INTERACT_NONE` dialogue session.
+- Added regression coverage for an invalid catalog type.
+
+## 2026-08-06 (NPC dialogue state validation)
+
+- Liberation NPC dialogue generation now rejects values outside the defined
+  `NPCState` range instead of silently selecting the wrong dialogue branch.
+- Added regression coverage for negative and oversized enum values.
+
+## 2026-08-06 (X3G polygon allocation failure)
+
+- X3G parsing now rejects an object when its parsed polygon array cannot be
+  allocated, instead of silently returning a model with missing polygons.
+- Existing X3G regression suite passes with the stricter failure behavior.
+
+## 2026-08-06 (X3G malformed-padding cleanup)
+
+- X3G opening now frees already parsed objects when an odd-sized FORM/OFFS
+  chunk ends without its required padding byte.
+- This closes a malformed-input leak path without changing valid resources.
+
+## 2026-08-06 (VGM sprite-width consistency)
+
+- VGM bank validation now applies the same representable pixel-width limit as
+  the underlying AmSp decoder, preventing banks that later fail at sprite
+  access time.
+- Added regression coverage for an oversized sprite width.
+
+## 2026-08-06 (Transactional ImgA opening)
+
+- ImgA sprite-bank opening now commits its pointer, offsets, and flags only
+  after the complete sprite table validates.
+- Added regression coverage for a failed reopen clearing the previous image.
+
+## 2026-08-06 (Transactional ISO opening)
+
+- ISO9660 normal- and raw-mode opening now commits `ISOImage` state only
+  after the primary volume descriptor validates successfully.
+- Added regression coverage for a failed reopen leaving a clean image state.
+
+## 2026-08-06 (Transactional ADF opening)
+
+- ADF validation now writes the disk state only after the boot and root
+  blocks pass validation; failed reopen attempts leave a clean closed state.
+- Added regression coverage for invalidating an already-open disk.
+
+## 2026-08-06 (Atari ST BPB geometry validation)
+
+- ST/FAT12 disk images now reject zero or inconsistent BPB total-sector
+  values before directory and cluster offsets are used.
+- Added regression coverage for a declared disk geometry too small to contain
+  the computed data area.
+
+## 2026-08-06 (CTV zero-rate validation)
+
+- CTV/VOC block type 9 now rejects a zero sample rate instead of producing an
+  invalid audio sample for later playback code.
+- Added regression coverage for the malformed new-format block.
+
+## 2026-08-06 (Amiga sprite width validation)
+
+- The Amiga sprite parser now rejects source rows wider than the public
+  `uint16_t` pixel-width field can represent instead of silently truncating
+  the geometry.
+- Added regression coverage for the oversized-width header.
+
+## 2026-08-06 (Complete latest launcher localization)
+
+- Filled the remaining `MUSIC` and `SFX` translations in all 18 shipped PO
+  catalogs; English remains the built-in fallback for the 19-language cycle.
+- Recompiled all 18 MO catalogs and verified them with `msgfmt --check`.
+
+## 2026-08-06 (Captive new-game reset)
+
+- A new Captive session from the start menu now resets the game state,
+  creatures, and puzzles instead of reusing the previous session's dungeon.
+- Save continuation remains on the separate load path.
+- If a selected continue-save disappears or fails validation, the fallback
+  now starts a clean session instead of reusing stale runtime state.
+
+## 2026-08-06 (Liberation new-game reset)
+
+- Starting a new Liberation game now resets the shared game state and
+  Captive runtime lists, while the continue-save path remains separate.
+
+## 2026-08-06 (Liberation save exact size)
+
+- Liberation save loading now rejects trailing bytes after the declared
+  payload, preventing concatenated or mismatched save formats from being
+  accepted silently.
+- Added regression coverage for an extra trailing byte.
+
+## 2026-08-06 (Liberation save mission validation)
+
+- Liberation saves now reject mission 0 on both write and read; runtime
+  missions are 1-based and must not silently change during load.
+
+## 2026-08-06 (Captive save exact size)
+
+- Captive save loading now rejects trailing bytes after the payload, matching
+  the Liberation save validation and preventing concatenated saves from being
+  accepted silently.
+- Added regression coverage for an extra trailing byte.
+
+## 2026-08-06 (Runtime popup localization)
+
+- Runtime option labels, status values, and controls now pass through the
+  localization layer instead of being hard-coded English strings.
+- Added the popup message IDs to `po/messages.pot`.
+
+## 2026-08-06 (Captive creature damage validation)
+
+- Captive save/load now rejects negative or inverted creature damage ranges.
+- Combat tick uses a checked 64-bit range calculation and skips malformed
+  creature data instead of risking signed overflow.
+- Added regression coverage for invalid creature damage in a save.
+
+## 2026-08-06 (Liberation city navigation collision)
+
+- City movement now accepts only road/entrance cells instead of treating any
+  nonzero plane cell as walkable; encoded building cells can no longer be
+  walked through.
+- Added regression coverage for a non-road building cell.
+
+## 2026-08-06 (Liberation reputation saves)
+
+- Bumped the Liberation save format to version 5 and added signed reputation
+  persistence.
+- Versions 1–4 remain readable with reputation defaulting to zero.
+- Runtime save/load clamps and validates reputation to the documented -100..100
+  range; round-trip regression coverage added.
+- Added an explicit version-4 compatibility regression test without the new
+  reputation field.
+
+## 2026-08-06 (XP input bounds)
+
+- XP threshold calculation now rejects negative levels.
+- XP awards reject negative inputs and saturate at `UINT32_MAX` instead of
+  overflowing on extreme creature/skill values.
+- Added regression coverage for invalid and extreme XP inputs.
+
+## 2026-08-06 (Cross-save exact size)
+
+- Cross-save import now rejects trailing bytes after the serialized payload,
+  preventing malformed portable saves from being accepted.
+- Added regression coverage for an appended byte.
+
+## 2026-08-06 (Localization catalog refresh)
+
+- Merged the latest runtime-popup message IDs into all 18 shipped locale
+  catalogs; English remains the built-in fallback, giving the documented
+  19-language cycle.
+- Added translations for the popup labels, values, and controls in every
+  locale and rebuilt all corresponding `.mo` catalogs.
+
+## 2026-08-06 (Captive save-name termination)
+
+- Terminated fixed-width Captive droid names after raw save loading, matching
+  the Liberation save path and preventing unterminated strings.
+- Added regression coverage using a full-width serialized droid name.
+- Strict build and targeted save tests pass.
+
+## 2026-08-06 (Liberation save-name termination)
+
+- Terminated fixed-width droid names after loading a save, preventing a full
+  16-byte name from being used as an unterminated C string.
+- Added regression coverage for a maximum-width serialized name.
+- Strict build and Liberation save test pass.
+
+## 2026-08-06 (Save identifier validation)
+
+- `save_game` now rejects mission 0/negative missions and negative base IDs,
+  matching the invariants enforced by `load_game`.
+- Added regression coverage for both invalid identifier cases.
+- Strict build and full CTest suite pass 54/54.
+
+## 2026-08-06 (Creature spawn IDs and status documentation)
+
+- Corrected the documented 1-based creature spawn groups (types 1–24); type 0
+  can no longer be selected accidentally.
+- Fixed creature-stat and combat-category lookups to use `type - 1` for the C
+  arrays, and preserved creature types 7–25 instead of collapsing them to
+  Alien1.
+- Updated README test counts and removed unsupported full-parity claims.
+- Strict build and full CTest suite pass 54/54.
+
+## 2026-08-06 (CA map API null safety)
+
+- CA map rule application, cell queries, and conversion now handle null inputs safely.
+- Added regression coverage for the public null-input paths; full CTest suite passes 51/51.
+
+## 2026-08-06 (Map generation level bounds)
+
+- `map_generate` now clamps invalid level numbers before signed seed arithmetic and texture selection.
+- Prevents signed overflow/undefined behavior from extreme caller input.
+- Added regression coverage; full CTest suite passes 51/51.
+
+## 2026-08-06 (Spawn HP difficulty bounds)
+
+- `spawn_compute_hp` now clamps difficulty to the same 0–8 range as `spawn_creatures`.
+- Prevents negative difficulty from converting to a huge unsigned multiplier and producing maximum HP.
+- Added regression coverage; full CTest suite passes 51/51.
+
+## 2026-08-06 (City navigation NaN timestep)
+
+- `city_nav_update` now ignores non-finite time steps, including NaN.
+- Prevents smooth navigation coordinates from becoming NaN and poisoning the renderer.
+- Added regression coverage; full CTest suite passes 51/51.
+
+## 2026-08-06 (Police fine transaction timing)
+
+- Police fines are no longer deducted while the dialogue is merely constructed.
+- The 100-gold deduction and reputation flag now occur only when the fine option is selected.
+- Full CTest suite passes 51/51.
+
+## 2026-08-06 (Building interaction state reset)
+
+- Re-entering a Liberation building now resets purchase ledger, bar-fight, fine, mission, and industrial-hazard state.
+- Prevents state from a previous visit from blocking purchases or affecting the next building.
+- Added regression coverage; full CTest suite passes 51/51.
+
+## 2026-08-06 (Building purchase transaction capacity)
+
+- Building/shop purchases are now rejected when the interaction's 20-item purchase ledger is full.
+- Prevents gold and shop quantity from changing when the purchased item cannot be recorded.
+- Added regression coverage; full CTest suite passes 51/51.
+
+## 2026-08-06 (Liberation shop gold overflow)
+
+- Selling an item now rejects transactions whose payout would overflow the `uint32_t` gold balance.
+- The failed transaction leaves both gold and inventory unchanged.
+- Added regression coverage; full CTest suite passes 51/51.
+
+## 2026-08-06 (Liberation combat damage overflow)
+
+- Clamped calculated weapon damage before storing it in the signed 16-bit enemy HP field.
+- Prevents maximum weapon values from wrapping into negative damage and healing enemies.
+- Added regression coverage; full CTest suite passes 51/51.
+
+## 2026-08-06 (Atari ST BPB offset overflow)
+
+- ST disk opening now computes FAT/root/data offsets in 64-bit arithmetic and rejects values beyond the image or 32-bit offset range.
+- Prevents malicious BPB fields from wrapping offsets and bypassing bounds checks.
+- Added regression coverage with extreme BPB values; full CTest suite passes 51/51.
+
+## 2026-08-06 (ZIP deflate output validation)
+
+- ZIP-file extraction now verifies that zlib produced exactly the declared uncompressed size.
+- Prevents malformed entries with a valid stream terminator but short output from returning partially initialized data.
+- Full CTest suite passes 51/51.
+
+## 2026-08-06 (ISO9660 final-record parsing)
+
+- Corrected the sector-boundary condition in `iso_list_dir` so a minimal valid 33-byte directory record at the end of a sector is parsed.
+- Full CTest suite passes 51/51.
+
+## 2026-08-06 (ISO9660 directory boundary)
+
+- Fixed the directory parser to accept a valid 33-byte record exactly ending at a sector boundary.
+- Prevents the final root-directory entry from being silently skipped.
+- Full CTest suite passes 51/51.
+
+## 2026-08-06 (Liberation RNC size conversion hardening)
+
+- Optional Liberation presentation loading now rejects packed RNC sizes that cannot be represented by the decoder's `int` API.
+- Prevents malformed bundle metadata from becoming a negative/overflowed decode size.
+- Full CTest suite passes 51/51.
+
+## 2026-08-06 (ImgA sprite offset bounds)
+
+- `img_open` now requires every sprite offset to leave two readable bytes for the flags field.
+- Prevents an out-of-bounds read when malformed ImgA data points at the final byte.
+- Added regression coverage; full CTest suite passes 51/51.
+
+## 2026-08-06 (Captive save creature-state validation)
+
+- Captive save export and import now reject negative creature HP.
+- Export validation also matches import validation for creature type, position, level, and HP bounds.
+- Added regression coverage; full CTest suite passes 51/51.
+
+## 2026-08-06 (Liberation save export invariants)
+
+- `lib_save_write` now rejects droid HP/energy values that `lib_save_read` would reject.
+- Prevents the game from producing self-incompatible Liberation save files.
+- Added regression coverage for invalid droid statistics; full CTest suite passes 51/51.
+
+## 2026-08-06 (Liberation save truncation hardening)
+
+- Added an explicit payload-size check to `lib_save_read` after decoding the fixed header and droid count.
+- Short files are now rejected before partial droid, mission-bitmap, or generator data can be interpreted.
+- Added regression coverage for truncation inside a droid payload.
+- Full build and CTest suite pass: 51/51.
+
+## 2026-08-06 (Cross-save validation hardening)
+
+- Rejected negative `game_type` values during cross-save export.
+- Rejected negative `base_id` and `gold` values during cross-save import.
+- Added regression coverage for all three malformed-value cases; destination state remains unchanged on failed import.
+- Build and full CTest suite pass: 51/51.
+
 ## 2026-08-03 (Documentation and release — v1.1.65)
 
 - Comprehensive README.md rewrite: full feature list, controls, CLI options, reverse engineering table, wiki links
@@ -748,3 +1291,1100 @@
 - Wiki updated: Captive-Technical, Captive-Game-Data, File-Formats
 - CTV format documented in File-Formats wiki page
 - All wiki pages synced to GitHub wiki
+# 2026-08-05 (data cache invalidation)
+
+### VFS cache correctness
+- Cache signatures now include recursive loose-file metadata as well as ZIP metadata
+- Replacing a loose asset invalidates the cached payload without rehashing unchanged assets
+- Added regression coverage for replacing a cached loose file
+- Full test suite: 49/49 passing
+# 2026-08-05 (start menu l10n)
+
+### Data scanner and version selector
+- Scanner result strings and Liberation source labels are now gettext-marked
+- Added the new scanner/version-selector message IDs to the translation template
+- Full test suite remains 49/49 passing
+
+### Cache replacement detection
+- Cache metadata now includes inode and ctime, covering same-size file replacement
+
+# 2026-08-05 (ARCD malformed input)
+
+### Liberation ARCD decoder
+- Reject compressed Huffman table counts outside the 1–32 entry table capacity
+- Prevent malformed input from writing past the local symbol-length array
+- Full test suite: 49/49 passing
+
+### Warning cleanup
+- Made ARCD and VFS size conversions explicit after review of the warnings build
+- Removed an unused duplicate Liberation hash table from the start menu
+
+# 2026-08-05 (start menu robustness)
+
+### Renderer validation
+- Start-menu rendering now safely ignores null buffers and invalid dimensions
+- Added a regression call covering the null/invalid render path
+- Warnings build is now clean for the reviewed targets
+
+# 2026-08-05 (ARCD table bounds)
+
+### Liberation ARCD decoder
+- Reject Huffman tables that would generate more than 16 decoder entries
+- Prevent malformed code-length data from overflowing the 16-entry table
+
+# 2026-08-05 (ADF chain bounds)
+
+### Amiga disk reader
+- Bound OFS data-chain and FFS header/data-chain traversal by disk capacity
+- Corrupt cyclic block pointers can no longer make file loading loop forever
+- Full test suite: 49/49 passing
+
+### ADF API validation
+- `adf_open()` now clears stale state on failed opens
+- `adf_read_file()` now requires a valid T_HEADER block
+- Root-directory hash chains are also bounded against cyclic block pointers
+
+# 2026-08-05 (configuration parsing)
+
+### Custom feature settings
+- Replaced unchecked `atoi()`/`atof()` parsing with range/error-checked conversions
+- Invalid or overflowing numeric settings now retain safe defaults
+- Added regression coverage for overflowing integers and non-finite floats
+- Full test suite: 49/49 passing
+
+### CLI parsing
+- `--upscale-factor` now uses the validated integer parser
+- Out-of-range and overflowing values produce a clear CLI error instead of undefined `atoi()` behavior
+
+### CLI speed parsing
+- `--speed` now rejects non-finite, non-positive, and overflowing values
+- Verified invalid `--speed nan` exits with status 2 and a clear error
+
+### CLI resolution parsing
+- Replaced unchecked `%d` resolution parsing with validated `strtol()` fields
+- Oversized or malformed `--resolution` values now fail cleanly
+- Verified an overflowing resolution is rejected; full suite remains 49/49
+
+# 2026-08-05 (Liberation pack arithmetic)
+
+### Animation frame decoder
+- Compare record and raw sizes in 64-bit arithmetic
+- Prevent wrapped `raw_size + descriptor` validation for malformed packs
+- Full test suite: 49/49 passing
+
+# 2026-08-05 (l10n template sync)
+
+### Start-menu scanner translations
+- Added all scanner status, verification, and version-selector message IDs to `po/messages.pot`
+- Verified the Swedish PO file with `msgfmt --check`
+
+# 2026-08-05 (ADF regression coverage)
+
+### ADF reader tests
+- Added coverage for failed-open stale state, cyclic root hash chains, and invalid file headers
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (Atari ST filesystem safety)
+
+### ST disk reader
+- Failed opens now clear stale `STDisk` state
+- FAT12 reads reject truncated or prematurely terminated cluster chains instead of returning partial files
+- Added bounds checks for root-directory offsets and null-safe root listing
+- Added regression coverage for valid reads, truncated reads, invalid opens, and null listing arguments
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (Creative Voice parser safety)
+
+### CTV decoder
+- Fixed unsupported type-1 and type-9 blocks advancing the input position twice
+- Valid blocks following unsupported codecs are now decoded correctly
+- Added regression coverage for an unsupported block followed by valid PCM
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (ISO9660 reader state safety)
+
+### ISO image opening
+- `iso_open()` and `iso_open_raw()` now clear stale image state before rejecting null input
+- Added regression coverage for failed reopen attempts after a valid image
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (VGM sprite-bank bounds)
+
+### Liberation VGM decoder
+- AmSp bank parsing now rejects zero-width records and sprite planes truncated by the input buffer
+- Added regression coverage for truncated and malformed sprite banks
+- Full test suite: 51/51 passing
+
+### VGM state reset
+- `vgm_open()` now clears stale bank state before rejecting null input
+- Added regression coverage for failed reopen after a valid VGM bank
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (Liberation asset loader state safety)
+
+### ImgA and FNT loaders
+- `img_open()` and `fnt_open()` now clear destination state before rejecting invalid input
+- Added ImgA regression coverage for failed reopen after valid data
+- Existing FNT tests remain green
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (X3G object lifetime safety)
+
+### Liberation X3G decoder
+- Failed X3G object parses now release partially allocated vertex/polygon data
+- Repeated EXVL chunks no longer leak the previous vertex allocation
+- `x3g_open()` clears stale state before invalid input is rejected
+- Added regression coverage for failed reopen and retained full parser tests
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (sprite-sheet stride correctness)
+
+### Object and creature sprites
+- Sprite-sheet loaders now use `PL5Image.width` as the row stride instead of assuming 320 pixels
+- Added regression coverage with padded, wider sheets
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (Liberation data API state safety)
+
+### LiberationData opening
+- `liberation_data_open_source()` now clears stale destination state when called with a null VFS
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (save parser initialization)
+
+### Liberation save reader
+- Removed the read of uninitialized destination bytes before parsing a save
+- Save files are still committed atomically only after complete validation
+- Extended roundtrip coverage to start from a deliberately nonzero destination buffer
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (renderer temporary-buffer safety)
+
+### Frame presentation
+- Removed a per-frame temporary-buffer leak when visual effects are disabled
+- Renderer now handles temporary-buffer allocation failure by presenting the source pixels unchanged
+- Added null guards for renderer presentation state
+- Full test suite: 51/51 passing
+
+### Renderer lifecycle
+- Added null guards to renderer initialization/shutdown APIs
+- SDL window/renderer resources are now released on initialization failure
+- Shutdown clears handles so repeated cleanup is safe
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (UI framebuffer arithmetic)
+
+### Terminal, droid and shop overlays
+- Pixel-count loops now use `size_t` multiplication instead of overflowing `int` width×height arithmetic
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (droid stat saturation)
+
+### Level-up and battery handling
+- HP/energy maxima now saturate at `INT16_MAX` instead of wrapping on level-up
+- Battery use performs bounded arithmetic before storing the result
+- Full test suite: 51/51 passing
+
+# 2026-08-05 (warnings audit)
+
+### Strict build review
+- Rebuilt the warning configuration after the latest fixes
+- Normal build and full test suite remain green: 51/51 passing
+
+# 2026-08-05 (Captive version selection)
+
+### Start-menu source popup
+- Start-menu scanning now distinguishes verified Captive DOS and Amiga sources
+- When both versions are present, Captive now opens the version-selection popup
+- The selected Captive platform is propagated into the launch configuration
+- Added keyboard regression coverage for selecting Captive Amiga
+- Added `CAPTIVE DOS` and `CAPTIVE AMIGA` message IDs to the l10n template
+- Full test suite: 51/51 passing
+
+### Captive popup l10n
+- Added `CAPTIVE DOS` and `CAPTIVE AMIGA` entries to all 18 shipped PO files
+- Verified every PO file with `msgfmt --check`
+
+# 2026-08-06 (deterministic data-cache signatures)
+
+### VFS scanner cache
+- Directory metadata is now traversed in sorted order
+- ZIP paths are sorted before cache-signature generation and lookup
+- Added a fresh-VFS regression check proving cache reuse across scanner instances
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (ZIP decompression error path)
+
+### VFS ZIP extraction
+- Avoided calling `inflateEnd()` when `inflateInit2()` failed
+- Corrupt deflate entries now return cleanly without undefined zlib cleanup
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (Amiga HUNK bounds)
+
+### HUNK allocation table
+- Prevented `last - first + 1` from wrapping in 32-bit arithmetic
+- Zero-sized/overflowed hunk ranges are now rejected
+- Added malformed-header regression coverage
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (ANIM FORM bounds)
+
+### Liberation ANIM parser
+- All ANIM chunk walks now honor the FORM-declared extent, not just backing-buffer size
+- Frame, script, and PACK extraction reject chunks outside that extent
+- Added regression coverage for a truncated FORM declaration with trailing data
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (start-menu data status reset)
+
+### Data-path changes
+- Start-menu data status and source masks are cleared before every rescan
+- Invalid or empty paths can no longer retain stale verified-game state
+- Added regression coverage for switching to a nonexistent data path
+- Full test suite: 51/51 passing
+
+### Real-data verification
+- Verified `.opencaptive` end to end: Captive DOS and Amiga sources, Liberation data, and both presentation first frames
+- `--verify-data all` exits successfully
+
+### Captive runtime capture
+- Launched verified Captive data with `--game captive`
+- Texture atlas loaded and native frame capture completed successfully
+
+### Liberation runtime capture
+- Launched verified Liberation data with `--game liberation --skip-intro`
+- Texture atlas loaded and native frame capture completed successfully
+
+# 2026-08-06 (disk-reader boundary checks)
+
+### ISO/ADF readers
+- ISO file reads now reject LBA wraparound instead of continuing from sector zero
+- ADF-OFS reads now require valid data-block type and owning file-header reference
+- Added regression coverage for the ISO maximum-LBA boundary
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (ARCD truncated-input handling)
+
+### Liberation ARCD decoder
+- Truncated compressed input is now rejected instead of silently decoding missing bytes as zero
+- Added fixture-based truncation regression coverage for PGE, DTE, and CTE when available
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (CTV truncated-input handling)
+
+### Creative Voice decoder
+- Truncated block headers and payloads now fail the decode instead of returning earlier samples as valid output
+- Invalid minimum payload sizes for supported sound block types are rejected
+- Added regression coverage for a block whose declared length exceeds the file
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (Liberation save read safety)
+
+### Save parser
+- Short `uint16`/`uint32` fields no longer read uninitialized stack bytes before the truncation check
+- Existing parse-then-commit behavior remains intact for invalid saves
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (dialogue invalid-target handling)
+
+### Liberation dialogue state
+- Invalid text-node and choice-node targets now terminate the active dialogue cleanly
+- `dialogue_state_current(NULL)` is now safely handled
+- Added regression coverage for both invalid transition types
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (puzzle interaction bounds)
+
+### Captive puzzle system
+- Puzzle interaction now validates list, game, level, map, face, and selected-droid state
+- Linked puzzle targets are constrained to map bounds before cell access
+- Step-triggered teleports and traps use the same coordinate/index guards
+- Added regression coverage for null state, invalid target, and invalid droid selection
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (puzzle UI safety)
+
+### Puzzle helper functions
+- Step checking and clipboard hints now reject null or structurally invalid state
+- Clipboard hints require a valid writable output buffer and positive size
+- Added regression coverage for null helper arguments
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (Captive combat state validation)
+
+### Combat input/state safety
+- Combat tick, droid attacks, and interaction now validate level, position, and direction state
+- Invalid creature coordinates are ignored instead of entering line-of-sight/movement calculations
+- Added regression coverage for invalid direction and level state
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (Liberation city-nav bounds)
+
+### City navigation
+- Forward/backward movement now requires an in-bounds current cell
+- Completed moves reject out-of-bounds destinations and recover to a stable idle state
+- Invalid movement vectors are ignored safely
+- Added regression coverage for edge-cell and corrupt-state movement
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (building catalog validation)
+
+### Liberation building interaction
+- Negative or oversized building catalogs are rejected before modulo/index use
+- Building indices are now checked against both the catalog and storage limits
+- Added regression coverage for invalid catalog sizes
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (city-generator pointer safety)
+
+### Liberation city generator
+- Building-connection neighbor checks now use bounded integer offsets
+- Removed pointer arithmetic that could temporarily form pointers outside `plane0`
+- City-generator regression suite remains green
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (city building-map validation)
+
+### Liberation city grid mapping
+- Negative building catalog sizes are now ignored before modulo/index operations
+- Added regression coverage for invalid building catalog input
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (city-generator null safety)
+
+### Public city-grid API
+- `citygrid_init`, `citygrid_generate`, and `citygrid_prng` now tolerate null state safely
+- Added regression coverage for all public null-call paths
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (plot density overflow)
+
+### Liberation plot generator
+- Grid-density arithmetic now clamps in 32-bit space before storing as `uint16_t`
+- High seeds can no longer wrap to a falsely low density
+- Added regression coverage for `UINT16_MAX` seed
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (BuildingGen density overflow)
+
+### Liberation city generator
+- BuildingGen density arithmetic now clamps before narrowing to `uint16_t`
+- Maximum level values can no longer wrap to a low density
+- Added regression coverage for `UINT16_MAX` level
+- Full test suite: 51/51 passing
+
+# 2026-08-06 (Captive save prevalidation)
+
+### Save API
+- `save_game` now rejects invalid position, level, direction, generator, gold, and droid-stat state before writing
+- The writer and reader now agree on which states are valid
+- Added regression coverage for states that loading would reject
+- Full test suite: 51/51 passing
+## 2026-08-06 (Renderer CRT curvature dimensions)
+- CRT curvature is disabled for 1-pixel-wide/high canvases, avoiding division by zero in `renderer_present`.
+- Full CTest suite passes 51/51.
+## 2026-08-06 (Captive shop definition bounds)
+- `shop_init` now clamps the item-definition count to the `ItemDatabase` capacity before iterating.
+- Negative or corrupted counts can no longer make shop generation read outside `defs`.
+- Added regression coverage for extreme positive and negative counts.
+## 2026-08-06 (Captive shop seed arithmetic)
+- Shop seed mixing now uses explicit 64-bit arithmetic before narrowing to the PRNG state.
+- Extreme level values can no longer trigger signed integer overflow during shop initialization.
+- Regression coverage includes `INT_MIN` and `INT_MAX` levels.
+## 2026-08-06 (Captive repair stat validation)
+- `shop_repair` now rejects negative, over-maximum, or otherwise inconsistent HP and energy values before calculating a repair price.
+- Invalid droid state can no longer produce a nonsensical repair transaction.
+- Added regression coverage confirming gold and droid state remain unchanged.
+## 2026-08-06 (Captive combat gold saturation)
+- Combat gold rewards now saturate at `INT_MAX` instead of overflowing into a negative balance.
+- Added regression coverage for a kill while the party already has the maximum integer gold value.
+## 2026-08-06 (Captive combat creature health invariant)
+- Combat target selection now ignores active creatures with non-positive maximum HP.
+- Invalid creature state can no longer trigger attacks, XP conversion, or reward logic.
+- Added regression coverage confirming no energy is consumed for such targets.
+## 2026-08-06 (Captive mission seed arithmetic)
+- Mission seed generation now uses explicit 64-bit arithmetic before narrowing to the 32-bit seed.
+- Large valid mission numbers can no longer trigger signed integer overflow during mission setup.
+- Added regression coverage for `INT_MAX` mission numbers.
+## 2026-08-06 (Liberation combat XP saturation)
+- Liberation combat XP rewards now saturate at `UINT32_MAX` instead of wrapping to zero.
+- Added regression coverage for a kill with XP already near the unsigned maximum.
+## 2026-08-06 (Liberation combat HUD bounds)
+- Liberation combat HUD rendering now clamps the displayed enemy count to the fixed enemy-array capacity.
+- Corrupt or inconsistent combat state can no longer make the renderer read beyond `enemies`.
+## 2026-08-06 (Liberation combat target bounds)
+- Combat attacks and target cycling now clamp `enemy_count` to the fixed enemy-array capacity.
+- Corrupt target state can no longer index beyond `LibCombatState.enemies`.
+- Added regression coverage for an oversized enemy count and out-of-range target.
+## 2026-08-06 (Captive viewport state bounds)
+- Creature rendering now clamps the creature count to `MAX_CREATURES`.
+- Invalid party directions fall back to north before indexing viewport direction tables.
+- Prevents malformed game state from causing renderer array access violations.
+## 2026-08-06 (Captive HUD health bars)
+- HP and energy bars now handle non-positive maxima without division by zero.
+- Bar values are clamped to the valid 0–maximum range before rendering.
+- HUD rendering now also rejects null or invalid framebuffer arguments.
+## 2026-08-06 (Captive HUD direction and level bounds)
+- HUD compass rendering now sanitizes invalid party directions.
+- Minimap rendering rejects invalid current-level values before indexing `levels[]`.
+- Prevents malformed game state from causing HUD array access violations.
+## 2026-08-06 (Holomap API bounds)
+- Holomap initialization and rendering now reject null or invalid framebuffer inputs.
+- Base rendering and reveal operations are bounded by `HOLAMAP_MAX_BASES`.
+- Added regression coverage for oversized base counts and null API arguments.
+## 2026-08-06 (Captive viewport framebuffer dimensions)
+- `viewport_render` now rejects non-positive framebuffer dimensions before rendering.
+- Avoids attempting to render into an invalid framebuffer supplied by a caller.
+## 2026-08-06 (Captive view-window level bounds)
+- View-window construction now rejects `current_level` values at or beyond `MAX_LEVELS`.
+- A corrupt level count can no longer make the view builder index beyond `GameState.levels`.
+- Added regression coverage for an out-of-range level index.
+## 2026-08-06 (Captive debug HUD level invariants)
+- Debug-HUD rendering now verifies both `current_level < num_levels` and `num_levels <= MAX_LEVELS`.
+- Invalid level state is ignored instead of reading an unavailable dungeon level.
+## 2026-08-06 (Captive minimap opacity validation)
+- Minimap rendering now replaces non-finite opacity values with a safe default before alpha blending.
+- Added regression coverage for `NaN` opacity input.
+## 2026-08-06 (Captive reverb float validation)
+- Reverb processing now rejects non-finite amounts such as `NaN`.
+- Internal delayed samples are clamped before conversion to `int16_t`.
+- Added regression coverage for invalid reverb input.
+## 2026-08-06 (Liberation 3D projection float validation)
+- 3D projection now rejects non-finite vertices and FOV values before float-to-int conversion.
+- Added regression coverage for a `NaN` vertex.
+## 2026-08-06 (Liberation textured 3D float validation)
+- Textured 3D scanlines now reject non-finite depth and UV values before integer texture indexing.
+- Textured quads reject non-finite camera, FOV, and vertex inputs.
+- Added regression coverage for invalid textured-quad state.
+## 2026-08-06 (Captive audio mix float validation)
+- Audio mixing now rejects non-finite master volume and channel gain values.
+- Non-finite sample positions from extreme pitch values stop the channel before integer conversion.
+## 2026-08-06 (MIDI master volume)
+- Implemented `midi_set_volume` using persistent, clamped master volume state.
+- Master volume now affects both active voices and subsequently triggered notes.
+- Added regression coverage for clamping and non-finite volume input.
+## 2026-08-06 (Captive droid UI active-state guard)
+- Droid UI input now ignores key events when the UI state is inactive.
+- Added regression coverage proving a closed UI cannot mutate inventory or energy.
+## 2026-08-06 (Captive terminal active-state guard)
+- Terminal input now ignores key events when the terminal is inactive.
+- Added regression coverage for closed-terminal navigation and activation.
+## 2026-08-06 (Captive shop active-state guard)
+- Shop purchases now require an active shop state.
+- A closed shop can no longer mutate inventory or gold.
+- Added regression coverage for inactive-shop purchase attempts.
+## 2026-08-06 (Liberation dialogue node bounds)
+- Dialogue access now rejects trees whose node count exceeds `DIALOGUE_MAX_NODES`.
+- Option targets are bounded before storage and lookup.
+- Added regression coverage for corrupt dialogue node counts.
+## 2026-08-06 (Liberation shop item bounds)
+- Liberation shop purchases now reject corrupt item counts and indices beyond `LIB_SHOP_MAX_ITEMS`.
+- Added regression coverage for an oversized shop inventory count.
+## 2026-08-06 (Liberation city renderer coordinate bounds)
+- City renderers now reject invalid navigation coordinates and non-finite smooth camera values before grid traversal.
+- Prevents signed overflow in coordinate-offset calculations.
+- Added regression coverage for an `INT_MAX` navigation coordinate.
+## 2026-08-06 (Captive save puzzle validation)
+- `save_game()` now validates puzzle type, coordinates, level, facing, and optional targets before writing.
+- Captive saves can no longer succeed with puzzle records that `load_game()` would reject.
+- Added regression coverage for invalid puzzle coordinates and targets.
+## 2026-08-06 (Liberation dialogue choice bounds)
+- Dialogue choices now reject corrupt `choice_count` values before indexing the fixed-size choice array.
+- Added regression coverage for an oversized choice count.
+## 2026-08-06 (Captive power socket mutation order)
+- Power-socket interaction now validates the selected droid before consuming a charge.
+- Invalid droid state can no longer mutate the puzzle and return failure simultaneously.
+- Added regression coverage proving the charge remains unchanged.
+## 2026-08-06 (Cross-save export validation symmetry)
+- Cross-save export now validates droid HP/energy ranges and every exported cell type.
+- Invalid cross-save data is rejected before writing instead of producing files the importer cannot read.
+- Added regression coverage for invalid droid stats and cell types.
+## 2026-08-06 (Replay tick ordering)
+- Replay loading now rejects input streams whose tick values move backwards.
+- Prevents malformed replays from executing inputs out of chronological order.
+- Added regression coverage for unordered replay records.
+## 2026-08-06 (Replay save ordering symmetry)
+- Replay saving now rejects out-of-order input arrays before writing.
+- A replay produced by the saver can no longer violate the loader's chronological-order invariant.
+- Added regression coverage for rejecting unordered replay state at save time.
+## 2026-08-06 (Liberation citygen count underflow)
+- City parameter derivation now checks building-count sums before unsigned subtraction.
+- Prevents underflow from hiding an undersized generated city at extreme levels.
+- Added regression coverage for maximum-level derived counts.
+## 2026-08-06 (Liberation building shop bounds)
+- Building-interaction purchases now validate both `item_count` and the fixed shop-array limit before taking an item pointer.
+- Added regression coverage for an oversized shop count and out-of-range item index.
+## 2026-08-06 (Liberation building dialogue bounds)
+- Building-interaction choice counts and labels now reject corrupt counts before exposing or indexing the fixed choice array.
+- Added regression coverage for oversized dialogue choice counts through the building UI layer.
+## 2026-08-06 (Liberation building dialogue selection bounds)
+- Direct building-dialogue selection now validates `choice_count` before inspecting a choice target.
+- Added regression coverage for invalid selection against a corrupt dialogue node.
+## 2026-08-06 (Captive shop item bounds)
+- Shop rendering and purchases now clamp or reject corrupt `num_items` values before indexing `item_ids`.
+- Added regression coverage for an oversized shop item count.
+## 2026-08-06 (Captive droid battery state validation)
+- Battery use now validates the droid's energy range before consuming the item.
+- Corrupt energy state can no longer be mutated while reporting a failed operation.
+- Added regression coverage for energy above its maximum.
+## 2026-08-06 (Captive droid item validation)
+- Droid inventory use now rejects unknown item IDs before attempting equipment changes.
+- Corrupt inventory data can no longer silently become a weapon.
+- Added regression coverage for an unknown inventory item.
+## 2026-08-06 (Captive combat damage validation)
+- Creature attacks now clamp computed damage to at least one point.
+- Corrupt negative damage values can no longer heal droids during `combat_tick()`.
+- Added regression coverage for invalid creature damage ranges.
+## 2026-08-06 (Captive combat seed arithmetic)
+- Combat spawn seed derivation now uses defined 64-bit intermediate arithmetic.
+- Extreme level values can no longer trigger signed-overflow undefined behavior.
+- Added regression coverage for `INT_MIN` and `INT_MAX` levels.
+## 2026-08-06 (Captive combat level bounds)
+- Combat spawning now rejects level numbers outside the valid Captive level range.
+- Prevents creatures from being created with invalid level identifiers.
+- Added regression coverage for both extreme signed level values.
+## 2026-08-06 (Captive generator counter saturation)
+- Generator destruction counting now saturates at `INT_MAX` instead of overflowing.
+- Added regression coverage for an already-saturated generator counter.
+## 2026-08-06 (Captive mission completion counter integrity)
+- Mission completion now requires `generators_destroyed` to equal `generators_total` exactly.
+- Overshot or corrupt generator counts can no longer complete a mission.
+- Added regression coverage for an overshot count.
+## 2026-08-06 (Captive floor-change level bounds)
+- Floor changes now reject invalid `num_levels` and current-level values before indexing the level array.
+- Added regression coverage for a level count beyond `MAX_LEVELS`.
+## 2026-08-06 (Captive combat line-of-sight level bounds)
+- Combat line-of-sight now rejects current levels beyond the fixed level array.
+- Added regression coverage for a corrupt level count/current-level pair.
+## 2026-08-06 (Captive level-bound audit)
+- Audited all current-level and level-count consumers after the floor-change and line-of-sight fixes.
+- No additional unsafe level-array access was found in the reviewed runtime paths.
+## 2026-08-06 (Captive base level metadata)
+- Base-map generation now stores the logical floor index in each `DungeonLevel.level` field.
+- Added regression coverage for multi-floor base metadata.
+## 2026-08-06 (Captive exterior entrance bounds)
+- Exterior-map generation now clamps the entrance column before indexing the map.
+- Added regression coverage for negative and extreme entrance coordinates.
+## 2026-08-06 (Captive exterior generator null safety)
+- Exterior-map generation now safely ignores a `NULL` destination.
+- Added regression coverage for the null-destination call path.
+## 2026-08-06 (Full build verification)
+- Rebuilt the complete `opencaptive` executable after the cumulative fixes.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Captive base generator failure output)
+- `map_generate_base()` now clears `out_num_levels` even when the level buffer is `NULL`.
+- Added regression coverage for the failed-generation output contract.
+## 2026-08-06 (Captive CA level metadata)
+- CA-to-dungeon conversion now clamps level numbers before assigning metadata and texture indices.
+- Added regression coverage for negative and oversized level numbers.
+## 2026-08-06 (Captive terminal framebuffer clipping)
+- Terminal CRT scanlines now clip writes to the supplied framebuffer dimensions.
+- Added regression coverage for rendering into a small framebuffer.
+## 2026-08-06 (Liberation save read exactness)
+- Save loading now checks every fixed-width field read instead of relying on `feof()` after partial reads.
+- Truncated headers, droid records, mission data, and generator fields are rejected before state is committed.
+## 2026-08-06 (Captive start-menu framebuffer clipping)
+- Start-menu scanner and popup fills now clip both axes before writing pixels.
+- Added regression coverage for rendering all affected views into a 16x16 framebuffer.
+## 2026-08-06 (xBRZ dimension overflow validation)
+- 2x, 3x, and 4x upscalers now reject source dimensions that would overflow the destination stride calculation.
+- Added regression coverage for extreme width and height metadata.
+## 2026-08-06 (CTV sample-table allocation overflow)
+- CTV decoding now verifies the sample-table allocation size before growing it.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation X3G chunk bounds)
+- X3G EXVL and PLST chunk validation now uses overflow-safe remaining-size checks.
+- The chunk walker also avoids overflowing its loop-bound expression on large inputs.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation X3G container bounds)
+- X3G OFFS and nested FORM/VCDO validation now also uses remaining-size checks instead of additive bounds expressions.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (VFS null-safe cleanup)
+- `vfs_free(NULL)` is now a safe no-op, matching the other VFS API entry points.
+- Added regression coverage and re-ran all 54 tests successfully.
+## 2026-08-06 (Start-menu null-safe cleanup)
+- `start_menu_free(NULL)` is now a safe no-op for failed or partial menu initialization paths.
+- Added regression coverage and re-ran all 54 tests successfully.
+## 2026-08-06 (Captive viewport object blitter validation)
+- Viewport object blits now reject null atlases, invalid frame indices, non-positive framebuffers, and zero-sized destinations before scaling arithmetic.
+- Full executable build and all 54 tests pass.
+## 2026-08-06 (Liberation texture-coordinate overflow)
+- Textured 3D scanlines now wrap finite texture coordinates with `fmodf` before integer conversion, avoiding undefined behavior for extreme perspective values.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation text-section bounds)
+- Text expansion now rejects sections whose pointer and length fall outside the parsed raw text buffer.
+- Added regression coverage for a foreign section descriptor; all 54 tests pass.
+## 2026-08-06 (Captive mission base buffer size)
+- Mission creation now allocates the full `MAX_LEVELS` base buffer required by the map generator before reserving one slot for the exterior level.
+- This removes a stack overwrite when the generator emits the maximum number of logical floors.
+- Full executable build and all 54 tests pass.
+## 2026-08-06 (Liberation data reopen cleanup)
+- Reopening a `LiberationData` object now closes previously owned disc data and presentation buffers instead of leaking them during source changes.
+- Cleanup remains safe for zero-initialized or foreign/uninitialized structs via a lifecycle marker.
+- Full executable build and all 54 tests pass.
+## 2026-08-06 (RNC truncated-output rejection)
+- Forward RNC1 decoding now returns an error when its safety limit is reached before the declared uncompressed size is produced.
+- Partial output can no longer be reported as a successful decompression.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (RNC legacy stream minimum size)
+- RNC input dispatch now permits valid 13-byte legacy headers while retaining the 18-byte minimum for modern forward streams.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation save write verification)
+- Liberation save helpers and all fixed fields now verify each `fwrite` result before reporting success.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Amiga OFS capacity overflow)
+- OFS file-chain buffer growth now checks `SIZE_MAX/2` before the initial capacity doubling.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Atari ST file-size allocation guard)
+- ST disk file reads now reject file sizes larger than the disk's possible data area before allocating memory.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Atari ST root offset bounds)
+- Root directory cluster offsets now use 64-bit arithmetic and are only exposed when they fit the disk image and 32-bit API field.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Amiga OFS block-address bounds)
+- OFS scanning now rejects disk images whose block count cannot be represented by the format's 32-bit block pointers.
+- File-chain decoding validates the header block before pointer arithmetic.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (ADF FFS boot-block rejection)
+- FFS file loading now rejects block 0 in a file's data-block table, preventing the boot block from being treated as file content.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Texture UV non-finite guard)
+- Texture sampling now rejects NaN and infinite UV coordinates before float-to-integer conversion.
+- Full executable build and CTest suite remain green: 54/54 tests passed.
+## 2026-08-06 (Liberation IMG offset validation)
+- IMG sprite offsets must now begin after the sprite table and remain strictly ordered.
+- Multi-frame offsets receive the same bounds and ordering validation before frame decoding.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (ISO9660 directory extent bounds)
+- Directory parsing now limits records in the final sector to the directory extent declared by ISO9660.
+- Bytes belonging to adjacent sectors/contents can no longer be interpreted as directory entries.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (ISO9660 root null guard)
+- `iso_list_root` now safely returns no entries for a null image instead of dereferencing it before validation.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (AMOS sprite size overflow guard)
+- AMOS sprite plane-buffer size calculations now reject `size_t` overflow before comparing against the input buffer.
+- This keeps malformed sprite dimensions safe on 32-bit builds as well as 64-bit builds.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (ARCD truncated output rejection)
+- ARCD decoding now rejects streams that terminate before producing the declared decompressed size, even when they contain a clean block terminator.
+- Partial output can no longer be reported as successful data.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation VGM size overflow guard)
+- VGM AMOS-bank plane-buffer calculations now reject `size_t` overflow before comparing against the available input.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation VGM depth consistency)
+- VGM banks with more than five bitplanes are now rejected during bank validation, matching `amos_sprite_get` and its 32-colour decoder.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Amiga HUNK section accounting)
+- HUNK validation now requires exactly one CODE/DATA/BSS payload and one END marker for every declared hunk.
+- Extra sections after an early END can no longer make a malformed stream appear valid.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (ADF FFS HighSeq validation)
+- FFS file loading now rejects a `HighSeq` value above the 72 block pointers available in a header instead of silently clamping it.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (CTV data-offset validation)
+- CTV/VOC decoding now requires the data offset to be at least the complete 26-byte header length.
+- Header bytes can no longer be reinterpreted as audio blocks through a malformed offset.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (ANM frame-chain validation)
+- ANM decoding now requires the backwards frame chain to terminate exactly at `cmd_end`.
+- Files with valid-looking frames followed by an invalid/truncated chain are rejected instead of partially accepted.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation X3G odd-chunk padding bounds)
+- X3G FORM/chunk parsing now validates the required padding byte before advancing past odd-sized chunks.
+- A missing pad can no longer underflow the remaining-size calculation and lead to out-of-bounds parsing.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation X3G polygon validation)
+- X3G PLST parsing now rejects malformed polygon records and polygon lists exceeding the supported maximum instead of retaining a valid prefix.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation X3G vertex-reference bounds)
+- Polygon vertex references are now required to be aligned vertex offsets and within the owning object's vertex array.
+- Invalid references can no longer become out-of-range renderer indices.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (3D renderer object-local index bounds)
+- The generic 3D renderer now validates polygon indices against the current object's vertex count before adding projected references.
+- Invalid synthetic or runtime-created objects can no longer alias projected vertices from another object.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation city navigation progress bounds)
+- City navigation now rejects non-finite or out-of-range movement progress and resets the movement state before it can poison camera coordinates.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation text-section ID overflow)
+- Text-table section IDs now reject decimal overflow instead of wrapping into a different valid ID.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation city-grid road bounds)
+- Recursive road walking now validates the metadata-grid coordinates and direction before indexing or recursing.
+- Invalid paths can no longer access the city metadata buffer outside its 7x7 bounds.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Liberation entry-point offset state)
+- City-grid feature state now preserves the selected cell offset in a 32-bit field, matching the entry-point search's high-word read.
+- Entry-point generation no longer falls back to cell 0 because a 16-bit mode field discarded the offset.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Cross-save write verification)
+- Cross-save export now checks every serialized field and map-cell write instead of relying only on the final stream error flag.
+- Truncated or failed writes are now reported as an unsuccessful export.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Start-menu initialization safety)
+- Fresh `start_menu_init()` no longer reads the existing `StartMenu` contents before clearing it, so callers may safely initialize a non-zeroed stack object.
+- Added `start_menu_reinit()` for deliberate menu re-entry while preserving loaded resources and the configured data path.
+- Full CTest suite remains green: 54/54 tests passed.
+## 2026-08-06 (Strict-warning cleanup)
+- Removed unused pause-menu display-width locals and an unused Liberation text-parser helper.
+- Marked the MIDI voice-allocation channel parameter intentionally unused; strict project code now progresses further under `-Wall -Wextra -Werror`.
+- The remaining strict-build failures are confined to unused helper functions in the vendored `stb_image.h` implementation.
+## 2026-08-06 (Additional strict-warning cleanup)
+- Removed unused intermediate values from Liberation city generation, city-grid normalization, and xBRZ upscaling.
+- Marked intentionally unused renderer parameters explicitly and kept the regular build behavior unchanged.
+- Full CTest verification follows after the cleanup.
+## 2026-08-06 (Strict warning gate)
+- Test-only unused counters were either converted into assertions or removed.
+- The complete project now builds and passes all 54 tests with `-Wall -Wextra -Werror -Wno-unused-function`; the only suppressed warnings originate in vendored `stb_image.h` helpers.
+## 2026-08-06 (Clean full Werror build)
+- Scoped Clang's `-Wunused-function` suppression to the vendored `stb_image.h` include instead of passing a global warning suppression.
+- Removed the last unused project helpers from city-grid and xBRZ code.
+- Full build and all 54 tests now pass with `-Wall -Wextra -Werror`.
+## 2026-08-06 (CLI data-scan aliases)
+- Added the documented `--scan-data` and `--scan-game-data` aliases, mapping to verification of all supported game data.
+- Added the documented `--data-dir` alias for `--data`.
+- Headless CLI verification now reaches the data scanner and reports missing data with the expected nonzero status; full CTest remains green.
+## 2026-08-06 (CLI banner duplication)
+- Removed the unconditional startup version print, which duplicated the version line for `--help`, `--version`, and data-scanning commands.
+- Verified that each of those CLI paths now emits one version line; full CTest remains green.
+## 2026-08-06 (Integer-scaling default consistency)
+- Synchronized `main()`'s initial configuration with the documented and start-menu default: integer scaling is enabled by default.
+- Full build and all 54 tests remain green.
+## 2026-08-06 (Zero-size window input guards)
+- Mouse coordinate translation now ignores events while SDL reports a zero-sized window, preventing division by zero during minimization or headless transitions.
+- Guards cover the main menu, Liberation mission menu, and pause menu.
+- Full build and all 54 tests remain green.
+## 2026-08-06 (Captive save export validation)
+- Captive saves now reject invalid dungeon cell types before writing them.
+- This keeps save export consistent with the loader's cell-type validation and prevents self-generated unreadable saves.
+- Full build and all 54 tests remain green.
+## 2026-08-06 (VFS cache timestamp precision)
+- VFS cache signatures now include nanosecond modification time on POSIX platforms.
+- Replacing a same-size asset within one wall-clock second can no longer silently reuse stale scan data.
+- Full build and all 54 tests remain green.
+## 2026-08-06 (Replay loader initialization safety)
+- Replay loading now stages into a zero-initialized replacement state instead of copying an uninitialized caller object.
+- A successful load still replaces the complete replay system, while failed loads leave the destination untouched.
+- Full build and all 54 tests remain green.
+## 2026-08-06 (Captive replay input bridge)
+- Added a stable byte action table for Captive keyboard replay instead of serializing platform-specific SDL keycodes.
+- Captive key events are now recorded at the game tick and replayed at the same tick; multiple actions on one tick are preserved.
+- Liberation replay remains intentionally outside this bridge until its separate input model is verified.
+- Full build and all 54 tests remain green.
+## 2026-08-06 (Captive mission start and replay seed)
+- Starting Captive from droid configuration now generates the first mission before entering the game state.
+- Replay playback uses the recorded mission seed when creating that initial dungeon, preserving deterministic map generation.
+- Full build and all 54 tests remain green.
+## 2026-08-06 (Windows VFS cache invalidation)
+- VFS cache signatures now recursively include loose files and directories on Windows as well as POSIX.
+- Changing a loose Windows asset can no longer leave a stale hash result cached merely because the data-root directory itself was unchanged.
+- Full build, VFS tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation save mission bounds)
+- Liberation save read/write now rejects mission number 256 or higher, which cannot be represented by the 256-entry completion bitmap.
+- This prevents a save from carrying a mission value that later cannot be queried safely through the mission-completion API.
+- Liberation save tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Cross-save import initialization safety)
+- Cross-save import no longer copies the caller's possibly uninitialized `GameState` before parsing the file.
+- Failed imports still leave the destination untouched, while successful imports now give non-serialized fields deterministic zero values.
+- Custom-feature tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Cross-save resume state)
+- Successful cross-save imports now enter `STATE_GAME` instead of silently landing in the menu because the reconstructed state is zero-initialized.
+- Added an assertion covering the imported state's playable mode.
+- Custom-feature tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation source selection)
+- Explicit Amiga/ADF source selection no longer performs an unnecessary CD32 track hash search before loading the requested source.
+- This keeps source selection faithful and avoids needless large-image scanning and cache work.
+- Full build, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Start-menu Liberation scan initialization)
+- Both local `LiberationData` instances used by start-menu data scans are now zero-initialized before lifecycle-aware open/close calls.
+- This removes undefined reads of the lifecycle marker during ordinary menu scans.
+- Start-menu tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Start-menu scan lifecycle audit)
+- Audited all local data-parser temporaries used by the start menu and CLI verification paths; lifecycle-aware `LiberationData` instances are now explicitly initialized before opening.
+- This closes the remaining uninitialized-object path in normal data scanning.
+- Start-menu tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (PO parser escape bounds)
+- The i18n PO parser now bounds-checks both output characters produced by unknown escape sequences.
+- Malformed or oversized translation lines can no longer write past the fixed message buffer.
+- i18n tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation text empty-option bounds)
+- Text expansion now handles a trailing empty random option such as `[alpha|]` without unsigned-length underflow.
+- Added regression coverage for both the non-empty and empty selection paths.
+- Liberation text-table tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Combat target selection)
+- Captive creature AI now selects attack targets only from living droids; destroyed droids are excluded from random target selection.
+- Added regression coverage proving a living droid takes damage while a destroyed droid remains unchanged.
+- Game-state tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Dungeon stair topology coverage)
+- Added a multi-seed regression test that traverses every generated Captive floor transition in both directions.
+- The test covers 64 mission seeds and verifies that every stairs-down cell has a reachable stairs-up destination and return path.
+- Game-state tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Gameplay message localization hooks)
+- Active Liberation and Captive combat/status messages are now routed through the i18n lookup layer.
+- Added their message IDs to `po/messages.pot`; languages without a translated entry retain the safe English fallback.
+- Full build, all 54 CTest tests, and `git diff --check` pass. The documented `po/validate_po_layout.sh` script is absent from this checkout, so that specific check could not be run.
+## 2026-08-06 (Liberation dialogue entry node)
+- Dialogue startup now skips leading exit nodes and begins at the first playable text/choice node.
+- This fixes generated NPC dialogues, which construct their exit node before the greeting and previously closed immediately on start.
+- Dialogue/shop tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation l10n cleanup)
+- Localized the remaining hard-coded "Fine paid. Rep +15" message in both building-exit input paths.
+- Added the message to the translation template; untranslated locales continue to fall back to English.
+- Liberation dialogue/shop tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation save-position validation)
+- Liberation save read/write now rejects city coordinates outside the 64×64 navigation grid.
+- Added regression coverage for negative and out-of-range coordinates.
+- Save tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation navigation invariant)
+- City navigation now rejects diagonal or zero-length movement vectors during state updates; only cardinal movement is valid.
+- Added regression coverage for corrupted diagonal movement state.
+- Navigation test, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Captive shop repair arithmetic)
+- Shop repair cost calculation now uses 64-bit intermediate arithmetic before debiting gold.
+- Added coverage for the largest valid droid HP/energy values.
+- Shop test, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Captive shop cost robustness)
+- Shop repair calculations now use 64-bit intermediate values before comparing and debiting gold.
+- Added regression coverage using the largest representable droid health and energy values.
+- Shop test, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Captive inventory category guard)
+- Droid UI no longer equips ammunition, keys, maps, or other non-weapon items as weapons.
+- Added regression coverage for ammunition in an inventory slot.
+- Droid UI test, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Captive droid inventory equipment)
+- Droid inventory handling now rejects non-weapon items in weapon slots; ammunition, keys, maps, and tools remain in inventory.
+- Added regression coverage for ammunition.
+- Droid UI test, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Captive gameplay l10n)
+- Localized the remaining main-loop gameplay messages for creature defeat, level-up, pit damage, puzzle activation, and leaving a building.
+- Added all five strings to `po/messages.pot`; untranslated locales fall back to English.
+- Full test suite and `git diff --check` pass.
+## 2026-08-06 (Captive terminal l10n)
+- Localized terminal map, status, mission, generator, title, and navigation strings.
+- Added the terminal strings to `po/messages.pot`; untranslated locales fall back to English.
+- Full build, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Terminal test i18n linkage)
+- Updated the standalone terminal test target to link the i18n implementation and SDL3 after terminal strings were localized.
+- Full build, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation combat target flow)
+- After defeating the selected enemy, Liberation combat now automatically selects the next living enemy.
+- Added regression coverage for target advancement.
+- Combat test, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (NPC dialogue initialization audit)
+- Fixed undefined behavior in the NPC dialogue regression test by zero-initializing its load state before probing failure paths.
+- Documented the required zero-initialization contract for first-time dialogue-data loads.
+- NPC dialogue test, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation city-grid building flags)
+- Building-shape connection resolution now masks the high flag bit in `plane2` before comparing building IDs.
+- This preserves valid connections for cells carrying the high-bit feature marker.
+- City-grid test, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation building-ID flag masking)
+- Building mapping and building entry now mask the high `plane2` flag bit before resolving building IDs.
+- Added regression coverage for flagged building cells.
+- City-grid/dialogue tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation plane2 rendering flags)
+- Remaining city-grid wall metadata and city rendering paths now mask the `plane2` high flag bit before using building IDs.
+- This keeps wall annotations and building visuals consistent with the corrected interaction mapping.
+- City-grid/navigation tests, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation taxi and city-map IDs)
+- Taxi destination lookup and city-map building highlighting now mask the `plane2` high flag bit.
+- All known runtime consumers now interpret flagged `plane2` cells consistently.
+- Full build, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation droid save/load state)
+- Liberation F5/F9 now persists and restores droid skills, body-part equipment, and both weapon slots instead of silently replacing them with zeroed data.
+- Weapon damage is recalculated after loading restored weapons.
+- OpenCaptive build, save test, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation inventory save format v2)
+- Liberation save format v2 now persists all ten droid inventory slots.
+- Version 1 saves remain readable; their inventory is initialized empty.
+- F5/F9 wiring, save test, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation partial-droid save restore)
+- F9 now clears the complete droid array before restoring the droids present in a save file.
+- Loading a save with fewer than four droids can no longer retain stale droid state from the previous session.
+- OpenCaptive build, all 54 CTest tests, and `git diff --check` pass.
+## 2026-08-06 (Liberation save state construction)
+- `lib_save_from_state()` now records zero droids when no droid array is supplied, instead of creating a save claiming to contain zero-initialized droids.
+- Added regression coverage for a NULL droid source.
+- Save test, all 54 CTest tests, and `git diff --check` pass.
+# 2026-08-06 (Liberation save restore consistency)
+
+- Captive-stridens fiendeskada klipps nu mot aktuell HP i stället för att
+  konverteras med `int16_t`-wrap; extrem vapenskada dödar därför korrekt.
+- Samma saturering används nu när fiender skadar droids; extrem fiendeskada
+  kan inte längre återuppliva en droid genom HP-wrap.
+- Lade till regressionstest för maximal fiendeskada och verifierade att exakt
+  en levande droid skadas utan att någon HP wrapar.
+- Pusselns golvfällor och energisocklar använder nu saturerande HP-/energiändring
+  i stället för `int16_t`-wrap vid korrupta eller extrema runtimevärden.
+- Kopplade Captives `puzzle_generate()` till nya missionsstarter; tidigare hade
+  funktionen ingen caller och nya uppdrag saknade därför alla genererade pussel.
+- Kopplade även Captives `combat_spawn_for_level()` till nya missionsstarter;
+  tidigare startade nya Captive-missions utan fiender.
+- Fixade spakgenereringens retry-loop: en kandidat utan angränsande vägg avbryter
+  inte längre alla återstående försök.
+- Samma retry-fel korrigerades för bars, knappkombinationer, dolda knappar och
+  energisocklar; de försöker nu fler kandidater när första platsen är ogiltig.
+- Encounter-spawn validerar nu varje faktisk spawncell som golv i stället för att
+  placera fiender i väggar eller klampa dem till kartkanten.
+- Captive combat ignorerar nu aktiva fiender med `hp <= 0`, markerar dem
+  inaktiva och startar korrekt respawn-timer; regressionstest täcker detta.
+- Liberation-stridens fiende- och droidskador saturerar nu HP till 0 i stället
+  för att kunna wrapa via `int16_t`; regressionstest täcker extrem fiendeskada.
+- Industriell fara, fallgropar och byggnadsfara använder nu samma saturerande
+  droidskadefunktion i huvudloopen.
+- Level-up jämför före- och efterattackens XP direkt, utan risk för unsigned
+  underflow. Regressionstest täcker låg XP mot stor fiende.
+- Liberation-start normaliserar mission 0 till mission 1 före stads-/temaindexering,
+  så en korrupt eller äldre sparfil kan inte skapa negativ arrayindexering.
+- Nollställer Liberation-stadens genereringsflagga vid ny extern start/laddning,
+  så ett tidigare missions stad inte återanvänds efter menyn eller vid nytt seed.
+- F5 sparar nu aktuell generatorstatus och F9/"Fortsätt" återställer den till
+  `GameState`, så uppdragsframsteg inte tappas vid laddning.
+- F5 klipper generatorräknare säkert till sparformatets 16-bitarsintervall och
+  upprätthåller `destroyed <= total` även vid korrupt runtime-status.
+- Lade till XP-systemets implementation i Liberation-stridstestets länkning och
+  verifierade att stridsbelöning aldrig överskrider `XP_MAX`.
+- Liberation-stridens XP-belöning använder nu `xp_add()` och kan inte passera
+  den gemensamma `XP_MAX`-gränsen.
+- Uppgraderade Liberation-sparformatet till version 3 med droidens fulla
+  32-bitars XP; version 1 och 2 kan fortfarande läsas.
+- Lade till rundturstest som verifierar att XP-värdet faktiskt skrivs och läses.
+- Samordnade F9 och "Fortsätt Liberation" så sparade mission, 32-bitars seed,
+  stadsposition, droidskills, utrustning, inventory och vapenskada återställs
+  konsekvent.
+- Nollställer hela droidtabellen före återställning så äldre sparfiler med färre
+  droids inte lämnar kvar gamla standarddroids.
+- Den strikta varningsbyggningen och alla 54 CTest-tester passerar.
+- Elektrisk väggskada i Captive beräknas nu i ett bredare heltal före
+  konvertering tillbaka till droidens HP, så skadan kan inte orsaka signed
+  integer-wrap vid extrema eller korrupta nivåvärden.
+- Liberation-guld från sparfiler klipps säkert till `INT_MAX` innan det läggs
+  i runtime-state, och negativt runtime-guld sparas som noll i stället för
+  att wrapa till ett enormt positivt belopp.
+- Liberation-sparformatet är nu version 4 och sparar även det delade
+  inventoryt med bakåtkompatibel läsning av äldre versioner. F9 återställer
+  därför föremål som låg mellan droidarnas inventoryplatser.
+- Lade till rundturstest för delade inventoryföremål; alla 54 tester passerar.
+- Liberation-sparning validerar nu shared-inventory-antalet före filöppning,
+  så ett ogiltigt runtimevärde inte förstör en befintlig sparfil.
+- Cross-save version 1 begränsas nu uttryckligen till Captive, eftersom
+  formatet bara serialiserar dungeon-/party-state och tidigare felaktigt
+  annonserade stöd för Liberation trots att dess stadsstate inte sparades.
+- Regressionstest täcker nu att Liberation avvisas av Captive-formatet.
+- VFS-cache-signaturen beräknas nu en gång vid `vfs_init` i stället för vid
+  varje hashfråga. Identisk dataskanning sjönk i praktiken från cirka 42 till
+  8 sekunder när 38 ZIP-arkiv och befintlig cache användes.
+- Liberation-byggnadstyper och NPC-roller går nu via gettext; de tidigare
+  hårdkodade engelska namnen kunde inte lokaliseras. Nya meddelande-ID:n finns
+  i `po/messages.pot`, och `test_liberation_citygen` länkar nu i18n-lagret.
+- Byggnadsinteraktionen använder nu `int *` för Liberation-guld, samma typ som
+  `GameState.gold`; tidigare skickades en felaktigt castad `int *` som
+  `uint32_t *`, vilket gav undefined behavior och kunde göra negativa saldon
+  till enorma positiva belopp. Köp konverteras säkert internt.
+- Citygridens formupplösning begränsar nu den sammanlagda byggnadsräknaren
+  till `CITYGRID_MAX_BUILDINGS` innan `buildings[]` traverseras. Korrupta eller
+  extrema räknarvärden kan därför inte längre ge läsning utanför arrayen.
+- Liberation-butiker är nu faktiskt användbara från huvudloopen: efter valet
+  av handel köper nummerknapparna 1–9 motsvarande vara, med lokaliserat
+  resultat- eller felmeddelande. Tidigare fanns köp-API:t men inget anrop från
+  spelinmatningen.
+- Liberation-butiksdialogen säger nu “Buy” i stället för “Buy/Sell”, eftersom
+  säljintegrationen ännu inte är kopplad till spelarens inventarie. Det
+  förhindrar att UI:t lovar en funktion som inte kan genomföras korrekt.
+- Köpbindningen är nu begränsad till det explicita handelsläget. Nummerknappar
+  efter exempelvis “Any news?” kan inte längre råka köpa en vara.
+- Liberation-köp blockeras nu innan betalning när det gemensamma inventariet
+  är fullt. Tidigare kunde varan debiteras och därefter tyst försvinna vid
+  överföringen till inventariet.
+- Droid-vapen väljs nu efter den faktiska `low × high`-skadan som
+  stridsformeln använder, inte efter det packade bytevärdets numeriska ordning.
+  Det förhindrar att ett svagare vapen väljs på grund av högre högbyte.
+- VFS hanterar nu tomma filer korrekt: `malloc(0)` kan inte längre få en
+  existerande nollbytesfil att se ut som saknad data. Regressionstest täcker
+  både vanlig läsning och SHA-256-sökning av tom fil.
+- Dialogträd avvisar nu textnoder vars nästa nod inte ryms i formatets
+  16-bitars nodreferens. Tidigare kunde ett stort korrupt `unsigned`-värde
+  wrapa till en annan dialognod.
+- Cross-save-import validerar nu `DungeonLevel.level` innan state publiceras;
+  korrupta nivåindex kan inte längre smyga in i den återställda spelstaten.
+- Replay-läsaren kräver nu exakt filstorlek enligt headerns inputräknare;
+  extra efterföljande bytes accepteras inte som en giltig replay.
+- Pusselgeneratorn avvisar nu ogiltiga nivånummer innan den skapar pussel;
+  negativa eller för stora `level`-referenser kan inte längre hamna i state.
+- Pusselgeneratorn avvisar även korrupta `num_puzzles`-värden innan den
+  använder pussellistan, så ett negativt antal kan inte ge skrivning före
+  `puzzles[]`.
+- Vapenskadeberäkningen avvisar nu negativa eller överfulla `int16_t`-värden
+  innan de konverteras till combatens bytekodning; korrupta itemdata kan inte
+  längre wrapa till ett vapen med oväntat hög skada.
+- Liberation-3D-renderaren avvisar nu texturer vars angivna dimensioner
+  överskrider den inbyggda pixelbufferten. Korrupta X3G-/texturmetadata kan
+  därför inte längre leda till läsning utanför `Lib3dTexture.pixels`.
+- Startmenyn validerar nu dat sökvägsmarkören innan textredigering och
+  använder storleksäkra längdberäkningar för infogning/radering. Ogiltigt
+  återanvänt input-state kan därför inte längre flytta `memmove` utanför
+  `data_path`.
+- Dataskannerns progressräknare använder nu det faktiska antalet Captive- och
+  Liberation-resurser i stället för att behandla hela Liberation-kontrollen
+  som ett enda steg. Procentvisningen är därför korrekt under skanning.
+- Byggnadsinteraktionen avvisar nu `plane2`-sentinelvärdet `0xFF` innan
+  flaggbitar maskeras. Tomma byggnadsfält kan därför inte längre tolkas som
+  byggnad 127 och öppna en felaktig dialog.
+- Sentinelvärdet `plane2 == 0xFF` hanteras nu före flaggmaskering även i
+  citygen-mappningen, taxifunktionen, stadskartan och 3D-väggfärgerna. Ogiltiga
+  celler kan därför inte längre visas eller användas som byggnad 127.
+- Citygenens interna byggnadsvandring avvisar nu också tomma och border-
+  sentinelvärden innan `plane2`-ID maskeras. Ogiltiga celler kan därför inte
+  påverka byggnadsform- eller entry-point-upplösningen.
+- MIDI-parsern avvisar nu avkortade VLQ-sekvenser i både initiala delta-tick
+  och efterföljande events. Partiella längder kan därför inte längre flytta
+  playback till ett falskt tick eller lämna ett korrupt spår i loop.
+- MIDI-uppspelaren nollställer nu running status efter system- och metaevent,
+  enligt Standard MIDI. En data-byte efter exempelvis SysEx kan därför inte
+  längre feltolkas som ett nytt kanal-event.
+- `midi_render` återställer nu en ogiltig `tick_frac` innan sampleloopen.
+  Korrupt eller återanvänd state kan därför inte längre ge negativ återstående
+  ticklängd och låsa ljudrenderingen.
+- Captive-kompositorn kräver nu en stride minst lika bred som viewporten och
+  använder `size_t` för source-index. Smala framebuffers och extrema panel-
+  koordinater kan därför inte längre orsaka radöverskrivning eller heltals-
+  overflow vid källindexering.
+- Captive view-window-bygget validerar nu party-koordinater innan den räknar
+  fram synliga celler. Korrupta extrema koordinater kan därför inte längre
+  orsaka signed overflow i koordinattransformen.
+- `game_state_init` normaliserar nu missionsnummer mindre än 1 till mission 1.
+  Nya stateobjekt kan därför inte starta med ett ogiltigt negativt eller nollat
+  missionsnummer.
+- Captive-butiken normaliserar nu negativa nivåer till nivå 0 innan lager-
+  tier beräknas. Korrupt eller återanvänd spelstate kan därför inte längre
+  skapa en felaktigt tom butik på grund av negativ heltalsdivision.
+- `combat_spawn_for_level` normaliserar nu negativa creature-räknare innan
+  spawnloopens arrayindexering. Korrupt eller delvis återläst combat-state kan
+  därför inte längre skriva före `CreatureList.creatures`.
+- Liberation-textparsern begränsar nu nästlade `^O`-/`^XCA`-alternativ till
+  ett säkert rekursionsdjup. Korrupt DTE-data kan därför inte längre överfylla
+  C-stacken under dialogexpansion.
+- Polisdialogens vägran att betala böter kräver nu ett faktiskt giltigt sista
+  valindex. Ett `UINT_MAX`-val kan därför inte längre wrapa och felaktigt
+  registrera bötesvägran.
+- Bar fights följer nu Liberation-dokumentationens 25-procentiga, seedade
+  chans per lyckat barköp i stället för att inträffa deterministiskt vart
+  fjärde köp. Test täcker både utfall och icke-utfall över flera seeds.
+- OPL2-emulatorns negativa feedbackfas skalar nu ljudprover med definierad
+  heltalsaritmetik i stället för ett odefinierat vänsterskift. UBSan rapporterar
+  inte längre fel i OPL2-, MIDI- eller AdLib-renderingen.
+- `--reverb` och konfigurationsflaggan `audio_reverb` kopplas nu till den
+  faktiska ljudmixningen. Reverbmängden klipps säkert till 0–1 innan den
+  appliceras på ljudbufferten.
+- Alla 18 översatta PO-filer är nu synkroniserade mot den aktuella
+  `messages.pot`-mallen och deras MO-filer är ombyggda med formatkontroll.
+- Liberation-renderaren kan nu använda `texture_filter` för bilinjär,
+  repeterande textursampling; standardläget är fortsatt närmaste pixel för
+  originaltrohet.
+- Liberation-renderaren kan nu använda `dynamic_lighting` för avståndsbaserad
+  ljusintensitet på texturer. Avstängt läge lämnar tidigare färgresultat
+  oförändrat.

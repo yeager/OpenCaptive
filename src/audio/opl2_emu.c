@@ -217,6 +217,7 @@ static void update_channel_params(OPL2 *opl, int ch) {
 }
 
 void opl2_init(OPL2 *opl) {
+    if (!opl) return;
     init_tables();
     memset(opl, 0, sizeof(*opl));
     opl->noise_rng = 1;
@@ -227,6 +228,7 @@ void opl2_init(OPL2 *opl) {
 }
 
 void opl2_write(OPL2 *opl, uint8_t reg, uint8_t val) {
+    if (!opl) return;
     opl->regs[reg] = val;
 
     if (reg == 0x01) {
@@ -253,6 +255,7 @@ void opl2_write(OPL2 *opl, uint8_t reg, uint8_t val) {
 }
 
 void opl2_render(OPL2 *opl, int16_t *buffer, int num_samples) {
+    if (!opl || !buffer || num_samples <= 0) return;
     for (int s = 0; s < num_samples; s++) {
         int32_t output = 0;
 
@@ -294,8 +297,16 @@ void opl2_render(OPL2 *opl, int16_t *buffer, int num_samples) {
 
             /* Operator 1 output */
             uint32_t op1_phase = c->op[1].phase;
-            if (!c->cnt)
-                op1_phase += (uint32_t)(op0_sample << 10);
+            if (!c->cnt) {
+                /*
+                 * The feedback phase is a signed sample scaled by 1024.
+                 * Multiplication avoids shifting a negative signed value
+                 * (undefined in C), while the final conversion preserves
+                 * the intended modulo-2^32 phase arithmetic.
+                 */
+                int64_t phase_mod = (int64_t)op0_sample * 1024;
+                op1_phase += (uint32_t)phase_mod;
+            }
 
             uint16_t op1_out = calc_phase_output(op1_phase, c->op[1].waveform);
             int32_t op1_env = (c->op[1].tl << 3) + c->op[1].env_level;

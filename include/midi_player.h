@@ -57,6 +57,7 @@ typedef struct {
     int           tick_remainder;
     int           tick_frac;
     int           sample_rate;
+    float         master_volume;
     bool          playing;
     bool          looping;
     const uint8_t *file_data;

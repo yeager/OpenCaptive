@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 uint16_t plotgen_prng(PlotgenState *ps) {
+    if (!ps) return 0;
     ps->prng_state = (uint16_t)(ps->prng_state * 0x5E5 + 0x29);
     return ps->prng_state;
 }
@@ -14,7 +15,14 @@ static uint16_t prng_range(PlotgenState *ps, uint16_t n) {
     return (uint16_t)((r >> 8) % n);
 }
 
+static uint16_t ror16(uint16_t value, unsigned count) {
+    count &= 15U;
+    if (count == 0U) return value;
+    return (uint16_t)((value >> count) | (value << (16U - count)));
+}
+
 void plotgen_init(PlotgenState *ps, uint16_t seed) {
+    if (!ps) return;
     memset(ps, 0, sizeof(*ps));
     ps->seed = seed;
     ps->prng_state = seed;
@@ -25,6 +33,7 @@ void plotgen_init(PlotgenState *ps, uint16_t seed) {
  * Transcribed from 68000 disassembly of the original Amiga binary.
  */
 void plotgen_compute_params(PlotgenState *ps) {
+    if (!ps) return;
     uint16_t seed_lo = ps->seed & 0x0F;
     plotgen_prng(ps);
     uint16_t d2 = ps->prng_state;
@@ -36,9 +45,9 @@ void plotgen_compute_params(PlotgenState *ps) {
         rot = (uint16_t)((rot << 1) | (rot >> 15));
     rot &= 0x07;
 
-    uint16_t density = (uint16_t)(ps->seed * 5 + 15 + rot);
-    if (density > 100) density = 100;
-    ps->grid_density = density;
+    uint32_t density = (uint32_t)ps->seed * 5U + 15U + rot;
+    if (density > 100U) density = 100U;
+    ps->grid_density = (uint16_t)density;
 
     /* num_columns = seed>>4 + 6 + rotation_bits, halved while >15 */
     uint16_t d0 = ps->prng_state;
@@ -46,28 +55,31 @@ void plotgen_compute_params(PlotgenState *ps) {
     for (int i = 0; i < (shift_amt & 0x1F); i++)
         d0 = (uint16_t)((d0 << 1) | (d0 >> 15));
     d0 &= 0x03;
-    d0 -= 2;
-    d2 = (uint16_t)((ps->seed >> 4) + 6 + (int16_t)d0);
+    /* Keep the -2..+1 adjustment signed.  Subtracting from uint16_t and
+     * converting the wrapped value back to int16_t is implementation-defined
+     * on non-two's-complement targets. */
+    int16_t column_adjust = (int16_t)d0 - 2;
+    d2 = (uint16_t)((int)(ps->seed >> 4) + 6 + column_adjust);
     while (d2 > 15) d2 >>= 1;
     ps->num_columns = d2;
 
     /* num_roads: seed-derived + rotation, min 1 */
     d2 = ps->prng_state & 0x07;
     d0 = ps->prng_state;
-    d0 = (uint16_t)((d0 >> (d2 & 0x0F)) | (d0 << (16 - (d2 & 0x0F))));
+    d0 = ror16(d0, d2);
     d0 &= 0x03;
     d0 += 2;
     uint16_t d1 = ps->seed >> 3;
-    d0 -= d1;
-    if ((int16_t)d0 <= 0) d0 = 1;
-    if (ps->seed == 0) d0 = 5;
-    ps->num_roads = d0;
+    int roads = (int)d0 - (int)d1;
+    if (roads <= 0) roads = 1;
+    if (ps->seed == 0) roads = 5;
+    ps->num_roads = (uint16_t)roads;
 
     /* num_cross_roads: seed-derived, 1..5 */
     d2 = ps->prng_state & 0x03;
     d0 = ps->prng_state;
     d0 = (uint16_t)((d0 >> 8) | (d0 << 8));
-    d0 = (uint16_t)((d0 >> (d2 & 0x0F)) | (d0 << (16 - (d2 & 0x0F))));
+    d0 = ror16(d0, d2);
     d0 &= 0x01;
     d1 = ps->seed >> 3;
     d0 += d1;
@@ -102,6 +114,7 @@ void plotgen_compute_params(PlotgenState *ps) {
  * Each building has type, id, flags, and up to 4 room connections.
  */
 void plotgen_generate_buildings(PlotgenState *ps) {
+    if (!ps) return;
     plotgen_compute_params(ps);
 
     uint16_t total = ps->num_total;
@@ -144,6 +157,7 @@ static void pick_from_table(PlotgenState *ps, const char *const *table,
  * and news source name.
  */
 void plotgen_generate_names(PlotgenState *ps) {
+    if (!ps) return;
     /* City name: two syllables + optional Greek letter suffix */
     pick_from_table(ps, liberation_city_syllables,
                     LIBERATION_CITY_SYLLABLE_COUNT, ps->city_name, PLOTGEN_NAME_SIZE);

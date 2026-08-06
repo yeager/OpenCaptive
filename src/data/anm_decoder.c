@@ -1,6 +1,9 @@
 #include "anm_decoder.h"
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
+
+#define ANM_MAX_FRAMES 4096
 
 // ANM file layout:
 //   [0..767]   768-byte VGA palette (256 colors, 6-bit RGB)
@@ -37,7 +40,7 @@ static void decode_frame(const uint8_t *packed, int packed_len,
 
 bool anm_decode(const uint8_t *data, size_t size, ANMAnimation *out) {
     if (!data || !out) return false;
-    if (size < ANM_PALETTE_SIZE + 4) return false;
+    if (size < ANM_PALETTE_SIZE + 4 || size > (size_t)INT_MAX) return false;
 
     memset(out, 0, sizeof(*out));
     out->width = ANM_WIDTH;
@@ -61,11 +64,12 @@ bool anm_decode(const uint8_t *data, size_t size, ANMAnimation *out) {
         if (fs_off < cmd_end) break;
         int fsize = (int)data[fs_off] | ((int)data[fs_off + 1] << 8);
         if (fsize < 2 || fs_off - (fsize - 2) < cmd_end) break;
+        if (frame_count >= ANM_MAX_FRAMES) return false;
         frame_count++;
         pos = fs_off - (fsize - 2);
     }
 
-    if (frame_count == 0) return false;
+    if (frame_count == 0 || pos != cmd_end) return false;
 
     out->frame_count = frame_count;
     out->frames = calloc(frame_count, sizeof(uint8_t *));

@@ -30,6 +30,15 @@ static void test_decompressed_size(void) {
     assert(arcd_decompressed_size(data, 12) == 16304);
 }
 
+static void test_rejects_unreasonable_output_size(void) {
+    uint8_t data[12] = {
+        0x41, 0x72, 0x63, 0x44,
+        0xFF, 0xFF, 0xFF, 0xFF,
+        0x00, 0x00, 0x1B, 0xAD
+    };
+    assert(arcd_decompressed_size(data, sizeof(data)) == 0);
+}
+
 static void test_game_data_if_available(void) {
     const char *paths[] = {
         "PGE.txt", "DTE.txt", "CTE.txt"
@@ -58,6 +67,9 @@ static void test_game_data_if_available(void) {
         uint8_t *dst = malloc(dsize);
         int result = arcd_decode(src, fsize, dst, dsize);
         assert(result == (int)expected[i]);
+        if (fsize > 12) {
+            assert(arcd_decode(src, fsize - 1, dst, dsize) == -1);
+        }
 
         printf("  %s: %d bytes OK\n", paths[i], result);
 
@@ -73,6 +85,8 @@ int main(void) {
     printf("PASS: too_small\n");
     test_decompressed_size();
     printf("PASS: decompressed_size\n");
+    test_rejects_unreasonable_output_size();
+    printf("PASS: unreasonable_output_size\n");
     test_game_data_if_available();
     printf("PASS: all arcd tests\n");
     return 0;

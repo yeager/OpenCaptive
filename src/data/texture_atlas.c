@@ -1,4 +1,5 @@
 #include "texture_atlas.h"
+#include <math.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -12,6 +13,7 @@ static const char *const alien_hashes[6] = {
 };
 
 bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs) {
+    if (!atlas || !vfs) return false;
     memset(atlas, 0, sizeof(*atlas));
     for (int i = 0; i < CAPTIVE_VIEW_SOURCE_COUNT; ++i) atlas->view_sheets[i] = -1;
     for (int i = 0; i < 5; i++) atlas->wall_sheets[i] = -1;
@@ -54,6 +56,7 @@ bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs) {
 }
 
 void texture_atlas_free(TextureAtlas *atlas) {
+    if (!atlas) return;
     gfx_free(&atlas->gfx);
     memset(atlas, 0, sizeof(*atlas));
 }
@@ -61,8 +64,17 @@ void texture_atlas_free(TextureAtlas *atlas) {
 uint32_t texture_sample(const TextureAtlas *atlas, int sheet_id,
                         int region_x, int region_y, int region_w, int region_h,
                         float u, float v) {
+    if (!atlas || region_w <= 0 || region_h <= 0 ||
+        !isfinite(u) || !isfinite(v)) return 0xFF000000;
     const Texture *tex = gfx_get(&atlas->gfx, sheet_id);
     if (!tex) return 0xFF000000;
+    /* Validate the rectangle before adding offsets.  Besides rejecting
+       outside regions, this prevents signed overflow for corrupt coordinates
+       such as INT_MAX. */
+    if (region_x < 0 || region_y < 0 || region_x > tex->width ||
+        region_y > tex->height || region_w > tex->width - region_x ||
+        region_h > tex->height - region_y)
+        return 0xFF000000;
 
     // Clamp UVs
     if (u < 0.0f) u = 0.0f;
@@ -72,9 +84,6 @@ uint32_t texture_sample(const TextureAtlas *atlas, int sheet_id,
 
     int px = region_x + (int)(u * (region_w - 1));
     int py = region_y + (int)(v * (region_h - 1));
-
-    if (px < 0 || px >= tex->width || py < 0 || py >= tex->height)
-        return 0xFF000000;
 
     return tex->pixels[py * tex->width + px];
 }

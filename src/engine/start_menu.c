@@ -3,10 +3,12 @@
 #include "data_vfs.h"
 #include "sha256.h"
 #include "liberation_data.h"
+#include "captive_amiga_data.h"
 #include "i18n.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/stat.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
 extern unsigned char *load_png_file(const char *path, int *w, int *h);
@@ -26,17 +28,6 @@ static const char *captive_required_hashes[] = {
     "dfca77f0e219962242226f11f9697f580f92e8ad24786296a5b2571b20c2b707",
 };
 #define CAPTIVE_HASH_COUNT (sizeof(captive_required_hashes)/sizeof(captive_required_hashes[0]))
-
-static const char *liberation_required_hashes[] = {
-    "f807b1385c0996d54ed10afab271a7dd31d2c6dc6a18f13196ad2a79a0af8a80",
-    "e54540c3bf8dfaf569380a135ac039f1438e9efb85cf6d5e3e487e25d4c7c13e",
-    "bc9c922801661eb66024d0bcf822c03e38ffea7f3576693e0512692ccf6d6705",
-    "884d4124fa1ab600a4f7dd889df160779eda8c62e13af1d0280ac9aad681818c",
-    "99f7bd75794a7b4f3e94eeef9c61b756da938d862bb83339b140c18d02eb79c5",
-    "e154d250c1acdbed66835bb356a699efdb6f9f8b5e6d586ca07080414610a94c",
-    "d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2",
-};
-#define LIBERATION_HASH_COUNT (sizeof(liberation_required_hashes)/sizeof(liberation_required_hashes[0]))
 
 #define SETTINGS_COUNT 24
 
@@ -295,9 +286,9 @@ static void draw_liberation_card(uint32_t *pixels, int pw, int ph,
             uint32_t col;
             if (y < horizon) {
                 int t=y*256/horizon;
-                uint32_t r=(0x06*(256-t)+0x18*t)>>8;
-                uint32_t g=(0x06*(256-t)+0x10*t)>>8;
-                uint32_t b=(0x20*(256-t)+0x38*t)>>8;
+                uint32_t r=(uint32_t)((0x06*(256-t)+0x18*t)>>8);
+                uint32_t g=(uint32_t)((0x06*(256-t)+0x10*t)>>8);
+                uint32_t b=(uint32_t)((0x20*(256-t)+0x38*t)>>8);
                 col=0xFF000000|(r<<16)|(g<<8)|b;
                 if (y<horizon/3) { uint32_t sh=hash_pixel(x,y,7); if (sh%180==0) { int tw2=(int)((tick/12+sh)%6); if(tw2<4) col=(tw2<2)?0xFFDDDDEE:0xFF888899; } }
                 int x8=x*128/cw;
@@ -325,18 +316,29 @@ static void draw_liberation_card(uint32_t *pixels, int pw, int ph,
     } else draw_border(pixels,pw,ph,cx,cy,cw,ch,0xFF444466,2);
 }
 
-void start_menu_init(StartMenu *menu) {
-    char saved_path[512];
-    memcpy(saved_path, menu->data_path, sizeof(saved_path));
-    int saved_cursor = menu->data_path_cursor;
-    uint32_t *logo_img = menu->logo_img;
-    int logo_w = menu->logo_img_w, logo_h = menu->logo_img_h;
-    uint32_t *cap_img = menu->captive_img;
-    int cap_w = menu->captive_img_w, cap_h = menu->captive_img_h;
-    uint32_t *lib_img = menu->liberation_img;
-    int lib_w = menu->liberation_img_w, lib_h = menu->liberation_img_h;
-    TTF_Font *ft = menu->font_title, *fb = menu->font_body, *fs = menu->font_small;
-    bool ttf_ok = menu->ttf_ready;
+static void start_menu_reset(StartMenu *menu, bool preserve_resources) {
+    char saved_path[512] = {0};
+    int saved_cursor = 0;
+    uint32_t *logo_img = NULL, *cap_img = NULL, *lib_img = NULL;
+    int logo_w = 0, logo_h = 0, cap_w = 0, cap_h = 0, lib_w = 0, lib_h = 0;
+    TTF_Font *ft = NULL, *fb = NULL, *fs = NULL;
+    bool ttf_ok = false;
+
+    /* A fresh init must not inspect an uninitialised StartMenu.  Re-entry
+     * from the running game explicitly opts into preserving loaded resources
+     * and the user's data path. */
+    if (preserve_resources) {
+        memcpy(saved_path, menu->data_path, sizeof(saved_path));
+        saved_cursor = menu->data_path_cursor;
+        logo_img = menu->logo_img;
+        logo_w = menu->logo_img_w; logo_h = menu->logo_img_h;
+        cap_img = menu->captive_img;
+        cap_w = menu->captive_img_w; cap_h = menu->captive_img_h;
+        lib_img = menu->liberation_img;
+        lib_w = menu->liberation_img_w; lib_h = menu->liberation_img_h;
+        ft = menu->font_title; fb = menu->font_body; fs = menu->font_small;
+        ttf_ok = menu->ttf_ready;
+    }
 
     memset(menu, 0, sizeof(*menu));
     memcpy(menu->data_path, saved_path, sizeof(menu->data_path));
@@ -392,28 +394,85 @@ void start_menu_init(StartMenu *menu) {
     }
 }
 
+void start_menu_init(StartMenu *menu) {
+    if (!menu) return;
+    start_menu_reset(menu, false);
+}
+
+void start_menu_reinit(StartMenu *menu) {
+    if (!menu) return;
+    start_menu_reset(menu, true);
+}
+
 void start_menu_check_data(StartMenu *menu, const char *data_path) {
-    if (!menu || !data_path || !data_path[0]) return;
+    if (!menu) return;
+    menu->captive_data_ok = false;
+    menu->liberation_data_ok = false;
+    menu->captive_source_mask = 0U;
+    menu->liberation_source_mask = 0U;
+    menu->captive_source_choice = CAPTIVE_PLATFORM_DOS;
+    menu->liberation_source_choice = LIBERATION_SOURCE_NONE;
+    if (!data_path || !data_path[0]) return;
     DataVFS vfs;
     if (!vfs_init(&vfs, data_path)) return;
-    menu->captive_data_ok = true;
+    bool dos_valid = true;
     for (size_t i = 0; i < CAPTIVE_HASH_COUNT; i++) {
         size_t sz = 0;
         uint8_t *d = vfs_find_sha256(&vfs, captive_required_hashes[i], &sz);
-        if (d) free(d); else { menu->captive_data_ok = false; break; }
+        if (d) free(d); else { dos_valid = false; break; }
     }
-    LiberationData lib_data;
+    bool amiga_valid = captive_amiga_data_verify(&vfs);
+    menu->captive_source_mask = (dos_valid ? (1U << CAPTIVE_PLATFORM_DOS) : 0U) |
+        (amiga_valid ? (1U << CAPTIVE_PLATFORM_AMIGA) : 0U);
+    menu->captive_data_ok = menu->captive_source_mask != 0U;
+    menu->captive_source_choice = dos_valid ? CAPTIVE_PLATFORM_DOS : CAPTIVE_PLATFORM_AMIGA;
+    LiberationData lib_data = {0};
     menu->liberation_data_ok = liberation_data_open(&lib_data, &vfs);
     liberation_data_close(&lib_data);
+    menu->liberation_source_mask = liberation_data_available_sources(&vfs);
     vfs_free(&vfs);
+}
+
+static MenuResult request_game_start(StartMenu *menu, int game) {
+    /* The data path may have been edited since the last menu refresh.  Refresh
+       the cheap metadata-backed scan before deciding whether a version choice
+       is needed. */
+    start_menu_check_data(menu, menu->data_path);
+    unsigned source_mask = game == GAME_CAPTIVE ? menu->captive_source_mask
+                                                : menu->liberation_source_mask;
+    if ((source_mask & (source_mask - 1U)) != 0U) {
+        menu->show_version_popup = true;
+        menu->version_popup_game = game;
+        menu->version_popup_selection = 0;
+        return MENU_RESULT_NONE;
+    }
+    return game == GAME_LIBERATION ? MENU_RESULT_START_LIBERATION
+                                   : MENU_RESULT_START_CAPTIVE;
 }
 
 void start_menu_check_saves(StartMenu *menu) {
     if (!menu) return;
+    menu->captive_save_exists = false;
+    menu->captive_save_slot = -1;
+    time_t newest_time = 0;
+    for (int slot = 0; slot < 10; ++slot) {
+        char path[64];
+        struct stat st;
+        snprintf(path, sizeof(path), "opencaptive_slot%d.sav", slot);
+        if (stat(path, &st) == 0 && S_ISREG(st.st_mode)) {
+            if (!menu->captive_save_exists || st.st_mtime > newest_time) {
+                menu->captive_save_slot = slot;
+                newest_time = st.st_mtime;
+            }
+            menu->captive_save_exists = true;
+        }
+    }
     FILE *f = fopen("opencaptive.sav", "rb");
-    if (!f) f = fopen("opencaptive_slot0.sav", "rb");
-    menu->captive_save_exists = (f != NULL);
-    if (f) fclose(f);
+    if (f) {
+        menu->captive_save_exists = true;
+        /* Keep numbered saves preferred when both formats are present. */
+        fclose(f);
+    }
     f = fopen("liberation.sav", "rb");
     menu->liberation_save_exists = (f != NULL);
     if (f) fclose(f);
@@ -434,7 +493,8 @@ static void run_data_scanner(StartMenu *menu, const char *data_path) {
     menu->scanner_captive_found = 0;
     menu->scanner_liberation_total = (int)LIBERATION_RESOURCE_COUNT;
     menu->scanner_liberation_found = 0;
-    menu->scanner_total = (int)CAPTIVE_HASH_COUNT + 1;
+    menu->scanner_total = (int)CAPTIVE_HASH_COUNT +
+                          (int)LIBERATION_RESOURCE_COUNT;
     menu->scanner_progress = 0;
     menu->scanner_phase = 0;
     for (size_t i = 0; i < CAPTIVE_HASH_COUNT; i++) {
@@ -445,7 +505,7 @@ static void run_data_scanner(StartMenu *menu, const char *data_path) {
     }
     menu->scanner_phase = 1;
     {
-        LiberationData lib_data;
+        LiberationData lib_data = {0};
         if (liberation_data_open(&lib_data, &vfs)) {
             menu->scanner_liberation_found = (int)LIBERATION_RESOURCE_COUNT;
             liberation_data_close(&lib_data);
@@ -457,6 +517,7 @@ static void run_data_scanner(StartMenu *menu, const char *data_path) {
 }
 
 void start_menu_free(StartMenu *menu) {
+    if (!menu) return;
     if (menu->font_title) { TTF_CloseFont(menu->font_title); menu->font_title = NULL; }
     if (menu->font_body)  { TTF_CloseFont(menu->font_body);  menu->font_body = NULL; }
     if (menu->font_small) { TTF_CloseFont(menu->font_small); menu->font_small = NULL; }
@@ -496,6 +557,32 @@ static int hit_test_main_menu(const StartMenu *menu, float x, float y) {
 
 MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
     if (!menu) return MENU_RESULT_NONE;
+
+    if (menu->show_version_popup) {
+        int pw = 700, ph = 300;
+        int px = (MENU_WIDTH - pw) / 2, py = (MENU_HEIGHT - ph) / 2;
+        if (x >= px + 80 && x < px + pw - 80 && y >= py + 110 && y < py + 205) {
+            menu->version_popup_selection = (y >= py + 165) ? 1 : 0;
+            return MENU_RESULT_NONE;
+        }
+        if (x >= px && x < px + pw && y >= py && y < py + ph) {
+            if (y >= py + ph - 60) {
+                menu->show_version_popup = false;
+                if (menu->version_popup_game == GAME_CAPTIVE) {
+                    menu->captive_source_choice = menu->version_popup_selection == 0
+                        ? CAPTIVE_PLATFORM_DOS : CAPTIVE_PLATFORM_AMIGA;
+                    menu->platform = menu->captive_source_choice;
+                    return MENU_RESULT_START_CAPTIVE;
+                }
+                menu->liberation_source_choice = menu->version_popup_selection == 0
+                    ? LIBERATION_SOURCE_CD32 : LIBERATION_SOURCE_AMIGA_ADF;
+                return MENU_RESULT_START_LIBERATION;
+            }
+            return MENU_RESULT_NONE;
+        }
+        menu->show_version_popup = false;
+        return MENU_RESULT_NONE;
+    }
 
     if (menu->in_about || menu->in_controls) {
         menu->in_about = false;
@@ -538,8 +625,8 @@ MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
     if (item < 0) return MENU_RESULT_NONE;
     menu->selected_item = item;
     switch (item) {
-        case 0: return MENU_RESULT_START_CAPTIVE;
-        case 1: return MENU_RESULT_START_LIBERATION;
+        case 0: return request_game_start(menu, GAME_CAPTIVE);
+        case 1: return request_game_start(menu, GAME_LIBERATION);
         case 2: return MENU_RESULT_CONTINUE_CAPTIVE;
         case 3: return MENU_RESULT_CONTINUE_LIBERATION;
         case 4: menu->in_settings = true; menu->settings_cursor = 0; break;
@@ -558,23 +645,50 @@ void start_menu_handle_mouse_motion(StartMenu *menu, float x, float y) {
 }
 
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
+    if (!menu || !event) return MENU_RESULT_NONE;
     if (menu->show_setup_popup) {
         if (event->type == SDL_EVENT_KEY_DOWN || event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
             menu->show_setup_popup = false;
         }
         return MENU_RESULT_NONE;
     }
+    if (menu->show_version_popup) {
+        if (event->type == SDL_EVENT_KEY_DOWN) {
+            if (event->key.key == SDLK_ESCAPE) {
+                menu->show_version_popup = false;
+            } else if (event->key.key == SDLK_UP || event->key.key == SDLK_LEFT) {
+                menu->version_popup_selection = 0;
+            } else if (event->key.key == SDLK_DOWN || event->key.key == SDLK_RIGHT) {
+                menu->version_popup_selection = 1;
+            } else if (event->key.key == SDLK_RETURN || event->key.key == SDLK_KP_ENTER) {
+                menu->show_version_popup = false;
+                if (menu->version_popup_game == GAME_CAPTIVE) {
+                    menu->captive_source_choice = menu->version_popup_selection == 0
+                        ? CAPTIVE_PLATFORM_DOS : CAPTIVE_PLATFORM_AMIGA;
+                    menu->platform = menu->captive_source_choice;
+                    return MENU_RESULT_START_CAPTIVE;
+                }
+                menu->liberation_source_choice = menu->version_popup_selection == 0
+                    ? LIBERATION_SOURCE_CD32 : LIBERATION_SOURCE_AMIGA_ADF;
+                return MENU_RESULT_START_LIBERATION;
+            }
+        }
+        return MENU_RESULT_NONE;
+    }
     if (menu->data_path_editing) {
+        int path_len = (int)strlen(menu->data_path);
+        if (menu->data_path_cursor < 0) menu->data_path_cursor = 0;
+        if (menu->data_path_cursor > path_len) menu->data_path_cursor = path_len;
         if (event->type == SDL_EVENT_TEXT_INPUT) {
-            int len = (int)strlen(menu->data_path);
             const char *text = event->text.text;
-            int tlen = (int)strlen(text);
-            if (len + tlen < 510) {
+            size_t tlen = text ? strlen(text) : 0;
+            if (tlen <= sizeof(menu->data_path) - 1U - (size_t)path_len) {
                 memmove(&menu->data_path[menu->data_path_cursor + tlen],
                         &menu->data_path[menu->data_path_cursor],
-                        len - menu->data_path_cursor + 1);
-                memcpy(&menu->data_path[menu->data_path_cursor], text, tlen);
-                menu->data_path_cursor += tlen;
+                        (size_t)(path_len - menu->data_path_cursor + 1));
+                if (tlen > 0)
+                    memcpy(&menu->data_path[menu->data_path_cursor], text, tlen);
+                menu->data_path_cursor += (int)tlen;
             }
             return MENU_RESULT_NONE;
         }
@@ -582,19 +696,17 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
         switch (event->key.key) {
             case SDLK_BACKSPACE:
                 if (menu->data_path_cursor > 0) {
-                    int len = (int)strlen(menu->data_path);
                     memmove(&menu->data_path[menu->data_path_cursor - 1],
                             &menu->data_path[menu->data_path_cursor],
-                            len - menu->data_path_cursor + 1);
+                            (size_t)(path_len - menu->data_path_cursor + 1));
                     menu->data_path_cursor--;
                 }
                 break;
             case SDLK_DELETE: {
-                int len = (int)strlen(menu->data_path);
-                if (menu->data_path_cursor < len)
+                if (menu->data_path_cursor < path_len)
                     memmove(&menu->data_path[menu->data_path_cursor],
                             &menu->data_path[menu->data_path_cursor + 1],
-                            len - menu->data_path_cursor);
+                            (size_t)(path_len - menu->data_path_cursor));
                 break;
             }
             case SDLK_LEFT: if (menu->data_path_cursor > 0) menu->data_path_cursor--; break;
@@ -753,8 +865,8 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
         case SDLK_RIGHT: if (menu->selected_item % 2 == 0) menu->selected_item++; break;
         case SDLK_RETURN: case SDLK_KP_ENTER:
             switch (menu->selected_item) {
-                case 0: return MENU_RESULT_START_CAPTIVE;
-                case 1: return MENU_RESULT_START_LIBERATION;
+                case 0: return request_game_start(menu, GAME_CAPTIVE);
+                case 1: return request_game_start(menu, GAME_LIBERATION);
                 case 2: if (menu->captive_save_exists) return MENU_RESULT_CONTINUE_CAPTIVE; break;
                 case 3: if (menu->liberation_save_exists) return MENU_RESULT_CONTINUE_LIBERATION; break;
                 case 4: menu->in_settings = true; menu->settings_cursor = 0; break;
@@ -976,8 +1088,9 @@ static void render_scanner(StartMenu *menu, uint32_t *pixels, int width, int hei
             int fill_w = (menu->scanner_progress * (bar_w - 2)) / menu->scanner_total;
             if (fill_w > 0) {
                 for (int py = bar_y + 1; py < bar_y + bar_h - 1; py++)
-                    for (int px = bar_x + 1; px < bar_x + 1 + fill_w && px < width; px++)
-                        pixels[py * width + px] = 0xFF44AAFF;
+                    for (int px = bar_x + 1; px < bar_x + 1 + fill_w; px++)
+                        if (px >= 0 && px < width && py >= 0 && py < height)
+                            pixels[py * width + px] = 0xFF44AAFF;
             }
         }
         char pct[32];
@@ -989,14 +1102,14 @@ static void render_scanner(StartMenu *menu, uint32_t *pixels, int width, int hei
         snprintf(buf, sizeof(buf), _("ZIP archives found: %d"), menu->scanner_zip_count);
         ttf_text(pixels, width, height, 80, y, buf, body, 0xFFCCCCCC); y += 35;
 
-        snprintf(buf, sizeof(buf), "Captive: %d / %d %s",
+        snprintf(buf, sizeof(buf), _("Captive: %d / %d %s"),
                  menu->scanner_captive_found, menu->scanner_captive_total,
                  menu->scanner_captive_found == menu->scanner_captive_total ? "[OK]" : "[MISSING]");
         uint32_t cap_col = menu->scanner_captive_found == menu->scanner_captive_total
                            ? 0xFF44FF44 : 0xFFFF4444;
         ttf_text(pixels, width, height, 100, y, buf, body, cap_col); y += 30;
 
-        snprintf(buf, sizeof(buf), "Liberation: %d / %d %s",
+        snprintf(buf, sizeof(buf), _("Liberation: %d / %d %s"),
                  menu->scanner_liberation_found, menu->scanner_liberation_total,
                  menu->scanner_liberation_found == menu->scanner_liberation_total ? "[OK]" : "[MISSING]");
         uint32_t lib_col = menu->scanner_liberation_found == menu->scanner_liberation_total
@@ -1029,7 +1142,8 @@ static void render_setup_popup(StartMenu *menu, uint32_t *pixels, int width, int
 
     for (int y = py; y < py + ph && y < height; y++)
         for (int x = px; x < px + pw && x < width; x++)
-            pixels[y * width + x] = 0xFF1A1A2E;
+            if (x >= 0 && y >= 0)
+                pixels[y * width + x] = 0xFF1A1A2E;
     draw_border(pixels, width, height, px, py, pw, ph, 0xFFFF8800, 2);
 
     int y = py + 20;
@@ -1056,11 +1170,43 @@ static void render_setup_popup(StartMenu *menu, uint32_t *pixels, int width, int
                       _("PRESS ANY KEY TO CONTINUE"), small, 0xFF555555);
 }
 
+static void render_version_popup(StartMenu *menu, uint32_t *pixels, int width, int height) {
+    TTF_Font *title = menu->font_title;
+    TTF_Font *body = menu->font_body;
+    TTF_Font *small = menu->font_small;
+    int pw = 700, ph = 300;
+    int px = (width - pw) / 2, py = (height - ph) / 2;
+    for (int y = py; y < py + ph && y < height; ++y)
+        for (int x = px; x < px + pw && x < width; ++x)
+            if (x >= 0 && y >= 0) pixels[y * width + x] = 0xFF1A1A2E;
+    draw_border(pixels, width, height, px, py, pw, ph, 0xFFFF8800, 2);
+    ttf_text_centered(pixels, width, height, py + 20,
+                      _("SELECT GAME"), title, 0xFFFF8800);
+    ttf_text_centered(pixels, width, height, py + 70,
+                      _("UP-DOWN: SELECT  ENTER: START  ESC: QUIT"), body, 0xFFCCCCCC);
+    /* Platform names are product/version identifiers and are intentionally
+       kept unchanged across locales. */
+    const char *const *labels = menu->version_popup_game == GAME_CAPTIVE
+        ? (const char *[]) { _("CAPTIVE DOS"), _("CAPTIVE AMIGA") }
+        : (const char *[]) { _("LIBERATION CD32"), _("LIBERATION AMIGA") };
+    for (int i = 0; i < 2; ++i) {
+        uint32_t color = i == menu->version_popup_selection ? 0xFFFFFF44 : 0xFFAAAAAA;
+        ttf_text(pixels, width, height, px + 100, py + 125 + i * 42,
+                 i == menu->version_popup_selection ? ">" : " ", body, color);
+        ttf_text(pixels, width, height, px + 130, py + 125 + i * 42,
+                 labels[i], body, color);
+    }
+    ttf_text_centered(pixels, width, height, py + ph - 30,
+                      _("UP-DOWN: SELECT  ENTER: START  ESC: QUIT"), small, 0xFF666666);
+}
+
 void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height) {
+    if (!menu || !pixels || width <= 0 || height <= 0) return;
     menu->anim_tick++;
-    memset(pixels, 0, (size_t)width * height * sizeof(uint32_t));
+    memset(pixels, 0, (size_t)width * (size_t)height * sizeof(uint32_t));
 
     if (menu->show_setup_popup) { render_setup_popup(menu, pixels, width, height); return; }
+    if (menu->show_version_popup) { render_version_popup(menu, pixels, width, height); return; }
     if (menu->in_settings) { render_settings(menu, pixels, width, height); return; }
     if (menu->in_about)    { render_about(menu, pixels, width, height);    return; }
     if (menu->in_controls) { render_controls(menu, pixels, width, height); return; }

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
-"POT-Creation-Date: 2026-08-03\n"
+"POT-Creation-Date: 2026-08-06 06:49+0200\n"
 "PO-Revision-Date: 2026-08-03\n"
 "Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
 "Language-Team: Polish\n"
@@ -15,326 +15,805 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#. Main menu title
+#: src/engine/liberation_citygen.c:310
+msgid "Private Residence"
+msgstr ""
+
+#: src/engine/liberation_citygen.c:313
+msgid "Library"
+msgstr ""
+
+#: src/engine/liberation_citygen.c:316
+msgid "Police Station"
+msgstr ""
+
+#: src/engine/liberation_citygen.c:319
+msgid "City Records Office"
+msgstr ""
+
+#: src/engine/start_menu.c:874 src/engine/start_menu.c:980
+#: src/engine/start_menu.c:1211
 msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
-msgid "BY DANIEL NYLANDER"
-msgstr "AUTOR: DANIEL NYLANDER"
-
-msgid "SELECT GAME"
-msgstr "WYBIERZ GRĘ"
-
-msgid "CAPTIVE (1990)"
-msgstr "CAPTIVE (1990)"
-
-msgid "LIBERATION: CAPTIVE 2"
-msgstr "LIBERATION: CAPTIVE 2"
-
+#: src/engine/start_menu.c:875 src/engine/start_menu.c:1303
 msgid "SETTINGS"
 msgstr "USTAWIENIA"
 
-msgid "QUIT"
-msgstr "WYJŚCIE"
-
-msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "GÓRA-DÓŁ: WYBIERZ  ENTER: START  ESC: WYJŚCIE"
-
-#. Settings menu
+#: src/engine/start_menu.c:884
 msgid "RENDERER:"
 msgstr "RENDERER:"
 
-msgid "SCANLINES:"
-msgstr "LINIE SKANOWANIA:"
-
-msgid "CRT CURVE:"
-msgstr "KRZYWIZNA CRT:"
-
-msgid "BILINEAR:"
-msgstr "BILINEARNY:"
-
-msgid "INT SCALE:"
-msgstr "SKALA INT:"
-
-msgid "SCALE:"
-msgstr "SKALA:"
-
-msgid "FULLSCREEN:"
-msgstr "PEŁNY EKRAN:"
-
-msgid "VSYNC:"
-msgstr "VSYNC:"
-
-msgid "FPS LIMIT:"
-msgstr "LIMIT FPS:"
-
-msgid "BRIGHTNESS:"
-msgstr "JASNOŚĆ:"
-
-msgid "CONTRAST:"
-msgstr "KONTRAST:"
-
-msgid "MUSIC:"
-msgstr "MUZYKA:"
-
-msgid "SFX:"
-msgstr "SFX:"
-
-msgid "DATA PATH:"
-msgstr "ŚCIEŻKA DANYCH:"
-
-msgid "LANGUAGE:"
-msgstr "JĘZYK:"
-
-msgid "BACK"
-msgstr "WSTECZ"
-
-msgid "ON"
-msgstr "WŁ."
-
-msgid "OFF"
-msgstr "WYŁ."
-
-msgid "UNLIMITED"
-msgstr "BEZ LIMITU"
-
-msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
-msgstr "WPISZ ŚCIEŻKĘ  ENTER: POTWIERDŹ  ESC: ANULUJ"
-
-msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
-msgstr "GÓRA-DÓŁ: WYBIERZ  LEWO-PRAWO: DOSTOSUJ  ESC: WSTECZ"
-
-#. Liberation building interactions
-msgid "This is %s. We're not taking visitors right now."
-msgstr "To jest %s. Nie przyjmujemy teraz odwiedzających."
-
-msgid "Welcome to %s. The archives are available for public access."
-msgstr "Witamy w %s. Archiwa są dostępne publicznie."
-
-msgid "This is the %s police station. State your business."
-msgstr "To jest posterunek policji %s. W jakiej sprawie?"
-
-msgid "City Records Office. How can we help?"
-msgstr "Biuro Ewidencji Miasta. Jak możemy pomóc?"
-
-msgid "This is a private residence. What do you want?"
-msgstr "To jest prywatna posiadłość. Czego chcesz?"
-
-msgid "Welcome to %s. This area is restricted."
-msgstr "Witamy w %s. Ten obszar jest zastrzeżony."
-
-msgid "%s. Come in and browse."
-msgstr "%s. Wejdź i rozejrzyj się."
-
-msgid "Welcome to %s! What'll it be?"
-msgstr "Witamy w %s! Co podać?"
-
-msgid "Welcome to %s. How can we help you today?"
-msgstr "Witamy w %s. Jak możemy dziś pomóc?"
-
-msgid "%s. You shouldn't be here."
-msgstr "%s. Nie powinieneś tu być."
-
-msgid "Take a look at what I have."
-msgstr "Spójrz na to, co mam."
-
-msgid "I might have heard something. Check back later."
-msgstr "Może coś słyszałem. Wpadnij później."
-
-msgid "You leave the building."
-msgstr "Opuszczasz budynek."
-
-#. Liberation shop
-msgid "Welcome to %s! What can I do for you?"
-msgstr "Witamy w %s! Co mogę dla ciebie zrobić?"
-
-msgid "Goodbye!"
-msgstr "Do widzenia!"
-
-msgid "Buy/Sell"
-msgstr "Kup/Sprzedaj"
-
-msgid "Any news?"
-msgstr "Jakieś wieści?"
-
-msgid "Leave"
-msgstr "Odejdź"
-
-#. Liberation NPC dialogue
-msgid "You leave."
-msgstr "Odchodzisz."
-
-msgid "Trade"
-msgstr "Handel"
-
-msgid "Ask around"
-msgstr "Wypytaj"
-
-#. Error messages
-msgid "Failed to initialize renderer"
-msgstr "Nie udało się uruchomić renderera"
-
-msgid "Missing game data"
-msgstr "Brak danych gry"
-
-msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Nie znaleziono danych gry. Ustaw ścieżkę danych w Ustawieniach lub użyj --data w wierszu poleceń."
-
-msgid "You can also change the data path in Settings."
-msgstr "Możesz też zmienić ścieżkę danych w Ustawieniach."
-
-msgid "Missing Liberation data"
-msgstr "Brak danych Liberation"
-
-msgid "ABOUT"
-msgstr "O PROGRAMIE"
-
-msgid "CONTROLS"
-msgstr "STEROWANIE"
-
-msgid "CONTINUE"
-msgstr "KONTYNUUJ"
-
-msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
-msgstr "STRZAŁKI: WYBIERZ  ENTER: START  D: SKANUJ DANE  F1: STEROWANIE"
-
-msgid "ENHANCED:"
-msgstr "ULEPSZONY:"
-
-msgid "FILTERING:"
-msgstr "FILTROWANIE:"
-
-msgid "BILINEAR"
-msgstr "DWULINIOWY"
-
-msgid "NEAREST"
-msgstr "NAJBLIŻSZY"
-
-msgid "GAMMA:"
-msgstr "GAMMA:"
-
-msgid "VOLUME:"
-msgstr "GŁOŚNOŚĆ:"
-
-msgid "SAMPLE RATE:"
-msgstr "CZĘSTOTLIWOŚĆ PRÓBKOWANIA:"
-
-msgid "REVERB:"
-msgstr "POGŁOS:"
-
-msgid "GAME SPEED:"
-msgstr "SZYBKOŚĆ GRY:"
-
-msgid "MOUSE SENS:"
-msgstr "CZUŁOŚĆ MYSZY:"
-
+#: src/engine/start_menu.c:884
 msgid "WINDOW SIZE:"
 msgstr "ROZMIAR OKNA:"
 
+#: src/engine/start_menu.c:884
+msgid "SCALE:"
+msgstr "SKALA:"
+
+#: src/engine/start_menu.c:884
+msgid "FULLSCREEN:"
+msgstr "PEŁNY EKRAN:"
+
+#: src/engine/start_menu.c:885
+msgid "INT SCALE:"
+msgstr "SKALA INT:"
+
+#: src/engine/start_menu.c:885
+msgid "VSYNC:"
+msgstr "VSYNC:"
+
+#: src/engine/start_menu.c:885
+msgid "FPS LIMIT:"
+msgstr "LIMIT FPS:"
+
+#: src/engine/start_menu.c:885
+msgid "FILTERING:"
+msgstr "FILTROWANIE:"
+
+#: src/engine/start_menu.c:886
+msgid "SCANLINES:"
+msgstr "LINIE SKANOWANIA:"
+
+#: src/engine/start_menu.c:886
+msgid "CRT CURVE:"
+msgstr "KRZYWIZNA CRT:"
+
+#: src/engine/start_menu.c:886
+msgid "BRIGHTNESS:"
+msgstr "JASNOŚĆ:"
+
+#: src/engine/start_menu.c:886
+msgid "CONTRAST:"
+msgstr "KONTRAST:"
+
+#: src/engine/start_menu.c:887
+msgid "GAMMA:"
+msgstr "GAMMA:"
+
+#: src/engine/start_menu.c:887
+msgid "VOLUME:"
+msgstr "GŁOŚNOŚĆ:"
+
+#: src/engine/start_menu.c:887
+msgid "MUSIC:"
+msgstr "MUZYKA:"
+
+#: src/engine/start_menu.c:887
+msgid "SFX:"
+msgstr "SFX:"
+
+#: src/engine/start_menu.c:888
+msgid "REVERB:"
+msgstr "POGŁOS:"
+
+#: src/engine/start_menu.c:888
+msgid "SAMPLE RATE:"
+msgstr "CZĘSTOTLIWOŚĆ PRÓBKOWANIA:"
+
+#: src/engine/start_menu.c:888
+msgid "GAME SPEED:"
+msgstr "SZYBKOŚĆ GRY:"
+
+#: src/engine/start_menu.c:888
+msgid "MOUSE SENS:"
+msgstr "CZUŁOŚĆ MYSZY:"
+
+#: src/engine/start_menu.c:889 src/engine/start_menu.c:1056
+msgid "DATA PATH:"
+msgstr "ŚCIEŻKA DANYCH:"
+
+#: src/engine/start_menu.c:889
+msgid "LANGUAGE:"
+msgstr "JĘZYK:"
+
+#: src/engine/start_menu.c:889
+msgid "ENHANCED:"
+msgstr "ULEPSZONY:"
+
+#: src/engine/start_menu.c:889
+msgid "BACK"
+msgstr "WSTECZ"
+
+#: src/engine/start_menu.c:895 src/engine/start_menu.c:896
+#: src/engine/start_menu.c:897 src/engine/start_menu.c:901
+#: src/engine/start_menu.c:902 src/engine/start_menu.c:907
+#: src/engine/start_menu.c:908 src/engine/start_menu.c:909
+#: src/engine/start_menu.c:915 src/main.c:730 src/main.c:742
+msgid "ON"
+msgstr "WŁ."
+
+#: src/engine/start_menu.c:895 src/engine/start_menu.c:896
+#: src/engine/start_menu.c:897 src/engine/start_menu.c:901
+#: src/engine/start_menu.c:902 src/engine/start_menu.c:907
+#: src/engine/start_menu.c:908 src/engine/start_menu.c:909
+#: src/engine/start_menu.c:915 src/main.c:730 src/main.c:742
+msgid "OFF"
+msgstr "WYŁ."
+
+#: src/engine/start_menu.c:898
+msgid "UNLIMITED"
+msgstr "BEZ LIMITU"
+
+#: src/engine/start_menu.c:900
+msgid "BILINEAR"
+msgstr "DWULINIOWY"
+
+#: src/engine/start_menu.c:900
+msgid "NEAREST"
+msgstr "NAJBLIŻSZY"
+
+#: src/engine/start_menu.c:966
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
+msgstr "WPISZ ŚCIEŻKĘ  ENTER: POTWIERDŹ  ESC: ANULUJ"
+
+#: src/engine/start_menu.c:967
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
+msgstr "GÓRA-DÓŁ: WYBIERZ  LEWO-PRAWO: DOSTOSUJ  ESC: WSTECZ"
+
+#: src/engine/start_menu.c:984 src/engine/start_menu.c:1303
+msgid "ABOUT"
+msgstr "O PROGRAMIE"
+
+#: src/engine/start_menu.c:985
 msgid "A reimplementation of:"
 msgstr "Reimplementacja:"
 
-msgid "TECHNOLOGY"
-msgstr "TECHNOLOGIA"
-
+#: src/engine/start_menu.c:988
 msgid "CREDITS"
 msgstr "AUTORZY"
 
-msgid "SYSTEM"
-msgstr "SYSTEM"
+#: src/engine/start_menu.c:991
+msgid "TECHNOLOGY"
+msgstr "TECHNOLOGIA"
 
+#: src/engine/start_menu.c:998 src/engine/start_menu.c:1043
 msgid "PRESS ANY KEY TO RETURN"
 msgstr "NACIŚNIJ DOWOLNY KLAWISZ ABY WRÓCIĆ"
 
+#: src/engine/start_menu.c:1007 src/engine/start_menu.c:1319
+msgid "CONTROLS"
+msgstr "STEROWANIE"
+
+#: src/engine/start_menu.c:1011
 msgid "MOVEMENT"
 msgstr "RUCH"
 
-msgid "COMBAT & ITEMS"
-msgstr "WALKA I PRZEDMIOTY"
-
+#: src/engine/start_menu.c:1013
 msgid "Move forward"
 msgstr "Idź do przodu"
 
+#: src/engine/start_menu.c:1015
 msgid "Move backward"
 msgstr "Idź do tyłu"
 
+#: src/engine/start_menu.c:1017
 msgid "Turn left"
 msgstr "Obróć w lewo"
 
+#: src/engine/start_menu.c:1019
 msgid "Turn right"
 msgstr "Obróć w prawo"
 
+#: src/engine/start_menu.c:1021
+msgid "COMBAT & ITEMS"
+msgstr "WALKA I PRZEDMIOTY"
+
+#: src/engine/start_menu.c:1023
 msgid "Fire weapon"
 msgstr "Wystrzel z broni"
 
-msgid "Inventory"
-msgstr "Ekwipunek"
-
+#: src/engine/start_menu.c:1025
 msgid "Use item / Interact"
 msgstr "Użyj przedmiotu / Interakcja"
 
+#: src/engine/start_menu.c:1027
 msgid "Cycle droids"
 msgstr "Zmień droida"
 
-msgid "Cycle save slots"
-msgstr "Zmień slot zapisu"
+#: src/engine/start_menu.c:1029
+msgid "Inventory"
+msgstr "Ekwipunek"
 
+#: src/engine/start_menu.c:1031
+msgid "SYSTEM"
+msgstr "SYSTEM"
+
+#: src/engine/start_menu.c:1033
 msgid "Save / Load game"
 msgstr "Zapisz / Wczytaj grę"
 
+#: src/engine/start_menu.c:1035
+msgid "Cycle save slots"
+msgstr "Zmień slot zapisu"
+
+#: src/engine/start_menu.c:1037
 msgid "Minimap / City map"
 msgstr "Minimapa / Mapa miasta"
 
+#: src/engine/start_menu.c:1039
 msgid "Help screen"
 msgstr "Ekran pomocy"
 
+#: src/engine/start_menu.c:1041
 msgid "Pause menu"
 msgstr "Menu pauzy"
 
-msgid "ESC: BACK"
-msgstr "ESC: WSTECZ"
-
+#: src/engine/start_menu.c:1052
 msgid "DATA SCANNER"
 msgstr "SKANER DANYCH"
 
+#: src/engine/start_menu.c:1061
 msgid "Scanning Captive hashes..."
 msgstr "Skanowanie hashy Captive..."
 
+#: src/engine/start_menu.c:1062
 msgid "Scanning Liberation data..."
 msgstr "Skanowanie danych Liberation..."
 
+#: src/engine/start_menu.c:1082
+#, c-format
 msgid "ZIP archives found: %d"
 msgstr "Znalezione archiwa ZIP: %d"
 
+#: src/engine/start_menu.c:1085
+#, c-format
+msgid "Captive: %d / %d %s"
+msgstr ""
+
+#: src/engine/start_menu.c:1092
+#, c-format
+msgid "Liberation: %d / %d %s"
+msgstr ""
+
+#: src/engine/start_menu.c:1099
 msgid "VERIFICATION"
 msgstr "WERYFIKACJA"
 
+#: src/engine/start_menu.c:1101
 msgid "Files identified by SHA-256 content hash, not filename."
 msgstr "Pliki identyfikowane przez hash SHA-256 zawartości, nie nazwę pliku."
 
+#: src/engine/start_menu.c:1104
 msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
 msgstr "Zagnieżdżone ZIP, obrazy dysków ADF i ścieżki ISO są skanowane."
 
+#: src/engine/start_menu.c:1107
 msgid "No filenames are trusted; only content determines identity."
 msgstr "Żadne nazwy plików nie są zaufane; tylko zawartość określa tożsamość."
 
+#: src/engine/start_menu.c:1111
+msgid "ESC: BACK"
+msgstr "ESC: WSTECZ"
+
+#: src/engine/start_menu.c:1130
 msgid "GAME DATA NOT FOUND"
 msgstr "NIE ZNALEZIONO DANYCH GRY"
 
+#: src/engine/start_menu.c:1133
 msgid "OpenCaptive needs original game data files to run."
 msgstr "OpenCaptive potrzebuje oryginalnych plików danych gry do uruchomienia."
 
+#: src/engine/start_menu.c:1136
 msgid "Place your game data in the following folder:"
 msgstr "Umieść dane gry w następującym folderze:"
 
+#: src/engine/start_menu.c:1141
 msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
 msgstr "Obsługiwane formaty: archiwa ZIP, ADF, ISO, surowe pliki."
 
+#: src/engine/start_menu.c:1144
 msgid "Files are identified by SHA-256 hash, not filename."
 msgstr "Pliki identyfikowane przez hash SHA-256, nie nazwę pliku."
 
+#: src/engine/start_menu.c:1147
 msgid "You can change the data path in Settings (S)."
 msgstr "Ścieżkę danych możesz zmienić w Ustawieniach (S)."
 
+#: src/engine/start_menu.c:1150
 msgid "PRESS ANY KEY TO CONTINUE"
 msgstr "NACIŚNIJ DOWOLNY KLAWISZ ABY KONTYNUOWAĆ"
+
+#: src/engine/start_menu.c:1164
+msgid "SELECT GAME"
+msgstr "WYBIERZ GRĘ"
+
+#: src/engine/start_menu.c:1166 src/engine/start_menu.c:1180
+msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
+msgstr "GÓRA-DÓŁ: WYBIERZ  ENTER: START  ESC: WYJŚCIE"
+
+#: src/engine/start_menu.c:1170
+msgid "CAPTIVE DOS"
+msgstr "CAPTIVE DOS"
+
+#: src/engine/start_menu.c:1170
+msgid "CAPTIVE AMIGA"
+msgstr "CAPTIVE AMIGA"
+
+#: src/engine/start_menu.c:1171
+msgid "LIBERATION CD32"
+msgstr ""
+
+#: src/engine/start_menu.c:1171
+msgid "LIBERATION AMIGA"
+msgstr ""
+
+#: src/engine/start_menu.c:1214
+msgid "BY DANIEL NYLANDER"
+msgstr "AUTOR: DANIEL NYLANDER"
+
+#: src/engine/start_menu.c:1282 src/engine/start_menu.c:1283
+msgid "CONTINUE"
+msgstr "KONTYNUUJ"
+
+#: src/engine/start_menu.c:1319
+msgid "QUIT"
+msgstr "WYJŚCIE"
+
+#: src/engine/start_menu.c:1333
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "STRZAŁKI: WYBIERZ  ENTER: START  D: SKANUJ DANE  F1: STEROWANIE"
+
+#: src/engine/terminal.c:81
+msgid "LEVEL MAP"
+msgstr ""
+
+#: src/engine/terminal.c:121
+msgid "DROID STATUS"
+msgstr ""
+
+#: src/engine/terminal.c:126
+#, c-format
+msgid "%s HP:%d/%d EN:%d/%d"
+msgstr ""
+
+#: src/engine/terminal.c:136
+msgid "MISSION BRIEFING"
+msgstr ""
+
+#: src/engine/terminal.c:138
+#, c-format
+msgid "MISSION: %d"
+msgstr ""
+
+#: src/engine/terminal.c:141
+#, c-format
+msgid "LEVEL: %d/%d"
+msgstr ""
+
+#: src/engine/terminal.c:144
+#, c-format
+msgid "GENERATORS: %d/%d"
+msgstr ""
+
+#: src/engine/terminal.c:148
+msgid "DESTROY ALL GENERATORS"
+msgstr ""
+
+#: src/engine/terminal.c:149
+msgid "TO COMPLETE THE MISSION"
+msgstr ""
+
+#: src/engine/terminal.c:187
+msgid "TERMINAL SYSTEM V2.1"
+msgstr ""
+
+#: src/engine/terminal.c:196
+msgid "ESC:BACK"
+msgstr ""
+
+#: src/main.c:734 src/main.c:746
+msgid "LOW"
+msgstr "NISKI"
+
+#: src/main.c:734 src/main.c:746
+msgid "HIGH"
+msgstr "WYSOKI"
+
+#: src/main.c:734 src/main.c:746
+msgid "NORMAL"
+msgstr "NORMALNY"
+
+#: src/main.c:814 src/main.c:826
+msgid "RUNTIME OPTIONS"
+msgstr "OPCJE URUCHOMIENIA"
+
+#: src/main.c:815 src/main.c:827
+msgid "ESC CLOSE"
+msgstr "ESC ZAMKNIJ"
+
+#: src/main.c:822 src/main.c:834
+msgid "PENDING"
+msgstr "OCZEKUJE"
+
+#: src/main.c:831 src/main.c:843
+msgid "ACTIVATE"
+msgstr "AKTYWUJ"
+
+#: src/main.c:836 src/main.c:848
+msgid "UP DOWN ENTER"
+msgstr "GÓRA DÓŁ ENTER"
+
+#: src/main.c:1013 src/main.c:1085 src/main.c:1034 src/main.c:1106
+msgid "Fine paid. Rep +15"
+msgstr ""
+
+#: src/main.c:1023 src/main.c:1095 src/main.c:1044 src/main.c:1116
+#, c-format
+msgid "Industrial hazard! %d damage!"
+msgstr ""
+
+#: src/main.c:1033 src/main.c:1105 src/main.c:1054 src/main.c:1126
+msgid "Bar fight! Rep -10"
+msgstr ""
+
+#: src/main.c:1062 src/main.c:1083
+msgid "Shared inventory is full."
+msgstr ""
+
+#: src/main.c:1066 src/main.c:1087
+#, c-format
+msgid "Purchased: %s"
+msgstr ""
+
+#: src/main.c:1070 src/main.c:1091
+msgid "Cannot buy that item."
+msgstr ""
+
+#: src/main.c:1134 src/main.c:1155
+msgid "Entered building interior"
+msgstr ""
+
+#: src/main.c:1241 src/main.c:1269
+msgid "Taxi: 50 gold"
+msgstr ""
+
+#: src/main.c:1384 src/main.c:1415
+msgid "Creature destroyed!"
+msgstr ""
+
+#: src/main.c:1389 src/main.c:1420
+msgid "LEVEL UP!"
+msgstr ""
+
+#: src/main.c:1394 src/main.c:1425
+#, c-format
+msgid "Droid %d fires!"
+msgstr ""
+
+#: src/main.c:1543 src/main.c:1574
+#, c-format
+msgid "Droid %d picked up item"
+msgstr ""
+
+#: src/main.c:1559 src/main.c:1590
+msgid "Fell into a pit!"
+msgstr ""
+
+#: src/main.c:1563 src/main.c:1594
+msgid "Click!"
+msgstr ""
+
+#: src/main.c:2318 src/main.c:2349
+msgid "Left building"
+msgstr ""
+
+#: src/main.c:2869 src/main.c:2903
+#, c-format
+msgid "Droid %d hit for %d!"
+msgstr ""
+
+#: src/main.c:2877 src/main.c:2911
+#, c-format
+msgid "Droid %d destroyed!"
+msgstr ""
+
+#: src/main.c:2884 src/main.c:2918
+msgid "All droids destroyed! Mission failed."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:64
+msgid "You leave."
+msgstr "Odchodzisz."
+
+#: src/game/liberation_npc_dialogue.c:67 src/game/liberation_npc_dialogue.c:69
+#: src/game/liberation_npc_dialogue.c:72
+#: src/game/liberation_building_interact.c:38
+msgid "NPC"
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:68
+msgid "I don't have anything to trade right now. Try the shops."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:70
+msgid ""
+"Check the library or records office if you need information. The police "
+"might know about threats in the area."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:73
+msgid "Trade"
+msgstr "Handel"
+
+#: src/game/liberation_npc_dialogue.c:74
+#: src/game/liberation_building_interact.c:63
+#: src/game/liberation_building_interact.c:105
+msgid "Ask around"
+msgstr "Wypytaj"
+
+#: src/game/liberation_npc_dialogue.c:75 src/game/liberation_shop.c:117
+#: src/game/liberation_building_interact.c:64
+#: src/game/liberation_building_interact.c:81
+#: src/game/liberation_building_interact.c:95
+#: src/game/liberation_building_interact.c:106
+#: src/game/liberation_building_interact.c:124
+#: src/game/liberation_building_interact.c:135
+#: src/game/liberation_building_interact.c:142
+msgid "Leave"
+msgstr "Odejdź"
+
+#: src/game/liberation_shop.c:106
+#, c-format
+msgid "Welcome to %s! What can I do for you?"
+msgstr "Witamy w %s! Co mogę dla ciebie zrobić?"
+
+#: src/game/liberation_shop.c:108
+msgid "Goodbye!"
+msgstr "Do widzenia!"
+
+#: src/game/liberation_shop.c:110
+msgid "Take a look at what I have."
+msgstr "Spójrz na to, co mam."
+
+#: src/game/liberation_shop.c:112
+msgid "I might have heard something. Check back later."
+msgstr "Może coś słyszałem. Wpadnij później."
+
+#: src/game/liberation_shop.c:115
+msgid "Buy"
+msgstr ""
+
+#: src/game/liberation_shop.c:116
+msgid "Any news?"
+msgstr "Jakieś wieści?"
+
+#: src/game/liberation_building_interact.c:29
+msgid "Shopkeeper"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:30
+msgid "Bartender"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:31
+msgid "Receptionist"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:32
+msgid "Librarian"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:33
+msgid "Officer"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:34
+msgid "Clerk"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:35
+msgid "Resident"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:36
+msgid "Foreman"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:37
+msgid "Agent"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:48
+msgid "You leave the building."
+msgstr "Opuszczasz budynek."
+
+#: src/game/liberation_building_interact.c:53
+#, c-format
+msgid "Welcome to %s. The archives are available for public access."
+msgstr "Witamy w %s. Archiwa są dostępne publicznie."
+
+#: src/game/liberation_building_interact.c:56
+#, c-format
+msgid ""
+"Records indicate %d buildings in this city. The target is in a special-class "
+"building. Check the industrial and commercial districts."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:62
+msgid "Search archives"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:69
+#, c-format
+msgid "This is the %s police station. State your business."
+msgstr "To jest posterunek policji %s. W jakiej sprawie?"
+
+#: src/game/liberation_building_interact.c:71
+msgid ""
+"We have reports of suspicious activity in the industrial district. Stay "
+"alert out there."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:74
+msgid "You have been fined 100 gold for disturbing the peace."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:77
+msgid "Ask for information"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:79
+msgid "Pay fine"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:86
+msgid "City Records Office. How can we help?"
+msgstr "Biuro Ewidencji Miasta. Jak możemy pomóc?"
+
+#: src/game/liberation_building_interact.c:89
+#, c-format
+msgid ""
+"Building registry entry %d: %s. Cross-reference with police reports for "
+"suspect locations."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:94
+msgid "Look up records"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:100
+msgid "This is a private residence. What do you want?"
+msgstr "To jest prywatna posiadłość. Czego chcesz?"
+
+#: src/game/liberation_building_interact.c:102
+msgid ""
+"I heard strange noises from the special building down the road. Something's "
+"going on in there."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:111
+#, c-format
+msgid "Welcome to %s. This area is restricted."
+msgstr "Witamy w %s. Ten obszar jest zastrzeżony."
+
+#: src/game/liberation_building_interact.c:113
+msgid "WARNING: Machinery malfunction! Electrical discharge hits your droids!"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:115
+msgid ""
+"The machinery hums loudly. There might be useful equipment stored in the "
+"back, but the foreman keeps it locked."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:119
+#: src/game/liberation_building_interact.c:122
+#, fuzzy
+msgid "Look around"
+msgstr "Wypytaj"
+
+#: src/game/liberation_building_interact.c:129
+#, c-format
+msgid "%s. You shouldn't be here."
+msgstr "%s. Nie powinieneś tu być."
+
+#: src/game/liberation_building_interact.c:131
+msgid ""
+"This location appears to be connected to your mission. The generator control "
+"panel is somewhere inside."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:134
+msgid "Investigate"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:140
+#, c-format
+msgid "This is %s. We're not taking visitors right now."
+msgstr "To jest %s. Nie przyjmujemy teraz odwiedzających."
+
+#: src/main.c:2357
+msgid "Mission complete. Rep +20"
+msgstr "Misja ukończona. Reputacja +20"
+
+#~ msgid "CAPTIVE (1990)"
+#~ msgstr "CAPTIVE (1990)"
+
+#~ msgid "LIBERATION: CAPTIVE 2"
+#~ msgstr "LIBERATION: CAPTIVE 2"
+
+#~ msgid "BILINEAR:"
+#~ msgstr "BILINEARNY:"
+
+#~ msgid "%s. Come in and browse."
+#~ msgstr "%s. Wejdź i rozejrzyj się."
+
+#~ msgid "Welcome to %s! What'll it be?"
+#~ msgstr "Witamy w %s! Co podać?"
+
+#~ msgid "Welcome to %s. How can we help you today?"
+#~ msgstr "Witamy w %s. Jak możemy dziś pomóc?"
+
+#~ msgid "Buy/Sell"
+#~ msgstr "Kup/Sprzedaj"
+
+#~ msgid "Failed to initialize renderer"
+#~ msgstr "Nie udało się uruchomić renderera"
+
+#~ msgid "Missing game data"
+#~ msgstr "Brak danych gry"
+
+#~ msgid ""
+#~ "No game data found. Please set the data path in Settings or use --data on "
+#~ "the command line."
+#~ msgstr ""
+#~ "Nie znaleziono danych gry. Ustaw ścieżkę danych w Ustawieniach lub użyj --"
+#~ "data w wierszu poleceń."
+
+#~ msgid "You can also change the data path in Settings."
+#~ msgstr "Możesz też zmienić ścieżkę danych w Ustawieniach."
+
+#~ msgid "Missing Liberation data"
+#~ msgstr "Brak danych Liberation"
+
+#~ msgid "VIEW RECONSTRUCTION"
+#~ msgstr "POKAŻ REKONSTRUKCJĘ"
+
+#~ msgid "SCANLINES"
+#~ msgstr "LINIE SKANOWANIA"
+
+#~ msgid "CRT CURVE"
+#~ msgstr "KRZYWA CRT"
+
+#~ msgid "BRIGHTNESS"
+#~ msgstr "JASNOŚĆ"
+
+#~ msgid "MUSIC"
+#~ msgstr "Muzyka"
+
+#~ msgid "SFX"
+#~ msgstr "Efekty dźwiękowe"
+
+#~ msgid "GOD MODE"
+#~ msgstr "TRYB BOGA"
+
+#~ msgid "INFINITE ENERGY"
+#~ msgstr "NIESKOŃCZONA ENERGIA"
+
+#~ msgid "COMPLETE OBJECTIVE"
+#~ msgstr "UKOŃCZ CEL"
+
+#~ msgid "CLOSE"
+#~ msgstr "ZAMKNIJ"

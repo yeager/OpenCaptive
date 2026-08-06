@@ -13,8 +13,33 @@ static SDL_Event key_event(SDL_Keycode key) {
 
 int main(void) {
     StartMenu menu = {0};
+    uint32_t tiny_pixels[16 * 16];
+    start_menu_free(NULL);
+    start_menu_render(NULL, NULL, 0, 0);
     start_menu_init(&menu);
     assert(menu.music_enabled && menu.sfx_enabled);
+
+    /* Small targets must not make the fixed-size popups write out of bounds. */
+    menu.show_setup_popup = true;
+    start_menu_render(&menu, tiny_pixels, 16, 16);
+    menu.show_setup_popup = false;
+    menu.show_version_popup = true;
+    start_menu_render(&menu, tiny_pixels, 16, 16);
+    menu.show_version_popup = false;
+    menu.in_scanner = true;
+    menu.scanner_done = false;
+    menu.scanner_total = 1;
+    menu.scanner_progress = 1;
+    start_menu_render(&menu, tiny_pixels, 16, 16);
+    menu.in_scanner = false;
+
+    menu.captive_data_ok = true;
+    menu.liberation_data_ok = true;
+    menu.captive_source_mask = 7U;
+    menu.liberation_source_mask = 7U;
+    start_menu_check_data(&menu, "/path/that/does/not/exist");
+    assert(!menu.captive_data_ok && !menu.liberation_data_ok);
+    assert(menu.captive_source_mask == 0U && menu.liberation_source_mask == 0U);
 
     menu.in_settings = true;
     menu.settings_cursor = 15; /* SFX */
@@ -37,6 +62,14 @@ int main(void) {
     menu.selected_item = 1;
     event = key_event(SDLK_RETURN);
     assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_START_LIBERATION);
+
+    /* A Captive version popup must return the selected platform. */
+    menu.show_version_popup = true;
+    menu.version_popup_game = GAME_CAPTIVE;
+    menu.version_popup_selection = 1;
+    event = key_event(SDLK_RETURN);
+    assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_START_CAPTIVE);
+    assert(menu.platform == CAPTIVE_PLATFORM_AMIGA);
 
     /* item 4 = Settings */
     menu.selected_item = 4;

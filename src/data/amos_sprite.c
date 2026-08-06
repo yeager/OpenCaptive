@@ -16,10 +16,17 @@ bool amos_sprite_get(const uint8_t *data, size_t size, unsigned index, AmosSprit
         if (pos + 10 > size) return false;
         unsigned width_field = be16(data + pos), height = be16(data + pos + 2), depth = be16(data + pos + 4);
         bool has_mask = (be16(data + pos + 6) & 0x8000u) != 0;
-        unsigned bytes_per_row = (width_field & 0x7fff) * 2 - (width_field >> 15);
-        if (!bytes_per_row || !height || !depth || depth > 5) return false;
-        size_t bytes = (size_t)bytes_per_row * height * (depth + (has_mask ? 1 : 0));
-        if (pos + 10 + bytes > size) return false;
+        unsigned word_count = width_field & 0x7fff;
+        if (word_count == 0) return false;
+        unsigned bytes_per_row = word_count * 2 - (width_field >> 15);
+        if (!bytes_per_row || bytes_per_row > UINT16_MAX / 8U ||
+            !height || !depth || depth > 5) return false;
+        size_t plane_count = depth + (has_mask ? 1U : 0U);
+        if ((size_t)bytes_per_row > SIZE_MAX / height ||
+            (size_t)bytes_per_row * height > SIZE_MAX / plane_count)
+            return false;
+        size_t bytes = (size_t)bytes_per_row * height * plane_count;
+        if (bytes > size - pos - 10) return false;
         if (n == index) {
             memset(out, 0, sizeof(*out));
             out->width = bytes_per_row * 8;

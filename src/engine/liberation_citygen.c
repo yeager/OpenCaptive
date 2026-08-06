@@ -1,9 +1,11 @@
 #include "liberation_citygen.h"
+#include "i18n.h"
 #include "liberation_data.h"
 #include <string.h>
 #include <stdio.h>
 
 uint16_t citygen_prng(uint16_t *state) {
+    if (!state) return 0;
     *state = (uint16_t)(*state * 0x5E5u + 0x29u);
     return *state;
 }
@@ -11,16 +13,19 @@ uint16_t citygen_prng(uint16_t *state) {
 /* Rotate left 16-bit */
 static uint16_t rol16(uint16_t val, int n) {
     n &= 15;
+    if (n == 0) return val;
     return (uint16_t)((val << n) | (val >> (16 - n)));
 }
 
 /* Rotate right 16-bit */
 static uint16_t ror16(uint16_t val, int n) {
     n &= 15;
+    if (n == 0) return val;
     return (uint16_t)((val >> n) | (val << (16 - n)));
 }
 
 void citygen_init(CityGrid *grid, uint16_t seed, uint16_t level) {
+    if (!grid) return;
     memset(grid, 0, sizeof(*grid));
     grid->seed = seed;
     grid->level = level;
@@ -42,6 +47,7 @@ void citygen_init(CityGrid *grid, uint16_t seed, uint16_t level) {
  *   total = side + road + segment; adjusted to fit
  */
 void citygen_compute_params(CityGrid *grid) {
+    if (!grid) return;
     uint16_t seed = grid->seed;
     uint16_t level = grid->level;
 
@@ -49,9 +55,9 @@ void citygen_compute_params(CityGrid *grid) {
     uint16_t d1 = seed & 0x0F;
     uint16_t r = citygen_prng(&grid->prng_state);
     uint16_t d2 = rol16(r, d1) & 7;
-    uint16_t density = level * 5 + 15 + d2;
-    if (density > 100) density = 100;
-    grid->density = density;
+    uint32_t density = (uint32_t)level * 5U + 15U + d2;
+    if (density > 100U) density = 100U;
+    grid->density = (uint16_t)density;
 
     /* num_columns: 0x590-0x5B2 */
     d1 += 8;
@@ -92,7 +98,7 @@ void citygen_compute_params(CityGrid *grid) {
     uint16_t total = density >> 1;
     if (total < rb + 1) total = rb + 1;
 
-    if ((int16_t)(total - sb - rb) < 0 ||
+    if (total < (uint16_t)(sb + rb) ||
         (bps > 0 && (total - sb - rb) / bps == 0)) {
         total = sb + rb + bps + 1;
     }
@@ -108,16 +114,14 @@ void citygen_compute_params(CityGrid *grid) {
  * backward (0xBBBB) links.
  */
 void citygen_place_buildings(CityGrid *grid) {
+    if (!grid) return;
     uint16_t total = grid->total_buildings;
     if (total > CITYGEN_MAX_BUILDINGS) total = CITYGEN_MAX_BUILDINGS;
     grid->total_buildings = total;
 
     /* Phase 1: Create road spine (0x6A6-0x6FE)
      * Place buildings along main road with diagonal connections */
-    uint16_t stride = 36;  /* record stride in original, conceptual here */
-    uint8_t mask = 0x81;
     int idx = 0;
-    int cross = grid->num_cross_roads;
     int roads = grid->num_roads;
 
     /* Road spine: each road is a chain of buildings */
@@ -171,6 +175,7 @@ void citygen_place_buildings(CityGrid *grid) {
 
     /* Phase 3: Random extra connections (0x992-0xA72)
      * Add random connections to fill remaining slots */
+    if (grid->num_roads == 0 || total == 0) return;
     for (int attempts = 4095; attempts > 0; attempts--) {
         uint16_t r = citygen_prng(&grid->prng_state);
         int target = (ror16(r, 2) & 0xFFFF) % grid->num_roads + grid->num_cross_roads;
@@ -203,11 +208,11 @@ void citygen_place_buildings(CityGrid *grid) {
  * and a name seed.
  */
 void citygen_assign_types(CityGrid *grid) {
+    if (!grid) return;
     /* Seed scramble: ror 4 before assignment (0x1A80) */
     grid->prng_state = ror16(grid->prng_state, 4);
 
     uint16_t seq_id = 0;
-    uint16_t name_counter = 0;
 
     for (int i = 0; i < (int)grid->total_buildings; i++) {
         /* Type = PRNG % 9 (0x1AA4) */
@@ -223,7 +228,6 @@ void citygen_assign_types(CityGrid *grid) {
         citygen_prng(&grid->prng_state);
         grid->buildings[i].name_seed = (uint8_t)(grid->prng_state & 0xFF);
 
-        name_counter++;
     }
 }
 
@@ -234,6 +238,7 @@ void citygen_assign_types(CityGrid *grid) {
  * combined with Greek letter suffixes.
  */
 void citygen_generate_name(CityGrid *grid) {
+    if (!grid) return;
     /* Newspaper suffixes for city naming */
     static const char *const greek[] = {
         "Alpha", "Beta", "Gamma", "Delta", "Epsilon",
@@ -272,6 +277,7 @@ void citygen_generate_name(CityGrid *grid) {
  *   8: special  → first/last name combo
  */
 static void citygen_name_building(CityGrid *grid, int idx) {
+    if (!grid || idx < 0 || idx >= CITYGEN_MAX_BUILDINGS) return;
     CityBuilding *b = &grid->buildings[idx];
     uint16_t state = b->name_seed | ((uint16_t)b->id << 8);
 
@@ -301,16 +307,16 @@ static void citygen_name_building(CityGrid *grid, int idx) {
         break;
     }
     case BUILDING_RESIDENCE:
-        snprintf(b->name, sizeof(b->name), "Private Residence");
+        snprintf(b->name, sizeof(b->name), "%s", _("Private Residence"));
         break;
     case BUILDING_LIBRARY:
-        snprintf(b->name, sizeof(b->name), "Library");
+        snprintf(b->name, sizeof(b->name), "%s", _("Library"));
         break;
     case BUILDING_POLICE:
-        snprintf(b->name, sizeof(b->name), "Police Station");
+        snprintf(b->name, sizeof(b->name), "%s", _("Police Station"));
         break;
     case BUILDING_RECORDS:
-        snprintf(b->name, sizeof(b->name), "City Records Office");
+        snprintf(b->name, sizeof(b->name), "%s", _("City Records Office"));
         break;
     case BUILDING_SPECIAL: {
         int fi = citygen_prng(&state) % LIBERATION_FIRST_NAME_COUNT;
@@ -323,6 +329,7 @@ static void citygen_name_building(CityGrid *grid, int idx) {
 }
 
 void citygen_generate(CityGrid *grid, uint16_t seed, uint16_t level) {
+    if (!grid) return;
     citygen_init(grid, seed, level);
     citygen_compute_params(grid);
     citygen_place_buildings(grid);

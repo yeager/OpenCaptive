@@ -20,6 +20,7 @@
 #include "sound.h"
 #include "shop.h"
 #include "inventory.h"
+#include "xp_level.h"
 #include "droid_ui.h"
 #include "terminal.h"
 #include "sfx.h"
@@ -42,7 +43,10 @@
 #include "i18n.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+
+static int quicksave_slot = 0;
 #include <errno.h>
+#include <math.h>
 #include <sys/stat.h>
 #include <limits.h>
 #include <stdio.h>
@@ -157,10 +161,18 @@ static uint32_t *read_ppm_frame(const char *path, int *out_width, int *out_heigh
     char magic[3] = {0};
     int width = 0, height = 0, maximum = 0;
     if (fscanf(file, "%2s%d%d%d", magic, &width, &height, &maximum) != 4 ||
-        strcmp(magic, "P6") != 0 || width <= 0 || height <= 0 || maximum != 255 ||
-        fgetc(file) == EOF) {
+        strcmp(magic, "P6") != 0 || width <= 0 || height <= 0 || maximum != 255) {
         fclose(file);
         return NULL;
+    }
+    int separator = fgetc(file);
+    if (separator == EOF) {
+        fclose(file);
+        return NULL;
+    }
+    if (separator == '\r') {
+        int next = fgetc(file);
+        if (next != '\n' && next != EOF) ungetc(next, file);
     }
     size_t count = (size_t)width * (size_t)height;
     if (count > SIZE_MAX / sizeof(uint32_t) || count > SIZE_MAX / 3) {
@@ -177,7 +189,10 @@ static uint32_t *read_ppm_frame(const char *path, int *out_width, int *out_heigh
         pixels[i] = 0xFF000000u | ((uint32_t)rgb[0] << 16) |
             ((uint32_t)rgb[1] << 8) | rgb[2];
     }
-    if (fgetc(file) != EOF || ferror(file) || fclose(file) != 0) {
+    int trailing = fgetc(file);
+    bool read_ok = trailing == EOF && !ferror(file);
+    int close_result = fclose(file);
+    if (!read_ok || close_result != 0) {
         free(pixels); return NULL;
     }
     *out_width = width;
@@ -236,6 +251,67 @@ static bool parse_int_option(const char *text, int minimum, int maximum, int *va
         return false;
     *value = (int)parsed;
     return true;
+}
+
+static bool parse_float_option(const char *text, float *value) {
+    if (!text || !value) return false;
+    char *end = NULL;
+    errno = 0;
+    float parsed = strtof(text, &end);
+    if (errno == ERANGE || end == text || *end != '\0' || !isfinite(parsed) || parsed <= 0.0f)
+        return false;
+    *value = parsed;
+    return true;
+}
+
+static bool parse_resolution_option(const char *text, int *width, int *height) {
+    if (!text || !width || !height) return false;
+    const char *separator = strchr(text, 'x');
+    if (!separator || separator == text || !separator[1] || strchr(separator + 1, 'x')) return false;
+    size_t left_len = (size_t)(separator - text);
+    if (left_len >= 32 || strlen(separator + 1) >= 32) return false;
+    char left[32], right[32];
+    memcpy(left, text, left_len);
+    left[left_len] = '\0';
+    snprintf(right, sizeof(right), "%s", separator + 1);
+    return parse_int_option(left, 320, INT_MAX, width) &&
+           parse_int_option(right, 200, INT_MAX, height);
+}
+
+/* Replay actions use a stable byte code rather than SDL keycode values,
+ * which are not guaranteed to be identical across platforms. */
+static bool replay_encode_key(SDL_Keycode key, uint8_t *action) {
+    if (!action) return false;
+    switch (key) {
+        case SDLK_W: case SDLK_UP: *action = 1; return true;
+        case SDLK_S: case SDLK_DOWN: *action = 2; return true;
+        case SDLK_Q: *action = 3; return true;
+        case SDLK_E: *action = 4; return true;
+        case SDLK_A: case SDLK_LEFT: *action = 5; return true;
+        case SDLK_D: case SDLK_RIGHT: *action = 6; return true;
+        case SDLK_M: *action = 7; return true;
+        case SDLK_I: *action = 8; return true;
+        case SDLK_T: *action = 9; return true;
+        case SDLK_1: *action = 10; return true;
+        case SDLK_2: *action = 11; return true;
+        case SDLK_3: *action = 12; return true;
+        case SDLK_4: *action = 13; return true;
+        case SDLK_SPACE: *action = 14; return true;
+        case SDLK_F: *action = 15; return true;
+        case SDLK_PERIOD: *action = 16; return true;
+        case SDLK_COMMA: *action = 17; return true;
+        case SDLK_H: *action = 18; return true;
+        default: return false;
+    }
+}
+
+static SDL_Keycode replay_decode_key(uint8_t action) {
+    static const SDL_Keycode keys[] = {
+        SDLK_UNKNOWN, SDLK_W, SDLK_S, SDLK_Q, SDLK_E, SDLK_A, SDLK_D,
+        SDLK_M, SDLK_I, SDLK_T, SDLK_1, SDLK_2, SDLK_3, SDLK_4,
+        SDLK_SPACE, SDLK_F, SDLK_PERIOD, SDLK_COMMA, SDLK_H
+    };
+    return action < sizeof(keys) / sizeof(keys[0]) ? keys[action] : SDLK_UNKNOWN;
 }
 
 static void get_default_data_path(char *buf, size_t bufsize) {
@@ -347,6 +423,7 @@ static bool reload_captive_assets(TextureAtlas *atlas, const DataVFS *vfs,
 static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu,
                               CustomFeatures *feat) {
     config->data_path = menu->data_path;
+    config->platform = menu->platform;
     config->render_mode = menu->enhanced_mode
         ? CAPTIVE_RENDER_ENHANCED : CAPTIVE_RENDER_ORIGINAL;
     config->scale_factor = menu->scale_factor;
@@ -408,10 +485,30 @@ static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *conf
     }
     start_menu_check_data(menu, menu->data_path);
     start_menu_check_saves(menu);
+    if (menu->captive_save_slot >= 0)
+        quicksave_slot = menu->captive_save_slot;
 }
 
 static CreatureList creatures;
 static PuzzleList puzzles;
+
+static void generate_captive_puzzles(GameState *gs) {
+    if (!gs || gs->game_type != GAME_CAPTIVE ||
+        gs->num_levels < 1 || gs->num_levels > MAX_LEVELS) return;
+    puzzle_init(&puzzles);
+    for (int level = 0; level < gs->num_levels; level++)
+        puzzle_generate(&puzzles, &gs->levels[level], level,
+                        gs->mission_seed);
+}
+
+static void generate_captive_encounters(const GameState *gs) {
+    if (!gs || gs->game_type != GAME_CAPTIVE ||
+        gs->num_levels < 1 || gs->num_levels > MAX_LEVELS) return;
+    combat_init(&creatures);
+    for (int level = 0; level < gs->num_levels; level++)
+        combat_spawn_for_level(&creatures, &gs->levels[level], level,
+                               gs->mission_seed);
+}
 
 #define MSG_LOG_SIZE 4
 #define MSG_LOG_TTL  180
@@ -457,6 +554,8 @@ static CityGrid lib_buildings;
 static CityGridState lib_grid;
 static CityNavState lib_nav;
 static Lib3dState lib_render;
+static bool liberation_texture_filter;
+static bool liberation_dynamic_lighting;
 static BuildingInteraction lib_interact;
 static bool lib_city_generated;
 static bool lib_in_building;
@@ -642,11 +741,11 @@ static void draw_rect(uint32_t *fb, int pw, int ph,
 }
 
 static const char *popup_toggle(bool value) {
-    return value ? "ON" : "OFF";
+    return value ? _("ON") : _("OFF");
 }
 
 static const char *popup_brightness(int value) {
-    return value < 40 ? "LOW" : (value > 60 ? "HIGH" : "NORMAL");
+    return value < 40 ? _("LOW") : (value > 60 ? _("HIGH") : _("NORMAL"));
 }
 
 static void popup_apply_cheats(GameState *gs) {
@@ -726,15 +825,15 @@ static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
     draw_rect(fb, pw, ph, x, y, w, h, 0xFF101420);
     draw_rect(fb, pw, ph, x, y, w, 2, 0xFF55CCFF);
     draw_rect(fb, pw, ph, x, y + h - 2, w, 2, 0xFF55CCFF);
-    draw_centered(fb, pw, ph, y + 8, "RUNTIME OPTIONS", 0xFFFFFFFF, 1);
-    draw_centered(fb, pw, ph, y + 19, "ESC CLOSE", 0xFF99AACC, 1);
+    draw_centered(fb, pw, ph, y + 8, _("RUNTIME OPTIONS"), 0xFFFFFFFF, 1);
+    draw_centered(fb, pw, ph, y + 19, _("ESC CLOSE"), 0xFF99AACC, 1);
     for (int i = 0; i < POPUP_ITEMS; i++) {
         int row_y = y + 34 + i * 13;
         uint32_t color = i == runtime_popup.selected ? 0xFFFFFF44 : 0xFFCCDDEE;
-        draw_simple_text(fb, pw, ph, x + 12, row_y, labels[i], color, 1);
+        draw_simple_text(fb, pw, ph, x + 12, row_y, _(labels[i]), color, 1);
         const char *value = "";
         switch (i) {
-            case POPUP_ENHANCED: value = "PENDING"; break;
+            case POPUP_ENHANCED: value = _("PENDING"); break;
             case POPUP_SCANLINES: value = popup_toggle(gs->config.scanlines); break;
             case POPUP_CRT: value = popup_toggle(gs->config.crt_curvature); break;
             case POPUP_BILINEAR: value = popup_toggle(gs->config.bilinear); break;
@@ -743,24 +842,74 @@ static void popup_render(const GameState *gs, uint32_t *fb, int pw, int ph) {
             case POPUP_SFX: value = popup_toggle(sound_sys.enabled); break;
             case POPUP_INVULNERABLE: value = popup_toggle(runtime_popup.invulnerable); break;
             case POPUP_INFINITE_ENERGY: value = popup_toggle(runtime_popup.infinite_energy); break;
-            case POPUP_COMPLETE_OBJECTIVE: value = "ACTIVATE"; break;
+            case POPUP_COMPLETE_OBJECTIVE: value = _("ACTIVATE"); break;
             default: break;
         }
         draw_simple_text(fb, pw, ph, x + w - 80, row_y, value, color, 1);
     }
-    draw_centered(fb, pw, ph, y + h - 14, "UP DOWN ENTER", 0xFF99AACC, 1);
+    draw_centered(fb, pw, ph, y + h - 14, _("UP DOWN ENTER"), 0xFF99AACC, 1);
 }
 
-static void spawn_level_content(GameState *gs_ptr) {
-    combat_init(&creatures);
-    puzzle_init(&puzzles);
-    for (int i = 0; i < gs_ptr->num_levels; i++) {
-        combat_spawn_for_level(&creatures, &gs_ptr->levels[i], i, gs_ptr->mission_seed);
-        puzzle_generate(&puzzles, &gs_ptr->levels[i], i, gs_ptr->mission_seed);
+static void restore_liberation_save_state(GameState *gs_ptr,
+                                          const LibSaveData *save) {
+    if (!gs_ptr || !save) return;
+    memset(gs_ptr->droids, 0, sizeof(gs_ptr->droids));
+    for (int i = 0; i < 4; i++)
+        memset(gs_ptr->droids[i].body_part_hp, 255,
+               sizeof(gs_ptr->droids[i].body_part_hp));
+    gs_ptr->mission = (int)save->mission;
+    gs_ptr->mission_seed = ((uint32_t)save->seed_hi << 16) | save->seed_lo;
+    gs_ptr->gold = save->gold > (uint32_t)INT_MAX ? INT_MAX :
+        (int)save->gold;
+    gs_ptr->lib_inventory_count = save->shared_inventory_count > 40 ? 0 :
+        save->shared_inventory_count;
+    for (int i = 0; i < gs_ptr->lib_inventory_count; i++) {
+        snprintf(gs_ptr->lib_inventory[i].name,
+                 sizeof(gs_ptr->lib_inventory[i].name), "%s",
+                 save->shared_inventory[i].name);
+        gs_ptr->lib_inventory[i].item_type =
+            save->shared_inventory[i].item_type;
     }
+    gs_ptr->tick = save->tick;
+    gs_ptr->generators_destroyed = (int)save->generators_destroyed;
+    gs_ptr->generators_total = (int)save->generators_total;
+    gs_ptr->reputation = save->version >= LIB_SAVE_REPUTATION_VERSION ? save->reputation : 0;
+    memcpy(gs_ptr->lib_mission_complete, save->mission_complete,
+           sizeof(gs_ptr->lib_mission_complete));
+    for (int i = 0; i < 4 && i < save->num_droids; i++) {
+        snprintf(gs_ptr->droids[i].name, sizeof(gs_ptr->droids[i].name),
+                 "%s", save->droids[i].name);
+        gs_ptr->droids[i].hp = save->droids[i].hp;
+        gs_ptr->droids[i].hp_max = save->droids[i].hp_max;
+        gs_ptr->droids[i].energy = save->droids[i].energy;
+        gs_ptr->droids[i].energy_max = save->droids[i].energy_max;
+        gs_ptr->droids[i].xp = save->droids[i].xp;
+        memset(gs_ptr->droids[i].skill_levels, 0,
+               sizeof(gs_ptr->droids[i].skill_levels));
+        memcpy(gs_ptr->droids[i].skill_levels, save->droids[i].skills, 8);
+        if (save->version >= LIB_SAVE_SKILLS_VERSION)
+            memcpy(gs_ptr->droids[i].skill_levels + 8,
+                   save->droids[i].skills + 8, 2);
+        for (int p = 0; p < 6; p++)
+            gs_ptr->droids[i].body_parts[p] =
+                (uint8_t)save->droids[i].equipment[p];
+        for (int w = 0; w < 2; w++)
+            gs_ptr->droids[i].weapons[w] =
+                (uint8_t)save->droids[i].equipment[6 + w];
+        memcpy(gs_ptr->droids[i].items, save->droids[i].inventory,
+               sizeof(gs_ptr->droids[i].items));
+        if (save->version >= LIB_SAVE_BODY_PART_VERSION)
+            memcpy(gs_ptr->droids[i].body_part_hp, save->droids[i].body_part_hp,
+                   sizeof(gs_ptr->droids[i].body_part_hp));
+        droid_recalc_weapon_damage(&gs_ptr->droids[i], &item_db);
+    }
+    city_nav_init(&lib_nav, save->city_x, save->city_y,
+                  (CityDirection)save->facing);
 }
 
 static void start_liberation_session(GameState *gs_ptr) {
+    if (!gs_ptr) return;
+    if (gs_ptr->mission < 1) gs_ptr->mission = 1;
     gs_ptr->game_type = GAME_LIBERATION;
     gs_ptr->mode = STATE_GAME;
     liberation_intro_active = !skip_liberation_intro_requested &&
@@ -788,6 +937,8 @@ static void start_liberation_session(GameState *gs_ptr) {
         if (start_x == 0 && start_y == 0) { start_x = 32; start_y = 32; }
         city_nav_init(&lib_nav, start_x, start_y, CITY_DIR_NORTH);
         lib3d_init(&lib_render);
+        lib3d_set_texture_filter(&lib_render, liberation_texture_filter);
+        lib3d_set_dynamic_lighting(&lib_render, liberation_dynamic_lighting);
         {
             static const struct { uint32_t sky, ground; uint8_t wall; } city_themes[] = {
                 {0xFF4466AA, 0xFF446644, 0x20}, // blue sky, green ground
@@ -844,7 +995,6 @@ static bool load_liberation_mission_menu(void) {
     return true;
 }
 
-static int quicksave_slot = 0;
 static CustomFeatures *custom_feat_ptr = NULL;
 
 static void lib_transfer_purchases(GameState *gs) {
@@ -866,6 +1016,14 @@ static bool all_droids_dead(const GameState *gs) {
     return true;
 }
 
+static void apply_droid_damage(Droid *d, int damage) {
+    if (!d || damage <= 0 || d->hp <= 0) return;
+    if (damage >= d->hp)
+        d->hp = 0;
+    else
+        d->hp = (int16_t)(d->hp - damage);
+}
+
 static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
     if (event->type != SDL_EVENT_KEY_DOWN) return;
 
@@ -879,28 +1037,32 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                     lib_interact.fine_paid = false;
                     gs->reputation += 15;
                     if (gs->reputation > 100) gs->reputation = 100;
-                    msg_push("Fine paid. Rep +15", 0xFF44FF44);
+                    msg_push(_("Fine paid. Rep +15"), 0xFF44FF44);
                 }
                 if (lib_interact.industrial_hazard) {
                     lib_interact.industrial_hazard = false;
                     int dmg = 5 + gs->mission * 2;
                     for (int di = 0; di < 4; di++)
                         if (gs->droids[di].hp > 0) {
-                            gs->droids[di].hp -= (int16_t)dmg;
-                            if (gs->droids[di].hp < 0) gs->droids[di].hp = 0;
+                            apply_droid_damage(&gs->droids[di], dmg);
                         }
                     char hmsg[64];
-                    snprintf(hmsg, sizeof(hmsg), "Industrial hazard! %d damage!", dmg);
+                    snprintf(hmsg, sizeof(hmsg), _("Industrial hazard! %d damage!"), dmg);
                     msg_push(hmsg, 0xFFFF8800);
                 }
-                if (lib_interact.bar_fight) {
+                if (lib_interact.fine_refused) {
+                    lib_interact.fine_refused = false;
+                    lib_combat_generate_encounter(&lib_combat,
+                        (uint16_t)(gs->tick * 0x5E5 + 17U), gs->mission);
+                    lib_in_combat = true;
+                } else if (lib_interact.bar_fight) {
                     lib_interact.bar_fight = false;
                     lib_combat_generate_encounter(&lib_combat,
                         (uint16_t)(gs->tick * 0x5E5), gs->mission);
                     lib_in_combat = true;
                     gs->reputation -= 10;
                     if (gs->reputation < -100) gs->reputation = -100;
-                    msg_push("Bar fight! Rep -10", 0xFFFF4444);
+                    msg_push(_("Bar fight! Rep -10"), 0xFFFF4444);
                 }
                 return;
             case SDLK_UP: {
@@ -919,6 +1081,27 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 unsigned idx = (unsigned)(event->key.key - SDLK_1);
                 unsigned count = building_interact_choice_count(&lib_interact);
                 if (idx < count) building_interact_choose(&lib_interact, idx);
+                else if (count == 0 && lib_interact.shop_menu_active &&
+                         (lib_interact.type == INTERACT_SHOP ||
+                          lib_interact.type == INTERACT_BAR) &&
+                         idx < lib_interact.shop.item_count) {
+                    bool inventory_full = gs->lib_inventory_count < 0 ||
+                        gs->lib_inventory_count >= 40 ||
+                        lib_interact.purchased_count < 0 ||
+                        lib_interact.purchased_count >= 20 ||
+                        gs->lib_inventory_count + lib_interact.purchased_count >= 40;
+                    if (inventory_full) {
+                        msg_push(_("Shared inventory is full."), 0xFFFF8844);
+                    } else if (building_interact_buy(&lib_interact, idx)) {
+                        char buy_msg[96];
+                        snprintf(buy_msg, sizeof(buy_msg),
+                                 _("Purchased: %s"),
+                                 lib_interact.shop.items[idx].name);
+                        msg_push(buy_msg, 0xFF44FF44);
+                    } else {
+                        msg_push(_("Cannot buy that item."), 0xFFFF8844);
+                    }
+                }
                 return;
             }
             case SDLK_RETURN:
@@ -931,28 +1114,32 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                         lib_interact.fine_paid = false;
                         gs->reputation += 15;
                         if (gs->reputation > 100) gs->reputation = 100;
-                        msg_push("Fine paid. Rep +15", 0xFF44FF44);
+                        msg_push(_("Fine paid. Rep +15"), 0xFF44FF44);
                     }
                     if (lib_interact.industrial_hazard) {
                         lib_interact.industrial_hazard = false;
                         int dmg = 5 + gs->mission * 2;
                         for (int di = 0; di < 4; di++)
                             if (gs->droids[di].hp > 0) {
-                                gs->droids[di].hp -= (int16_t)dmg;
-                                if (gs->droids[di].hp < 0) gs->droids[di].hp = 0;
+                                apply_droid_damage(&gs->droids[di], dmg);
                             }
                         char hmsg[64];
-                        snprintf(hmsg, sizeof(hmsg), "Industrial hazard! %d damage!", dmg);
+                        snprintf(hmsg, sizeof(hmsg), _("Industrial hazard! %d damage!"), dmg);
                         msg_push(hmsg, 0xFFFF8800);
                     }
-                    if (lib_interact.bar_fight) {
+                    if (lib_interact.fine_refused) {
+                        lib_interact.fine_refused = false;
+                        lib_combat_generate_encounter(&lib_combat,
+                            (uint16_t)(gs->tick * 0x5E5 + 17U), gs->mission);
+                        lib_in_combat = true;
+                    } else if (lib_interact.bar_fight) {
                         lib_interact.bar_fight = false;
                         lib_combat_generate_encounter(&lib_combat,
                             (uint16_t)(gs->tick * 0x5E5), gs->mission);
                         lib_in_combat = true;
                         gs->reputation -= 10;
                         if (gs->reputation < -100) gs->reputation = -100;
-                        msg_push("Bar fight! Rep -10", 0xFFFF4444);
+                        msg_push(_("Bar fight! Rep -10"), 0xFFFF4444);
                     } else if (lib_interact.mission_complete) {
                         lib_interact.mission_complete = false;
                         lib_in_dungeon = true;
@@ -981,7 +1168,7 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                         combat_init(&creatures);
                         combat_spawn_for_level(&creatures, &gs->levels[0], 0,
                                                gs->mission_seed);
-                        msg_push("Entered building interior", 0xFF44AAFF);
+                        msg_push(_("Entered building interior"), 0xFF44AAFF);
                     }
                 }
                 return;
@@ -1014,8 +1201,16 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 return;
             }
             case SDLK_TAB:
-                lib_combat.selected_target =
-                    (lib_combat.selected_target + 1) % lib_combat.enemy_count;
+                {
+                    int combat_enemy_count = lib_combat.enemy_count;
+                    if (combat_enemy_count < 0) combat_enemy_count = 0;
+                    if (combat_enemy_count > LIB_COMBAT_MAX_ENEMIES)
+                        combat_enemy_count = LIB_COMBAT_MAX_ENEMIES;
+                    if (combat_enemy_count > 0) {
+                    lib_combat.selected_target =
+                        (lib_combat.selected_target + 1) % combat_enemy_count;
+                    }
+                }
                 return;
             default: return;
         }
@@ -1060,26 +1255,35 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
             break;
         case SDLK_F:
         case SDLK_RETURN: {
+            if (lib_nav.facing < CITY_DIR_NORTH || lib_nav.facing > CITY_DIR_WEST)
+                break;
             int fwd_dx = (int[]){0,1,0,-1}[lib_nav.facing];
             int fwd_dy = (int[]){-1,0,1,0}[lib_nav.facing];
             int fx = lib_nav.cell_x + fwd_dx;
             int fy = lib_nav.cell_y + fwd_dy;
-            if (fx >= 0 && fx < 64 && fy >= 0 && fy < 64 &&
+            if (custom_feat_ptr && custom_feat_ptr->fast_travel &&
+                fx >= 0 && fx < 64 && fy >= 0 && fy < 64 &&
                 city_nav_get_cell(&lib_grid, fx, fy) == 0x23 && gs->gold >= 50) {
                 gs->gold -= 50;
                 for (int ty = 0; ty < 64; ty++) {
                     for (int tx = 0; tx < 64; tx++) {
                         if (city_nav_get_cell(&lib_grid, tx, ty) != 0x0A) continue;
                         int off = ty * 64 + tx;
-                        uint8_t bid = lib_grid.plane2[off];
-                        if (bid == 0 || bid == 0xFF) continue;
+                        uint8_t raw_bid = lib_grid.plane2[off];
+                        if (raw_bid == 0 || raw_bid == 0xFF) continue;
+                        uint8_t bid = raw_bid & 0x7F;
+                        if (bid == 0 || lib_buildings.total_buildings == 0 ||
+                            lib_buildings.total_buildings > CITYGEN_MAX_BUILDINGS)
+                            continue;
                         int bg = (bid - 1) % lib_buildings.total_buildings;
                         if (bg >= 0 && bg < lib_buildings.total_buildings &&
                             lib_buildings.buildings[bg].type == 8) {
-                            lib_nav.cell_x = tx;
-                            lib_nav.cell_y = ty;
+                            if (!city_nav_teleport(&lib_nav, tx, ty)) {
+                                gs->gold += 50;
+                                goto lib_interact_done;
+                            }
                             taxi_flash_ttl = 15;
-                            msg_push("Taxi: 50 gold", 0xFFFFAA00);
+                            msg_push(_("Taxi: 50 gold"), 0xFFFFAA00);
                             goto lib_interact_done;
                         }
                     }
@@ -1089,7 +1293,8 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                     lib_nav.cell_x, lib_nav.cell_y)) {
                 if (building_interact_enter(&lib_interact, &lib_grid,
                         &lib_buildings, lib_nav.cell_x, lib_nav.cell_y,
-                        (uint32_t *)&gs->gold)) {
+                        &gs->gold)) {
+                    building_interact_set_reputation(&lib_interact, gs->reputation);
                     lib_in_building = true;
                 }
             }
@@ -1105,33 +1310,52 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 sd[i].hp_max = gs->droids[i].hp_max;
                 sd[i].energy = gs->droids[i].energy;
                 sd[i].energy_max = gs->droids[i].energy_max;
-                sd[i].level = 1;
-                memset(sd[i].skills, 0, sizeof(sd[i].skills));
-                memset(sd[i].equipment, 0, sizeof(sd[i].equipment));
+                sd[i].level = (uint8_t)xp_to_display_level(gs->droids[i].xp);
+                sd[i].xp = gs->droids[i].xp;
+                memcpy(sd[i].skills, gs->droids[i].skill_levels,
+                       sizeof(sd[i].skills));
+                for (int p = 0; p < 6; p++)
+                    sd[i].equipment[p] = gs->droids[i].body_parts[p];
+                for (int w = 0; w < 2; w++)
+                    sd[i].equipment[6 + w] = gs->droids[i].weapons[w];
+                memcpy(sd[i].inventory, gs->droids[i].items,
+                       sizeof(sd[i].inventory));
+                memcpy(sd[i].body_part_hp, gs->droids[i].body_part_hp,
+                       sizeof(sd[i].body_part_hp));
             }
             uint16_t seed = (uint16_t)(gs->mission_seed & 0xFFFF);
             uint16_t seed_hi = (uint16_t)((gs->mission_seed >> 16) & 0xFFFF);
+            uint32_t save_gold = gs->gold < 0 ? 0u : (uint32_t)gs->gold;
             lib_save_from_state(&save, seed_hi, seed,
                 (uint16_t)gs->mission, (uint16_t)gs->mission,
-                (uint32_t)gs->gold, gs->tick, &lib_nav, sd, 4);
+                save_gold, gs->tick, &lib_nav, sd, 4);
+            save.generators_destroyed = gs->generators_destroyed < 0 ? 0 :
+                (gs->generators_destroyed > UINT16_MAX ? UINT16_MAX :
+                 (uint16_t)gs->generators_destroyed);
+            save.generators_total = gs->generators_total < 0 ? 0 :
+                (gs->generators_total > UINT16_MAX ? UINT16_MAX :
+                 (uint16_t)gs->generators_total);
+            if (save.generators_destroyed > save.generators_total)
+                save.generators_destroyed = save.generators_total;
+            save.reputation = gs->reputation < -100 ? -100 :
+                (gs->reputation > 100 ? 100 : (int16_t)gs->reputation);
+            memcpy(save.mission_complete, gs->lib_mission_complete,
+                   sizeof(save.mission_complete));
+            save.shared_inventory_count = gs->lib_inventory_count < 0 ? 0 :
+                (gs->lib_inventory_count > 40 ? 40 : gs->lib_inventory_count);
+            for (int i = 0; i < save.shared_inventory_count; i++) {
+                snprintf(save.shared_inventory[i].name,
+                         sizeof(save.shared_inventory[i].name), "%s",
+                         gs->lib_inventory[i].name);
+                save.shared_inventory[i].item_type = gs->lib_inventory[i].item_type;
+            }
             lib_save_write(&save, "liberation.sav");
             break;
         }
         case SDLK_F9: {
             LibSaveData save;
             if (lib_save_read(&save, "liberation.sav")) {
-                gs->gold = (int)save.gold;
-                gs->tick = save.tick;
-                city_nav_init(&lib_nav, save.city_x, save.city_y,
-                    (CityDirection)save.facing);
-                for (int i = 0; i < 4 && i < save.num_droids; i++) {
-                    snprintf(gs->droids[i].name, sizeof(gs->droids[i].name),
-                        "%s", save.droids[i].name);
-                    gs->droids[i].hp = save.droids[i].hp;
-                    gs->droids[i].hp_max = save.droids[i].hp_max;
-                    gs->droids[i].energy = save.droids[i].energy;
-                    gs->droids[i].energy_max = save.droids[i].energy_max;
-                }
+                restore_liberation_save_state(gs, &save);
             }
             break;
         }
@@ -1140,6 +1364,12 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
 }
 
 static void game_handle_input(GameState *gs, const SDL_Event *event) {
+    if (!gs || !event || gs->current_level < 0 ||
+        gs->current_level >= gs->num_levels || gs->num_levels > MAX_LEVELS ||
+        gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
+        gs->party_y < 0 || gs->party_y >= MAP_HEIGHT ||
+        gs->party_dir < DIR_NORTH || gs->party_dir > DIR_WEST ||
+        gs->selected_droid < 0 || gs->selected_droid >= 4) return;
     if (event->type == SDL_EVENT_MOUSE_MOTION && custom_feat_ptr &&
         custom_feat_ptr->mouse_look && gs->mode == STATE_GAME) {
         float dx = event->motion.xrel * custom_feat_ptr->mouse_sensitivity;
@@ -1201,17 +1431,17 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 if (creatures.creature_killed) {
                     sfx_play(&sfx, SFX_DEATH);
                     creature_death_flash_ttl = 5;
-                    msg_push("Creature destroyed!", 0xFF44AAFF);
+                    msg_push(_("Creature destroyed!"), 0xFF44AAFF);
                     creatures.creature_killed = false;
                 }
                 if (creatures.level_up_occurred) {
                     sfx_play(&sfx, SFX_LEVEL_UP);
-                    msg_push("LEVEL UP!", 0xFFFFFF00);
+                    msg_push(_("LEVEL UP!"), 0xFFFFFF00);
                     levelup_flash_ttl = 10;
                     creatures.level_up_occurred = false;
                 }
                 char atk_msg[64];
-                snprintf(atk_msg, sizeof(atk_msg), "Droid %d fires!",
+                snprintf(atk_msg, sizeof(atk_msg), _("Droid %d fires!"),
                          gs->selected_droid + 1);
                 msg_push(atk_msg, 0xFF44FF44);
                 if (all_droids_dead(gs)) gs->mode = STATE_GAMEOVER;
@@ -1360,7 +1590,7 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                             d->items[si] = step_cell->item_id;
                             char pickup_msg[64];
                             snprintf(pickup_msg, sizeof(pickup_msg),
-                                     "Droid %d picked up item", gs->selected_droid + 1);
+                                     _("Droid %d picked up item"), gs->selected_droid + 1);
                             msg_push(pickup_msg, 0xFF44AAFF);
                             sfx_play(&sfx, SFX_PICKUP);
                             step_cell->item_id = 0;
@@ -1373,15 +1603,14 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 for (int di = 0; di < 4; di++) {
                     if (gs->droids[di].hp > 0) {
                         int dmg = 5 + (gs->current_level * 2);
-                        gs->droids[di].hp -= (int16_t)dmg;
-                        if (gs->droids[di].hp < 0) gs->droids[di].hp = 0;
+                        apply_droid_damage(&gs->droids[di], dmg);
                     }
                 }
-                msg_push("Fell into a pit!", 0xFFFF4444);
+                msg_push(_("Fell into a pit!"), 0xFFFF4444);
                 sfx_play(&sfx, SFX_HIT);
                 if (all_droids_dead(gs)) gs->mode = STATE_GAMEOVER;
             } else if (cell == CELL_PRESSURE_PLATE) {
-                msg_push("Click!", 0xFFAAAA44);
+                msg_push(_("Click!"), 0xFFAAAA44);
                 sfx_play(&sfx, SFX_DOOR_OPEN);
             }
             sfx_play(&sfx, SFX_STEP);
@@ -1392,11 +1621,6 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
 }
 
 int main(int argc, char *argv[]) {
-    printf("OpenCaptive v%d.%d.%d by Daniel Nylander\n",
-           OPENCAPTIVE_VERSION_MAJOR,
-           OPENCAPTIVE_VERSION_MINOR,
-           OPENCAPTIVE_VERSION_PATCH);
-
     static char default_data_path[512];
     get_default_data_path(default_data_path, sizeof(default_data_path));
 
@@ -1406,7 +1630,7 @@ int main(int argc, char *argv[]) {
         .data_path = default_data_path,
         .scale_factor = 3,
         .vsync = true,
-        .integer_scaling = false,
+        .integer_scaling = true,
         .brightness = 50,
         .contrast = 50,
         .fps_limit = 60,
@@ -1442,6 +1666,7 @@ int main(int argc, char *argv[]) {
                 "  --help, -h            Show this help message\n"
                 "  --version, -v         Show version information\n"
                 "  --data <path>         Set game data directory\n"
+                "  --data-dir <path>     Alias for --data\n"
                 "  --enhanced            Enable enhanced 3D renderer\n"
                 "  --platform <name>     Set platform: dos, atari, amiga\n"
                 "  --scale <n>           Window scale factor (1-5, default 3)\n"
@@ -1458,7 +1683,9 @@ int main(int argc, char *argv[]) {
                 "  --brightness <n>      Brightness 0-100 (default 50)\n"
                 "  --contrast <n>        Contrast 0-100 (default 50)\n"
                 "  --game <name>         Start game directly: captive, liberation\n"
-                "  --lang <code>         Language: en, sv, de, fr, es, it, etc.\n\n"
+                "  --lang <code>         Language: en, sv, de, fr, es, it, etc.\n"
+                "  --scan-data           Scan and verify all supported game data\n"
+                "  --scan-game-data      Alias for --scan-data\n\n"
                 "Custom features:\n"
                 "  --all-features        Enable all custom features\n"
                 "  --hd-upscale          HD texture upscaling (xBRZ)\n"
@@ -1503,7 +1730,8 @@ int main(int argc, char *argv[]) {
                    OPENCAPTIVE_VERSION_MAJOR, OPENCAPTIVE_VERSION_MINOR,
                    OPENCAPTIVE_VERSION_PATCH);
             return 0;
-        } else if (strcmp(argv[i], "--data") == 0 && i + 1 < argc) {
+        } else if ((strcmp(argv[i], "--data") == 0 ||
+                    strcmp(argv[i], "--data-dir") == 0) && i + 1 < argc) {
             config.data_path = argv[++i];
         } else if (strcmp(argv[i], "--enhanced") == 0) {
             config.render_mode = CAPTIVE_RENDER_ENHANCED;
@@ -1523,7 +1751,7 @@ int main(int argc, char *argv[]) {
             }
         } else if (strcmp(argv[i], "--resolution") == 0 && i + 1 < argc) {
             int rw = 0, rh = 0;
-            if (sscanf(argv[++i], "%dx%d", &rw, &rh) == 2 && rw >= 320 && rh >= 200) {
+            if (parse_resolution_option(argv[++i], &rw, &rh)) {
                 config.window_width = rw;
                 config.window_height = rh;
             } else {
@@ -1566,9 +1794,10 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "--hd-upscale") == 0) {
             custom.hd_upscale = true;
         } else if (strcmp(argv[i], "--upscale-factor") == 0 && i + 1 < argc) {
-            custom.upscale_factor = atoi(argv[++i]);
-            if (custom.upscale_factor < 2) custom.upscale_factor = 2;
-            if (custom.upscale_factor > 4) custom.upscale_factor = 4;
+            if (!parse_int_option(argv[++i], 2, 4, &custom.upscale_factor)) {
+                fprintf(stderr, "--upscale-factor must be an integer from 2 to 4\n");
+                return 2;
+            }
             custom.hd_upscale = true;
         } else if (strcmp(argv[i], "--widescreen") == 0) {
             custom.widescreen = true;
@@ -1587,7 +1816,10 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "--dynamic-lighting") == 0) {
             custom.dynamic_lighting = true;
         } else if (strcmp(argv[i], "--speed") == 0 && i + 1 < argc) {
-            custom.game_speed = (float)atof(argv[++i]);
+            if (!parse_float_option(argv[++i], &custom.game_speed)) {
+                fprintf(stderr, "--speed must be a finite positive number\n");
+                return 2;
+            }
             custom.speed_control = true;
         } else if (strcmp(argv[i], "--fast-travel") == 0) {
             custom.fast_travel = true;
@@ -1628,6 +1860,9 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "Unknown game: %s (expected captive or liberation)\n", game);
                 return 2;
             }
+        } else if (strcmp(argv[i], "--scan-data") == 0 ||
+                   strcmp(argv[i], "--scan-game-data") == 0) {
+            verify_data = "all";
         } else if (strcmp(argv[i], "--verify-data") == 0 && i + 1 < argc) {
             verify_data = argv[++i];
             if (strcmp(verify_data, "captive") != 0 &&
@@ -1744,6 +1979,8 @@ int main(int argc, char *argv[]) {
     // State
     StartMenu menu = {0};
     sync_menu_from_config(&menu, &config, &custom, true, true);
+    liberation_texture_filter = custom.texture_filter;
+    liberation_dynamic_lighting = custom.dynamic_lighting;
 
     GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
@@ -1762,6 +1999,7 @@ int main(int argc, char *argv[]) {
 
     // Audio
     sound_init(&sound_sys);
+    sound_set_reverb(&sound_sys, custom.audio_reverb, custom.reverb_amount);
     music_init(&music_sys, &sound_sys, &vfs);
 
     // Items and SFX
@@ -1803,6 +2041,7 @@ int main(int argc, char *argv[]) {
             show_missing_liberation_data_dialog(config.data_path);
         } else {
             load_liberation_mission_menu();
+            lib_city_generated = false;
             start_liberation_session(&gs);
             if (show_liberation_mission_menu_requested) {
                 liberation_intro_active = false;
@@ -1827,6 +2066,13 @@ int main(int argc, char *argv[]) {
                 break;
             }
 
+            if (custom.replay_record && gs.game_type == GAME_CAPTIVE &&
+                gs.mode == STATE_GAME && event.type == SDL_EVENT_KEY_DOWN) {
+                uint8_t action;
+                if (replay_encode_key(event.key.key, &action))
+                    replay_record_input(&replay, gs.tick, action, 0);
+            }
+
             if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_F10 &&
                 gs.mode == STATE_GAME) {
                 runtime_popup.open = !runtime_popup.open;
@@ -1843,6 +2089,7 @@ int main(int argc, char *argv[]) {
                     if (event.type == SDL_EVENT_MOUSE_MOTION) {
                         int width = MENU_WIDTH, height = MENU_HEIGHT;
                         SDL_GetWindowSize(renderer.window, &width, &height);
+                        if (width <= 0 || height <= 0) break;
                         float mx = event.motion.x * MENU_WIDTH / width;
                         float my = event.motion.y * MENU_HEIGHT / height;
                         start_menu_handle_mouse_motion(&menu, mx, my);
@@ -1851,6 +2098,7 @@ int main(int argc, char *argv[]) {
                         event.button.button == SDL_BUTTON_LEFT) {
                         int width = MENU_WIDTH, height = MENU_HEIGHT;
                         SDL_GetWindowSize(renderer.window, &width, &height);
+                        if (width <= 0 || height <= 0) break;
                         float x = event.button.x * MENU_WIDTH / width;
                         float y = event.button.y * MENU_HEIGHT / height;
                         result = start_menu_handle_click(&menu, x, y);
@@ -1859,6 +2107,13 @@ int main(int argc, char *argv[]) {
                     }
                     switch (result) {
                         case MENU_RESULT_START_CAPTIVE:
+                            /* Starting a new session must not inherit the
+                             * previous dungeon after returning from pause.
+                             * Continue uses load_game() below and therefore
+                             * deliberately does not take this path. */
+                            game_state_init(&gs, GAME_CAPTIVE, 1);
+                            combat_init(&creatures);
+                            puzzle_init(&puzzles);
                             gs.game_type = GAME_CAPTIVE;
                             apply_menu_config(&config, &menu, &custom);
                             gs.config = config;
@@ -1894,6 +2149,12 @@ int main(int argc, char *argv[]) {
                             }
                             break;
                         case MENU_RESULT_START_LIBERATION:
+                            /* A fresh Liberation game must not inherit the
+                             * previous Captive/Liberation session. Continue
+                             * uses the save-specific path below. */
+                            game_state_init(&gs, GAME_LIBERATION, 1);
+                            combat_init(&creatures);
+                            puzzle_init(&puzzles);
                             apply_menu_config(&config, &menu, &custom);
                             gs.config = config;
                             renderer_set_effects(&renderer, config.bilinear,
@@ -1907,11 +2168,13 @@ int main(int argc, char *argv[]) {
                             vfs_free(&vfs);
                             vfs_init(&vfs, config.data_path);
                             liberation_data_close(&liberation_data);
-                            if (!liberation_data_open(&liberation_data, &vfs)) {
+                            if (!liberation_data_open_source(&liberation_data, &vfs,
+                                                             (LiberationSource)menu.liberation_source_choice)) {
                                 show_missing_liberation_data_dialog(config.data_path);
                                 break;
                             }
                             load_liberation_mission_menu();
+                            lib_city_generated = false;
                             start_liberation_session(&gs);
                             break;
                         case MENU_RESULT_CONTINUE_CAPTIVE:
@@ -1943,6 +2206,15 @@ int main(int argc, char *argv[]) {
                                     music_play(&music_sys, MUSIC_BASE);
                                     gs.mode = STATE_GAME;
                                 } else {
+                                    /* The menu may have seen a save file
+                                     * that was removed or became invalid
+                                     * before loading. Do not let the droid
+                                     * configuration continue with a stale
+                                     * dungeon from the previous session. */
+                                    game_state_init(&gs, GAME_CAPTIVE, 1);
+                                    gs.config = config;
+                                    combat_init(&creatures);
+                                    puzzle_init(&puzzles);
                                     gs.mode = STATE_DROID_CONFIG;
                                     droid_config_cursor = 0;
                                 }
@@ -1970,20 +2242,15 @@ int main(int argc, char *argv[]) {
                             {
                                 LibSaveData save;
                                 if (lib_save_read(&save, "liberation.sav")) {
+                                    gs.mission = (int)save.mission;
+                                    gs.mission_seed =
+                                        ((uint32_t)save.seed_hi << 16) |
+                                        save.seed_lo;
+                                    lib_city_generated = false;
                                     start_liberation_session(&gs);
-                                    gs.gold = (int)save.gold;
-                                    gs.tick = save.tick;
-                                    city_nav_init(&lib_nav, save.city_x, save.city_y,
-                                        (CityDirection)save.facing);
-                                    for (int i = 0; i < 4 && i < save.num_droids; i++) {
-                                        snprintf(gs.droids[i].name, sizeof(gs.droids[i].name),
-                                                 "%s", save.droids[i].name);
-                                        gs.droids[i].hp = save.droids[i].hp;
-                                        gs.droids[i].hp_max = save.droids[i].hp_max;
-                                        gs.droids[i].energy = save.droids[i].energy;
-                                        gs.droids[i].energy_max = save.droids[i].energy_max;
-                                    }
+                                    restore_liberation_save_state(&gs, &save);
                                 } else {
+                                    lib_city_generated = false;
                                     start_liberation_session(&gs);
                                 }
                             }
@@ -2045,8 +2312,17 @@ int main(int argc, char *argv[]) {
                                 uint16_t td = gs.droids[droid_config_cursor].weapon_damage;
                                 gs.droids[droid_config_cursor].weapon_damage = gs.droids[next].weapon_damage;
                                 gs.droids[next].weapon_damage = td;
-                            } else if (event.key.key == SDLK_RETURN)
+                            } else if (event.key.key == SDLK_RETURN) {
+                                if (gs.game_type == GAME_CAPTIVE && gs.num_levels == 0) {
+                                    if (custom.replay_playback && replay.seed != 0)
+                                        game_state_new_mission_seeded(&gs, gs.mission, replay.seed);
+                                    else
+                                        game_state_new_mission(&gs, gs.mission);
+                                    generate_captive_puzzles(&gs);
+                                    generate_captive_encounters(&gs);
+                                }
                                 gs.mode = STATE_GAME;
+                            }
                         }
                     }
                     break;
@@ -2075,6 +2351,7 @@ int main(int argc, char *argv[]) {
                                    event.button.button == SDL_BUTTON_LEFT) {
                             int ww = LIBERATION_SCREEN_WIDTH, wh = LIBERATION_SCREEN_HEIGHT;
                             SDL_GetWindowSize(renderer.window, &ww, &wh);
+                            if (ww <= 0 || wh <= 0) break;
                             int x = (int)(event.button.x * LIBERATION_SCREEN_WIDTH / ww);
                             int y = (int)(event.button.y * LIBERATION_SCREEN_HEIGHT / wh);
                             int local_y = y - LIBERATION_MISSION_MENU_Y;
@@ -2091,12 +2368,18 @@ int main(int argc, char *argv[]) {
                                 if (event.type == SDL_EVENT_KEY_DOWN &&
                                     event.key.key == SDLK_ESCAPE) {
                                     lib_in_dungeon = false;
-                                    msg_push("Left building", 0xFF44AAFF);
+                                    msg_push(_("Left building"), 0xFF44AAFF);
                                 } else {
                                     game_handle_input(&gs, &event);
                                     if (gs.generators_destroyed >= gs.generators_total &&
                                         gs.generators_total > 0) {
                                         lib_in_dungeon = false;
+                                        if (gs.mission > 0 && gs.mission <= 256)
+                                            gs.lib_mission_complete[(gs.mission - 1) / 8] |=
+                                                (uint8_t)(1U << ((gs.mission - 1) % 8));
+                                        gs.reputation += 20;
+                                        if (gs.reputation > 100) gs.reputation = 100;
+                                        msg_push(_("Mission complete. Rep +20"), 0xFF44FF44);
                                         gs.mission++;
                                         if (gs.mission >= 256) {
                                             gs.mode = STATE_VICTORY;
@@ -2275,6 +2558,8 @@ int main(int argc, char *argv[]) {
                         switch (event.key.key) {
                             case SDLK_RETURN:
                                 game_state_new_mission(&gs, gs.mission + 1);
+                                generate_captive_puzzles(&gs);
+                                generate_captive_encounters(&gs);
                                 gs.mode = STATE_GAME;
                                 music_play(&music_sys, MUSIC_BASE);
                                 break;
@@ -2295,7 +2580,7 @@ int main(int argc, char *argv[]) {
                     if (event.type == SDL_EVENT_KEY_DOWN &&
                         event.key.key == SDLK_ESCAPE) {
                         gs.mode = STATE_MENU;
-                        start_menu_init(&menu);
+                        start_menu_reinit(&menu);
                         music_stop(&music_sys);
                     }
                     break;
@@ -2311,12 +2596,11 @@ int main(int argc, char *argv[]) {
                     break;
                 case STATE_PAUSE:
                     if (event.type == SDL_EVENT_MOUSE_MOTION) {
-                        int pw = (gs.game_type == GAME_LIBERATION)
-                            ? LIBERATION_SCREEN_WIDTH : CAPTIVE_ORIGINAL_WIDTH;
                         int ph = (gs.game_type == GAME_LIBERATION)
                             ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
                         int ww, wh;
                         SDL_GetWindowSize(renderer.window, &ww, &wh);
+                        if (wh <= 0) break;
                         float my = event.motion.y * ph / wh;
                         for (int i = 0; i < 3; i++) {
                             int iy = 90 + i * 20;
@@ -2327,12 +2611,11 @@ int main(int argc, char *argv[]) {
                         }
                     } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                                event.button.button == SDL_BUTTON_LEFT) {
-                        int pw = (gs.game_type == GAME_LIBERATION)
-                            ? LIBERATION_SCREEN_WIDTH : CAPTIVE_ORIGINAL_WIDTH;
                         int ph = (gs.game_type == GAME_LIBERATION)
                             ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
                         int ww, wh;
                         SDL_GetWindowSize(renderer.window, &ww, &wh);
+                        if (wh <= 0) break;
                         float my = event.button.y * ph / wh;
                         int clicked = -1;
                         for (int i = 0; i < 3; i++) {
@@ -2373,7 +2656,7 @@ int main(int argc, char *argv[]) {
                                     gs.paused = false;
                                 } else if (pause_cursor == 2) {
                                     gs.mode = STATE_MENU;
-                                    start_menu_init(&menu);
+                                    start_menu_reinit(&menu);
                                     music_stop(&music_sys);
                                     gs.paused = false;
                                 }
@@ -2477,6 +2760,11 @@ int main(int argc, char *argv[]) {
                         float dt = (now - gs.last_frame_ms) / 1000.0f;
                         if (dt > 0.1f) dt = 0.1f;
                         gs.last_frame_ms = now;
+                        /* Liberation uses the shared game tick for its
+                         * day/night clock and encounter seed. Captive's
+                         * tick is advanced in its game branch below, so
+                         * advance it here once per city frame as well. */
+                        gs.tick++;
                         bool was_moving = lib_nav.moving;
                         city_nav_update(&lib_nav, dt);
                         if (was_moving && !lib_nav.moving && !lib_in_combat && !lib_in_building) {
@@ -2534,7 +2822,11 @@ int main(int argc, char *argv[]) {
                                         (framebuffer[y * LIBERATION_SCREEN_WIDTH + x] >> 1) & 0x7F7F7F;
                             draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                 LIBERATION_SCREEN_HEIGHT, 8, 8, "COMBAT", 0xFFFF0000, 1);
-                            for (int ei = 0; ei < lib_combat.enemy_count; ei++) {
+                            int combat_enemy_count = lib_combat.enemy_count;
+                            if (combat_enemy_count < 0) combat_enemy_count = 0;
+                            if (combat_enemy_count > LIB_COMBAT_MAX_ENEMIES)
+                                combat_enemy_count = LIB_COMBAT_MAX_ENEMIES;
+                            for (int ei = 0; ei < combat_enemy_count; ei++) {
                                 LibCombatEnemy *e = &lib_combat.enemies[ei];
                                 char line[80];
                                 snprintf(line, sizeof(line), "%s%s HP:%d/%d DMG:%d",
@@ -2610,6 +2902,18 @@ int main(int argc, char *argv[]) {
                     }
                 } else {
                     /* Captive game tick: energy regen every ~5 seconds */
+                    if (custom.replay_playback && gs.game_type == GAME_CAPTIVE &&
+                        gs.mode == STATE_GAME) {
+                        const ReplayInput *input;
+                        while ((input = replay_next(&replay, gs.tick)) != NULL) {
+                            SDL_Event replay_event;
+                            memset(&replay_event, 0, sizeof(replay_event));
+                            replay_event.type = SDL_EVENT_KEY_DOWN;
+                            replay_event.key.key = replay_decode_key(input->action);
+                            if (replay_event.key.key != SDLK_UNKNOWN)
+                                game_handle_input(&gs, &replay_event);
+                        }
+                    }
                     gs.tick++;
                     if (gs.tick % 300 == 0) {
                         for (int di = 0; di < 4; di++) {
@@ -2626,7 +2930,7 @@ int main(int argc, char *argv[]) {
                         if (creatures.attack_occurred) {
                             int ti = creatures.last_attack_target;
                             char msg[64];
-                            snprintf(msg, sizeof(msg), "Droid %d hit for %d!",
+                            snprintf(msg, sizeof(msg), _("Droid %d hit for %d!"),
                                      ti + 1,
                                      creatures.last_attack_damage);
                             msg_push(msg, 0xFFFF4444);
@@ -2634,14 +2938,14 @@ int main(int argc, char *argv[]) {
                             sfx_play(&sfx, SFX_HIT);
                             if (ti >= 0 && ti < 4 && gs.droids[ti].hp <= 0) {
                                 char dmsg[64];
-                                snprintf(dmsg, sizeof(dmsg), "Droid %d destroyed!", ti + 1);
+                                snprintf(dmsg, sizeof(dmsg), _("Droid %d destroyed!"), ti + 1);
                                 msg_push(dmsg, 0xFFFF0000);
                                 sfx_play(&sfx, SFX_DEATH);
                                 int alive = 0;
                                 for (int di = 0; di < 4; di++)
                                     if (gs.droids[di].hp > 0) alive++;
                                 if (alive == 0) {
-                                    msg_push("All droids destroyed! Mission failed.", 0xFFFF0000);
+                                    msg_push(_("All droids destroyed! Mission failed."), 0xFFFF0000);
                                     gs.mode = STATE_GAMEOVER;
                                 }
                             }
@@ -2953,11 +3257,12 @@ int main(int argc, char *argv[]) {
                 for (int gy = 0; gy < 64; gy++) {
                     for (int gx = 0; gx < 64; gx++) {
                         uint8_t cell = lib_grid.plane0[gy * 64 + gx];
-                        uint8_t bid = lib_grid.plane2[gy * 64 + gx];
+                        uint8_t raw_bid = lib_grid.plane2[gy * 64 + gx];
+                        uint8_t bid = raw_bid & 0x7F;
                         uint32_t col;
                         if (gx == lib_nav.cell_x && gy == lib_nav.cell_y)
                             col = 0xFFFFFF00;
-                        else if (bid != 0 && bid != 0xFF)
+                        else if (raw_bid != 0 && raw_bid != 0xFF && bid != 0)
                             col = 0xFF4444AA;
                         else if (cell == 0x0A)
                             col = 0xFF333333;
@@ -2982,10 +3287,13 @@ int main(int argc, char *argv[]) {
         }
 
         if (gs.mode == STATE_GAME) {
-            if (custom.automap)
+            if (gs.current_level >= 0 && gs.current_level < gs.num_levels &&
+                gs.num_levels <= MAX_LEVELS &&
+                custom.automap)
                 automap_mark(&automap_state, gs.current_level, gs.party_x, gs.party_y);
 
-            if (custom.minimap) {
+            if (custom.minimap && gs.current_level >= 0 &&
+                gs.current_level < gs.num_levels && gs.num_levels <= MAX_LEVELS) {
                 const DungeonLevel *mlvl = &gs.levels[gs.current_level];
                 minimap_render(framebuffer, frame_width, frame_height,
                                mlvl, gs.party_x, gs.party_y, gs.party_dir,
@@ -3018,9 +3326,18 @@ int main(int argc, char *argv[]) {
         sfx_update(&sfx);
         sound_mix(&sound_sys);
         renderer_present(&renderer, framebuffer);
-        if (config.fps_limit > 0) {
+        if (config.fps_limit > 0 || custom.speed_control) {
             uint64_t elapsed = SDL_GetTicks() - frame_started;
-            uint64_t frame_budget = 1000U / (uint64_t)config.fps_limit;
+            double speed = (custom.speed_control && isfinite(custom.game_speed) &&
+                            custom.game_speed > 0.0f)
+                ? (double)custom.game_speed : 1.0;
+            /* Speed control needs a stable reference even when the normal
+             * FPS limiter is disabled.  Use the game's standard 60 FPS
+             * cadence in that case. */
+            int reference_fps = config.fps_limit > 0 ? config.fps_limit : 60;
+            uint64_t frame_budget = (uint64_t)(1000.0 /
+                ((double)reference_fps * speed));
+            if (frame_budget == 0) frame_budget = 1;
             if (elapsed < frame_budget) SDL_Delay((uint32_t)(frame_budget - elapsed));
         }
     }

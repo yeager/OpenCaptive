@@ -3,14 +3,16 @@
 #include "creature_stats.h"
 
 const SpawnCategory spawn_categories[SPAWN_CATEGORY_COUNT] = {
-    {{13, 0, 0}},
-    {{ 0, 1, 1}},
-    {{ 1, 2, 2}},
-    {{ 2, 3, 3}},
-    {{ 3, 4, 4}},
-    {{ 4, 5, 5}},
-    {{ 5, 6, 6}},
-    {{ 6, 7, 7}},
+    /* CAPPO.EXE DS:0x9A42: creature types are 1-based; types 1-24
+     * form eight groups of three. Type 25 is the extra special entry. */
+    {{ 1,  2,  3}},
+    {{ 4,  5,  6}},
+    {{ 7,  8,  9}},
+    {{10, 11, 12}},
+    {{13, 14, 15}},
+    {{16, 17, 18}},
+    {{19, 20, 21}},
+    {{22, 23, 24}},
 };
 
 const uint8_t spawn_difficulty_offset[16] = {
@@ -34,12 +36,15 @@ const uint8_t spawn_subcell_table2[SPAWN_SUBCELL_COUNT] = {
 };
 
 uint8_t spawn_select_type(int category, int difficulty, uint32_t *prng) {
+    (void)difficulty;
     if (category < 0 || category >= SPAWN_CATEGORY_COUNT) return 0xFF;
+    if (!prng) return 0xFF;
     uint8_t type_idx = spawn_categories[category].types[captive_prng(prng) % SPAWN_TYPES_PER_CAT];
     return type_idx;
 }
 
 uint8_t spawn_subcell_from_direction(uint8_t direction, uint8_t position) {
+    if (direction > 3) return 0;
     if (direction <= 1) {
         uint8_t idx = (direction << 2) + (position & 3);
         if (idx < SPAWN_SUBCELL_COUNT) return spawn_subcell_table1[idx];
@@ -50,8 +55,12 @@ uint8_t spawn_subcell_from_direction(uint8_t direction, uint8_t position) {
 }
 
 uint16_t spawn_compute_hp(uint8_t creature_type, int difficulty, uint8_t mod) {
-    if (creature_type == 0 || creature_type >= CREATURE_TYPE_COUNT) return 6;
-    const CreatureTypeDef *def = &creature_types[creature_type];
+    /* Creature IDs in the spawn record are 1-based (type 1..25), while
+     * creature_types[] is a C array indexed 0..24. */
+    if (creature_type == 0 || creature_type > CREATURE_TYPE_COUNT) return 6;
+    if (difficulty < 0) difficulty = 0;
+    if (difficulty > 8) difficulty = 8;
+    const CreatureTypeDef *def = &creature_types[creature_type - 1];
     uint16_t range = def->hp_max - def->hp_min;
     uint32_t base = (uint32_t)difficulty * range;
     base >>= 3;
@@ -67,6 +76,7 @@ uint16_t spawn_compute_hp(uint8_t creature_type, int difficulty, uint8_t mod) {
 SpawnResult spawn_creatures(int category, int difficulty, uint8_t direction,
                             uint8_t position, uint32_t *prng) {
     SpawnResult result = {{{0}}, 0};
+    if (!prng || direction > 3) return result;
     if (difficulty > 8) difficulty = 8;
     difficulty--;
     if (difficulty < 0) difficulty = 0;

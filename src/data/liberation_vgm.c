@@ -13,17 +13,30 @@ static size_t amsp_bank_size(const uint8_t *data, size_t avail) {
         unsigned h = be16(data + pos + 2);
         unsigned depth = be16(data + pos + 4);
         bool has_mask = (be16(data + pos + 6) & 0x8000u) != 0;
-        unsigned bpr = (w_raw & 0x7FFF) * 2 - (w_raw >> 15);
-        if (!bpr || !h || !depth || depth > 8) return 0;
-        size_t bytes = (size_t)bpr * h * (depth + (has_mask ? 1 : 0));
-        pos += (10 + bytes + 1) & ~(size_t)1;
+        unsigned word_count = w_raw & 0x7FFFu;
+        if (word_count == 0) return 0;
+        unsigned bpr = word_count * 2 - (w_raw >> 15);
+        /* AmosSprite exposes a 32-colour palette and rejects depths above
+           five; reject those banks here instead of accepting an unusable VGM. */
+        if (!bpr || bpr > UINT16_MAX / 8U || !h || !depth || depth > 5)
+            return 0;
+        size_t plane_count = depth + (has_mask ? 1U : 0U);
+        if ((size_t)bpr > SIZE_MAX / h ||
+            (size_t)bpr * h > SIZE_MAX / plane_count)
+            return 0;
+        size_t bytes = (size_t)bpr * h * plane_count;
+        if (bytes > avail - pos - 10U) return 0;
+        size_t record = (10U + bytes + 1U) & ~(size_t)1;
+        if (record > avail - pos) return 0;
+        pos += record;
     }
     return pos;
 }
 
 bool vgm_open(VgmFile *vgm, const uint8_t *data, size_t size) {
-    if (!vgm || !data) return false;
+    if (!vgm) return false;
     memset(vgm, 0, sizeof(*vgm));
+    if (!data) return false;
 
     size_t pos = 0;
     while (pos + 6 <= size && vgm->num_banks < VGM_MAX_BANKS) {
@@ -33,11 +46,17 @@ bool vgm_open(VgmFile *vgm, const uint8_t *data, size_t size) {
         if (bank_sz == 0) break;
 
         unsigned b = vgm->num_banks;
+        unsigned bank_count = be16(data + pos + 4);
+        if (bank_count == 0 || bank_count > VGM_MAX_SPRITES ||
+            vgm->total_sprites > VGM_MAX_SPRITES - bank_count) {
+            memset(vgm, 0, sizeof(*vgm));
+            return false;
+        }
         vgm->bank_data[b] = data + pos;
         vgm->bank_size[b] = bank_sz;
-        vgm->bank_count[b] = be16(data + pos + 4);
+        vgm->bank_count[b] = (uint16_t)bank_count;
         vgm->bank_first_index[b] = (uint16_t)vgm->total_sprites;
-        vgm->total_sprites += vgm->bank_count[b];
+        vgm->total_sprites += bank_count;
         vgm->num_banks++;
         pos += bank_sz;
     }

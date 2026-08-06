@@ -1,6 +1,7 @@
 #include "xp_level.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 
 static int failures = 0;
 #define ASSERT(cond, msg) do { \
@@ -80,6 +81,14 @@ static void test_xp_add_minimum_one(void) {
     ASSERT(xp_add(50, 0) == 51, "zero amount becomes 1");
 }
 
+static void test_invalid_xp_inputs_are_safe(void) {
+    ASSERT(xp_threshold(0, -1) == 0xFFFF, "negative threshold level rejected");
+    ASSERT(xp_award(-1, 10, 1) == 0, "negative XP value rejected");
+    ASSERT(xp_award(10, 10, -1) == 0, "negative skill level rejected");
+    ASSERT(xp_award(INT_MAX, 100, INT_MAX) == UINT32_MAX,
+           "XP award saturates instead of overflowing");
+}
+
 int main(void) {
     test_skill_base_table();
     test_threshold_level_zero();
@@ -93,6 +102,7 @@ int main(void) {
     test_xp_add_normal();
     test_xp_add_cap();
     test_xp_add_minimum_one();
+    test_invalid_xp_inputs_are_safe();
     if (failures) {
         printf("%d test(s) FAILED\n", failures);
         return 1;

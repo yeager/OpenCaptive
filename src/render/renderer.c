@@ -29,6 +29,10 @@ static uint8_t apply_channel(uint8_t value) {
 }
 
 bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
+    if (!r || !config) return false;
+    r->window = NULL;
+    r->renderer = NULL;
+    r->framebuffer = NULL;
     int w = config->window_width > 0 ? config->window_width : 1280;
     int h = config->window_height > 0 ? config->window_height : 800;
 
@@ -43,6 +47,8 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
     r->renderer = SDL_CreateRenderer(r->window, NULL);
     if (!r->renderer) {
         fprintf(stderr, "SDL_CreateRenderer: %s\n", SDL_GetError());
+        SDL_DestroyWindow(r->window);
+        r->window = NULL;
         return false;
     }
 
@@ -50,6 +56,10 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
     r->canvas_height = CAPTIVE_ORIGINAL_HEIGHT;
     if (!renderer_create_framebuffer(r, r->canvas_width, r->canvas_height)) {
         fprintf(stderr, "SDL_CreateTexture: %s\n", SDL_GetError());
+        SDL_DestroyRenderer(r->renderer);
+        SDL_DestroyWindow(r->window);
+        r->renderer = NULL;
+        r->window = NULL;
         return false;
     }
 
@@ -93,15 +103,21 @@ void renderer_set_effects(OpenCaptiveRenderer *r, bool bilinear, bool scanlines,
 }
 
 void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
+    if (!r || !r->renderer || !r->framebuffer) return;
     if (pixels) {
-        uint32_t *processed = (uint32_t *)SDL_malloc((size_t)r->canvas_width * r->canvas_height * sizeof(uint32_t));
+        uint32_t *processed = NULL;
         const uint32_t *source = pixels;
-        if (renderer_scanlines || renderer_crt_curvature ||
+        bool apply_curvature = renderer_crt_curvature &&
+                               r->canvas_width > 1 && r->canvas_height > 1;
+        if (renderer_scanlines || apply_curvature ||
             renderer_brightness != 50 || renderer_contrast != 50) {
-            for (int y = 0; y < r->canvas_height; y++) {
+            size_t pixel_count = (size_t)r->canvas_width * (size_t)r->canvas_height;
+            if (pixel_count <= SIZE_MAX / sizeof(*processed))
+                processed = (uint32_t *)SDL_malloc(pixel_count * sizeof(*processed));
+            if (processed) for (int y = 0; y < r->canvas_height; y++) {
                 for (int x = 0; x < r->canvas_width; x++) {
                     int sx = x, sy = y;
-                    if (renderer_crt_curvature) {
+                    if (apply_curvature) {
                         float nx = (2.0f * x) / (r->canvas_width - 1) - 1.0f;
                         float ny = (2.0f * y) / (r->canvas_height - 1) - 1.0f;
                         float curved_x = nx * (1.0f + 0.12f * ny * ny);
@@ -124,7 +140,7 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
                         ((uint32_t)red << 16) | ((uint32_t)green << 8) | blue;
                 }
             }
-            source = processed;
+            if (processed) source = processed;
         }
         SDL_UpdateTexture(r->framebuffer, NULL, source,
                           r->canvas_width * sizeof(uint32_t));
@@ -153,7 +169,11 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
 }
 
 void renderer_shutdown(OpenCaptiveRenderer *r) {
+    if (!r) return;
     if (r->framebuffer) SDL_DestroyTexture(r->framebuffer);
     if (r->renderer) SDL_DestroyRenderer(r->renderer);
     if (r->window) SDL_DestroyWindow(r->window);
+    r->framebuffer = NULL;
+    r->renderer = NULL;
+    r->window = NULL;
 }

@@ -18,14 +18,21 @@ static uint32_t read_be32(const uint8_t *data) {
 
 static int is_amiga_dos(const uint8_t *adf, size_t size) {
     return size >= ADF_BLOCK_SIZE && memcmp(adf, "DOS", 3) == 0 &&
-        adf[3] <= 7U && (size % ADF_BLOCK_SIZE) == 0;
+        adf[3] <= 7U && (size % ADF_BLOCK_SIZE) == 0 &&
+        size / ADF_BLOCK_SIZE <= UINT32_MAX;
 }
 
 static uint8_t *read_file_chain(const uint8_t *adf, size_t block_count,
                                 uint32_t header_block, size_t *out_size) {
+    if (!adf || block_count == 0U || header_block >= block_count) return NULL;
     const uint8_t *header = adf + (size_t)header_block * ADF_BLOCK_SIZE;
     uint32_t current = read_be32(header + 16U);
-    if (current == 0U || current >= block_count) return NULL;
+    if (current == 0U) {
+        uint8_t *empty = malloc(1U);
+        if (empty && out_size) *out_size = 0;
+        return empty;
+    }
+    if (current >= block_count) return NULL;
 
     uint8_t *out = NULL;
     size_t size = 0, capacity = 0;
@@ -43,7 +50,14 @@ static uint8_t *read_file_chain(const uint8_t *adf, size_t block_count,
         if (payload_size > SIZE_MAX - size) { free(out); return NULL; }
         size_t required = size + payload_size;
         if (required > capacity) {
-            size_t next_capacity = capacity ? capacity * 2U : ADF_BLOCK_SIZE;
+            size_t next_capacity;
+            if (capacity == 0) {
+                next_capacity = ADF_BLOCK_SIZE;
+            } else if (capacity > SIZE_MAX / 2U) {
+                next_capacity = required;
+            } else {
+                next_capacity = capacity * 2U;
+            }
             while (next_capacity < required) {
                 if (next_capacity > SIZE_MAX / 2U) { next_capacity = required; break; }
                 next_capacity *= 2U;

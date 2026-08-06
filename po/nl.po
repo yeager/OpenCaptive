@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
-"POT-Creation-Date: 2026-08-03\n"
+"POT-Creation-Date: 2026-08-06 06:49+0200\n"
 "PO-Revision-Date: 2026-08-03\n"
 "Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
 "Language-Team: Dutch\n"
@@ -15,311 +15,815 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#. Main menu title
+#: src/engine/liberation_citygen.c:310
+msgid "Private Residence"
+msgstr ""
+
+#: src/engine/liberation_citygen.c:313
+msgid "Library"
+msgstr ""
+
+#: src/engine/liberation_citygen.c:316
+msgid "Police Station"
+msgstr ""
+
+#: src/engine/liberation_citygen.c:319
+msgid "City Records Office"
+msgstr ""
+
+#: src/engine/start_menu.c:874 src/engine/start_menu.c:980
+#: src/engine/start_menu.c:1211
 msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
-msgid "BY DANIEL NYLANDER"
-msgstr "DOOR DANIEL NYLANDER"
-
-msgid "SELECT GAME"
-msgstr "KIES SPEL"
-
-msgid "CAPTIVE (1990)"
-msgstr "CAPTIVE (1990)"
-
-msgid "LIBERATION: CAPTIVE 2"
-msgstr "LIBERATION: CAPTIVE 2"
-
+#: src/engine/start_menu.c:875 src/engine/start_menu.c:1303
 msgid "SETTINGS"
 msgstr "INSTELLINGEN"
 
-msgid "QUIT"
-msgstr "AFSLUITEN"
-
-msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "OP-NEER: KIEZEN  ENTER: START  ESC: AFSLUITEN"
-
-#. Settings menu
+#: src/engine/start_menu.c:884
 msgid "RENDERER:"
 msgstr "RENDERER:"
 
-msgid "SCANLINES:"
-msgstr "SCANLIJNEN:"
-
-msgid "CRT CURVE:"
-msgstr "CRT KROMMING:"
-
-msgid "BILINEAR:"
-msgstr "BILINEAIR:"
-
-msgid "INT SCALE:"
-msgstr "INT SCHAAL:"
-
-msgid "SCALE:"
-msgstr "SCHAAL:"
-
-msgid "FULLSCREEN:"
-msgstr "VOLLEDIG SCHERM:"
-
-msgid "VSYNC:"
-msgstr "VSYNC:"
-
-msgid "FPS LIMIT:"
-msgstr "FPS LIMIET:"
-
-msgid "BRIGHTNESS:"
-msgstr "HELDERHEID:"
-
-msgid "CONTRAST:"
-msgstr "CONTRAST:"
-
-msgid "MUSIC:"
-msgstr "MUZIEK:"
-
-msgid "SFX:"
-msgstr "GELUIDSEFFECTEN:"
-
-msgid "DATA PATH:"
-msgstr "GEGEVENSPAD:"
-
-msgid "BACK"
-msgstr "TERUG"
-
-msgid "ON"
-msgstr "AAN"
-
-msgid "OFF"
-msgstr "UIT"
-
-msgid "UNLIMITED"
-msgstr "ONBEPERKT"
-
-msgid "ENTER: EDIT PATH  ESC: CANCEL"
-msgstr "ENTER: PAD BEWERKEN  ESC: ANNULEREN"
-
-msgid "ENTER: SAVE PATH  ESC: CANCEL"
-msgstr "ENTER: PAD OPSLAAN  ESC: ANNULEREN"
-
-#. Liberation building interactions
-msgid "This is %s. We're not taking visitors right now."
-msgstr "Dit is %s. We ontvangen momenteel geen bezoekers."
-
-msgid "Welcome to %s. The archives are available for public access."
-msgstr "Welkom bij %s. Het archief is openbaar toegankelijk."
-
-msgid "This is the %s police station. State your business."
-msgstr "Dit is het politiebureau van %s. Wat is uw doel?"
-
-msgid "City Records Office. How can we help?"
-msgstr "Gemeentelijk Archief. Waarmee kunnen we u helpen?"
-
-msgid "%s. Come in and browse."
-msgstr "%s. Kom binnen en kijk rond."
-
-msgid "Welcome to %s! What'll it be?"
-msgstr "Welkom bij %s! Wat mag het zijn?"
-
-msgid "Welcome to %s. How can we help you today?"
-msgstr "Welkom bij %s. Waarmee kunnen we u vandaag helpen?"
-
-msgid "%s. You shouldn't be here."
-msgstr "%s. U hoort hier niet te zijn."
-
-msgid "You leave the building."
-msgstr "U verlaat het gebouw."
-
-#. Liberation shop
-msgid "Welcome to %s! What can I do for you?"
-msgstr "Welkom bij %s! Wat kan ik voor u doen?"
-
-msgid "Goodbye!"
-msgstr "Tot ziens!"
-
-msgid "Buy/Sell"
-msgstr "Kopen/Verkopen"
-
-msgid "Any news?"
-msgstr "Nog nieuws?"
-
-msgid "Leave"
-msgstr "Vertrekken"
-
-#. Liberation NPC dialogue
-msgid "You leave."
-msgstr "U vertrekt."
-
-msgid "Trade"
-msgstr "Handel"
-
-msgid "Ask around"
-msgstr "Rondvragen"
-
-#. Error messages
-msgid "Failed to initialize renderer"
-msgstr "Renderer initialisatie mislukt"
-
-msgid "Missing game data"
-msgstr "Spelgegevens ontbreken"
-
-msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Geen spelgegevens gevonden. Stel het gegevenspad in via Instellingen of gebruik --data op de opdrachtregel."
-
-msgid "You can also change the data path in Settings."
-msgstr "U kunt het gegevenspad ook wijzigen in Instellingen."
-
-msgid "Missing Liberation data"
-msgstr "Liberation gegevens ontbreken"
-
-msgid "ABOUT"
-msgstr "OVER"
-
-msgid "CONTROLS"
-msgstr "BESTURING"
-
-msgid "CONTINUE"
-msgstr "DOORGAAN"
-
-msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
-msgstr "PIJLEN: SELECTEREN  ENTER: STARTEN  D: DATA SCANNEN  F1: BESTURING"
-
-msgid "ENHANCED:"
-msgstr "VERBETERD:"
-
-msgid "FILTERING:"
-msgstr "FILTERING:"
-
-msgid "BILINEAR"
-msgstr "BILINEAIR"
-
-msgid "NEAREST"
-msgstr "DICHTSTBIJZIJNDE"
-
-msgid "GAMMA:"
-msgstr "GAMMA:"
-
-msgid "VOLUME:"
-msgstr "VOLUME:"
-
-msgid "SAMPLE RATE:"
-msgstr "SAMPLEFREQUENTIE:"
-
-msgid "REVERB:"
-msgstr "GALM:"
-
-msgid "GAME SPEED:"
-msgstr "SPELSNELHEID:"
-
-msgid "MOUSE SENS:"
-msgstr "MUISGEVOELIGHEID:"
-
+#: src/engine/start_menu.c:884
 msgid "WINDOW SIZE:"
 msgstr "VENSTERGROOTTE:"
 
+#: src/engine/start_menu.c:884
+msgid "SCALE:"
+msgstr "SCHAAL:"
+
+#: src/engine/start_menu.c:884
+msgid "FULLSCREEN:"
+msgstr "VOLLEDIG SCHERM:"
+
+#: src/engine/start_menu.c:885
+msgid "INT SCALE:"
+msgstr "INT SCHAAL:"
+
+#: src/engine/start_menu.c:885
+msgid "VSYNC:"
+msgstr "VSYNC:"
+
+#: src/engine/start_menu.c:885
+msgid "FPS LIMIT:"
+msgstr "FPS LIMIET:"
+
+#: src/engine/start_menu.c:885
+msgid "FILTERING:"
+msgstr "FILTERING:"
+
+#: src/engine/start_menu.c:886
+msgid "SCANLINES:"
+msgstr "SCANLIJNEN:"
+
+#: src/engine/start_menu.c:886
+msgid "CRT CURVE:"
+msgstr "CRT KROMMING:"
+
+#: src/engine/start_menu.c:886
+msgid "BRIGHTNESS:"
+msgstr "HELDERHEID:"
+
+#: src/engine/start_menu.c:886
+msgid "CONTRAST:"
+msgstr "CONTRAST:"
+
+#: src/engine/start_menu.c:887
+msgid "GAMMA:"
+msgstr "GAMMA:"
+
+#: src/engine/start_menu.c:887
+msgid "VOLUME:"
+msgstr "VOLUME:"
+
+#: src/engine/start_menu.c:887
+msgid "MUSIC:"
+msgstr "MUZIEK:"
+
+#: src/engine/start_menu.c:887
+msgid "SFX:"
+msgstr "GELUIDSEFFECTEN:"
+
+#: src/engine/start_menu.c:888
+msgid "REVERB:"
+msgstr "GALM:"
+
+#: src/engine/start_menu.c:888
+msgid "SAMPLE RATE:"
+msgstr "SAMPLEFREQUENTIE:"
+
+#: src/engine/start_menu.c:888
+msgid "GAME SPEED:"
+msgstr "SPELSNELHEID:"
+
+#: src/engine/start_menu.c:888
+msgid "MOUSE SENS:"
+msgstr "MUISGEVOELIGHEID:"
+
+#: src/engine/start_menu.c:889 src/engine/start_menu.c:1056
+msgid "DATA PATH:"
+msgstr "GEGEVENSPAD:"
+
+#: src/engine/start_menu.c:889
+msgid "LANGUAGE:"
+msgstr ""
+
+#: src/engine/start_menu.c:889
+msgid "ENHANCED:"
+msgstr "VERBETERD:"
+
+#: src/engine/start_menu.c:889
+msgid "BACK"
+msgstr "TERUG"
+
+#: src/engine/start_menu.c:895 src/engine/start_menu.c:896
+#: src/engine/start_menu.c:897 src/engine/start_menu.c:901
+#: src/engine/start_menu.c:902 src/engine/start_menu.c:907
+#: src/engine/start_menu.c:908 src/engine/start_menu.c:909
+#: src/engine/start_menu.c:915 src/main.c:730 src/main.c:742
+msgid "ON"
+msgstr "AAN"
+
+#: src/engine/start_menu.c:895 src/engine/start_menu.c:896
+#: src/engine/start_menu.c:897 src/engine/start_menu.c:901
+#: src/engine/start_menu.c:902 src/engine/start_menu.c:907
+#: src/engine/start_menu.c:908 src/engine/start_menu.c:909
+#: src/engine/start_menu.c:915 src/main.c:730 src/main.c:742
+msgid "OFF"
+msgstr "UIT"
+
+#: src/engine/start_menu.c:898
+msgid "UNLIMITED"
+msgstr "ONBEPERKT"
+
+#: src/engine/start_menu.c:900
+msgid "BILINEAR"
+msgstr "BILINEAIR"
+
+#: src/engine/start_menu.c:900
+msgid "NEAREST"
+msgstr "DICHTSTBIJZIJNDE"
+
+#: src/engine/start_menu.c:966
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
+msgstr ""
+
+#: src/engine/start_menu.c:967
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
+msgstr ""
+
+#: src/engine/start_menu.c:984 src/engine/start_menu.c:1303
+msgid "ABOUT"
+msgstr "OVER"
+
+#: src/engine/start_menu.c:985
 msgid "A reimplementation of:"
 msgstr "Een herimplementatie van:"
 
-msgid "TECHNOLOGY"
-msgstr "TECHNOLOGIE"
-
+#: src/engine/start_menu.c:988
 msgid "CREDITS"
 msgstr "MEDEWERKERS"
 
-msgid "SYSTEM"
-msgstr "SYSTEEM"
+#: src/engine/start_menu.c:991
+msgid "TECHNOLOGY"
+msgstr "TECHNOLOGIE"
 
+#: src/engine/start_menu.c:998 src/engine/start_menu.c:1043
 msgid "PRESS ANY KEY TO RETURN"
 msgstr "DRUK OP EEN TOETS OM TERUG TE KEREN"
 
+#: src/engine/start_menu.c:1007 src/engine/start_menu.c:1319
+msgid "CONTROLS"
+msgstr "BESTURING"
+
+#: src/engine/start_menu.c:1011
 msgid "MOVEMENT"
 msgstr "BEWEGING"
 
-msgid "COMBAT & ITEMS"
-msgstr "GEVECHT EN VOORWERPEN"
-
+#: src/engine/start_menu.c:1013
 msgid "Move forward"
 msgstr "Vooruit lopen"
 
+#: src/engine/start_menu.c:1015
 msgid "Move backward"
 msgstr "Achteruit lopen"
 
+#: src/engine/start_menu.c:1017
 msgid "Turn left"
 msgstr "Links draaien"
 
+#: src/engine/start_menu.c:1019
 msgid "Turn right"
 msgstr "Rechts draaien"
 
+#: src/engine/start_menu.c:1021
+msgid "COMBAT & ITEMS"
+msgstr "GEVECHT EN VOORWERPEN"
+
+#: src/engine/start_menu.c:1023
 msgid "Fire weapon"
 msgstr "Wapen afvuren"
 
-msgid "Inventory"
-msgstr "Inventaris"
-
+#: src/engine/start_menu.c:1025
 msgid "Use item / Interact"
 msgstr "Voorwerp gebruiken / Interactie"
 
+#: src/engine/start_menu.c:1027
 msgid "Cycle droids"
 msgstr "Droid wisselen"
 
-msgid "Cycle save slots"
-msgstr "Opslagplaats wisselen"
+#: src/engine/start_menu.c:1029
+msgid "Inventory"
+msgstr "Inventaris"
 
+#: src/engine/start_menu.c:1031
+msgid "SYSTEM"
+msgstr "SYSTEEM"
+
+#: src/engine/start_menu.c:1033
 msgid "Save / Load game"
 msgstr "Spel opslaan / laden"
 
+#: src/engine/start_menu.c:1035
+msgid "Cycle save slots"
+msgstr "Opslagplaats wisselen"
+
+#: src/engine/start_menu.c:1037
 msgid "Minimap / City map"
 msgstr "Minikaart / Stadskaart"
 
+#: src/engine/start_menu.c:1039
 msgid "Help screen"
 msgstr "Helpscherm"
 
+#: src/engine/start_menu.c:1041
 msgid "Pause menu"
 msgstr "Pauzemenu"
 
-msgid "ESC: BACK"
-msgstr "ESC: TERUG"
-
+#: src/engine/start_menu.c:1052
 msgid "DATA SCANNER"
 msgstr "DATASCANNER"
 
+#: src/engine/start_menu.c:1061
 msgid "Scanning Captive hashes..."
 msgstr "Captive-hashes scannen..."
 
+#: src/engine/start_menu.c:1062
 msgid "Scanning Liberation data..."
 msgstr "Liberation-data scannen..."
 
+#: src/engine/start_menu.c:1082
+#, c-format
 msgid "ZIP archives found: %d"
 msgstr "ZIP-archieven gevonden: %d"
 
+#: src/engine/start_menu.c:1085
+#, c-format
+msgid "Captive: %d / %d %s"
+msgstr ""
+
+#: src/engine/start_menu.c:1092
+#, c-format
+msgid "Liberation: %d / %d %s"
+msgstr ""
+
+#: src/engine/start_menu.c:1099
 msgid "VERIFICATION"
 msgstr "VERIFICATIE"
 
+#: src/engine/start_menu.c:1101
 msgid "Files identified by SHA-256 content hash, not filename."
-msgstr "Bestanden worden geïdentificeerd op SHA-256-inhoudshash, niet op bestandsnaam."
+msgstr ""
+"Bestanden worden geïdentificeerd op SHA-256-inhoudshash, niet op "
+"bestandsnaam."
 
+#: src/engine/start_menu.c:1104
 msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
 msgstr "Geneste ZIPs, ADF-schijfkopieën en ISO-sporen worden gescand."
 
+#: src/engine/start_menu.c:1107
 msgid "No filenames are trusted; only content determines identity."
-msgstr "Geen bestandsnamen worden vertrouwd; alleen de inhoud bepaalt de identiteit."
+msgstr ""
+"Geen bestandsnamen worden vertrouwd; alleen de inhoud bepaalt de identiteit."
 
+#: src/engine/start_menu.c:1111
+msgid "ESC: BACK"
+msgstr "ESC: TERUG"
+
+#: src/engine/start_menu.c:1130
 msgid "GAME DATA NOT FOUND"
 msgstr "SPELDATA NIET GEVONDEN"
 
+#: src/engine/start_menu.c:1133
 msgid "OpenCaptive needs original game data files to run."
 msgstr "OpenCaptive heeft originele speldata nodig om te werken."
 
+#: src/engine/start_menu.c:1136
 msgid "Place your game data in the following folder:"
 msgstr "Plaats uw speldata in de volgende map:"
 
+#: src/engine/start_menu.c:1141
 msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
 msgstr "Ondersteunde formaten: ZIP-archieven, ADF, ISO, onbewerkte bestanden."
 
+#: src/engine/start_menu.c:1144
 msgid "Files are identified by SHA-256 hash, not filename."
-msgstr "Bestanden worden geïdentificeerd op SHA-256-hash, niet op bestandsnaam."
+msgstr ""
+"Bestanden worden geïdentificeerd op SHA-256-hash, niet op bestandsnaam."
 
+#: src/engine/start_menu.c:1147
 msgid "You can change the data path in Settings (S)."
 msgstr "U kunt het datapad wijzigen in Instellingen (S)."
 
+#: src/engine/start_menu.c:1150
 msgid "PRESS ANY KEY TO CONTINUE"
 msgstr "DRUK OP EEN TOETS OM DOOR TE GAAN"
+
+#: src/engine/start_menu.c:1164
+msgid "SELECT GAME"
+msgstr "KIES SPEL"
+
+#: src/engine/start_menu.c:1166 src/engine/start_menu.c:1180
+msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
+msgstr "OP-NEER: KIEZEN  ENTER: START  ESC: AFSLUITEN"
+
+#: src/engine/start_menu.c:1170
+msgid "CAPTIVE DOS"
+msgstr "CAPTIVE DOS"
+
+#: src/engine/start_menu.c:1170
+msgid "CAPTIVE AMIGA"
+msgstr "CAPTIVE AMIGA"
+
+#: src/engine/start_menu.c:1171
+msgid "LIBERATION CD32"
+msgstr ""
+
+#: src/engine/start_menu.c:1171
+msgid "LIBERATION AMIGA"
+msgstr ""
+
+#: src/engine/start_menu.c:1214
+msgid "BY DANIEL NYLANDER"
+msgstr "DOOR DANIEL NYLANDER"
+
+#: src/engine/start_menu.c:1282 src/engine/start_menu.c:1283
+msgid "CONTINUE"
+msgstr "DOORGAAN"
+
+#: src/engine/start_menu.c:1319
+msgid "QUIT"
+msgstr "AFSLUITEN"
+
+#: src/engine/start_menu.c:1333
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "PIJLEN: SELECTEREN  ENTER: STARTEN  D: DATA SCANNEN  F1: BESTURING"
+
+#: src/engine/terminal.c:81
+msgid "LEVEL MAP"
+msgstr ""
+
+#: src/engine/terminal.c:121
+msgid "DROID STATUS"
+msgstr ""
+
+#: src/engine/terminal.c:126
+#, c-format
+msgid "%s HP:%d/%d EN:%d/%d"
+msgstr ""
+
+#: src/engine/terminal.c:136
+msgid "MISSION BRIEFING"
+msgstr ""
+
+#: src/engine/terminal.c:138
+#, c-format
+msgid "MISSION: %d"
+msgstr ""
+
+#: src/engine/terminal.c:141
+#, c-format
+msgid "LEVEL: %d/%d"
+msgstr ""
+
+#: src/engine/terminal.c:144
+#, c-format
+msgid "GENERATORS: %d/%d"
+msgstr ""
+
+#: src/engine/terminal.c:148
+msgid "DESTROY ALL GENERATORS"
+msgstr ""
+
+#: src/engine/terminal.c:149
+msgid "TO COMPLETE THE MISSION"
+msgstr ""
+
+#: src/engine/terminal.c:187
+msgid "TERMINAL SYSTEM V2.1"
+msgstr ""
+
+#: src/engine/terminal.c:196
+msgid "ESC:BACK"
+msgstr ""
+
+#: src/main.c:734 src/main.c:746
+msgid "LOW"
+msgstr "LAAG"
+
+#: src/main.c:734 src/main.c:746
+msgid "HIGH"
+msgstr "HOOG"
+
+#: src/main.c:734 src/main.c:746
+msgid "NORMAL"
+msgstr "NORMAAL"
+
+#: src/main.c:814 src/main.c:826
+msgid "RUNTIME OPTIONS"
+msgstr "UITVOEROPTIES"
+
+#: src/main.c:815 src/main.c:827
+msgid "ESC CLOSE"
+msgstr "ESC SLUITEN"
+
+#: src/main.c:822 src/main.c:834
+msgid "PENDING"
+msgstr "IN AFWACHTING"
+
+#: src/main.c:831 src/main.c:843
+msgid "ACTIVATE"
+msgstr "ACTIVEREN"
+
+#: src/main.c:836 src/main.c:848
+msgid "UP DOWN ENTER"
+msgstr "OMHOOG OMLAAG ENTER"
+
+#: src/main.c:1013 src/main.c:1085 src/main.c:1034 src/main.c:1106
+msgid "Fine paid. Rep +15"
+msgstr ""
+
+#: src/main.c:1023 src/main.c:1095 src/main.c:1044 src/main.c:1116
+#, c-format
+msgid "Industrial hazard! %d damage!"
+msgstr ""
+
+#: src/main.c:1033 src/main.c:1105 src/main.c:1054 src/main.c:1126
+msgid "Bar fight! Rep -10"
+msgstr ""
+
+#: src/main.c:1062 src/main.c:1083
+msgid "Shared inventory is full."
+msgstr ""
+
+#: src/main.c:1066 src/main.c:1087
+#, c-format
+msgid "Purchased: %s"
+msgstr ""
+
+#: src/main.c:1070 src/main.c:1091
+msgid "Cannot buy that item."
+msgstr ""
+
+#: src/main.c:1134 src/main.c:1155
+msgid "Entered building interior"
+msgstr ""
+
+#: src/main.c:1241 src/main.c:1269
+msgid "Taxi: 50 gold"
+msgstr ""
+
+#: src/main.c:1384 src/main.c:1415
+msgid "Creature destroyed!"
+msgstr ""
+
+#: src/main.c:1389 src/main.c:1420
+msgid "LEVEL UP!"
+msgstr ""
+
+#: src/main.c:1394 src/main.c:1425
+#, c-format
+msgid "Droid %d fires!"
+msgstr ""
+
+#: src/main.c:1543 src/main.c:1574
+#, c-format
+msgid "Droid %d picked up item"
+msgstr ""
+
+#: src/main.c:1559 src/main.c:1590
+msgid "Fell into a pit!"
+msgstr ""
+
+#: src/main.c:1563 src/main.c:1594
+msgid "Click!"
+msgstr ""
+
+#: src/main.c:2318 src/main.c:2349
+msgid "Left building"
+msgstr ""
+
+#: src/main.c:2869 src/main.c:2903
+#, c-format
+msgid "Droid %d hit for %d!"
+msgstr ""
+
+#: src/main.c:2877 src/main.c:2911
+#, c-format
+msgid "Droid %d destroyed!"
+msgstr ""
+
+#: src/main.c:2884 src/main.c:2918
+msgid "All droids destroyed! Mission failed."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:64
+msgid "You leave."
+msgstr "U vertrekt."
+
+#: src/game/liberation_npc_dialogue.c:67 src/game/liberation_npc_dialogue.c:69
+#: src/game/liberation_npc_dialogue.c:72
+#: src/game/liberation_building_interact.c:38
+msgid "NPC"
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:68
+msgid "I don't have anything to trade right now. Try the shops."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:70
+msgid ""
+"Check the library or records office if you need information. The police "
+"might know about threats in the area."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:73
+msgid "Trade"
+msgstr "Handel"
+
+#: src/game/liberation_npc_dialogue.c:74
+#: src/game/liberation_building_interact.c:63
+#: src/game/liberation_building_interact.c:105
+msgid "Ask around"
+msgstr "Rondvragen"
+
+#: src/game/liberation_npc_dialogue.c:75 src/game/liberation_shop.c:117
+#: src/game/liberation_building_interact.c:64
+#: src/game/liberation_building_interact.c:81
+#: src/game/liberation_building_interact.c:95
+#: src/game/liberation_building_interact.c:106
+#: src/game/liberation_building_interact.c:124
+#: src/game/liberation_building_interact.c:135
+#: src/game/liberation_building_interact.c:142
+msgid "Leave"
+msgstr "Vertrekken"
+
+#: src/game/liberation_shop.c:106
+#, c-format
+msgid "Welcome to %s! What can I do for you?"
+msgstr "Welkom bij %s! Wat kan ik voor u doen?"
+
+#: src/game/liberation_shop.c:108
+msgid "Goodbye!"
+msgstr "Tot ziens!"
+
+#: src/game/liberation_shop.c:110
+msgid "Take a look at what I have."
+msgstr ""
+
+#: src/game/liberation_shop.c:112
+msgid "I might have heard something. Check back later."
+msgstr ""
+
+#: src/game/liberation_shop.c:115
+msgid "Buy"
+msgstr ""
+
+#: src/game/liberation_shop.c:116
+msgid "Any news?"
+msgstr "Nog nieuws?"
+
+#: src/game/liberation_building_interact.c:29
+msgid "Shopkeeper"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:30
+msgid "Bartender"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:31
+msgid "Receptionist"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:32
+msgid "Librarian"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:33
+msgid "Officer"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:34
+msgid "Clerk"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:35
+msgid "Resident"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:36
+msgid "Foreman"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:37
+msgid "Agent"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:48
+msgid "You leave the building."
+msgstr "U verlaat het gebouw."
+
+#: src/game/liberation_building_interact.c:53
+#, c-format
+msgid "Welcome to %s. The archives are available for public access."
+msgstr "Welkom bij %s. Het archief is openbaar toegankelijk."
+
+#: src/game/liberation_building_interact.c:56
+#, c-format
+msgid ""
+"Records indicate %d buildings in this city. The target is in a special-class "
+"building. Check the industrial and commercial districts."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:62
+msgid "Search archives"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:69
+#, c-format
+msgid "This is the %s police station. State your business."
+msgstr "Dit is het politiebureau van %s. Wat is uw doel?"
+
+#: src/game/liberation_building_interact.c:71
+msgid ""
+"We have reports of suspicious activity in the industrial district. Stay "
+"alert out there."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:74
+msgid "You have been fined 100 gold for disturbing the peace."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:77
+msgid "Ask for information"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:79
+msgid "Pay fine"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:86
+msgid "City Records Office. How can we help?"
+msgstr "Gemeentelijk Archief. Waarmee kunnen we u helpen?"
+
+#: src/game/liberation_building_interact.c:89
+#, c-format
+msgid ""
+"Building registry entry %d: %s. Cross-reference with police reports for "
+"suspect locations."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:94
+msgid "Look up records"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:100
+msgid "This is a private residence. What do you want?"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:102
+msgid ""
+"I heard strange noises from the special building down the road. Something's "
+"going on in there."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:111
+#, c-format
+msgid "Welcome to %s. This area is restricted."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:113
+msgid "WARNING: Machinery malfunction! Electrical discharge hits your droids!"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:115
+msgid ""
+"The machinery hums loudly. There might be useful equipment stored in the "
+"back, but the foreman keeps it locked."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:119
+#: src/game/liberation_building_interact.c:122
+#, fuzzy
+msgid "Look around"
+msgstr "Rondvragen"
+
+#: src/game/liberation_building_interact.c:129
+#, c-format
+msgid "%s. You shouldn't be here."
+msgstr "%s. U hoort hier niet te zijn."
+
+#: src/game/liberation_building_interact.c:131
+msgid ""
+"This location appears to be connected to your mission. The generator control "
+"panel is somewhere inside."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:134
+msgid "Investigate"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:140
+#, c-format
+msgid "This is %s. We're not taking visitors right now."
+msgstr "Dit is %s. We ontvangen momenteel geen bezoekers."
+
+#: src/main.c:2357
+msgid "Mission complete. Rep +20"
+msgstr "Missie voltooid. Reputatie +20"
+
+#~ msgid "CAPTIVE (1990)"
+#~ msgstr "CAPTIVE (1990)"
+
+#~ msgid "LIBERATION: CAPTIVE 2"
+#~ msgstr "LIBERATION: CAPTIVE 2"
+
+#~ msgid "BILINEAR:"
+#~ msgstr "BILINEAIR:"
+
+#~ msgid "%s. Come in and browse."
+#~ msgstr "%s. Kom binnen en kijk rond."
+
+#~ msgid "Welcome to %s! What'll it be?"
+#~ msgstr "Welkom bij %s! Wat mag het zijn?"
+
+#~ msgid "Welcome to %s. How can we help you today?"
+#~ msgstr "Welkom bij %s. Waarmee kunnen we u vandaag helpen?"
+
+#~ msgid "Buy/Sell"
+#~ msgstr "Kopen/Verkopen"
+
+#~ msgid "Failed to initialize renderer"
+#~ msgstr "Renderer initialisatie mislukt"
+
+#~ msgid "Missing game data"
+#~ msgstr "Spelgegevens ontbreken"
+
+#~ msgid ""
+#~ "No game data found. Please set the data path in Settings or use --data on "
+#~ "the command line."
+#~ msgstr ""
+#~ "Geen spelgegevens gevonden. Stel het gegevenspad in via Instellingen of "
+#~ "gebruik --data op de opdrachtregel."
+
+#~ msgid "You can also change the data path in Settings."
+#~ msgstr "U kunt het gegevenspad ook wijzigen in Instellingen."
+
+#~ msgid "Missing Liberation data"
+#~ msgstr "Liberation gegevens ontbreken"
+
+#~ msgid "VIEW RECONSTRUCTION"
+#~ msgstr "RECONSTRUCTIE TONEN"
+
+#~ msgid "SCANLINES"
+#~ msgstr "SCANLIJNEN"
+
+#~ msgid "CRT CURVE"
+#~ msgstr "CRT-CURVE"
+
+#~ msgid "BRIGHTNESS"
+#~ msgstr "HELDERHEID"
+
+#~ msgid "MUSIC"
+#~ msgstr "Muziek"
+
+#~ msgid "SFX"
+#~ msgstr "Geluidseffecten"
+
+#~ msgid "GOD MODE"
+#~ msgstr "GODSMODUS"
+
+#~ msgid "INFINITE ENERGY"
+#~ msgstr "ONEINDIGE ENERGIE"
+
+#~ msgid "COMPLETE OBJECTIVE"
+#~ msgstr "DOEL VOLTOOIEN"
+
+#~ msgid "CLOSE"
+#~ msgstr "SLUITEN"
+
+#~ msgid "ENTER: EDIT PATH  ESC: CANCEL"
+#~ msgstr "ENTER: PAD BEWERKEN  ESC: ANNULEREN"
+
+#~ msgid "ENTER: SAVE PATH  ESC: CANCEL"
+#~ msgstr "ENTER: PAD OPSLAAN  ESC: ANNULEREN"

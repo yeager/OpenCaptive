@@ -1,5 +1,6 @@
 #include "liberation_city_nav.h"
 #include <assert.h>
+#include <limits.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -28,6 +29,20 @@ static void test_init(void) {
     assert(nav.cell_y == 5);
     assert(nav.facing == CITY_DIR_EAST);
     assert(!nav.moving);
+}
+
+static void test_teleport_updates_interpolated_position(void) {
+    CityNavState nav;
+    city_nav_init(&nav, 5, 5, CITY_DIR_WEST);
+    nav.moving = true;
+    nav.move_progress = 0.5f;
+    assert(city_nav_teleport(&nav, 20, 21));
+    assert(nav.cell_x == 20 && nav.cell_y == 21);
+    assert(nav.smooth_x == 20 * CITY_CELL_SIZE + CITY_CELL_SIZE * 0.5f);
+    assert(nav.smooth_y == 21 * CITY_CELL_SIZE + CITY_CELL_SIZE * 0.5f);
+    assert(nav.facing == CITY_DIR_WEST);
+    assert(!nav.moving && nav.move_progress == 0.0f);
+    assert(!city_nav_teleport(&nav, -1, 0));
 }
 
 static void test_cell_queries(void) {
@@ -66,6 +81,19 @@ static void test_blocked_move(void) {
     city_nav_move_forward(&nav, &grid);
     assert(!nav.moving);
     assert(nav.cell_x == 5);
+}
+
+static void test_nonroad_building_cell_is_blocked(void) {
+    CityGridState grid = make_test_grid();
+    CityNavState nav;
+    city_nav_init(&nav, 6, 5, CITY_DIR_EAST);
+    /* Building plane cells carry type/ID bits and are nonzero, but are not
+     * traversable city roads. */
+    grid.plane0[5 * CITYGRID_WIDTH + 7] = 0x41;
+    assert(!city_nav_can_move_forward(&nav, &grid));
+    city_nav_move_forward(&nav, &grid);
+    assert(!nav.moving);
+    assert(nav.cell_x == 6 && nav.cell_y == 5);
 }
 
 static void test_turn(void) {
@@ -112,6 +140,38 @@ static void test_smooth_movement(void) {
     assert(nav.smooth_x < start_x + CITY_CELL_SIZE);
 }
 
+static void test_update_rejects_invalid_state(void) {
+    CityNavState nav;
+    city_nav_init(&nav, 0, 0, CITY_DIR_NORTH);
+    nav.moving = true;
+    nav.move_dx = -1;
+    nav.move_dy = 0;
+    city_nav_update(&nav, 1.0f);
+    assert(!nav.moving);
+    assert(nav.cell_x == 0 && nav.cell_y == 0);
+
+    nav.cell_x = CITYGRID_WIDTH;
+    nav.moving = true;
+    city_nav_update(&nav, 1.0f);
+    assert(!nav.moving);
+
+    city_nav_init(&nav, 5, 5, CITY_DIR_EAST);
+    nav.moving = true;
+    nav.move_dx = 1;
+    nav.move_dy = 1;
+    city_nav_update(&nav, 1.0f);
+    assert(!nav.moving);
+    assert(nav.cell_x == 5 && nav.cell_y == 5);
+
+    city_nav_init(&nav, 5, 5, CITY_DIR_EAST);
+    city_nav_move_forward(&nav, &(CityGridState){0});
+    /* A NaN time step must not poison smooth coordinates. */
+    nav.moving = true;
+    float smooth_x = nav.smooth_x;
+    city_nav_update(&nav, NAN);
+    assert(nav.smooth_x == smooth_x);
+}
+
 static void test_render(void) {
     CityGridState grid = make_test_grid();
     CityNavState nav;
@@ -135,15 +195,31 @@ static void test_render(void) {
     assert(has_wall);
 }
 
+static void test_render_rejects_corrupt_coordinates(void) {
+    CityGridState grid = make_test_grid();
+    CityNavState nav;
+    Lib3dState render;
+    lib3d_init(&render);
+    city_nav_init(&nav, 5, 5, CITY_DIR_NORTH);
+    nav.cell_x = INT_MAX;
+    city_nav_render(&nav, &grid, &render, NULL, NULL, 0);
+    city_nav_render_textured(&nav, &grid, &render, NULL, NULL, NULL, 0);
+    assert(render.vis_count == 0);
+}
+
 int main(void) {
     test_init();
+    test_teleport_updates_interpolated_position();
     test_cell_queries();
     test_move_forward();
     test_blocked_move();
+    test_nonroad_building_cell_is_blocked();
     test_turn();
     test_move_backward();
     test_smooth_movement();
+    test_update_rejects_invalid_state();
     test_render();
+    test_render_rejects_corrupt_coordinates();
     printf("All liberation_city_nav tests passed\n");
     return 0;
 }

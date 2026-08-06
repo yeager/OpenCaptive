@@ -118,6 +118,7 @@ const RangedDamageEntry ranged_damage[RANGED_DAMAGE_COUNT] = {
 };
 
 void item_db_init(ItemDatabase *db) {
+    if (!db) return;
     memset(db, 0, sizeof(*db));
     int n = sizeof(item_defs) / sizeof(item_defs[0]);
     if (n > MAX_ITEM_DEFS) n = MAX_ITEM_DEFS;
@@ -126,7 +127,9 @@ void item_db_init(ItemDatabase *db) {
 }
 
 const Item *item_db_get(const ItemDatabase *db, uint8_t id) {
-    for (int i = 0; i < db->num_defs; i++) {
+    if (!db || db->num_defs < 0) return NULL;
+    int count = db->num_defs > MAX_ITEM_DEFS ? MAX_ITEM_DEFS : db->num_defs;
+    for (int i = 0; i < count; i++) {
         if (db->defs[i].id == id) return &db->defs[i];
     }
     return NULL;
@@ -134,8 +137,10 @@ const Item *item_db_get(const ItemDatabase *db, uint8_t id) {
 
 int item_db_find_by_category(const ItemDatabase *db, ItemCategory cat,
                               const Item **out, int max_out) {
+    if (!db || !out || max_out <= 0 || db->num_defs < 0) return 0;
     int found = 0;
-    for (int i = 0; i < db->num_defs && found < max_out; i++) {
+    int count = db->num_defs > MAX_ITEM_DEFS ? MAX_ITEM_DEFS : db->num_defs;
+    for (int i = 0; i < count && found < max_out; i++) {
         if (db->defs[i].category == cat)
             out[found++] = &db->defs[i];
     }

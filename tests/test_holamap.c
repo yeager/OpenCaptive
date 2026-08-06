@@ -28,6 +28,16 @@ static void test_deterministic(void) {
     }
 }
 
+static void test_invalid_base_count_does_not_escape_array(void) {
+    Holamap hm = {0};
+    uint32_t pixel = 0;
+    hm.num_bases = 1000;
+    holamap_render(&hm, &pixel, 1, 1);
+    holamap_reveal_base(&hm, HOLAMAP_MAX_BASES);
+    holamap_render(NULL, &pixel, 1, 1);
+    holamap_render(&hm, NULL, 1, 1);
+}
+
 static void test_reveal(void) {
     Holamap hm;
     holamap_init(&hm, 99);
@@ -62,12 +72,26 @@ static void test_surface_variety(void) {
         assert(counts[i] > 0);
 }
 
+static void test_base_coordinates_seed_sweep(void) {
+    for (uint32_t seed = 0; seed < 512; seed++) {
+        Holamap hm;
+        holamap_init(&hm, seed);
+        assert(hm.num_bases >= 4 && hm.num_bases <= 8);
+        for (int i = 0; i < hm.num_bases; i++) {
+            assert(hm.bases[i].x >= 8 && hm.bases[i].x < HOLAMAP_WIDTH - 8);
+            assert(hm.bases[i].y >= 8 && hm.bases[i].y < HOLAMAP_HEIGHT - 8);
+        }
+    }
+}
+
 int main(void) {
     test_init();
     test_deterministic();
+    test_invalid_base_count_does_not_escape_array();
     test_reveal();
     test_render();
     test_surface_variety();
+    test_base_coordinates_seed_sweep();
     printf("All holamap tests passed.\n");
     return 0;
 }

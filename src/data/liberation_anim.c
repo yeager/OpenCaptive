@@ -15,6 +15,17 @@ static uint16_t read_be16(const uint8_t *data) {
     return (uint16_t)((data[0] << 8) | data[1]);
 }
 
+static int anim_form_end(const uint8_t *form, size_t form_size,
+                         size_t *out_end) {
+    if (!form || !out_end || form_size < 12U ||
+        memcmp(form, "FORM", 4) != 0 || memcmp(form + 8U, "ANIM", 4) != 0)
+        return 0;
+    uint32_t declared = read_be32(form + 4U);
+    if (declared < 4U || (uint64_t)declared + 8U > form_size) return 0;
+    *out_end = (size_t)declared + 8U;
+    return 1;
+}
+
 static int grow_output(uint8_t **data, size_t *capacity, size_t required) {
     if (required <= *capacity) return 1;
     size_t next = *capacity ? *capacity : 4096U;
@@ -58,6 +69,7 @@ static int pack_decode(const uint8_t *src, size_t src_size,
             break;
         }
         if (segment_size < PACK_DESCRIPTOR_SIZE ||
+            segment_size > LIBERATION_PACK_MAX_OUTPUT_SIZE ||
             segment_size > SIZE_MAX - out_pos ||
             in_pos + PACK_DESCRIPTOR_SIZE > src_size ||
             !grow_output(&output, &capacity, out_pos + segment_size)) {
@@ -190,22 +202,24 @@ int liberation_pack_decode_workspace(const uint8_t *src, size_t src_size,
 
 int liberation_anim_decode_pack(const uint8_t *form, size_t form_size,
                                 uint8_t **out_data, size_t *out_size) {
-    if (!out_data || !out_size || !form || form_size < 12U ||
-        memcmp(form, "FORM", 4) != 0 || memcmp(form + 8U, "ANIM", 4) != 0) {
+    size_t form_end = 0;
+    if (!out_data || !out_size || !anim_form_end(form, form_size, &form_end)) {
         return 0;
     }
     *out_data = NULL;
     *out_size = 0;
     size_t pos = 12U;
-    while (pos + 8U <= form_size) {
+    while (pos + 8U <= form_end) {
         const uint8_t *chunk = form + pos;
         uint32_t chunk_size = read_be32(chunk + 4U);
         pos += 8U;
-        if (chunk_size > form_size - pos) return 0;
+        if (chunk_size > form_end - pos) return 0;
         if (memcmp(chunk, "PACK", 4) == 0) {
             return liberation_pack_decode(form + pos, chunk_size, out_data, out_size);
         }
-        pos += chunk_size + (chunk_size & 1U);
+        size_t advance = (size_t)chunk_size + (chunk_size & 1U);
+        if (advance > form_end - pos) return 0;
+        pos += advance;
     }
     return 0;
 }
@@ -224,15 +238,15 @@ void liberation_anim_script_free(LiberationAnimScript *script) {
 
 int liberation_anim_extract_script(const uint8_t *form, size_t form_size,
                                    LiberationAnimScript *script) {
-    if (!form || !script || form_size < 12U || memcmp(form, "FORM", 4) != 0 ||
-        memcmp(form + 8, "ANIM", 4) != 0) return 0;
+    size_t form_end = 0;
+    if (!script || !anim_form_end(form, form_size, &form_end)) return 0;
     liberation_anim_script_free(script);
     size_t pos = 12U;
-    while (pos + 8U <= form_size) {
+    while (pos + 8U <= form_end) {
         const uint8_t *chunk = form + pos;
         uint32_t chunk_size = read_be32(chunk + 4U);
         pos += 8U;
-        if (chunk_size > form_size - pos) return 0;
+        if (chunk_size > form_end - pos) return 0;
         if (memcmp(chunk, "SCPT", 4) == 0) {
             if (!chunk_size) return 0;
             script->bytes = malloc(chunk_size);
@@ -265,7 +279,9 @@ int liberation_anim_extract_script(const uint8_t *form, size_t form_size,
             liberation_anim_script_free(script);
             return 0;
         }
-        pos += chunk_size + (chunk_size & 1U);
+        size_t advance = (size_t)chunk_size + (chunk_size & 1U);
+        if (advance > form_end - pos) return 0;
+        pos += advance;
     }
     return 0;
 }
@@ -284,7 +300,7 @@ int liberation_anim_script_record_at(const LiberationAnimScript *script,
             record->bytes = script->bytes + pos;
             record->offset = pos;
             record->size = size;
-            record->timing_multiplier = record->bytes[2];
+            record->timing_multiplier = size >= 3U ? record->bytes[2] : 0;
             return 1;
         }
         pos += size;
@@ -306,8 +322,9 @@ static int decode_first_pack_frame(const uint8_t *pack, size_t pack_size,
         uint16_t height = read_be16(all_records + 2U);
         uint8_t depth = all_records[4U];
         uint32_t raw_size = read_be32(all_records + 6U);
+        uint64_t expected_size = (uint64_t)width_bytes * height * depth;
         if (width_bytes != 0U && height != 0U && depth != 0U && depth <= 8U &&
-            raw_size == (uint32_t)width_bytes * height * depth &&
+            expected_size <= UINT32_MAX && raw_size == expected_size &&
             raw_size <= all_records_size - PACK_DESCRIPTOR_SIZE) {
             uint8_t *raw = malloc(raw_size);
             if (raw) {
@@ -339,9 +356,11 @@ static int decode_first_pack_frame(const uint8_t *pack, size_t pack_size,
     uint16_t height = read_be16(pack + pos + 2U);
     uint8_t depth = pack[pos + 4U];
     uint32_t raw_size = read_be32(pack + pos + 6U);
+    uint64_t expected_size = (uint64_t)width_bytes * height * depth;
     if (width_bytes == 0U || height == 0U || depth == 0U || depth > 8U ||
-        raw_size != (uint32_t)width_bytes * height * depth ||
-        record_size != raw_size + PACK_DESCRIPTOR_SIZE) return 0;
+        expected_size > UINT32_MAX || raw_size != expected_size ||
+        raw_size > pack_size - pos ||
+        (uint64_t)record_size != (uint64_t)raw_size + PACK_DESCRIPTOR_SIZE) return 0;
     pos += PACK_DESCRIPTOR_SIZE;
 
     uint8_t *raw = malloc(raw_size);
@@ -380,19 +399,19 @@ static int decode_first_pack_frame(const uint8_t *pack, size_t pack_size,
 
 int liberation_anim_decode_first_frame(const uint8_t *form, size_t form_size,
                                        LiberationAnimFrame *frame) {
-    if (!form || !frame || form_size < 12U || memcmp(form, "FORM", 4) != 0 ||
-        memcmp(form + 8, "ANIM", 4) != 0) return 0;
+    size_t form_end = 0;
+    if (!frame || !anim_form_end(form, form_size, &form_end)) return 0;
     liberation_anim_frame_free(frame);
 
     const uint8_t *pack = NULL;
     size_t pack_size = 0;
     int palette_found = 0;
     size_t pos = 12U;
-    while (pos + 8U <= form_size) {
+    while (pos + 8U <= form_end) {
         const uint8_t *chunk = form + pos;
         uint32_t chunk_size = read_be32(chunk + 4U);
         pos += 8U;
-        if (chunk_size > form_size - pos) return 0;
+        if (chunk_size > form_end - pos) return 0;
         if (memcmp(chunk, "PALL", 4) == 0 && chunk_size >= 64U) {
             for (size_t i = 0; i < 32U; i++) {
                 uint16_t color = read_be16(form + pos + i * 2U);
@@ -407,7 +426,9 @@ int liberation_anim_decode_first_frame(const uint8_t *form, size_t form_size,
             pack = form + pos;
             pack_size = chunk_size;
         }
-        pos += chunk_size + (chunk_size & 1U);
+        size_t advance = (size_t)chunk_size + (chunk_size & 1U);
+        if (advance > form_end - pos) return 0;
+        pos += advance;
     }
     if (!palette_found || !pack || !decode_first_pack_frame(pack, pack_size, frame)) {
         liberation_anim_frame_free(frame);
@@ -418,13 +439,19 @@ int liberation_anim_decode_first_frame(const uint8_t *form, size_t form_size,
 
 void liberation_anim_blit(const LiberationAnimFrame *frame, uint32_t *dst,
                           int dst_width, int dst_height, int dst_x, int dst_y) {
-    if (!frame || !frame->bitplanes || !dst || frame->depth == 0U) return;
+    if (!frame || !frame->bitplanes || !dst || dst_width <= 0 || dst_height <= 0 ||
+        frame->depth == 0U || frame->depth > 8U || frame->width == 0U ||
+        frame->height == 0U) return;
     size_t row_bytes = frame->width / 8U;
+    if (row_bytes == 0U ||
+        (size_t)frame->depth * frame->height > SIZE_MAX / row_bytes ||
+        frame->bitplane_size < (size_t)frame->depth * frame->height * row_bytes)
+        return;
     for (uint16_t y = 0; y < frame->height; y++) {
-        int out_y = dst_y + y;
+        int64_t out_y = (int64_t)dst_y + y;
         if (out_y < 0 || out_y >= dst_height) continue;
         for (uint16_t x = 0; x < frame->width; x++) {
-            int out_x = dst_x + x;
+            int64_t out_x = (int64_t)dst_x + x;
             if (out_x < 0 || out_x >= dst_width) continue;
             size_t byte_index = x / 8U;
             uint8_t bit = (uint8_t)(7U - (x & 7U));
@@ -433,7 +460,8 @@ void liberation_anim_blit(const LiberationAnimFrame *frame, uint32_t *dst,
                 size_t offset = ((size_t)plane * frame->height + y) * row_bytes + byte_index;
                 index |= (uint8_t)(((frame->bitplanes[offset] >> bit) & 1U) << plane);
             }
-            dst[(size_t)out_y * dst_width + out_x] = frame->palette[index & 31U];
+            dst[(size_t)out_y * (size_t)dst_width + (size_t)out_x] =
+                frame->palette[index & 31U];
         }
     }
 }

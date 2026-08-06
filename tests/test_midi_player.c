@@ -1,4 +1,6 @@
 #include "midi_player.h"
+#include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -38,8 +40,20 @@ static void test_load(void) {
 
 static void test_invalid(void) {
     MIDIPlayer mp;
+    assert(!midi_load(NULL, test_midi, sizeof(test_midi)));
+    assert(!midi_load(&mp, NULL, sizeof(test_midi)));
     ASSERT(!midi_load(&mp, (const uint8_t*)"NOPE", 4), "reject non-MIDI");
     ASSERT(!midi_load(&mp, test_midi, 5), "reject truncated");
+    uint8_t truncated[sizeof(test_midi)];
+    memcpy(truncated, test_midi, sizeof(truncated));
+    truncated[18] = 0x7F; /* MTrk length exceeds the supplied buffer. */
+    assert(!midi_load(&mp, truncated, sizeof(truncated)));
+
+    uint8_t zero_tpb[sizeof(test_midi)];
+    memcpy(zero_tpb, test_midi, sizeof(zero_tpb));
+    zero_tpb[12] = 0;
+    zero_tpb[13] = 0;
+    assert(!midi_load(&mp, zero_tpb, sizeof(zero_tpb)));
 }
 
 static void test_render(void) {
@@ -70,6 +84,18 @@ static void test_stop(void) {
     ASSERT(!mp.playing, "stopped after midi_stop");
 }
 
+static void test_master_volume(void) {
+    MIDIPlayer mp;
+    assert(midi_load(&mp, test_midi, sizeof(test_midi)));
+    assert(mp.master_volume == 1.0f);
+    midi_set_volume(&mp, 0.0f);
+    assert(mp.master_volume == 0.0f);
+    midi_set_volume(&mp, 2.0f);
+    assert(mp.master_volume == 1.0f);
+    midi_set_volume(&mp, NAN);
+    assert(mp.master_volume == 1.0f);
+}
+
 static void test_loop(void) {
     MIDIPlayer mp;
     midi_load(&mp, test_midi, sizeof(test_midi));
@@ -88,6 +114,7 @@ int main(void) {
     test_invalid();
     test_render();
     test_stop();
+    test_master_volume();
     test_loop();
     if (failures) {
         printf("%d test(s) FAILED\n", failures);

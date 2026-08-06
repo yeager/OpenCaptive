@@ -344,7 +344,6 @@ jobs:
 
   build-ios:
     runs-on: macos-14
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Install tools
@@ -452,7 +451,6 @@ jobs:
 
   build-android:
     runs-on: ubuntu-24.04
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -634,7 +632,7 @@ jobs:
           # Build APK
           cd apk-project
           gradle wrapper --gradle-version 8.5
-          ./gradlew assembleRelease || ./gradlew assembleDebug
+          ./gradlew assembleRelease
           cd ..
 
           # Copy APK
@@ -643,15 +641,27 @@ jobs:
         with:
           name: android
           path: OpenCaptive-android.apk
+          if-no-files-found: error
 
   create-release:
-    if: always()
     needs: [build-linux, build-linux-appimage, build-macos, build-windows, build-ios, build-android]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
+      - name: Verify release artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s artifacts/linux-x86_64/opencaptive-linux-x86_64.tar.gz
+          test -s artifacts/linux-x86_64/opencaptive_*.deb
+          test -s artifacts/linux-x86_64/opencaptive-*.rpm
+          test -s artifacts/linux-appimage/opencaptive-x86_64.AppImage
+          test -s artifacts/macos-arm64/OpenCaptive-macos-arm64.dmg
+          test -s artifacts/windows-x64/OpenCaptive-*.exe
+          test -s artifacts/ios-arm64/OpenCaptive-ios-arm64.ipa
+          test -s artifacts/android/OpenCaptive-android.apk
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:

@@ -145,6 +145,64 @@ static void test_all_seed_combos(void) {
     }
 }
 
+static void test_advanced_generation_seed_sweep(void) {
+    for (uint16_t hi = 0; hi < 32; hi += 7) {
+        for (uint16_t lo = 0; lo < 32; lo += 5) {
+            CityGridState s;
+            citygrid_init(&s, hi, lo, 127);
+            citygrid_generate(&s);
+            assert(s.entry_point >= -1 && s.entry_point < CITYGRID_CELLS);
+        }
+    }
+}
+
+static void test_out_of_range_seed_low(void) {
+    CityGridState s;
+    citygrid_init(&s, 0x1234, UINT16_MAX, 5);
+    citygrid_generate(&s);
+
+    int non_zero = 0;
+    for (int i = 0; i < CITYGRID_CELLS; i++)
+        if (s.plane2[i] != 0) non_zero++;
+    assert(non_zero > 0);
+}
+
+static void test_negative_building_catalog_is_ignored(void) {
+    CityGridState s;
+    CityGrid buildings;
+    citygrid_init(&s, 1, 1, 1);
+    memset(&buildings, 0, sizeof(buildings));
+    buildings.total_buildings = -1;
+    citygrid_map_buildings(&s, &buildings);
+    for (int i = 0; i < CITYGRID_CELLS; i++)
+        assert(s.plane1[i] == 0);
+}
+
+static void test_building_mapping_ignores_plane2_flag_bit(void) {
+    CityGridState s;
+    CityGrid buildings;
+    citygrid_init(&s, 1, 1, 1);
+    memset(&buildings, 0, sizeof(buildings));
+    buildings.total_buildings = 2;
+    buildings.buildings[0].type = BUILDING_SHOP;
+    buildings.buildings[1].type = BUILDING_POLICE;
+    s.plane2[0] = 0x81; /* building 1 plus the high-bit cell flag */
+    citygrid_map_buildings(&s, &buildings);
+    assert(s.plane1[0] == BUILDING_SHOP);
+
+    s.plane1[1] = 0;
+    s.plane2[1] = 0x80; /* flag bit without a building ID */
+    citygrid_map_buildings(&s, &buildings);
+    assert(s.plane1[1] == 0);
+}
+
+static void test_null_public_api_is_safe(void) {
+    assert(citygrid_prng(NULL) == 0);
+    citygrid_init(NULL, 0, 0, 0);
+    citygrid_generate(NULL);
+    citygrid_map_buildings(NULL, NULL);
+}
+
 int main(void) {
     test_prng();
     test_init();
@@ -158,6 +216,11 @@ int main(void) {
     test_difficulty_4_entry_point();
     test_high_difficulty();
     test_all_seed_combos();
+    test_advanced_generation_seed_sweep();
+    test_out_of_range_seed_low();
+    test_negative_building_catalog_is_ignored();
+    test_building_mapping_ignores_plane2_flag_bit();
+    test_null_public_api_is_safe();
     printf("All CityGen grid tests passed\n");
     return 0;
 }

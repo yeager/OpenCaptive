@@ -1,9 +1,32 @@
 #include "custom_features.h"
+#include <errno.h>
+#include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+static int parse_int_or_default(const char *text, int fallback) {
+    if (!text || !text[0]) return fallback;
+    char *end = NULL;
+    errno = 0;
+    long value = strtol(text, &end, 10);
+    if (errno == ERANGE || end == text || *end != '\0' ||
+        value < INT_MIN || value > INT_MAX) return fallback;
+    return (int)value;
+}
+
+static float parse_float_or_default(const char *text, float fallback) {
+    if (!text || !text[0]) return fallback;
+    char *end = NULL;
+    errno = 0;
+    float value = strtof(text, &end);
+    if (errno == ERANGE || end == text || *end != '\0' || !isfinite(value)) return fallback;
+    return value;
+}
+
 void custom_features_defaults(CustomFeatures *f) {
+    if (!f) return;
     memset(f, 0, sizeof(*f));
     f->upscale_factor = 2;
     f->minimap_opacity = 0.6f;
@@ -15,10 +38,13 @@ void custom_features_defaults(CustomFeatures *f) {
 }
 
 bool custom_features_load(CustomFeatures *f, const char *path) {
+    if (!f || !path) return false;
+    CustomFeatures *destination = f;
+    CustomFeatures restored;
+    custom_features_defaults(&restored);
+    f = &restored;
     FILE *fp = fopen(path, "r");
     if (!fp) return false;
-
-    custom_features_defaults(f);
 
     char line[256];
     while (fgets(line, sizeof(line), fp)) {
@@ -26,36 +52,63 @@ bool custom_features_load(CustomFeatures *f, const char *path) {
         char val[64];
         if (sscanf(line, " %63[^=]= %63s", key, val) != 2) continue;
 
-        if (strcmp(key, "hd_upscale") == 0) f->hd_upscale = atoi(val) != 0;
-        else if (strcmp(key, "upscale_factor") == 0) f->upscale_factor = atoi(val);
-        else if (strcmp(key, "widescreen") == 0) f->widescreen = atoi(val) != 0;
-        else if (strcmp(key, "widescreen_width") == 0) f->widescreen_width = atoi(val);
-        else if (strcmp(key, "quicksave") == 0) f->quicksave = atoi(val) != 0;
-        else if (strcmp(key, "minimap") == 0) f->minimap = atoi(val) != 0;
-        else if (strcmp(key, "minimap_opacity") == 0) f->minimap_opacity = (float)atof(val);
-        else if (strcmp(key, "minimap_size") == 0) f->minimap_size = atoi(val);
-        else if (strcmp(key, "speed_control") == 0) f->speed_control = atoi(val) != 0;
-        else if (strcmp(key, "game_speed") == 0) f->game_speed = (float)atof(val);
-        else if (strcmp(key, "fast_travel") == 0) f->fast_travel = atoi(val) != 0;
-        else if (strcmp(key, "mouse_look") == 0) f->mouse_look = atoi(val) != 0;
-        else if (strcmp(key, "mouse_sensitivity") == 0) f->mouse_sensitivity = (float)atof(val);
-        else if (strcmp(key, "debug_hud") == 0) f->debug_hud = atoi(val) != 0;
-        else if (strcmp(key, "audio_reverb") == 0) f->audio_reverb = atoi(val) != 0;
-        else if (strcmp(key, "reverb_amount") == 0) f->reverb_amount = (float)atof(val);
-        else if (strcmp(key, "hq_midi") == 0) f->hq_midi = atoi(val) != 0;
-        else if (strcmp(key, "audio_sample_rate") == 0) f->audio_sample_rate = atoi(val);
-        else if (strcmp(key, "automap") == 0) f->automap = atoi(val) != 0;
-        else if (strcmp(key, "cross_save") == 0) f->cross_save = atoi(val) != 0;
-        else if (strcmp(key, "replay_record") == 0) f->replay_record = atoi(val) != 0;
-        else if (strcmp(key, "texture_filter") == 0) f->texture_filter = atoi(val) != 0;
-        else if (strcmp(key, "dynamic_lighting") == 0) f->dynamic_lighting = atoi(val) != 0;
+        if (strcmp(key, "hd_upscale") == 0) f->hd_upscale = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "upscale_factor") == 0) f->upscale_factor = parse_int_or_default(val, f->upscale_factor);
+        else if (strcmp(key, "widescreen") == 0) f->widescreen = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "widescreen_width") == 0) f->widescreen_width = parse_int_or_default(val, f->widescreen_width);
+        else if (strcmp(key, "quicksave") == 0) f->quicksave = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "minimap") == 0) f->minimap = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "minimap_opacity") == 0) f->minimap_opacity = parse_float_or_default(val, f->minimap_opacity);
+        else if (strcmp(key, "minimap_size") == 0) f->minimap_size = parse_int_or_default(val, f->minimap_size);
+        else if (strcmp(key, "speed_control") == 0) f->speed_control = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "game_speed") == 0) f->game_speed = parse_float_or_default(val, f->game_speed);
+        else if (strcmp(key, "fast_travel") == 0) f->fast_travel = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "mouse_look") == 0) f->mouse_look = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "mouse_sensitivity") == 0) f->mouse_sensitivity = parse_float_or_default(val, f->mouse_sensitivity);
+        else if (strcmp(key, "debug_hud") == 0) f->debug_hud = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "audio_reverb") == 0) f->audio_reverb = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "reverb_amount") == 0) f->reverb_amount = parse_float_or_default(val, f->reverb_amount);
+        else if (strcmp(key, "hq_midi") == 0) f->hq_midi = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "audio_sample_rate") == 0) f->audio_sample_rate = parse_int_or_default(val, f->audio_sample_rate);
+        else if (strcmp(key, "automap") == 0) f->automap = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "cross_save") == 0) f->cross_save = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "replay_record") == 0) f->replay_record = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "texture_filter") == 0) f->texture_filter = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "dynamic_lighting") == 0) f->dynamic_lighting = parse_int_or_default(val, 0) != 0;
     }
 
-    fclose(fp);
-    return true;
+    bool read_ok = !ferror(fp);
+    int close_result = fclose(fp);
+    bool ok = read_ok && close_result == 0;
+    if (ok) {
+        /* Configuration files are user-editable. Keep values within the
+         * ranges consumed by the renderer, mixer and menu; parsing a valid
+         * number must not make a later subsystem receive an invalid one. */
+        if (restored.upscale_factor < 2 || restored.upscale_factor > 4)
+            restored.upscale_factor = 2;
+        if (restored.widescreen_width < 0)
+            restored.widescreen_width = 0;
+        if (restored.minimap_opacity < 0.0f || restored.minimap_opacity > 1.0f)
+            restored.minimap_opacity = 0.6f;
+        if (restored.minimap_size < 32 || restored.minimap_size > 192)
+            restored.minimap_size = 96;
+        if (restored.game_speed < 0.25f || restored.game_speed > 4.0f)
+            restored.game_speed = 1.0f;
+        if (restored.mouse_sensitivity < 1.0f || restored.mouse_sensitivity > 10.0f)
+            restored.mouse_sensitivity = 1.0f;
+        if (restored.reverb_amount < 0.0f || restored.reverb_amount > 1.0f)
+            restored.reverb_amount = 0.3f;
+        if (restored.audio_sample_rate != 22050 &&
+            restored.audio_sample_rate != 44100 &&
+            restored.audio_sample_rate != 48000)
+            restored.audio_sample_rate = 44100;
+        *destination = restored;
+    }
+    return ok;
 }
 
 bool custom_features_save(const CustomFeatures *f, const char *path) {
+    if (!f || !path) return false;
     FILE *fp = fopen(path, "w");
     if (!fp) return false;
 
@@ -83,6 +136,7 @@ bool custom_features_save(const CustomFeatures *f, const char *path) {
     fprintf(fp, "texture_filter=%d\n", f->texture_filter);
     fprintf(fp, "dynamic_lighting=%d\n", f->dynamic_lighting);
 
-    fclose(fp);
-    return true;
+    bool write_ok = !ferror(fp);
+    int close_result = fclose(fp);
+    return write_ok && close_result == 0;
 }

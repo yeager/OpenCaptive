@@ -11,6 +11,12 @@ static const int dir_dy[4] = { -1, 0, 1, 0 };
 static const float dir_yaw[4] = { 0, (float)(M_PI * 0.5), (float)M_PI, (float)(M_PI * 1.5) };
 
 void city_nav_init(CityNavState *nav, int start_x, int start_y, CityDirection dir) {
+    if (!nav) return;
+    if (dir < CITY_DIR_NORTH || dir > CITY_DIR_WEST) dir = CITY_DIR_NORTH;
+    if (start_x < 0) start_x = 0;
+    if (start_x >= CITYGRID_WIDTH) start_x = CITYGRID_WIDTH - 1;
+    if (start_y < 0) start_y = 0;
+    if (start_y >= CITYGRID_HEIGHT) start_y = CITYGRID_HEIGHT - 1;
     memset(nav, 0, sizeof(*nav));
     nav->cell_x = start_x;
     nav->cell_y = start_y;
@@ -20,8 +26,22 @@ void city_nav_init(CityNavState *nav, int start_x, int start_y, CityDirection di
     nav->smooth_yaw = dir_yaw[dir];
 }
 
+bool city_nav_teleport(CityNavState *nav, int x, int y) {
+    if (!nav || x < 0 || x >= CITYGRID_WIDTH ||
+        y < 0 || y >= CITYGRID_HEIGHT) return false;
+    nav->cell_x = x;
+    nav->cell_y = y;
+    nav->moving = false;
+    nav->move_progress = 0.0f;
+    nav->move_dx = 0;
+    nav->move_dy = 0;
+    nav->smooth_x = x * CITY_CELL_SIZE + CITY_CELL_SIZE * 0.5f;
+    nav->smooth_y = y * CITY_CELL_SIZE + CITY_CELL_SIZE * 0.5f;
+    return true;
+}
+
 uint8_t city_nav_get_cell(const CityGridState *grid, int x, int y) {
-    if (x < 0 || x >= CITYGRID_WIDTH || y < 0 || y >= CITYGRID_HEIGHT)
+    if (!grid || x < 0 || x >= CITYGRID_WIDTH || y < 0 || y >= CITYGRID_HEIGHT)
         return CITYGRID_CELL_WALL;
     return grid->plane0[y * CITYGRID_WIDTH + x];
 }
@@ -42,18 +62,22 @@ bool city_nav_is_building_entrance(const CityGridState *grid, int x, int y) {
 }
 
 bool city_nav_can_move_forward(const CityNavState *nav, const CityGridState *grid) {
-    if (nav->moving) return false;
+    if (!nav || !grid || nav->facing < CITY_DIR_NORTH || nav->facing > CITY_DIR_WEST ||
+        nav->moving || nav->cell_x < 0 || nav->cell_x >= CITYGRID_WIDTH ||
+        nav->cell_y < 0 || nav->cell_y >= CITYGRID_HEIGHT) return false;
     int nx = nav->cell_x + dir_dx[nav->facing];
     int ny = nav->cell_y + dir_dy[nav->facing];
-    return !city_nav_is_wall(grid, nx, ny);
+    return city_nav_is_road(grid, nx, ny);
 }
 
 bool city_nav_can_move_backward(const CityNavState *nav, const CityGridState *grid) {
-    if (nav->moving) return false;
+    if (!nav || !grid || nav->facing < CITY_DIR_NORTH || nav->facing > CITY_DIR_WEST ||
+        nav->moving || nav->cell_x < 0 || nav->cell_x >= CITYGRID_WIDTH ||
+        nav->cell_y < 0 || nav->cell_y >= CITYGRID_HEIGHT) return false;
     int back = (nav->facing + 2) & 3;
     int nx = nav->cell_x + dir_dx[back];
     int ny = nav->cell_y + dir_dy[back];
-    return !city_nav_is_wall(grid, nx, ny);
+    return city_nav_is_road(grid, nx, ny);
 }
 
 void city_nav_move_forward(CityNavState *nav, const CityGridState *grid) {
@@ -74,30 +98,52 @@ void city_nav_move_backward(CityNavState *nav, const CityGridState *grid) {
 }
 
 void city_nav_turn_left(CityNavState *nav) {
-    if (nav->moving) return;
+    if (!nav || nav->facing < CITY_DIR_NORTH || nav->facing > CITY_DIR_WEST || nav->moving) return;
     nav->facing = (CityDirection)((nav->facing + 3) & 3);
     nav->smooth_yaw = dir_yaw[nav->facing];
 }
 
 void city_nav_turn_right(CityNavState *nav) {
-    if (nav->moving) return;
+    if (!nav || nav->facing < CITY_DIR_NORTH || nav->facing > CITY_DIR_WEST || nav->moving) return;
     nav->facing = (CityDirection)((nav->facing + 1) & 3);
     nav->smooth_yaw = dir_yaw[nav->facing];
 }
 
 void city_nav_turn_around(CityNavState *nav) {
-    if (nav->moving) return;
+    if (!nav || nav->facing < CITY_DIR_NORTH || nav->facing > CITY_DIR_WEST || nav->moving) return;
     nav->facing = (CityDirection)((nav->facing + 2) & 3);
     nav->smooth_yaw = dir_yaw[nav->facing];
 }
 
 void city_nav_update(CityNavState *nav, float dt) {
-    if (!nav->moving) return;
+    if (!nav || !nav->moving || !isfinite(dt) || dt < 0.0f) return;
+    if (nav->cell_x < 0 || nav->cell_x >= CITYGRID_WIDTH ||
+        nav->cell_y < 0 || nav->cell_y >= CITYGRID_HEIGHT ||
+        nav->move_dx < -1 || nav->move_dx > 1 ||
+        nav->move_dy < -1 || nav->move_dy > 1 ||
+        (nav->move_dx != 0 && nav->move_dy != 0) ||
+        (nav->move_dx == 0 && nav->move_dy == 0) ||
+        !isfinite(nav->move_progress) || nav->move_progress < 0.0f ||
+        nav->move_progress > 1.0f) {
+        if (nav) nav->moving = false;
+        nav->move_progress = 0.0f;
+        return;
+    }
 
     nav->move_progress += dt * 4.0f;
     if (nav->move_progress >= 1.0f) {
-        nav->cell_x += nav->move_dx;
-        nav->cell_y += nav->move_dy;
+        int next_x = nav->cell_x + nav->move_dx;
+        int next_y = nav->cell_y + nav->move_dy;
+        if (next_x < 0 || next_x >= CITYGRID_WIDTH ||
+            next_y < 0 || next_y >= CITYGRID_HEIGHT) {
+            nav->moving = false;
+            nav->move_progress = 0;
+            nav->smooth_x = nav->cell_x * CITY_CELL_SIZE + CITY_CELL_SIZE * 0.5f;
+            nav->smooth_y = nav->cell_y * CITY_CELL_SIZE + CITY_CELL_SIZE * 0.5f;
+            return;
+        }
+        nav->cell_x = next_x;
+        nav->cell_y = next_y;
         nav->smooth_x = nav->cell_x * CITY_CELL_SIZE + CITY_CELL_SIZE * 0.5f;
         nav->smooth_y = nav->cell_y * CITY_CELL_SIZE + CITY_CELL_SIZE * 0.5f;
         nav->moving = false;
@@ -212,7 +258,10 @@ static void render_wall_quad(Lib3dState *render,
 void city_nav_render(CityNavState *nav, const CityGridState *grid,
                      Lib3dState *render, const X3gFile *city_vectors,
                      const uint32_t *palette, unsigned pal_size) {
-    if (!nav || !grid || !render) return;
+    if (!nav || !grid || !render || nav->cell_x < 0 ||
+        nav->cell_x >= CITYGRID_WIDTH || nav->cell_y < 0 ||
+        nav->cell_y >= CITYGRID_HEIGHT || !isfinite(nav->smooth_x) ||
+        !isfinite(nav->smooth_y) || !isfinite(nav->smooth_yaw)) return;
 
     lib3d_set_camera(render, nav->smooth_x, CITY_EYE_HEIGHT, nav->smooth_y,
                      nav->smooth_yaw);
@@ -240,8 +289,10 @@ void city_nav_render(CityNavState *nav, const CityGridState *grid,
                 bool road_e = !city_nav_is_wall(grid, gx + 1, gy);
                 bool road_w = !city_nav_is_wall(grid, gx - 1, gy);
 
-                uint8_t bid = grid->plane2[gy * CITYGRID_WIDTH + gx];
-                uint32_t type_offset = (bid != 0 && bid != 0xFF) ? (bid * 11) & 0x0F : 0;
+                uint8_t raw_bid = grid->plane2[gy * CITYGRID_WIDTH + gx];
+                uint8_t bid = raw_bid & 0x7F;
+                uint32_t type_offset = (raw_bid != 0 && raw_bid != 0xFF && bid != 0) ?
+                    (bid * 11) & 0x0F : 0;
                 uint32_t wall_color = render->wall_color_base + type_offset + ((gx * 7 + gy * 13) & 0x0F);
                 if (road_n) render_wall_quad(render, wx, wy, wx + cs, wy, CITY_WALL_HEIGHT, wall_color);
                 if (road_s) render_wall_quad(render, wx + cs, wy + cs, wx, wy + cs, CITY_WALL_HEIGHT, wall_color);
@@ -289,7 +340,10 @@ void city_nav_render_textured(CityNavState *nav, const CityGridState *grid,
                               Lib3dState *render, const Lib3dTexture *wall_tex,
                               const X3gFile *city_vectors,
                               const uint32_t *palette, unsigned pal_size) {
-    if (!nav || !grid || !render) return;
+    if (!nav || !grid || !render || nav->cell_x < 0 ||
+        nav->cell_x >= CITYGRID_WIDTH || nav->cell_y < 0 ||
+        nav->cell_y >= CITYGRID_HEIGHT || !isfinite(nav->smooth_x) ||
+        !isfinite(nav->smooth_y) || !isfinite(nav->smooth_yaw)) return;
 
     lib3d_set_camera(render, nav->smooth_x, CITY_EYE_HEIGHT, nav->smooth_y,
                      nav->smooth_yaw);
@@ -323,8 +377,10 @@ void city_nav_render_textured(CityNavState *nav, const CityGridState *grid,
                     if (road_e) render_textured_wall(render, wall_tex, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT);
                     if (road_w) render_textured_wall(render, wall_tex, wx, wy + cs, wx, wy, CITY_WALL_HEIGHT);
                 } else {
-                    uint8_t bid = grid->plane2[gy * CITYGRID_WIDTH + gx];
-                    uint32_t type_offset = (bid != 0 && bid != 0xFF) ? (bid * 11) & 0x0F : 0;
+                    uint8_t raw_bid = grid->plane2[gy * CITYGRID_WIDTH + gx];
+                    uint8_t bid = raw_bid & 0x7F;
+                    uint32_t type_offset = (raw_bid != 0 && raw_bid != 0xFF && bid != 0) ?
+                        (bid * 11) & 0x0F : 0;
                     uint32_t wall_color = render->wall_color_base + type_offset + ((gx * 7 + gy * 13) & 0x0F);
                     if (road_n) render_wall_quad(render, wx, wy, wx + cs, wy, CITY_WALL_HEIGHT, wall_color);
                     if (road_s) render_wall_quad(render, wx + cs, wy + cs, wx, wy + cs, CITY_WALL_HEIGHT, wall_color);

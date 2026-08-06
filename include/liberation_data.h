@@ -13,6 +13,7 @@ typedef enum {
 } LiberationSource;
 
 typedef struct {
+    uint32_t lifecycle_magic;
     uint8_t *disc_data;
     size_t disc_size;
     ISOImage iso;
@@ -38,6 +39,9 @@ typedef enum {
 } LiberationResource;
 
 bool liberation_data_open(LiberationData *data, const DataVFS *vfs);
+bool liberation_data_open_source(LiberationData *data, const DataVFS *vfs,
+                                 LiberationSource source);
+unsigned liberation_data_available_sources(const DataVFS *vfs);
 void liberation_data_close(LiberationData *data);
 uint8_t *liberation_data_read(const LiberationData *data,
                               LiberationResource resource, size_t *out_size);

@@ -14,6 +14,27 @@ typedef enum {
     CREATURE_ALIEN4,
     CREATURE_ALIEN5,
     CREATURE_ALIEN6,
+    /* Creature IDs 7..25 use the same six source sheets but retain their
+     * original type ID for stats, saves, and gameplay. */
+    CREATURE_TYPE7,
+    CREATURE_TYPE8,
+    CREATURE_TYPE9,
+    CREATURE_TYPE10,
+    CREATURE_TYPE11,
+    CREATURE_TYPE12,
+    CREATURE_TYPE13,
+    CREATURE_TYPE14,
+    CREATURE_TYPE15,
+    CREATURE_TYPE16,
+    CREATURE_TYPE17,
+    CREATURE_TYPE18,
+    CREATURE_TYPE19,
+    CREATURE_TYPE20,
+    CREATURE_TYPE21,
+    CREATURE_TYPE22,
+    CREATURE_TYPE23,
+    CREATURE_TYPE24,
+    CREATURE_TYPE25,
     CREATURE_COUNT,
 } CreatureType;
 

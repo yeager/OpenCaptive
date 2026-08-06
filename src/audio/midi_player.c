@@ -1,4 +1,5 @@
 #include "midi_player.h"
+#include <math.h>
 #include <string.h>
 
 static uint32_t read_be32(const uint8_t *p) {
@@ -13,10 +14,11 @@ static uint32_t read_vlq(const uint8_t *data, uint32_t *pos, uint32_t len) {
     uint32_t value = 0;
     while (*pos < len) {
         uint8_t b = data[(*pos)++];
+        if (value > 0x01FFFFFFU) return 0xFFFFFFFFU;
         value = (value << 7) | (b & 0x7F);
-        if (!(b & 0x80)) break;
+        if (!(b & 0x80)) return value;
     }
-    return value;
+    return 0xFFFFFFFFU;
 }
 
 static void recalc_tick_rate(MIDIPlayer *mp) {
@@ -72,7 +74,17 @@ static void opl2_set_volume(OPL2 *opl, int ch, uint8_t vol) {
     opl2_write(opl, 0x40 + off + 3, ksl | (attenuation & 0x3F));
 }
 
+static uint8_t effective_channel_volume(const MIDIPlayer *mp, int channel) {
+    if (!mp || channel < 0 || channel >= MIDI_MAX_CHANNELS ||
+        !isfinite(mp->master_volume) || mp->master_volume <= 0.0f) return 0;
+    float value = mp->channels[channel].volume * mp->master_volume;
+    if (value >= 127.0f) return 127;
+    if (value <= 0.0f) return 0;
+    return (uint8_t)value;
+}
+
 static int alloc_voice(MIDIPlayer *mp, int midi_ch) {
+    (void)midi_ch;
     int oldest_idx = -1;
     uint32_t oldest_age = 0;
 
@@ -105,7 +117,7 @@ static void process_event(MIDIPlayer *mp, uint8_t status, const uint8_t *data,
             int patch = mp->channels[channel].program;
             if (patch >= CAPTIVE_OPL2_PATCH_COUNT) patch = 0;
             opl2_load_patch(&mp->opl, v, patch);
-            opl2_set_volume(&mp->opl, v, data[1]);
+            opl2_set_volume(&mp->opl, v, effective_channel_volume(mp, channel));
             opl2_note_on(&mp->opl, v, data[0]);
             mp->voices[v].midi_channel = channel;
             mp->voices[v].note = data[0];
@@ -167,10 +179,16 @@ static void process_track_tick(MIDIPlayer *mp, MIDITrack *trk) {
         uint8_t b = trk->data[trk->pos];
 
         if (b == 0xFF) {
+            /* System/meta events terminate running status in Standard MIDI. */
+            trk->running_status = 0;
             trk->pos++;
             if (trk->pos >= trk->length) { trk->ended = true; break; }
             uint8_t meta_type = trk->data[trk->pos++];
             uint32_t meta_len = read_vlq(trk->data, &trk->pos, trk->length);
+            if (meta_len == 0xFFFFFFFFU || meta_len > trk->length - trk->pos) {
+                trk->ended = true;
+                break;
+            }
 
             if (meta_type == 0x51 && meta_len == 3 && trk->pos + 3 <= trk->length) {
                 mp->tempo = ((uint32_t)trk->data[trk->pos] << 16) |
@@ -183,8 +201,13 @@ static void process_track_tick(MIDIPlayer *mp, MIDITrack *trk) {
             }
             trk->pos += meta_len;
         } else if (b == 0xF0 || b == 0xF7) {
+            trk->running_status = 0;
             trk->pos++;
             uint32_t sysex_len = read_vlq(trk->data, &trk->pos, trk->length);
+            if (sysex_len == 0xFFFFFFFFU || sysex_len > trk->length - trk->pos) {
+                trk->ended = true;
+                break;
+            }
             trk->pos += sysex_len;
         } else {
             uint8_t status;
@@ -200,21 +223,28 @@ static void process_track_tick(MIDIPlayer *mp, MIDITrack *trk) {
             uint8_t param[2] = {0, 0};
             int params_needed = (type == MIDI_PROGRAM || type == MIDI_PRESSURE) ? 1 : 2;
 
+            int params_read = 0;
             for (int i = 0; i < params_needed && trk->pos < trk->length; i++) {
                 param[i] = trk->data[trk->pos++];
+                params_read++;
             }
 
-            process_event(mp, status, param, params_needed);
+            process_event(mp, status, param, params_read);
         }
 
         if (trk->pos < trk->length && !trk->ended) {
             uint32_t delta = read_vlq(trk->data, &trk->pos, trk->length);
+            if (delta == 0xFFFFFFFFU) {
+                trk->ended = true;
+                break;
+            }
             trk->next_tick = mp->current_tick + delta;
         }
     }
 }
 
 bool midi_load(MIDIPlayer *player, const uint8_t *data, size_t size) {
+    if (!player || !data) return false;
     memset(player, 0, sizeof(*player));
     player->file_data = data;
     player->file_size = size;
@@ -224,10 +254,11 @@ bool midi_load(MIDIPlayer *player, const uint8_t *data, size_t size) {
     if (size < 14 || memcmp(data, "MThd", 4) != 0) return false;
 
     uint32_t hdr_len = read_be32(data + 4);
-    if (hdr_len < 6) return false;
+    if (hdr_len < 6 || hdr_len > size - 8) return false;
 
     uint16_t num_tracks = read_be16(data + 10);
     player->ticks_per_beat = read_be16(data + 12);
+    if (player->ticks_per_beat == 0) return false;
 
     if (num_tracks > MIDI_MAX_TRACKS) num_tracks = MIDI_MAX_TRACKS;
 
@@ -236,6 +267,7 @@ bool midi_load(MIDIPlayer *player, const uint8_t *data, size_t size) {
         if (memcmp(data + pos, "MTrk", 4) != 0) break;
         uint32_t trk_len = read_be32(data + pos + 4);
         pos += 8;
+        if ((uint64_t)pos + trk_len > size) return false;
 
         player->tracks[i].data = data + pos;
         player->tracks[i].length = trk_len;
@@ -247,6 +279,7 @@ bool midi_load(MIDIPlayer *player, const uint8_t *data, size_t size) {
         uint32_t tpos = 0;
         player->tracks[i].next_tick = read_vlq(player->tracks[i].data, &tpos,
                                                 player->tracks[i].length);
+        if (player->tracks[i].next_tick == 0xFFFFFFFFU) return false;
         player->tracks[i].pos = tpos;
         player->num_tracks++;
         pos += trk_len;
@@ -255,6 +288,7 @@ bool midi_load(MIDIPlayer *player, const uint8_t *data, size_t size) {
     for (int i = 0; i < MIDI_MAX_CHANNELS; i++) {
         player->channels[i].volume = 100;
     }
+    player->master_volume = 1.0f;
 
     opl2_init(&player->opl);
     opl2_write(&player->opl, 0x01, 0x20);
@@ -264,6 +298,7 @@ bool midi_load(MIDIPlayer *player, const uint8_t *data, size_t size) {
 }
 
 void midi_play(MIDIPlayer *player, bool loop) {
+    if (!player) return;
     player->playing = true;
     player->looping = loop;
     player->current_tick = 0;
@@ -278,6 +313,10 @@ void midi_play(MIDIPlayer *player, bool loop) {
         uint32_t tpos = 0;
         player->tracks[i].next_tick = read_vlq(player->tracks[i].data, &tpos,
                                                 player->tracks[i].length);
+        if (player->tracks[i].next_tick == 0xFFFFFFFFU) {
+            player->tracks[i].ended = true;
+            continue;
+        }
         player->tracks[i].pos = tpos;
     }
 
@@ -287,6 +326,7 @@ void midi_play(MIDIPlayer *player, bool loop) {
 }
 
 void midi_stop(MIDIPlayer *player) {
+    if (!player) return;
     player->playing = false;
     for (int i = 0; i < OPL2_VOICE_COUNT; i++) {
         opl2_note_off(&player->opl, i);
@@ -295,14 +335,31 @@ void midi_stop(MIDIPlayer *player) {
 }
 
 void midi_set_volume(MIDIPlayer *player, float vol) {
-    (void)player;
-    (void)vol;
+    if (!player || !isfinite(vol)) return;
+    if (vol < 0.0f) vol = 0.0f;
+    if (vol > 1.0f) vol = 1.0f;
+    player->master_volume = vol;
+    for (int i = 0; i < OPL2_VOICE_COUNT; i++) {
+        if (!player->voices[i].active) continue;
+        int channel = player->voices[i].midi_channel;
+        opl2_set_volume(&player->opl, i, effective_channel_volume(player, channel));
+    }
 }
 
 void midi_render(MIDIPlayer *player, int16_t *buffer, int num_samples) {
+    if (!player || !buffer || num_samples <= 0) return;
+    if (player->samples_per_tick <= 0) {
+        memset(buffer, 0, (size_t)num_samples * sizeof(*buffer));
+        return;
+    }
     if (!player->playing) {
         memset(buffer, 0, num_samples * sizeof(int16_t));
         return;
+    }
+    if (player->tick_frac < 0 || player->tick_frac >= player->samples_per_tick) {
+        /* A stale/corrupt public state must not make remaining negative and
+         * prevent the render loop from consuming samples. */
+        player->tick_frac = 0;
     }
 
     int pos = 0;

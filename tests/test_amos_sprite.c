@@ -1,5 +1,6 @@
 #include "amos_sprite.h"
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 int main(void) {
     uint8_t bank[84] = {0}; memcpy(bank, "AmSp", 4); bank[5] = 1; bank[7] = 1; bank[9] = 1; bank[11] = 1;
@@ -23,5 +24,22 @@ int main(void) {
     assert(amos_sprite_get(unmasked, sizeof unmasked, 0, &sprite));
     assert(!sprite.has_mask && amos_sprite_decode_argb(&sprite, pixels, 16));
     assert(pixels[0] == 0xffff0000u);
+    uint8_t invalid_width[16] = {0};
+    memcpy(invalid_width, "AmSp", 4);
+    invalid_width[5] = 1;
+    assert(!amos_sprite_get(invalid_width, sizeof invalid_width, 0, &sprite));
+
+    /* The public width field is uint16_t; reject a source row whose pixel
+       width would be truncated when represented there. */
+    size_t wide_size = 10U + 16384U;
+    uint8_t *wide = calloc(wide_size, 1);
+    assert(wide);
+    memcpy(wide, "AmSp", 4);
+    wide[5] = 1;       /* one sprite */
+    wide[6] = 0x20;    /* 8192 words = 16384 bytes per row */
+    wide[9] = 1;       /* height */
+    wide[11] = 1;      /* depth */
+    assert(!amos_sprite_get(wide, wide_size, 0, &sprite));
+    free(wide);
     return 0;
 }

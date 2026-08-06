@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
-"POT-Creation-Date: 2026-08-03\n"
+"POT-Creation-Date: 2026-08-06 06:49+0200\n"
 "PO-Revision-Date: 2026-08-03\n"
 "Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
 "Language-Team: Korean\n"
@@ -15,326 +15,805 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#. Main menu title
+#: src/engine/liberation_citygen.c:310
+msgid "Private Residence"
+msgstr ""
+
+#: src/engine/liberation_citygen.c:313
+msgid "Library"
+msgstr ""
+
+#: src/engine/liberation_citygen.c:316
+msgid "Police Station"
+msgstr ""
+
+#: src/engine/liberation_citygen.c:319
+msgid "City Records Office"
+msgstr ""
+
+#: src/engine/start_menu.c:874 src/engine/start_menu.c:980
+#: src/engine/start_menu.c:1211
 msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
-msgid "BY DANIEL NYLANDER"
-msgstr "제작자 DANIEL NYLANDER"
-
-msgid "SELECT GAME"
-msgstr "게임 선택"
-
-msgid "CAPTIVE (1990)"
-msgstr "CAPTIVE (1990)"
-
-msgid "LIBERATION: CAPTIVE 2"
-msgstr "LIBERATION: CAPTIVE 2"
-
+#: src/engine/start_menu.c:875 src/engine/start_menu.c:1303
 msgid "SETTINGS"
 msgstr "설정"
 
-msgid "QUIT"
-msgstr "종료"
-
-msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "위-아래: 선택  ENTER: 시작  ESC: 종료"
-
-#. Settings menu
+#: src/engine/start_menu.c:884
 msgid "RENDERER:"
 msgstr "렌더러:"
 
-msgid "SCANLINES:"
-msgstr "주사선:"
-
-msgid "CRT CURVE:"
-msgstr "CRT 곡률:"
-
-msgid "BILINEAR:"
-msgstr "쌍선형:"
-
-msgid "INT SCALE:"
-msgstr "정수 확대:"
-
-msgid "SCALE:"
-msgstr "배율:"
-
-msgid "FULLSCREEN:"
-msgstr "전체화면:"
-
-msgid "VSYNC:"
-msgstr "VSYNC:"
-
-msgid "FPS LIMIT:"
-msgstr "FPS 제한:"
-
-msgid "BRIGHTNESS:"
-msgstr "밝기:"
-
-msgid "CONTRAST:"
-msgstr "명암:"
-
-msgid "MUSIC:"
-msgstr "음악:"
-
-msgid "SFX:"
-msgstr "효과음:"
-
-msgid "DATA PATH:"
-msgstr "데이터 경로:"
-
-msgid "LANGUAGE:"
-msgstr "언어:"
-
-msgid "BACK"
-msgstr "뒤로"
-
-msgid "ON"
-msgstr "켬"
-
-msgid "OFF"
-msgstr "끔"
-
-msgid "UNLIMITED"
-msgstr "무제한"
-
-msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
-msgstr "경로 입력  ENTER: 확인  ESC: 취소"
-
-msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
-msgstr "위-아래: 선택  좌우: 조절  ESC: 뒤로"
-
-#. Liberation building interactions
-msgid "This is %s. We're not taking visitors right now."
-msgstr "여기는 %s입니다. 지금은 방문객을 받지 않습니다."
-
-msgid "Welcome to %s. The archives are available for public access."
-msgstr "%s에 오신 것을 환영합니다. 기록물은 공개되어 있습니다."
-
-msgid "This is the %s police station. State your business."
-msgstr "여기는 %s 경찰서입니다. 무슨 일이십니까?"
-
-msgid "City Records Office. How can we help?"
-msgstr "시 기록관입니다. 어떻게 도와드릴까요?"
-
-msgid "This is a private residence. What do you want?"
-msgstr "여기는 개인 주택입니다. 무엇을 원하십니까?"
-
-msgid "Welcome to %s. This area is restricted."
-msgstr "%s에 오신 것을 환영합니다. 이 구역은 제한구역입니다."
-
-msgid "%s. Come in and browse."
-msgstr "%s입니다. 들어와서 둘러보세요."
-
-msgid "Welcome to %s! What'll it be?"
-msgstr "%s에 오신 것을 환영합니다! 무엇을 드릴까요?"
-
-msgid "Welcome to %s. How can we help you today?"
-msgstr "%s에 오신 것을 환영합니다. 오늘 어떻게 도와드릴까요?"
-
-msgid "%s. You shouldn't be here."
-msgstr "%s. 여기 있으면 안 됩니다."
-
-msgid "Take a look at what I have."
-msgstr "제가 가진 것을 보세요."
-
-msgid "I might have heard something. Check back later."
-msgstr "무언가 들은 것 같습니다. 나중에 다시 오세요."
-
-msgid "You leave the building."
-msgstr "건물을 떠납니다."
-
-#. Liberation shop
-msgid "Welcome to %s! What can I do for you?"
-msgstr "%s에 오신 것을 환영합니다! 무엇을 도와드릴까요?"
-
-msgid "Goodbye!"
-msgstr "안녕히 가세요!"
-
-msgid "Buy/Sell"
-msgstr "매매"
-
-msgid "Any news?"
-msgstr "소식 있어요?"
-
-msgid "Leave"
-msgstr "떠나기"
-
-#. Liberation NPC dialogue
-msgid "You leave."
-msgstr "떠납니다."
-
-msgid "Trade"
-msgstr "거래"
-
-msgid "Ask around"
-msgstr "물어보기"
-
-#. Error messages
-msgid "Failed to initialize renderer"
-msgstr "렌더러 초기화 실패"
-
-msgid "Missing game data"
-msgstr "게임 데이터 없음"
-
-msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "게임 데이터를 찾을 수 없습니다. 설정에서 데이터 경로를 지정하거나 --data 명령을 사용하세요."
-
-msgid "You can also change the data path in Settings."
-msgstr "설정에서 데이터 경로를 변경할 수도 있습니다."
-
-msgid "Missing Liberation data"
-msgstr "Liberation 데이터 없음"
-
-msgid "ABOUT"
-msgstr "정보"
-
-msgid "CONTROLS"
-msgstr "조작법"
-
-msgid "CONTINUE"
-msgstr "계속"
-
-msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
-msgstr "화살표: 선택  ENTER: 시작  D: 데이터 스캔  F1: 조작법"
-
-msgid "ENHANCED:"
-msgstr "향상:"
-
-msgid "FILTERING:"
-msgstr "필터링:"
-
-msgid "BILINEAR"
-msgstr "바이리니어"
-
-msgid "NEAREST"
-msgstr "최근접"
-
-msgid "GAMMA:"
-msgstr "감마:"
-
-msgid "VOLUME:"
-msgstr "음량:"
-
-msgid "SAMPLE RATE:"
-msgstr "샘플링 레이트:"
-
-msgid "REVERB:"
-msgstr "리버브:"
-
-msgid "GAME SPEED:"
-msgstr "게임 속도:"
-
-msgid "MOUSE SENS:"
-msgstr "마우스 감도:"
-
+#: src/engine/start_menu.c:884
 msgid "WINDOW SIZE:"
 msgstr "창 크기:"
 
+#: src/engine/start_menu.c:884
+msgid "SCALE:"
+msgstr "배율:"
+
+#: src/engine/start_menu.c:884
+msgid "FULLSCREEN:"
+msgstr "전체화면:"
+
+#: src/engine/start_menu.c:885
+msgid "INT SCALE:"
+msgstr "정수 확대:"
+
+#: src/engine/start_menu.c:885
+msgid "VSYNC:"
+msgstr "VSYNC:"
+
+#: src/engine/start_menu.c:885
+msgid "FPS LIMIT:"
+msgstr "FPS 제한:"
+
+#: src/engine/start_menu.c:885
+msgid "FILTERING:"
+msgstr "필터링:"
+
+#: src/engine/start_menu.c:886
+msgid "SCANLINES:"
+msgstr "주사선:"
+
+#: src/engine/start_menu.c:886
+msgid "CRT CURVE:"
+msgstr "CRT 곡률:"
+
+#: src/engine/start_menu.c:886
+msgid "BRIGHTNESS:"
+msgstr "밝기:"
+
+#: src/engine/start_menu.c:886
+msgid "CONTRAST:"
+msgstr "명암:"
+
+#: src/engine/start_menu.c:887
+msgid "GAMMA:"
+msgstr "감마:"
+
+#: src/engine/start_menu.c:887
+msgid "VOLUME:"
+msgstr "음량:"
+
+#: src/engine/start_menu.c:887
+msgid "MUSIC:"
+msgstr "음악:"
+
+#: src/engine/start_menu.c:887
+msgid "SFX:"
+msgstr "효과음:"
+
+#: src/engine/start_menu.c:888
+msgid "REVERB:"
+msgstr "리버브:"
+
+#: src/engine/start_menu.c:888
+msgid "SAMPLE RATE:"
+msgstr "샘플링 레이트:"
+
+#: src/engine/start_menu.c:888
+msgid "GAME SPEED:"
+msgstr "게임 속도:"
+
+#: src/engine/start_menu.c:888
+msgid "MOUSE SENS:"
+msgstr "마우스 감도:"
+
+#: src/engine/start_menu.c:889 src/engine/start_menu.c:1056
+msgid "DATA PATH:"
+msgstr "데이터 경로:"
+
+#: src/engine/start_menu.c:889
+msgid "LANGUAGE:"
+msgstr "언어:"
+
+#: src/engine/start_menu.c:889
+msgid "ENHANCED:"
+msgstr "향상:"
+
+#: src/engine/start_menu.c:889
+msgid "BACK"
+msgstr "뒤로"
+
+#: src/engine/start_menu.c:895 src/engine/start_menu.c:896
+#: src/engine/start_menu.c:897 src/engine/start_menu.c:901
+#: src/engine/start_menu.c:902 src/engine/start_menu.c:907
+#: src/engine/start_menu.c:908 src/engine/start_menu.c:909
+#: src/engine/start_menu.c:915 src/main.c:730 src/main.c:742
+msgid "ON"
+msgstr "켬"
+
+#: src/engine/start_menu.c:895 src/engine/start_menu.c:896
+#: src/engine/start_menu.c:897 src/engine/start_menu.c:901
+#: src/engine/start_menu.c:902 src/engine/start_menu.c:907
+#: src/engine/start_menu.c:908 src/engine/start_menu.c:909
+#: src/engine/start_menu.c:915 src/main.c:730 src/main.c:742
+msgid "OFF"
+msgstr "끔"
+
+#: src/engine/start_menu.c:898
+msgid "UNLIMITED"
+msgstr "무제한"
+
+#: src/engine/start_menu.c:900
+msgid "BILINEAR"
+msgstr "바이리니어"
+
+#: src/engine/start_menu.c:900
+msgid "NEAREST"
+msgstr "최근접"
+
+#: src/engine/start_menu.c:966
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
+msgstr "경로 입력  ENTER: 확인  ESC: 취소"
+
+#: src/engine/start_menu.c:967
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
+msgstr "위-아래: 선택  좌우: 조절  ESC: 뒤로"
+
+#: src/engine/start_menu.c:984 src/engine/start_menu.c:1303
+msgid "ABOUT"
+msgstr "정보"
+
+#: src/engine/start_menu.c:985
 msgid "A reimplementation of:"
 msgstr "재구현:"
 
-msgid "TECHNOLOGY"
-msgstr "기술"
-
+#: src/engine/start_menu.c:988
 msgid "CREDITS"
 msgstr "크레딧"
 
-msgid "SYSTEM"
-msgstr "시스템"
+#: src/engine/start_menu.c:991
+msgid "TECHNOLOGY"
+msgstr "기술"
 
+#: src/engine/start_menu.c:998 src/engine/start_menu.c:1043
 msgid "PRESS ANY KEY TO RETURN"
 msgstr "아무 키나 눌러 돌아가기"
 
+#: src/engine/start_menu.c:1007 src/engine/start_menu.c:1319
+msgid "CONTROLS"
+msgstr "조작법"
+
+#: src/engine/start_menu.c:1011
 msgid "MOVEMENT"
 msgstr "이동"
 
-msgid "COMBAT & ITEMS"
-msgstr "전투 및 아이템"
-
+#: src/engine/start_menu.c:1013
 msgid "Move forward"
 msgstr "앞으로 이동"
 
+#: src/engine/start_menu.c:1015
 msgid "Move backward"
 msgstr "뒤로 이동"
 
+#: src/engine/start_menu.c:1017
 msgid "Turn left"
 msgstr "왼쪽 회전"
 
+#: src/engine/start_menu.c:1019
 msgid "Turn right"
 msgstr "오른쪽 회전"
 
+#: src/engine/start_menu.c:1021
+msgid "COMBAT & ITEMS"
+msgstr "전투 및 아이템"
+
+#: src/engine/start_menu.c:1023
 msgid "Fire weapon"
 msgstr "무기 발사"
 
-msgid "Inventory"
-msgstr "인벤토리"
-
+#: src/engine/start_menu.c:1025
 msgid "Use item / Interact"
 msgstr "아이템 사용 / 상호작용"
 
+#: src/engine/start_menu.c:1027
 msgid "Cycle droids"
 msgstr "드로이드 전환"
 
-msgid "Cycle save slots"
-msgstr "저장 슬롯 전환"
+#: src/engine/start_menu.c:1029
+msgid "Inventory"
+msgstr "인벤토리"
 
+#: src/engine/start_menu.c:1031
+msgid "SYSTEM"
+msgstr "시스템"
+
+#: src/engine/start_menu.c:1033
 msgid "Save / Load game"
 msgstr "저장 / 불러오기"
 
+#: src/engine/start_menu.c:1035
+msgid "Cycle save slots"
+msgstr "저장 슬롯 전환"
+
+#: src/engine/start_menu.c:1037
 msgid "Minimap / City map"
 msgstr "미니맵 / 도시 맵"
 
+#: src/engine/start_menu.c:1039
 msgid "Help screen"
 msgstr "도움말 화면"
 
+#: src/engine/start_menu.c:1041
 msgid "Pause menu"
 msgstr "일시정지 메뉴"
 
-msgid "ESC: BACK"
-msgstr "ESC: 뒤로"
-
+#: src/engine/start_menu.c:1052
 msgid "DATA SCANNER"
 msgstr "데이터 스캐너"
 
+#: src/engine/start_menu.c:1061
 msgid "Scanning Captive hashes..."
 msgstr "Captive 해시 스캔 중..."
 
+#: src/engine/start_menu.c:1062
 msgid "Scanning Liberation data..."
 msgstr "Liberation 데이터 스캔 중..."
 
+#: src/engine/start_menu.c:1082
+#, c-format
 msgid "ZIP archives found: %d"
 msgstr "ZIP 아카이브 발견: %d"
 
+#: src/engine/start_menu.c:1085
+#, c-format
+msgid "Captive: %d / %d %s"
+msgstr ""
+
+#: src/engine/start_menu.c:1092
+#, c-format
+msgid "Liberation: %d / %d %s"
+msgstr ""
+
+#: src/engine/start_menu.c:1099
 msgid "VERIFICATION"
 msgstr "검증"
 
+#: src/engine/start_menu.c:1101
 msgid "Files identified by SHA-256 content hash, not filename."
 msgstr "파일은 SHA-256 콘텐츠 해시로 식별됩니다 (파일 이름이 아님)."
 
+#: src/engine/start_menu.c:1104
 msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
 msgstr "중첩된 ZIP, ADF 디스크 이미지 및 ISO 트랙이 스캔됩니다."
 
+#: src/engine/start_menu.c:1107
 msgid "No filenames are trusted; only content determines identity."
 msgstr "파일 이름은 신뢰하지 않습니다. 콘텐츠만이 동일성을 결정합니다."
 
+#: src/engine/start_menu.c:1111
+msgid "ESC: BACK"
+msgstr "ESC: 뒤로"
+
+#: src/engine/start_menu.c:1130
 msgid "GAME DATA NOT FOUND"
 msgstr "게임 데이터를 찾을 수 없음"
 
+#: src/engine/start_menu.c:1133
 msgid "OpenCaptive needs original game data files to run."
 msgstr "OpenCaptive를 실행하려면 원본 게임 데이터 파일이 필요합니다."
 
+#: src/engine/start_menu.c:1136
 msgid "Place your game data in the following folder:"
 msgstr "게임 데이터를 다음 폴더에 넣어 주세요:"
 
+#: src/engine/start_menu.c:1141
 msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
 msgstr "지원 형식: ZIP 아카이브, ADF, ISO, 원시 파일."
 
+#: src/engine/start_menu.c:1144
 msgid "Files are identified by SHA-256 hash, not filename."
 msgstr "파일은 SHA-256 해시로 식별됩니다 (파일 이름이 아님)."
 
+#: src/engine/start_menu.c:1147
 msgid "You can change the data path in Settings (S)."
 msgstr "데이터 경로는 설정 (S)에서 변경할 수 있습니다."
 
+#: src/engine/start_menu.c:1150
 msgid "PRESS ANY KEY TO CONTINUE"
 msgstr "아무 키나 눌러 계속하기"
+
+#: src/engine/start_menu.c:1164
+msgid "SELECT GAME"
+msgstr "게임 선택"
+
+#: src/engine/start_menu.c:1166 src/engine/start_menu.c:1180
+msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
+msgstr "위-아래: 선택  ENTER: 시작  ESC: 종료"
+
+#: src/engine/start_menu.c:1170
+msgid "CAPTIVE DOS"
+msgstr "CAPTIVE DOS"
+
+#: src/engine/start_menu.c:1170
+msgid "CAPTIVE AMIGA"
+msgstr "CAPTIVE AMIGA"
+
+#: src/engine/start_menu.c:1171
+msgid "LIBERATION CD32"
+msgstr ""
+
+#: src/engine/start_menu.c:1171
+msgid "LIBERATION AMIGA"
+msgstr ""
+
+#: src/engine/start_menu.c:1214
+msgid "BY DANIEL NYLANDER"
+msgstr "제작자 DANIEL NYLANDER"
+
+#: src/engine/start_menu.c:1282 src/engine/start_menu.c:1283
+msgid "CONTINUE"
+msgstr "계속"
+
+#: src/engine/start_menu.c:1319
+msgid "QUIT"
+msgstr "종료"
+
+#: src/engine/start_menu.c:1333
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "화살표: 선택  ENTER: 시작  D: 데이터 스캔  F1: 조작법"
+
+#: src/engine/terminal.c:81
+msgid "LEVEL MAP"
+msgstr ""
+
+#: src/engine/terminal.c:121
+msgid "DROID STATUS"
+msgstr ""
+
+#: src/engine/terminal.c:126
+#, c-format
+msgid "%s HP:%d/%d EN:%d/%d"
+msgstr ""
+
+#: src/engine/terminal.c:136
+msgid "MISSION BRIEFING"
+msgstr ""
+
+#: src/engine/terminal.c:138
+#, c-format
+msgid "MISSION: %d"
+msgstr ""
+
+#: src/engine/terminal.c:141
+#, c-format
+msgid "LEVEL: %d/%d"
+msgstr ""
+
+#: src/engine/terminal.c:144
+#, c-format
+msgid "GENERATORS: %d/%d"
+msgstr ""
+
+#: src/engine/terminal.c:148
+msgid "DESTROY ALL GENERATORS"
+msgstr ""
+
+#: src/engine/terminal.c:149
+msgid "TO COMPLETE THE MISSION"
+msgstr ""
+
+#: src/engine/terminal.c:187
+msgid "TERMINAL SYSTEM V2.1"
+msgstr ""
+
+#: src/engine/terminal.c:196
+msgid "ESC:BACK"
+msgstr ""
+
+#: src/main.c:734 src/main.c:746
+msgid "LOW"
+msgstr "낮음"
+
+#: src/main.c:734 src/main.c:746
+msgid "HIGH"
+msgstr "높음"
+
+#: src/main.c:734 src/main.c:746
+msgid "NORMAL"
+msgstr "보통"
+
+#: src/main.c:814 src/main.c:826
+msgid "RUNTIME OPTIONS"
+msgstr "실행 옵션"
+
+#: src/main.c:815 src/main.c:827
+msgid "ESC CLOSE"
+msgstr "ESC 닫기"
+
+#: src/main.c:822 src/main.c:834
+msgid "PENDING"
+msgstr "대기 중"
+
+#: src/main.c:831 src/main.c:843
+msgid "ACTIVATE"
+msgstr "활성화"
+
+#: src/main.c:836 src/main.c:848
+msgid "UP DOWN ENTER"
+msgstr "위 아래 ENTER"
+
+#: src/main.c:1013 src/main.c:1085 src/main.c:1034 src/main.c:1106
+msgid "Fine paid. Rep +15"
+msgstr ""
+
+#: src/main.c:1023 src/main.c:1095 src/main.c:1044 src/main.c:1116
+#, c-format
+msgid "Industrial hazard! %d damage!"
+msgstr ""
+
+#: src/main.c:1033 src/main.c:1105 src/main.c:1054 src/main.c:1126
+msgid "Bar fight! Rep -10"
+msgstr ""
+
+#: src/main.c:1062 src/main.c:1083
+msgid "Shared inventory is full."
+msgstr ""
+
+#: src/main.c:1066 src/main.c:1087
+#, c-format
+msgid "Purchased: %s"
+msgstr ""
+
+#: src/main.c:1070 src/main.c:1091
+msgid "Cannot buy that item."
+msgstr ""
+
+#: src/main.c:1134 src/main.c:1155
+msgid "Entered building interior"
+msgstr ""
+
+#: src/main.c:1241 src/main.c:1269
+msgid "Taxi: 50 gold"
+msgstr ""
+
+#: src/main.c:1384 src/main.c:1415
+msgid "Creature destroyed!"
+msgstr ""
+
+#: src/main.c:1389 src/main.c:1420
+msgid "LEVEL UP!"
+msgstr ""
+
+#: src/main.c:1394 src/main.c:1425
+#, c-format
+msgid "Droid %d fires!"
+msgstr ""
+
+#: src/main.c:1543 src/main.c:1574
+#, c-format
+msgid "Droid %d picked up item"
+msgstr ""
+
+#: src/main.c:1559 src/main.c:1590
+msgid "Fell into a pit!"
+msgstr ""
+
+#: src/main.c:1563 src/main.c:1594
+msgid "Click!"
+msgstr ""
+
+#: src/main.c:2318 src/main.c:2349
+msgid "Left building"
+msgstr ""
+
+#: src/main.c:2869 src/main.c:2903
+#, c-format
+msgid "Droid %d hit for %d!"
+msgstr ""
+
+#: src/main.c:2877 src/main.c:2911
+#, c-format
+msgid "Droid %d destroyed!"
+msgstr ""
+
+#: src/main.c:2884 src/main.c:2918
+msgid "All droids destroyed! Mission failed."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:64
+msgid "You leave."
+msgstr "떠납니다."
+
+#: src/game/liberation_npc_dialogue.c:67 src/game/liberation_npc_dialogue.c:69
+#: src/game/liberation_npc_dialogue.c:72
+#: src/game/liberation_building_interact.c:38
+msgid "NPC"
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:68
+msgid "I don't have anything to trade right now. Try the shops."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:70
+msgid ""
+"Check the library or records office if you need information. The police "
+"might know about threats in the area."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:73
+msgid "Trade"
+msgstr "거래"
+
+#: src/game/liberation_npc_dialogue.c:74
+#: src/game/liberation_building_interact.c:63
+#: src/game/liberation_building_interact.c:105
+msgid "Ask around"
+msgstr "물어보기"
+
+#: src/game/liberation_npc_dialogue.c:75 src/game/liberation_shop.c:117
+#: src/game/liberation_building_interact.c:64
+#: src/game/liberation_building_interact.c:81
+#: src/game/liberation_building_interact.c:95
+#: src/game/liberation_building_interact.c:106
+#: src/game/liberation_building_interact.c:124
+#: src/game/liberation_building_interact.c:135
+#: src/game/liberation_building_interact.c:142
+msgid "Leave"
+msgstr "떠나기"
+
+#: src/game/liberation_shop.c:106
+#, c-format
+msgid "Welcome to %s! What can I do for you?"
+msgstr "%s에 오신 것을 환영합니다! 무엇을 도와드릴까요?"
+
+#: src/game/liberation_shop.c:108
+msgid "Goodbye!"
+msgstr "안녕히 가세요!"
+
+#: src/game/liberation_shop.c:110
+msgid "Take a look at what I have."
+msgstr "제가 가진 것을 보세요."
+
+#: src/game/liberation_shop.c:112
+msgid "I might have heard something. Check back later."
+msgstr "무언가 들은 것 같습니다. 나중에 다시 오세요."
+
+#: src/game/liberation_shop.c:115
+msgid "Buy"
+msgstr ""
+
+#: src/game/liberation_shop.c:116
+msgid "Any news?"
+msgstr "소식 있어요?"
+
+#: src/game/liberation_building_interact.c:29
+msgid "Shopkeeper"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:30
+msgid "Bartender"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:31
+msgid "Receptionist"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:32
+msgid "Librarian"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:33
+msgid "Officer"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:34
+msgid "Clerk"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:35
+msgid "Resident"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:36
+msgid "Foreman"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:37
+msgid "Agent"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:48
+msgid "You leave the building."
+msgstr "건물을 떠납니다."
+
+#: src/game/liberation_building_interact.c:53
+#, c-format
+msgid "Welcome to %s. The archives are available for public access."
+msgstr "%s에 오신 것을 환영합니다. 기록물은 공개되어 있습니다."
+
+#: src/game/liberation_building_interact.c:56
+#, c-format
+msgid ""
+"Records indicate %d buildings in this city. The target is in a special-class "
+"building. Check the industrial and commercial districts."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:62
+msgid "Search archives"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:69
+#, c-format
+msgid "This is the %s police station. State your business."
+msgstr "여기는 %s 경찰서입니다. 무슨 일이십니까?"
+
+#: src/game/liberation_building_interact.c:71
+msgid ""
+"We have reports of suspicious activity in the industrial district. Stay "
+"alert out there."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:74
+msgid "You have been fined 100 gold for disturbing the peace."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:77
+msgid "Ask for information"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:79
+msgid "Pay fine"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:86
+msgid "City Records Office. How can we help?"
+msgstr "시 기록관입니다. 어떻게 도와드릴까요?"
+
+#: src/game/liberation_building_interact.c:89
+#, c-format
+msgid ""
+"Building registry entry %d: %s. Cross-reference with police reports for "
+"suspect locations."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:94
+msgid "Look up records"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:100
+msgid "This is a private residence. What do you want?"
+msgstr "여기는 개인 주택입니다. 무엇을 원하십니까?"
+
+#: src/game/liberation_building_interact.c:102
+msgid ""
+"I heard strange noises from the special building down the road. Something's "
+"going on in there."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:111
+#, c-format
+msgid "Welcome to %s. This area is restricted."
+msgstr "%s에 오신 것을 환영합니다. 이 구역은 제한구역입니다."
+
+#: src/game/liberation_building_interact.c:113
+msgid "WARNING: Machinery malfunction! Electrical discharge hits your droids!"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:115
+msgid ""
+"The machinery hums loudly. There might be useful equipment stored in the "
+"back, but the foreman keeps it locked."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:119
+#: src/game/liberation_building_interact.c:122
+#, fuzzy
+msgid "Look around"
+msgstr "물어보기"
+
+#: src/game/liberation_building_interact.c:129
+#, c-format
+msgid "%s. You shouldn't be here."
+msgstr "%s. 여기 있으면 안 됩니다."
+
+#: src/game/liberation_building_interact.c:131
+msgid ""
+"This location appears to be connected to your mission. The generator control "
+"panel is somewhere inside."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:134
+msgid "Investigate"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:140
+#, c-format
+msgid "This is %s. We're not taking visitors right now."
+msgstr "여기는 %s입니다. 지금은 방문객을 받지 않습니다."
+
+#: src/main.c:2357
+msgid "Mission complete. Rep +20"
+msgstr "임무 완료. 평판 +20"
+
+#~ msgid "CAPTIVE (1990)"
+#~ msgstr "CAPTIVE (1990)"
+
+#~ msgid "LIBERATION: CAPTIVE 2"
+#~ msgstr "LIBERATION: CAPTIVE 2"
+
+#~ msgid "BILINEAR:"
+#~ msgstr "쌍선형:"
+
+#~ msgid "%s. Come in and browse."
+#~ msgstr "%s입니다. 들어와서 둘러보세요."
+
+#~ msgid "Welcome to %s! What'll it be?"
+#~ msgstr "%s에 오신 것을 환영합니다! 무엇을 드릴까요?"
+
+#~ msgid "Welcome to %s. How can we help you today?"
+#~ msgstr "%s에 오신 것을 환영합니다. 오늘 어떻게 도와드릴까요?"
+
+#~ msgid "Buy/Sell"
+#~ msgstr "매매"
+
+#~ msgid "Failed to initialize renderer"
+#~ msgstr "렌더러 초기화 실패"
+
+#~ msgid "Missing game data"
+#~ msgstr "게임 데이터 없음"
+
+#~ msgid ""
+#~ "No game data found. Please set the data path in Settings or use --data on "
+#~ "the command line."
+#~ msgstr ""
+#~ "게임 데이터를 찾을 수 없습니다. 설정에서 데이터 경로를 지정하거나 --data "
+#~ "명령을 사용하세요."
+
+#~ msgid "You can also change the data path in Settings."
+#~ msgstr "설정에서 데이터 경로를 변경할 수도 있습니다."
+
+#~ msgid "Missing Liberation data"
+#~ msgstr "Liberation 데이터 없음"
+
+#~ msgid "VIEW RECONSTRUCTION"
+#~ msgstr "재구성 보기"
+
+#~ msgid "SCANLINES"
+#~ msgstr "스캔라인"
+
+#~ msgid "CRT CURVE"
+#~ msgstr "CRT 곡선"
+
+#~ msgid "BRIGHTNESS"
+#~ msgstr "밝기"
+
+#~ msgid "MUSIC"
+#~ msgstr "음악"
+
+#~ msgid "SFX"
+#~ msgstr "효과음"
+
+#~ msgid "GOD MODE"
+#~ msgstr "신 모드"
+
+#~ msgid "INFINITE ENERGY"
+#~ msgstr "무한 에너지"
+
+#~ msgid "COMPLETE OBJECTIVE"
+#~ msgstr "목표 완료"
+
+#~ msgid "CLOSE"
+#~ msgstr "닫기"

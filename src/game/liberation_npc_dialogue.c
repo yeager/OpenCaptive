@@ -7,28 +7,28 @@
 bool npc_dialogue_data_load(NPCDialogueData *ndd,
                             const uint8_t *dte_compressed, size_t comp_size) {
     if (!ndd || !dte_compressed || !comp_size) return false;
-    memset(ndd, 0, sizeof(*ndd));
+    NPCDialogueData loaded = {0};
 
     size_t dsz = arcd_decompressed_size(dte_compressed, comp_size);
     if (!dsz) return false;
 
-    ndd->dte_data = malloc(dsz);
-    if (!ndd->dte_data) return false;
+    loaded.dte_data = malloc(dsz);
+    if (!loaded.dte_data) return false;
 
-    int r = arcd_decode(dte_compressed, comp_size, ndd->dte_data, dsz);
+    int r = arcd_decode(dte_compressed, comp_size, loaded.dte_data, dsz);
     if (r <= 0) {
-        free(ndd->dte_data);
-        ndd->dte_data = NULL;
+        free(loaded.dte_data);
         return false;
     }
-    ndd->dte_size = (size_t)r;
+    loaded.dte_size = (size_t)r;
 
-    if (!lib_text_table_parse(&ndd->dte_table, ndd->dte_data, ndd->dte_size)) {
-        free(ndd->dte_data);
-        ndd->dte_data = NULL;
+    if (!lib_text_table_parse(&loaded.dte_table, loaded.dte_data, loaded.dte_size)) {
+        free(loaded.dte_data);
         return false;
     }
 
+    free(ndd->dte_data);
+    *ndd = loaded;
     ndd->loaded = true;
     return true;
 }
@@ -44,7 +44,9 @@ bool npc_dialogue_generate(const NPCDialogueData *ndd,
                            NPCState npc_state,
                            uint32_t seed,
                            DialogueTree *tree) {
-    if (!ndd || !ndd->loaded || !tree) return false;
+    if (!ndd || !ndd->loaded || !tree ||
+        npc_state < NPC_STATE_NORMAL || npc_state > NPC_STATE_DEAD_FOLLOW)
+        return false;
 
     dialogue_tree_init(tree);
 
@@ -62,12 +64,12 @@ bool npc_dialogue_generate(const NPCDialogueData *ndd,
     unsigned exit_node = dialogue_tree_add_exit(tree, _("You leave."));
 
     if (npc_state == NPC_STATE_NORMAL) {
-        unsigned trade_node = dialogue_tree_add_text(tree, "NPC",
+        unsigned trade_node = dialogue_tree_add_text(tree, _("NPC"),
             _("I don't have anything to trade right now. Try the shops."), exit_node);
-        unsigned info_node = dialogue_tree_add_text(tree, "NPC",
+        unsigned info_node = dialogue_tree_add_text(tree, _("NPC"),
             _("Check the library or records office if you need information. "
               "The police might know about threats in the area."), exit_node);
-        unsigned greet = dialogue_tree_add_choice(tree, "NPC", description);
+        unsigned greet = dialogue_tree_add_choice(tree, _("NPC"), description);
         dialogue_tree_add_option(tree, greet, _("Trade"), trade_node);
         dialogue_tree_add_option(tree, greet, _("Ask around"), info_node);
         dialogue_tree_add_option(tree, greet, _("Leave"), exit_node);

@@ -30,9 +30,51 @@ typedef struct {
 bool save_game(const GameState *gs, const CreatureList *creatures,
                const PuzzleList *puzzles, const char *path) {
     if (!gs || !creatures || !puzzles || !path || gs->game_type != GAME_CAPTIVE ||
-        gs->num_levels < 1 || gs->num_levels > MAX_LEVELS) return false;
+        gs->mission <= 0 || gs->base_id < 0 ||
+        gs->num_levels < 1 || gs->num_levels > MAX_LEVELS ||
+        gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
+        gs->party_y < 0 || gs->party_y >= MAP_HEIGHT ||
+        gs->party_dir < DIR_NORTH || gs->party_dir > DIR_WEST ||
+        gs->selected_droid < 0 || gs->selected_droid >= 4 ||
+        gs->generators_total < 0 ||
+        gs->generators_destroyed < 0 ||
+        gs->generators_destroyed > gs->generators_total || gs->gold < 0) return false;
     if (creatures->num_creatures < 0 || creatures->num_creatures > MAX_CREATURES ||
         puzzles->num_puzzles < 0 || puzzles->num_puzzles > MAX_PUZZLES) return false;
+    for (int i = 0; i < creatures->num_creatures; i++) {
+        const Creature *c = &creatures->creatures[i];
+        if (c->type < CREATURE_NONE || c->type >= CREATURE_COUNT ||
+            c->x < 0 || c->x >= MAP_WIDTH || c->y < 0 || c->y >= MAP_HEIGHT ||
+            c->level < 0 || c->level >= gs->num_levels || c->hp < 0 ||
+            c->hp_max < 0 || c->hp > c->hp_max || c->damage_min < 0 ||
+            c->damage_max < c->damage_min || c->defense < 0)
+            return false;
+    }
+    for (int i = 0; i < puzzles->num_puzzles; i++) {
+        const Puzzle *p = &puzzles->puzzles[i];
+        if (p->type < PUZZLE_NONE || p->type > PUZZLE_WALL_ELECTRIC ||
+            p->x < 0 || p->x >= MAP_WIDTH || p->y < 0 || p->y >= MAP_HEIGHT ||
+            p->level < 0 || p->level >= gs->num_levels ||
+            p->face < 0 || p->face > DIR_WEST ||
+            p->target_x < -1 || p->target_x >= MAP_WIDTH ||
+            p->target_y < -1 || p->target_y >= MAP_HEIGHT)
+            return false;
+    }
+    for (int i = 0; i < 4; i++) {
+        const Droid *d = &gs->droids[i];
+        if (d->hp < 0 || d->hp_max < 0 || d->hp > d->hp_max ||
+            d->energy < 0 || d->energy_max < 0 || d->energy > d->energy_max)
+            return false;
+    }
+    for (int level = 0; level < gs->num_levels; level++) {
+        for (int y = 0; y < MAP_HEIGHT; y++) {
+            for (int x = 0; x < MAP_WIDTH; x++) {
+                CellType type = gs->levels[level].cells[y][x].type;
+                if (type < CELL_WALL || type > CELL_PIT) return false;
+            }
+        }
+    }
     FILE *f = fopen(path, "wb");
     if (!f) return false;
 
@@ -135,6 +177,16 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
         fclose(f);
         return false;
     }
+    for (size_t i = 0; i < sizeof(restored.droids) / sizeof(restored.droids[0]); ++i) {
+        restored.droids[i].name[sizeof(restored.droids[i].name) - 1] = '\0';
+        const Droid *droid = &restored.droids[i];
+        if (droid->hp < 0 || droid->hp > droid->hp_max ||
+            droid->hp_max < 0 || droid->energy < 0 ||
+            droid->energy > droid->energy_max || droid->energy_max < 0) {
+            fclose(f);
+            return false;
+        }
+    }
 
     // Restore cell types (doors opened etc.)
     for (int i = 0; i < restored.num_levels; i++) {
@@ -165,14 +217,17 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
             creature->x < 0 || creature->x >= MAP_WIDTH ||
             creature->y < 0 || creature->y >= MAP_HEIGHT ||
             creature->level < 0 || creature->level >= restored.num_levels ||
-            creature->hp_max < 0 || creature->hp > creature->hp_max) {
+            creature->hp < 0 || creature->hp_max < 0 ||
+            creature->hp > creature->hp_max || creature->damage_min < 0 ||
+            creature->damage_max < creature->damage_min ||
+            creature->defense < 0) {
             fclose(f);
             return false;
         }
     }
     for (int i = 0; i < restored_puzzles.num_puzzles; i++) {
         const Puzzle *puzzle = &restored_puzzles.puzzles[i];
-        if (puzzle->type < PUZZLE_NONE || puzzle->type > PUZZLE_TELEPORTER_TRAP ||
+        if (puzzle->type < PUZZLE_NONE || puzzle->type > PUZZLE_WALL_ELECTRIC ||
             puzzle->x < 0 || puzzle->x >= MAP_WIDTH ||
             puzzle->y < 0 || puzzle->y >= MAP_HEIGHT ||
             puzzle->level < 0 || puzzle->level >= restored.num_levels ||
@@ -184,6 +239,18 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
         }
     }
 
+    /* The format has no extension area.  Reject trailing bytes so a
+     * concatenated or mismatched save cannot be accepted as valid state. */
+    long payload_end = ftell(f);
+    if (payload_end < 0 || fseek(f, 0, SEEK_END) != 0) {
+        fclose(f);
+        return false;
+    }
+    long file_end = ftell(f);
+    if (file_end < 0 || payload_end != file_end) {
+        fclose(f);
+        return false;
+    }
     fclose(f);
     restored.mode = STATE_GAME;
     *gs = restored;

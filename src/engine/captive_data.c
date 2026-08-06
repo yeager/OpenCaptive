@@ -33,6 +33,7 @@ const char *const captive_name_syllables[CAPTIVE_SYLLABLE_COUNT] = {
 };
 
 uint32_t captive_prng(uint32_t *state) {
+    if (!state) return 0;
     uint16_t s = (uint16_t)*state;
     s = (uint16_t)(s * 0x5e5 + 0x29);
     s = (s >> 3) | (s << 13);
@@ -42,6 +43,7 @@ uint32_t captive_prng(uint32_t *state) {
 }
 
 uint32_t captive_combat_prng(uint32_t *state) {
+    if (!state) return 0;
     uint16_t s = (uint16_t)*state;
     s = (uint16_t)(s * 0x5e5 + 0x29);
     s = (s >> 2) | (s << 14);

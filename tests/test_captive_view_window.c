@@ -88,5 +88,21 @@ int main(void) {
     captive_view_window_build(&state, &window);
     assert(window.hidden[9]);
     assert(!window.hidden[15]); /* cell 16 is not hidden by stale cell 10 */
+
+    memset(&state, 0, sizeof(state));
+    state.num_levels = MAX_LEVELS + 1;
+    state.current_level = MAX_LEVELS;
+    state.party_dir = DIR_NORTH;
+    captive_view_window_build(&state, &window);
+    assert(window.visible[0].type == CELL_WALL);
+
+    memset(&state, 0, sizeof(state));
+    state.num_levels = 1;
+    state.current_level = 0;
+    state.party_x = MAP_WIDTH;
+    state.party_y = 0;
+    state.party_dir = DIR_NORTH;
+    captive_view_window_build(&state, &window);
+    assert(window.visible[0].type == CELL_WALL);
     return 0;
 }

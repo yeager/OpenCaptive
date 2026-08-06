@@ -12,6 +12,8 @@ typedef struct {
     char zip_paths[VFS_MAX_ZIPS][512];
     int num_zips;
     bool initialized;
+    char cache_signature[65];
+    bool cache_signature_valid;
 } DataVFS;
 
 bool vfs_init(DataVFS *vfs, const char *data_path);

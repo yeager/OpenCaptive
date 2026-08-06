@@ -28,6 +28,8 @@ static void place_bases(Holamap *hm) {
     hm->num_bases = num;
 
     for (int i = 0; i < num; i++) {
+        hm->bases[i].x = -1;
+        hm->bases[i].y = -1;
         int attempts = 100;
         while (attempts-- > 0) {
             int bx = 8 + (captive_prng(&seed) % (HOLAMAP_WIDTH - 16));
@@ -40,10 +42,33 @@ static void place_bases(Holamap *hm) {
                 break;
             }
         }
+        /* A pathological seed can exhaust the random attempts.  Do not
+         * leave the zero-initialised (0,0) coordinate as a playable base;
+         * scan for the first valid land cell instead. */
+        if (hm->bases[i].x < 0) {
+            for (int by = 8; by < HOLAMAP_HEIGHT - 8 && hm->bases[i].x < 0; by++) {
+                for (int bx = 8; bx < HOLAMAP_WIDTH - 8; bx++) {
+                    if (hm->surface[by][bx] >= 1 && hm->surface[by][bx] <= 3) {
+                        hm->bases[i].x = bx;
+                        hm->bases[i].y = by;
+                        break;
+                    }
+                }
+            }
+        }
+        /* The generated surface normally always contains land.  Keep the
+         * coordinate invariant even for a synthetic all-water surface. */
+        if (hm->bases[i].x < 0) {
+            hm->bases[i].x = HOLAMAP_WIDTH / 2;
+            hm->bases[i].y = HOLAMAP_HEIGHT / 2;
+        }
+        hm->bases[i].revealed = false;
+        hm->bases[i].destroyed = false;
     }
 }
 
 void holamap_init(Holamap *hm, uint32_t mission_seed) {
+    if (!hm) return;
     memset(hm, 0, sizeof(*hm));
     hm->seed = mission_seed;
     hm->cursor_x = HOLAMAP_WIDTH / 2;
@@ -53,7 +78,8 @@ void holamap_init(Holamap *hm, uint32_t mission_seed) {
 }
 
 void holamap_reveal_base(Holamap *hm, int base_idx) {
-    if (base_idx >= 0 && base_idx < hm->num_bases)
+    if (hm && base_idx >= 0 && base_idx < hm->num_bases &&
+        base_idx < HOLAMAP_MAX_BASES)
         hm->bases[base_idx].revealed = true;
 }
 
@@ -67,6 +93,7 @@ static const uint32_t terrain_colors[5] = {
 
 void holamap_render(const Holamap *hm, uint32_t *framebuffer,
                     int fb_width, int fb_height) {
+    if (!hm || !framebuffer || fb_width <= 0 || fb_height <= 0) return;
     int ox = (fb_width - HOLAMAP_WIDTH) / 2;
     int oy = (fb_height - HOLAMAP_HEIGHT) / 2;
     if (ox < 0) ox = 0;
@@ -80,7 +107,10 @@ void holamap_render(const Holamap *hm, uint32_t *framebuffer,
         }
     }
 
-    for (int i = 0; i < hm->num_bases; i++) {
+    int base_count = hm->num_bases;
+    if (base_count < 0) base_count = 0;
+    if (base_count > HOLAMAP_MAX_BASES) base_count = HOLAMAP_MAX_BASES;
+    for (int i = 0; i < base_count; i++) {
         if (!hm->bases[i].revealed) continue;
         int bx = ox + hm->bases[i].x;
         int by = oy + hm->bases[i].y;

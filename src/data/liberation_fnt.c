@@ -1,4 +1,5 @@
 #include "liberation_fnt.h"
+#include <limits.h>
 #include <string.h>
 
 static uint16_t read_be16(const uint8_t *p) {
@@ -6,10 +7,11 @@ static uint16_t read_be16(const uint8_t *p) {
 }
 
 bool fnt_open(FntFont *font, const uint8_t *data, size_t size) {
-    if (!font || !data || size < 12) return false;
+    if (!font) return false;
+    memset(font, 0, sizeof(*font));
+    if (!data || size < 12) return false;
     if (memcmp(data, "CHAR", 4) != 0) return false;
 
-    memset(font, 0, sizeof(*font));
     font->glyph_count = read_be16(data + 4);
     font->max_width = read_be16(data + 8);
     font->num_planes = read_be16(data + 10);
@@ -40,7 +42,9 @@ int fnt_text_width(const FntFont *font, const char *text) {
     int w = 0;
     for (; *text; text++) {
         const FntGlyph *g = fnt_get_glyph(font, (unsigned char)*text);
-        w += g ? g->width : font->max_width;
+        int advance = g ? g->width : font->max_width;
+        if (advance > INT_MAX - w) return INT_MAX;
+        w += advance;
     }
     return w;
 }

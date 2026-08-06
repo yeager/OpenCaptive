@@ -6,17 +6,17 @@
 
 static void test_load_synthetic(void) {
     PL5Image sheet;
-    sheet.width = PL5_WIDTH;
+    sheet.width = PL5_WIDTH + 16;
     sheet.height = PL5_HEIGHT;
-    sheet.data_size = PL5_PIXEL_COUNT;
-    sheet.pixel_data = calloc(PL5_PIXEL_COUNT, 1);
+    sheet.data_size = (size_t)sheet.width * sheet.height;
+    sheet.pixel_data = calloc(sheet.data_size, 1);
     assert(sheet.pixel_data);
     memset(sheet.palette, 0, sizeof(sheet.palette));
     sheet.palette[1] = 0xFFFF0000;
 
     /* Draw a non-zero pixel in frames 0 and 1 */
-    sheet.pixel_data[5 * PL5_WIDTH + 5] = 1;
-    sheet.pixel_data[5 * PL5_WIDTH + (CREATURE_FRAME_W + 5)] = 1;
+    sheet.pixel_data[5 * sheet.width + 5] = 1;
+    sheet.pixel_data[5 * sheet.width + (CREATURE_FRAME_W + 5)] = 1;
 
     CreatureSpriteSet css;
     assert(creature_sprite_load(&sheet, &css));

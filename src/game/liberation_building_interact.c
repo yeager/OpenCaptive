@@ -2,8 +2,10 @@
 #include "i18n.h"
 #include <string.h>
 #include <stdio.h>
+#include <limits.h>
 
 void building_interact_init(BuildingInteraction *bi) {
+    if (!bi) return;
     memset(bi, 0, sizeof(*bi));
 }
 
@@ -24,16 +26,16 @@ static InteractionType type_from_building(BuildingType bt) {
 
 static const char *generic_npc_for_type(InteractionType t) {
     switch (t) {
-        case INTERACT_SHOP:       return "Shopkeeper";
-        case INTERACT_BAR:        return "Bartender";
-        case INTERACT_BUSINESS:   return "Receptionist";
-        case INTERACT_LIBRARY:    return "Librarian";
-        case INTERACT_POLICE:     return "Officer";
-        case INTERACT_RECORDS:    return "Clerk";
-        case INTERACT_RESIDENCE:  return "Resident";
-        case INTERACT_INDUSTRIAL: return "Foreman";
-        case INTERACT_SPECIAL:    return "Agent";
-        default:                  return "NPC";
+        case INTERACT_SHOP:       return _("Shopkeeper");
+        case INTERACT_BAR:        return _("Bartender");
+        case INTERACT_BUSINESS:   return _("Receptionist");
+        case INTERACT_LIBRARY:    return _("Librarian");
+        case INTERACT_POLICE:     return _("Officer");
+        case INTERACT_RECORDS:    return _("Clerk");
+        case INTERACT_RESIDENCE:  return _("Resident");
+        case INTERACT_INDUSTRIAL: return _("Foreman");
+        case INTERACT_SPECIAL:    return _("Agent");
+        default:                  return _("NPC");
     }
 }
 
@@ -70,20 +72,18 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
                   "Stay alert out there."), exit_node);
             unsigned fine_node = dialogue_tree_add_text(&tree, npc,
                 _("You have been fined 100 gold for disturbing the peace."), exit_node);
+            bi->fine_node = (int)fine_node;
             unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
             dialogue_tree_add_option(&tree, choice, _("Ask for information"), report);
             if (bi->bar_fight && bi->player_gold && *bi->player_gold >= 100) {
                 dialogue_tree_add_option(&tree, choice, _("Pay fine"), fine_node);
-                *bi->player_gold -= 100;
-                bi->bar_fight = false;
-                bi->fine_paid = true;
             }
             dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
             break;
         }
         case INTERACT_RECORDS: {
             snprintf(greeting, sizeof(greeting),
-                     _("City Records Office. How can we help?"));
+                     "%s", _("City Records Office. How can we help?"));
             char rec_info[DIALOGUE_MAX_TEXT];
             snprintf(rec_info, sizeof(rec_info),
                 _("Building registry entry %d: %s. "
@@ -97,7 +97,7 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
         }
         case INTERACT_RESIDENCE: {
             snprintf(greeting, sizeof(greeting),
-                     _("This is a private residence. What do you want?"));
+                     "%s", _("This is a private residence. What do you want?"));
             unsigned rumor = dialogue_tree_add_text(&tree, npc,
                 _("I heard strange noises from the special building down the road. "
                   "Something's going on in there."), exit_node);
@@ -154,20 +154,39 @@ bool building_interact_enter(BuildingInteraction *bi,
                              const CityGridState *grid,
                              const CityGrid *buildings,
                              int cell_x, int cell_y,
-                             uint32_t *player_gold) {
-    if (!bi || !grid || !buildings) return false;
+                             int *player_gold) {
+    if (bi) bi->active = false;
+    if (!bi || !grid || !buildings || buildings->total_buildings <= 0 ||
+        buildings->total_buildings > CITYGEN_MAX_BUILDINGS ||
+        cell_x < 0 || cell_x >= CITYGRID_WIDTH ||
+        cell_y < 0 || cell_y >= CITYGRID_HEIGHT) return false;
 
     int offset = cell_y * CITYGRID_WIDTH + cell_x;
     if (offset < 0 || offset >= CITYGRID_CELLS) return false;
 
-    uint8_t bid = grid->plane2[offset];
-    if (bid == 0 || bid == 0xFF) return false;
+    uint8_t raw_bid = grid->plane2[offset];
+    if (raw_bid == 0 || raw_bid == 0xFF) return false;
+    uint8_t bid = raw_bid & 0x7F;
+    if (bid == 0) return false;
 
     int bg_idx = (bid - 1) % buildings->total_buildings;
-    if (bg_idx < 0 || bg_idx >= CITYGEN_MAX_BUILDINGS) return false;
+    if (bg_idx < 0 || bg_idx >= buildings->total_buildings ||
+        bg_idx >= CITYGEN_MAX_BUILDINGS) return false;
 
     const CityBuilding *bld = &buildings->buildings[bg_idx];
-    bi->type = type_from_building((BuildingType)bld->type);
+    InteractionType interaction = type_from_building((BuildingType)bld->type);
+    if (interaction == INTERACT_NONE) return false;
+    bi->purchased_count = 0;
+    bi->mission_complete = false;
+    bi->bar_fight = false;
+    bi->fine_refused = false;
+    bi->fine_paid = false;
+    bi->industrial_hazard = false;
+    bi->shop_menu_active = false;
+    bi->special_investigated = false;
+    bi->fine_node = -1;
+    bi->reputation_priced = false;
+    bi->type = interaction;
     bi->building_index = bg_idx;
     bi->player_gold = player_gold;
     bi->active = true;
@@ -199,6 +218,35 @@ bool building_interact_enter(BuildingInteraction *bi,
 
 void building_interact_choose(BuildingInteraction *bi, unsigned choice) {
     if (!bi || !bi->active) return;
+    const DialogueNode *node = dialogue_state_current(&bi->dialogue);
+    bool valid_special_investigate =
+        bi->type == INTERACT_SPECIAL && node &&
+        node->type == DIALOGUE_NODE_CHOICE &&
+        node->choice_count <= DIALOGUE_MAX_CHOICES &&
+        choice < node->choice_count && choice == 0;
+    if (valid_special_investigate)
+        bi->special_investigated = true;
+    if (bi->type == INTERACT_POLICE && bi->bar_fight && node &&
+        node->type == DIALOGUE_NODE_CHOICE &&
+        node->choice_count <= DIALOGUE_MAX_CHOICES &&
+        node->choice_count > 0U && choice < node->choice_count &&
+        choice == node->choice_count - 1U)
+        bi->fine_refused = true;
+    bi->shop_menu_active = false;
+    if (node && node->type == DIALOGUE_NODE_CHOICE &&
+        node->choice_count <= DIALOGUE_MAX_CHOICES && choice < node->choice_count &&
+        (bi->type == INTERACT_SHOP || bi->type == INTERACT_BAR) && choice == 0) {
+        bi->shop_menu_active = true;
+    }
+    if (node && node->type == DIALOGUE_NODE_CHOICE &&
+        node->choice_count <= DIALOGUE_MAX_CHOICES && choice < node->choice_count &&
+        bi->type == INTERACT_POLICE && bi->fine_node >= 0 &&
+        node->choices[choice].target_node == (unsigned)bi->fine_node &&
+        bi->bar_fight && bi->player_gold && *bi->player_gold >= 100) {
+        *bi->player_gold -= 100;
+        bi->bar_fight = false;
+        bi->fine_paid = true;
+    }
     dialogue_state_choose(&bi->dialogue, choice);
     if (!dialogue_state_is_active(&bi->dialogue))
         bi->active = false;
@@ -207,7 +255,7 @@ void building_interact_choose(BuildingInteraction *bi, unsigned choice) {
 void building_interact_advance(BuildingInteraction *bi) {
     if (!bi || !bi->active) return;
     if (!dialogue_state_advance(&bi->dialogue)) {
-        if (bi->type == INTERACT_SPECIAL)
+        if (bi->type == INTERACT_SPECIAL && bi->special_investigated)
             bi->mission_complete = true;
         bi->active = false;
     }
@@ -216,22 +264,46 @@ void building_interact_advance(BuildingInteraction *bi) {
 bool building_interact_buy(BuildingInteraction *bi, unsigned item_idx) {
     if (!bi || !bi->active || !bi->player_gold) return false;
     if (bi->type != INTERACT_SHOP && bi->type != INTERACT_BAR) return false;
-    if (item_idx >= bi->shop.item_count) return false;
+    if (bi->type == INTERACT_SHOP && bi->reputation <= -50) return false;
+    if (bi->purchased_count < 0 || bi->purchased_count >= 20) return false;
+    if (bi->shop.item_count > LIB_SHOP_MAX_ITEMS ||
+        item_idx >= bi->shop.item_count || item_idx >= LIB_SHOP_MAX_ITEMS) return false;
     const LibShopItem *item = &bi->shop.items[item_idx];
-    if (!lib_shop_buy_item(&bi->shop, item_idx, bi->player_gold)) return false;
+    if (*bi->player_gold < 0) return false;
+    uint32_t gold = (uint32_t)*bi->player_gold;
+    if (!lib_shop_buy_item(&bi->shop, item_idx, &gold)) return false;
+    *bi->player_gold = gold > (uint32_t)INT_MAX ? INT_MAX : (int)gold;
     if (bi->purchased_count < 20) {
         snprintf(bi->purchased[bi->purchased_count].name,
                  sizeof(bi->purchased[0].name), "%s", item->name);
         bi->purchased[bi->purchased_count].item_type = item->item_type;
         bi->purchased_count++;
     }
-    if (bi->type == INTERACT_BAR && (bi->purchased_count & 3) == 0)
-        bi->bar_fight = true;
+    if (bi->type == INTERACT_BAR) {
+        /* Liberation: a drink purchase has a 25% bar-fight chance.
+         * Keep the roll in the shop state so the result is deterministic
+         * for replays and save-independent within one building visit. */
+        bi->shop.prng_seed = (uint16_t)(bi->shop.prng_seed * 0x5E5U + 0x29U);
+        if ((bi->shop.prng_seed & 3U) == 0U)
+            bi->bar_fight = true;
+    }
     return true;
 }
 
 void building_interact_leave(BuildingInteraction *bi) {
     if (bi) bi->active = false;
+}
+
+void building_interact_set_reputation(BuildingInteraction *bi, int reputation) {
+    if (!bi) return;
+    if (reputation < -100) reputation = -100;
+    if (reputation > 100) reputation = 100;
+    bi->reputation = reputation;
+    if (bi->type != INTERACT_SHOP || bi->reputation_priced || reputation < 50) return;
+    for (unsigned i = 0; i < bi->shop.item_count && i < LIB_SHOP_MAX_ITEMS; ++i) {
+        bi->shop.items[i].price = (uint16_t)((bi->shop.items[i].price * 3U) / 4U);
+    }
+    bi->reputation_priced = true;
 }
 
 const char *building_interact_text(const BuildingInteraction *bi) {
@@ -243,7 +315,8 @@ const char *building_interact_text(const BuildingInteraction *bi) {
 unsigned building_interact_choice_count(const BuildingInteraction *bi) {
     if (!bi || !bi->active) return 0;
     const DialogueNode *node = dialogue_state_current(&bi->dialogue);
-    if (!node || node->type != DIALOGUE_NODE_CHOICE) return 0;
+    if (!node || node->type != DIALOGUE_NODE_CHOICE ||
+        node->choice_count > DIALOGUE_MAX_CHOICES) return 0;
     return node->choice_count;
 }
 
@@ -251,7 +324,8 @@ const char *building_interact_choice_label(const BuildingInteraction *bi,
                                             unsigned idx) {
     if (!bi || !bi->active) return NULL;
     const DialogueNode *node = dialogue_state_current(&bi->dialogue);
-    if (!node || node->type != DIALOGUE_NODE_CHOICE || idx >= node->choice_count)
+    if (!node || node->type != DIALOGUE_NODE_CHOICE ||
+        node->choice_count > DIALOGUE_MAX_CHOICES || idx >= node->choice_count)
         return NULL;
     return node->choices[idx].label;
 }

@@ -237,6 +237,7 @@ end:
 }
 
 void adlib_sfx_init(AdlibSfxPlayer *player, int sample_rate) {
+    if (!player) return;
     memset(player, 0, sizeof(*player));
     opl2_init(&player->opl);
     opl2_write(&player->opl, 0x01, 0x20);
@@ -245,7 +246,7 @@ void adlib_sfx_init(AdlibSfxPlayer *player, int sample_rate) {
 }
 
 bool adlib_sfx_play(AdlibSfxPlayer *player, int sfx_id) {
-    if (sfx_id < 0 || sfx_id >= CAPTIVE_SFX_COUNT) return false;
+    if (!player || sfx_id < 0 || sfx_id >= CAPTIVE_SFX_COUNT) return false;
 
     int slot = -1;
     for (int i = 0; i < ADLIB_SFX_MAX_ACTIVE; i++) {
@@ -271,6 +272,7 @@ bool adlib_sfx_play(AdlibSfxPlayer *player, int sfx_id) {
 }
 
 void adlib_sfx_stop_all(AdlibSfxPlayer *player) {
+    if (!player) return;
     for (int i = 0; i < ADLIB_SFX_MAX_ACTIVE; i++) {
         if (player->voices[i].active) {
             key_off(&player->opl, player->voices[i].channel);
@@ -280,6 +282,7 @@ void adlib_sfx_stop_all(AdlibSfxPlayer *player) {
 }
 
 void adlib_sfx_render(AdlibSfxPlayer *player, int16_t *buffer, int num_samples) {
+    if (!player || !buffer || num_samples <= 0) return;
     int pos = 0;
     while (pos < num_samples) {
         int remaining_in_tick = player->samples_per_tick - player->tick_counter;
@@ -299,6 +302,7 @@ void adlib_sfx_render(AdlibSfxPlayer *player, int16_t *buffer, int num_samples) 
 }
 
 bool adlib_sfx_is_playing(const AdlibSfxPlayer *player) {
+    if (!player) return false;
     for (int i = 0; i < ADLIB_SFX_MAX_ACTIVE; i++)
         if (player->voices[i].active) return true;
     return false;

@@ -4,6 +4,8 @@
 #include <string.h>
 
 void game_state_init(GameState *gs, GameType type, int mission) {
+    if (!gs) return;
+    if (mission < 1) mission = 1;
     memset(gs, 0, sizeof(*gs));
     gs->game_type = type;
     gs->mode = STATE_MENU;
@@ -31,15 +33,28 @@ void game_state_init(GameState *gs, GameType type, int mission) {
 }
 
 void game_state_new_mission(GameState *gs, int mission) {
+    if (!gs) return;
+    if (mission < 1) mission = 1;
     gs->mission = mission;
-    gs->mission_seed = ((mission - 1) * 11) + gs->base_id;
+    gs->mission_seed = (uint32_t)((uint64_t)(mission - 1) * UINT64_C(11) +
+                                  (uint64_t)(int64_t)gs->base_id);
+    game_state_new_mission_seeded(gs, mission, gs->mission_seed);
+}
+
+void game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed) {
+    if (!gs) return;
+    if (mission < 1) mission = 1;
+    gs->mission = mission;
+    gs->mission_seed = seed;
     gs->current_level = 0;
 
     // Architect creates one flattened 64x32 base whose 16x8 sections are
     // connected by stairs and elevators.  map_generate_base exposes those
     // logical floors through levels[] for the current game-state API.
     int base_levels = 0;
-    DungeonLevel base_buf[MAX_LEVELS - 1];
+    /* map_generate_base() may legally emit MAX_LEVELS logical floors even
+       though only MAX_LEVELS - 1 can be copied after the exterior level. */
+    DungeonLevel base_buf[MAX_LEVELS];
     map_generate_base(base_buf, &base_levels, gs->mission_seed);
 
     /* Find base entrance x on floor 0 row 0 */
@@ -95,7 +110,9 @@ placed:
 
 bool game_state_change_floor(GameState *gs, int direction) {
     if (!gs || (direction != -1 && direction != 1)) return false;
-    if (gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+    if (gs->num_levels < 1 || gs->num_levels > MAX_LEVELS ||
+        gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->current_level >= MAX_LEVELS ||
         gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
         gs->party_y < 0 || gs->party_y >= MAP_HEIGHT) return false;
 
@@ -121,7 +138,7 @@ bool game_state_change_floor(GameState *gs, int direction) {
 
 bool game_state_complete_mission(GameState *gs) {
     if (!gs || gs->game_type != GAME_CAPTIVE || gs->generators_total <= 0 ||
-        gs->generators_destroyed < gs->generators_total)
+        gs->generators_destroyed != gs->generators_total)
         return false;
 
     if (gs->mission >= 10) {

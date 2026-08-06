@@ -1,8 +1,11 @@
 #include "liberation_data.h"
 #include "rnc_decoder.h"
 #include "sha256.h"
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define LIBERATION_DATA_MAGIC UINT32_C(0x4C444154) /* "LDAT" */
 
 /* Liberation: Captive II CD32 (Europe, Rev 3), data track 1. */
 static const char cd32_track_sha256[] =
@@ -67,7 +70,8 @@ static void load_optional_presentation_frame(const uint8_t *rnc, size_t rnc_size
     uint32_t packed_size = read_be32(rnc + 8U);
     if (memcmp(rnc, "RNC\2", 4) != 0 || raw_size == 0U ||
         raw_size > 16U * 1024U * 1024U ||
-        packed_size > rnc_size - 12U) return;
+        packed_size > rnc_size - 12U ||
+        packed_size > (uint32_t)(INT_MAX - 12)) return;
     uint8_t *form = malloc(raw_size);
     if (!form) return;
     if (rnc_decode(rnc, (int)(packed_size + 12U), form, (int)raw_size) == (int)raw_size) {
@@ -109,13 +113,60 @@ static void load_optional_presentation_frames(LiberationData *data) {
     free(bundle);
 }
 
-bool liberation_data_open(LiberationData *data, const DataVFS *vfs) {
-    memset(data, 0, sizeof(*data));
+static bool liberation_cd32_available(const DataVFS *vfs) {
+    size_t size = 0;
+    uint8_t *track = vfs_find_sha256(vfs, cd32_track_sha256, &size);
+    if (!track) return false;
+    ISOImage iso;
+    bool ok = iso_open_raw(&iso, track, size);
+    if (ok) {
+        for (int i = 0; i < LIBERATION_RESOURCE_COUNT; ++i) {
+            uint8_t *file = iso_read_file_sha256(&iso, resource_sha256[i], NULL);
+            if (!file) { ok = false; break; }
+            free(file);
+        }
+    }
+    free(track);
+    return ok;
+}
+
+static bool liberation_amiga_available(const DataVFS *vfs) {
+    for (int i = 0; i < LIBERATION_RESOURCE_COUNT; ++i) {
+        uint8_t *file = vfs_find_sha256(vfs, amiga_resource_sha256[i], NULL);
+        if (!file) return false;
+        free(file);
+    }
+    return true;
+}
+
+unsigned liberation_data_available_sources(const DataVFS *vfs) {
+    if (!vfs) return 0;
+    unsigned sources = 0;
+    if (liberation_cd32_available(vfs)) sources |= 1U << LIBERATION_SOURCE_CD32;
+    if (liberation_amiga_available(vfs)) sources |= 1U << LIBERATION_SOURCE_AMIGA_ADF;
+    return sources;
+}
+
+bool liberation_data_open_source(LiberationData *data, const DataVFS *vfs,
+                                 LiberationSource preferred) {
+    if (!data) return false;
+    if (data->lifecycle_magic == LIBERATION_DATA_MAGIC)
+        liberation_data_close(data);
+    else
+        memset(data, 0, sizeof(*data));
+    if (!vfs) {
+        return false;
+    }
+    data->lifecycle_magic = LIBERATION_DATA_MAGIC;
     data->vfs = vfs;
 
-    /* Try CD32 ISO first */
-    data->disc_data = vfs_find_sha256(vfs, cd32_track_sha256, &data->disc_size);
-    if (data->disc_data && iso_open_raw(&data->iso, data->disc_data, data->disc_size)) {
+    bool try_cd32 = preferred == LIBERATION_SOURCE_NONE || preferred == LIBERATION_SOURCE_CD32;
+    bool try_amiga = preferred == LIBERATION_SOURCE_NONE || preferred == LIBERATION_SOURCE_AMIGA_ADF;
+
+    /* Try the explicitly selected source first. */
+    if (try_cd32)
+        data->disc_data = vfs_find_sha256(vfs, cd32_track_sha256, &data->disc_size);
+    if (try_cd32 && data->disc_data && iso_open_raw(&data->iso, data->disc_data, data->disc_size)) {
         bool all_found = true;
         for (int i = 0; i < LIBERATION_RESOURCE_COUNT; i++) {
             uint8_t *file = iso_read_file_sha256(&data->iso, resource_sha256[i], NULL);
@@ -135,6 +186,10 @@ bool liberation_data_open(LiberationData *data, const DataVFS *vfs) {
     if (data->disc_data) { free(data->disc_data); data->disc_data = NULL; }
     memset(&data->iso, 0, sizeof(data->iso));
 
+    if (!try_amiga) {
+        liberation_data_close(data);
+        return false;
+    }
     int found = 0;
     for (int i = 0; i < LIBERATION_RESOURCE_COUNT; i++) {
         uint8_t *file = vfs_find_sha256(vfs, amiga_resource_sha256[i], NULL);
@@ -151,6 +206,10 @@ bool liberation_data_open(LiberationData *data, const DataVFS *vfs) {
     return false;
 }
 
+bool liberation_data_open(LiberationData *data, const DataVFS *vfs) {
+    return liberation_data_open_source(data, vfs, LIBERATION_SOURCE_NONE);
+}
+
 uint8_t *liberation_data_read(const LiberationData *data,
                               LiberationResource resource, size_t *out_size) {
     if (out_size) *out_size = 0;
@@ -163,6 +222,10 @@ uint8_t *liberation_data_read(const LiberationData *data,
 
 void liberation_data_close(LiberationData *data) {
     if (!data) return;
+    if (data->lifecycle_magic != LIBERATION_DATA_MAGIC) {
+        memset(data, 0, sizeof(*data));
+        return;
+    }
     free(data->disc_data);
     liberation_anim_frame_free(&data->city_frame);
     liberation_anim_frame_free(&data->intro_frame);

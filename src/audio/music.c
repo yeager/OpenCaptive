@@ -136,6 +136,7 @@ static const TrackCategory categories[] = {
 };
 
 bool music_init(MusicSystem *mus, SoundSystem *snd, const DataVFS *vfs) {
+    if (!mus) return false;
     memset(mus, 0, sizeof(*mus));
     mus->sound = snd;
     mus->enabled = true;
@@ -167,7 +168,7 @@ void music_play(MusicSystem *mus, MusicTrack track) {
     mus->owned_data = NULL;
     mus->current_track = track;
 
-    if (track == MUSIC_NONE || track >= MUSIC_TRACK_COUNT) return;
+    if (track < MUSIC_NONE || track >= MUSIC_TRACK_COUNT) return;
     const TrackCategory *cat = &categories[track];
     if (!cat->variants || cat->count == 0) return;
     if (!mus->vfs) return;
@@ -190,6 +191,7 @@ void music_play(MusicSystem *mus, MusicTrack track) {
 }
 
 void music_stop(MusicSystem *mus) {
+    if (!mus) return;
     midi_stop(&mus->player);
     free(mus->owned_data);
     mus->owned_data = NULL;
@@ -198,7 +200,7 @@ void music_stop(MusicSystem *mus) {
 }
 
 void music_update(MusicSystem *mus) {
-    if (!mus->enabled || !mus->player.playing) return;
+    if (!mus || !mus->enabled || !mus->player.playing) return;
 
     int16_t buffer[1024];
     midi_render(&mus->player, buffer, 1024);
@@ -209,6 +211,7 @@ void music_update(MusicSystem *mus) {
 }
 
 void music_shutdown(MusicSystem *mus) {
+    if (!mus) return;
     midi_stop(&mus->player);
     free(mus->owned_data);
     mus->owned_data = NULL;

@@ -55,6 +55,12 @@ int main(void) {
     VisitResult visited = {0};
     assert(amiga_ofs_visit_file_hashes(adf, sizeof(adf), capture_hash, &visited) == 1);
     assert(visited.count == 1 && visited.size == 4 && visited.first_byte == 't');
+
+    put_be32(header + 16, 0); /* Valid zero-length OFS file has no data chain. */
+    result = amiga_ofs_find_file_sha256(adf, sizeof(adf),
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", &size);
+    assert(result && size == 0);
+    free(result);
     puts("All Amiga OFS tests passed");
     return 0;
 }

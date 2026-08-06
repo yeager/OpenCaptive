@@ -9,9 +9,15 @@ static int failures = 0;
 } while(0)
 
 static void test_category_table(void) {
-    ASSERT(spawn_categories[0].types[0] == 13, "cat 0 first type");
-    ASSERT(spawn_categories[1].types[0] == 0, "cat 1 first type");
-    ASSERT(spawn_categories[7].types[2] == 7, "cat 7 last type");
+    ASSERT(spawn_categories[0].types[0] == 1, "cat 0 first type");
+    ASSERT(spawn_categories[1].types[0] == 4, "cat 1 first type");
+    ASSERT(spawn_categories[7].types[2] == 24, "cat 7 last type");
+    for (int category = 0; category < SPAWN_CATEGORY_COUNT; category++) {
+        for (int slot = 0; slot < SPAWN_TYPES_PER_CAT; slot++) {
+            uint8_t type = spawn_categories[category].types[slot];
+            ASSERT(type >= 1 && type <= 24, "category contains valid creature type");
+        }
+    }
 }
 
 static void test_subcell_tables(void) {
@@ -41,8 +47,18 @@ static void test_hp_computation(void) {
     uint16_t hp_max_diff = spawn_compute_hp(1, 8, 60);
     ASSERT(hp_max_diff >= hp_min_diff, "higher difficulty = higher HP");
 
+    ASSERT(spawn_compute_hp(1, -100, 60) == hp_min_diff,
+           "negative difficulty clamps to minimum");
+    ASSERT(spawn_compute_hp(1, 100, 60) == hp_max_diff,
+           "high difficulty clamps to maximum");
+
     ASSERT(spawn_compute_hp(0, 4, 60) == 6, "type 0 returns 6");
-    ASSERT(spawn_compute_hp(25, 4, 60) == 6, "type 25 out of range");
+    ASSERT(spawn_compute_hp(26, 4, 60) == 6, "type 26 out of range");
+
+    /* Type IDs are 1-based; type 1 has a much smaller HP range than type 2. */
+    uint16_t type1 = spawn_compute_hp(1, 0, 255);
+    uint16_t type2 = spawn_compute_hp(2, 0, 255);
+    ASSERT(type1 < type2, "type 1 uses the first creature stat entry");
 }
 
 static void test_spawn_single(void) {
@@ -50,6 +66,21 @@ static void test_spawn_single(void) {
     SpawnResult r = spawn_creatures(1, 3, DIR_NORTH, 0, &seed);
     ASSERT(r.count >= 1, "at least one creature spawned");
     ASSERT(r.entries[0].hp >= 6, "creature has valid HP");
+}
+
+static void test_spawn_rejects_null_prng(void) {
+    ASSERT(spawn_select_type(1, 3, NULL) == 0xFF,
+           "null PRNG rejected");
+    SpawnResult r = spawn_creatures(1, 3, DIR_NORTH, 0, NULL);
+    ASSERT(r.count == 0, "null PRNG produces no creatures");
+}
+
+static void test_spawn_rejects_invalid_direction(void) {
+    uint32_t seed = 0x1234;
+    ASSERT(spawn_subcell_from_direction(4, 0) == 0,
+           "invalid direction returns neutral subcell");
+    SpawnResult r = spawn_creatures(1, 3, 4, 0, &seed);
+    ASSERT(r.count == 0, "invalid direction produces no creatures");
 }
 
 static void test_spawn_type_0x0F_directional(void) {
@@ -78,6 +109,8 @@ int main(void) {
     test_subcell_from_direction();
     test_hp_computation();
     test_spawn_single();
+    test_spawn_rejects_null_prng();
+    test_spawn_rejects_invalid_direction();
     test_spawn_type_0x0F_directional();
     test_spawn_count_bounds();
     if (failures) {

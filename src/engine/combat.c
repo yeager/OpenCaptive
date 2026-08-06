@@ -5,6 +5,7 @@
 #include "spawn.h"
 #include "xp_level.h"
 #include "inventory.h"
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -15,12 +16,17 @@ static uint32_t combat_rand(void) {
 }
 
 void combat_init(CreatureList *cl) {
+    if (!cl) return;
     memset(cl, 0, sizeof(*cl));
 }
 
 void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
                             int level_num, uint32_t seed) {
-    combat_seed = seed + level_num * 3571;
+    if (!cl || !lvl || level_num < 0 || level_num >= MAX_LEVELS) return;
+    if (cl->num_creatures < 0) cl->num_creatures = 0;
+    if (cl->num_creatures > MAX_CREATURES) return;
+    combat_seed = (uint32_t)((uint64_t)seed +
+                             (uint64_t)(int64_t)level_num * UINT64_C(3571));
 
     int difficulty = level_num;
     if (difficulty > 8) difficulty = 8;
@@ -45,16 +51,25 @@ void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
 
             for (int s = 0; s < sr.count; s++) {
                 if (cl->num_creatures >= MAX_CREATURES) break;
+                int spawn_x = x + (s % 2);
+                int spawn_y = y + (s / 2);
+                if (spawn_x < 0 || spawn_x >= MAP_WIDTH ||
+                    spawn_y < 0 || spawn_y >= MAP_HEIGHT ||
+                    lvl->cells[spawn_y][spawn_x].type != CELL_FLOOR)
+                    continue;
                 SpawnEntry *se = &sr.entries[s];
                 Creature *c = &cl->creatures[cl->num_creatures++];
                 memset(c, 0, sizeof(*c));
 
-                c->type = (se->creature_type < CREATURE_COUNT)
+                c->type = (se->creature_type >= 1 &&
+                           se->creature_type < CREATURE_COUNT)
                     ? (CreatureType)se->creature_type : CREATURE_ALIEN1;
                 c->hp = se->hp;
                 c->hp_max = se->hp;
-                if (se->creature_type < CREATURE_TYPE_COUNT) {
-                    const CreatureTypeDef *def = &creature_types[se->creature_type];
+                if (se->creature_type >= 1 &&
+                    se->creature_type <= CREATURE_TYPE_COUNT) {
+                    const CreatureTypeDef *def =
+                        &creature_types[se->creature_type - 1];
                     c->speed = def->speed;
                 }
                 {
@@ -64,8 +79,9 @@ void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
                      * packed as lo*hi word (same encoding as weapons).
                      * Simplified here using category as the scaling tier. */
                     int cat = 0;
-                    if (se->creature_type < CREATURE_TYPE_COUNT)
-                        cat = creature_types[se->creature_type].category;
+                    if (se->creature_type >= 1 &&
+                        se->creature_type <= CREATURE_TYPE_COUNT)
+                        cat = creature_types[se->creature_type - 1].category;
                     int base = 2 + cat + level_num;
                     if (base > 20) base = 20;
                     int dmg_lo = (base >> 1) | 1;
@@ -75,10 +91,8 @@ void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
                     c->defense = (int16_t)(cat * 2 + level_num);
                     c->range = (cat >= 4) ? 4 + (cat - 4) : 1 + cat / 3;
                 }
-                c->x = x + (s % 2);
-                c->y = y + (s / 2);
-                if (c->x >= MAP_WIDTH) c->x = MAP_WIDTH - 1;
-                if (c->y >= MAP_HEIGHT) c->y = MAP_HEIGHT - 1;
+                c->x = spawn_x;
+                c->y = spawn_y;
                 c->level = level_num;
                 c->active = true;
             }
@@ -101,7 +115,8 @@ static bool blocks_movement_or_sight(CellType cell) {
 
 static bool combat_has_line_of_sight(const GameState *gs,
                                      int x0, int y0, int x1, int y1) {
-    if (!gs || gs->current_level < 0 || gs->current_level >= gs->num_levels)
+    if (!gs || gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->current_level >= MAX_LEVELS)
         return false;
     int dx = x1 > x0 ? x1 - x0 : x0 - x1;
     int sx = x0 < x1 ? 1 : -1;
@@ -123,10 +138,23 @@ static bool combat_has_line_of_sight(const GameState *gs,
 }
 
 void combat_tick(CreatureList *cl, GameState *gs) {
+    if (!cl || !gs || gs->current_level < 0 ||
+        gs->current_level >= gs->num_levels || gs->current_level >= MAX_LEVELS ||
+        gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
+        gs->party_y < 0 || gs->party_y >= MAP_HEIGHT) return;
+    int creature_count = cl->num_creatures;
+    if (creature_count < 0) creature_count = 0;
+    if (creature_count > MAX_CREATURES) creature_count = MAX_CREATURES;
     cl->attack_occurred = false;
-    for (int i = 0; i < cl->num_creatures; i++) {
+    for (int i = 0; i < creature_count; i++) {
         Creature *c = &cl->creatures[i];
         if (c->level != gs->current_level) continue;
+        if (c->x < 0 || c->x >= MAP_WIDTH || c->y < 0 || c->y >= MAP_HEIGHT)
+            continue;
+        if (c->active && c->hp <= 0) {
+            c->active = false;
+            if (c->respawn_timer == 0) c->respawn_timer = 600;
+        }
         if (!c->active) {
             if (c->respawn_timer > 0) {
                 c->respawn_timer--;
@@ -149,10 +177,29 @@ void combat_tick(CreatureList *cl, GameState *gs) {
 
         if (dist <= c->range && combat_has_line_of_sight(gs, c->x, c->y,
                                                           gs->party_x, gs->party_y)) {
-            int target = combat_rand() % 4;
+            int living = 0;
+            for (int di = 0; di < 4; di++)
+                if (gs->droids[di].hp > 0) living++;
+            if (living == 0) continue;
+            int target_pick = combat_rand() % living;
+            int target = 0;
+            for (int di = 0; di < 4; di++) {
+                if (gs->droids[di].hp <= 0) continue;
+                if (target_pick-- == 0) {
+                    target = di;
+                    break;
+                }
+            }
             Droid *d = &gs->droids[target];
-            int damage = c->damage_min +
-                         (combat_rand() % (c->damage_max - c->damage_min + 1));
+            int damage_min = c->damage_min;
+            int damage_max = c->damage_max;
+            int64_t damage_range64 = (int64_t)damage_max - damage_min + 1;
+            if (damage_min < 0 || damage_max < damage_min || damage_range64 <= 0)
+                continue;
+            uint32_t damage_range = damage_range64 > UINT32_MAX
+                ? UINT32_MAX : (uint32_t)damage_range64;
+            int damage = damage_min + (int)(combat_rand() % damage_range);
+            if (damage < 1) damage = 1;
             int part = combat_rand() % 6;
             if (d->body_parts[part] != 0 && d->body_part_hp[part] > 0) {
                 int armor_reduce = d->body_part_hp[part] / 32;
@@ -165,8 +212,10 @@ void combat_tick(CreatureList *cl, GameState *gs) {
                 else
                     d->body_part_hp[part] -= (uint8_t)part_dmg;
             }
-            d->hp -= damage;
-            if (d->hp < 0) d->hp = 0;
+            if (damage >= d->hp)
+                d->hp = 0;
+            else
+                d->hp = (int16_t)(d->hp - damage);
             c->cooldown = c->speed;
             cl->last_attack_damage = damage;
             cl->last_attack_target = target;
@@ -182,8 +231,12 @@ void combat_tick(CreatureList *cl, GameState *gs) {
             int ny = c->y + move_dy;
             if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT &&
                 !blocks_movement_or_sight(gs->levels[gs->current_level].cells[ny][nx].type)) {
-                bool blocked = false;
-                for (int j = 0; j < cl->num_creatures; j++) {
+                /* Creatures may attack from an adjacent/visible cell, but
+                 * must never occupy the party's tile.  Otherwise chasing
+                 * creatures overlap the party and the next distance check
+                 * changes combat semantics. */
+                bool blocked = nx == gs->party_x && ny == gs->party_y;
+                for (int j = 0; j < creature_count; j++) {
                     if (j != i && cl->creatures[j].active &&
                         cl->creatures[j].x == nx && cl->creatures[j].y == ny) {
                         blocked = true;
@@ -198,7 +251,15 @@ void combat_tick(CreatureList *cl, GameState *gs) {
 }
 
 bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
-    if (droid_idx < 0 || droid_idx >= 4) return false;
+    if (!gs || !cl || droid_idx < 0 || droid_idx >= 4 ||
+        gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->current_level >= MAX_LEVELS ||
+        gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
+        gs->party_y < 0 || gs->party_y >= MAP_HEIGHT ||
+        gs->party_dir < DIR_NORTH || gs->party_dir > DIR_WEST) return false;
+    int creature_count = cl->num_creatures;
+    if (creature_count < 0) creature_count = 0;
+    if (creature_count > MAX_CREATURES) creature_count = MAX_CREATURES;
     Droid *d = &gs->droids[droid_idx];
     if (d->hp <= 0) return false;
 
@@ -215,9 +276,12 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     Creature *target = NULL;
     int best_dist = 9999;
 
-    for (int i = 0; i < cl->num_creatures; i++) {
+    for (int i = 0; i < creature_count; i++) {
         Creature *c = &cl->creatures[i];
-        if (!c->active || c->level != gs->current_level || c->hp <= 0) continue;
+        if (!c->active || c->level != gs->current_level || c->hp <= 0 ||
+            c->hp_max <= 0 ||
+            c->x < 0 || c->x >= MAP_WIDTH || c->y < 0 || c->y >= MAP_HEIGHT)
+            continue;
 
         int dx = c->x - gs->party_x;
         int dy = c->y - gs->party_y;
@@ -244,24 +308,33 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     uint16_t dmg_word = d->weapon_damage;
     uint8_t lo = dmg_word & 0xFF;
     uint8_t hi = (dmg_word >> 8) & 0xFF;
-    int16_t cx = (int16_t)((uint16_t)lo * (uint16_t)hi);
+    int cx = (int)lo * (int)hi;
     if (cx <= 0) cx = 5;
     for (int i = 0; i < 3; i++) {
-        int16_t next = cx << 1;
-        if (next < 0) { cx = (int16_t)0xFFFD; break; }
+        int next = cx * 2;
+        if (next > 0x7FFF) { cx = 0xFFFD; break; }
         cx = next;
     }
     int base_damage = (int)cx;
     int damage = base_damage - target->defense / 2;
     if (damage < 1) damage = 1;
 
-    target->hp -= damage;
+    if (damage >= target->hp)
+        target->hp = 0;
+    else
+        target->hp = (int16_t)(target->hp - damage);
     if (target->hp <= 0) {
         target->active = false;
         target->respawn_timer = 600;
         cl->creature_killed = true;
-        d->xp = xp_add(d->xp, target->hp_max / 10);
-        gs->gold += target->hp_max / 5 + 1;
+        uint32_t old_xp = d->xp;
+        uint32_t xp_reward = (uint32_t)(target->hp_max / 10);
+        d->xp = xp_add(old_xp, xp_reward);
+        int reward = target->hp_max / 5 + 1;
+        if (reward > 0 && gs->gold <= INT_MAX - reward)
+            gs->gold += reward;
+        else if (reward > 0)
+            gs->gold = INT_MAX;
         if (target->x >= 0 && target->x < MAP_WIDTH &&
             target->y >= 0 && target->y < MAP_HEIGHT) {
             MapCell *drop_cell = &gs->levels[gs->current_level].cells[target->y][target->x];
@@ -270,12 +343,14 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
             }
         }
         {
-            uint16_t old_lvl = xp_to_display_level(d->xp - target->hp_max / 10);
+            uint16_t old_lvl = xp_to_display_level(old_xp);
             uint16_t new_lvl = xp_to_display_level(d->xp);
             if (new_lvl > old_lvl) {
-                d->hp_max += 10;
+                d->hp_max = (d->hp_max > INT16_MAX - 10) ?
+                    INT16_MAX : (int16_t)(d->hp_max + 10);
                 d->hp = d->hp_max;
-                d->energy_max += 5;
+                d->energy_max = (d->energy_max > INT16_MAX - 5) ?
+                    INT16_MAX : (int16_t)(d->energy_max + 5);
                 d->energy = d->energy_max;
                 cl->level_up_occurred = true;
             }
@@ -286,6 +361,11 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
 }
 
 void combat_interact(GameState *gs, const void *item_db_ptr) {
+    if (!gs || gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->current_level >= MAX_LEVELS ||
+        gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
+        gs->party_y < 0 || gs->party_y >= MAP_HEIGHT ||
+        gs->party_dir < DIR_NORTH || gs->party_dir > DIR_WEST) return;
     const ItemDatabase *idb = (const ItemDatabase *)item_db_ptr;
     int fwd_x = (int[]){0,1,0,-1}[gs->party_dir];
     int fwd_y = (int[]){-1,0,1,0}[gs->party_dir];
@@ -319,7 +399,8 @@ void combat_interact(GameState *gs, const void *item_db_ptr) {
             break;
         case CELL_GENERATOR:
             cell->type = CELL_FLOOR;
-            gs->generators_destroyed++;
+            if (gs->generators_destroyed < INT_MAX)
+                gs->generators_destroyed++;
             if (gs->generators_destroyed >= gs->generators_total)
                 game_state_complete_mission(gs);
             break;

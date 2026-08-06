@@ -26,6 +26,12 @@ static void test_find_section(void) {
     printf("PASS: find_section\n");
 }
 
+static void test_rejects_unterminated_section(void) {
+    const char *input = "|1[unterminated";
+    LibTextTable table;
+    assert(!lib_text_table_parse(&table, (const uint8_t *)input, strlen(input)));
+}
+
 static void test_expand_plain_text(void) {
     const char *input = "|1[A plain room with no opcodes.]";
     LibTextTable table;
@@ -36,6 +42,17 @@ static void test_expand_plain_text(void) {
     assert(lib_text_expand_id(&table, 1, &state, 0, out, sizeof(out)));
     assert(strcmp(out, "A plain room with no opcodes.") == 0);
     printf("PASS: expand_plain_text\n");
+}
+
+static void test_expand_rejects_foreign_section(void) {
+    const char *input = "|1[valid]";
+    LibTextTable table;
+    assert(lib_text_table_parse(&table, (const uint8_t *)input, strlen(input)));
+    LibTextState state;
+    lib_text_state_init(&state, 0);
+    LibTextSection foreign = {1, "outside", 7};
+    char out[64];
+    assert(!lib_text_expand(&table, &foreign, &state, 0, out, sizeof(out)));
 }
 
 static void test_comment_skip(void) {
@@ -82,6 +99,25 @@ static void test_random_option(void) {
     printf("PASS: random_option (%d/%d/%d)\n", counts[0], counts[1], counts[2]);
 }
 
+static void test_random_option_empty_tail(void) {
+    const char *input = "|1[^O0[alpha|]]";
+    LibTextTable table;
+    assert(lib_text_table_parse(&table, (const uint8_t *)input, strlen(input)));
+    int empty = 0;
+    int alpha = 0;
+    for (uint32_t seed = 0; seed < 100; seed++) {
+        LibTextState state;
+        lib_text_state_init(&state, seed);
+        char out[64];
+        bool ok = lib_text_expand_id(&table, 1, &state, 0, out, sizeof(out));
+        if (ok && strcmp(out, "alpha") == 0) alpha++;
+        else if (!ok && out[0] == '\0') empty++;
+        else assert(0);
+    }
+    assert(alpha > 0 && empty > 0);
+    printf("PASS: random_option_empty_tail\n");
+}
+
 static void test_case_switch(void) {
     const char *input = "|1[^XCA[case zero|case one|case two]]";
     LibTextTable table;
@@ -98,6 +134,34 @@ static void test_case_switch(void) {
         assert(strcmp(out, expected) == 0);
     }
     printf("PASS: case_switch\n");
+}
+
+static void test_nested_options_are_bounded(void) {
+    const size_t depth = 256;
+    const size_t size = 3U + depth * 4U + 1U + depth;
+    char *input = malloc(size + 1U);
+    assert(input != NULL);
+
+    size_t pos = 0;
+    memcpy(input + pos, "|1[", 3U);
+    pos += 3U;
+    for (size_t i = 0; i < depth; i++) {
+        memcpy(input + pos, "^O1[", 4U);
+        pos += 4U;
+    }
+    input[pos++] = 'x';
+    for (size_t i = 0; i < depth + 1U; i++) input[pos++] = ']';
+    input[pos] = '\0';
+
+    LibTextTable table;
+    assert(lib_text_table_parse(&table, (const uint8_t *)input, pos));
+    LibTextState state;
+    lib_text_state_init(&state, 0);
+    char out[32] = {0};
+    assert(!lib_text_expand_id(&table, 1, &state, 0, out, sizeof(out)));
+    assert(out[0] == '\0');
+    free(input);
+    printf("PASS: nested_options_are_bounded\n");
 }
 
 static void test_deterministic(void) {
@@ -176,11 +240,15 @@ static void test_game_data_dte(void) {
 int main(void) {
     test_parse_basic();
     test_find_section();
+    test_rejects_unterminated_section();
     test_expand_plain_text();
+    test_expand_rejects_foreign_section();
     test_comment_skip();
     test_newline_caret();
     test_random_option();
+    test_random_option_empty_tail();
     test_case_switch();
+    test_nested_options_are_bounded();
     test_deterministic();
     test_number_range();
     test_game_data_dte();

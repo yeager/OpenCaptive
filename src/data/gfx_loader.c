@@ -4,12 +4,14 @@
 #include <string.h>
 
 bool gfx_init(GfxData *gfx, const DataVFS *vfs) {
+    if (!gfx) return false;
     memset(gfx, 0, sizeof(*gfx));
     gfx->vfs = vfs;
     return true;
 }
 
 void gfx_free(GfxData *gfx) {
+    if (!gfx) return;
     for (int i = 0; i < gfx->num_textures; i++) {
         free(gfx->textures[i].pixels);
         free(gfx->textures[i].indices);
@@ -18,6 +20,7 @@ void gfx_free(GfxData *gfx) {
 }
 
 int gfx_load_pl5_hash(GfxData *gfx, const char expected_sha256[65]) {
+    if (!gfx || !gfx->vfs || !expected_sha256) return -1;
     if (gfx->num_textures >= MAX_TEXTURES) return -1;
 
     size_t size;
@@ -68,6 +71,7 @@ int gfx_load_pl5_hash(GfxData *gfx, const char expected_sha256[65]) {
 }
 
 const Texture *gfx_get(const GfxData *gfx, int id) {
+    if (!gfx) return NULL;
     if (id < 0 || id >= gfx->num_textures) return NULL;
     if (!gfx->textures[id].loaded) return NULL;
     return &gfx->textures[id];

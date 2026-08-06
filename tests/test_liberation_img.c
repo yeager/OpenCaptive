@@ -85,11 +85,33 @@ static void test_open(void) {
     assert(img.sprite_count == 1);
     assert(img.offsets[0] == 10);
     assert(!img.multi_frame[0]);
+    assert(!img_open(&img, NULL, 0));
+    assert(img.data == NULL && img.size == 0 && img.sprite_count == 0);
     img_close(&img);
 }
 
 static void test_bad_magic(void) {
     uint8_t bad[10] = {'N','O','P','E', 0,1, 0,0,0,6};
+    ImgFile img;
+    assert(!img_open(&img, bad, sizeof(bad)));
+}
+
+static void test_reject_unsorted_offsets(void) {
+    uint8_t bad[14] = {
+        'I','m','g','A', 0,2,
+        0,0,0,10,
+        0,0,0,9
+    };
+    ImgFile img;
+    assert(!img_open(&img, bad, sizeof(bad)));
+}
+
+static void test_rejects_offset_without_flags(void) {
+    uint8_t bad[11] = {
+        'I','m','g','A', 0,1,
+        0,0,0,10,
+        0
+    };
     ImgFile img;
     assert(!img_open(&img, bad, sizeof(bad)));
 }
@@ -174,10 +196,20 @@ static void test_reject_multi_as_simple(void) {
 int main(void) {
     test_open();
     test_bad_magic();
+    test_reject_unsorted_offsets();
+    test_rejects_offset_without_flags();
     test_decode_simple();
     test_decode_multi();
     test_mask_transparency();
     test_reject_multi_as_simple();
+
+    ImgFile reopened;
+    assert(img_open(&reopened, test_multi_img, sizeof(test_multi_img)));
+    uint8_t invalid[10] = {0};
+    memcpy(invalid, "ImgA", 4);
+    invalid[5] = 1; /* one sprite, but its offset is outside the buffer */
+    assert(!img_open(&reopened, invalid, sizeof(invalid)));
+    assert(reopened.data == NULL && reopened.size == 0 && reopened.sprite_count == 0);
     printf("All liberation_img tests passed\n");
     return 0;
 }

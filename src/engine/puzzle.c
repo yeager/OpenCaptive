@@ -1,15 +1,19 @@
 #include "puzzle.h"
 #include "captive_data.h"
+#include <limits.h>
 #include <string.h>
 #include <stdio.h>
 
 static uint32_t puzzle_seed;
 
 void puzzle_init(PuzzleList *pl) {
+    if (!pl) return;
     memset(pl, 0, sizeof(*pl));
 }
 
 void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t seed) {
+    if (!pl || !lvl || pl->num_puzzles < 0 || pl->num_puzzles > MAX_PUZZLES ||
+        level_num < 0 || level_num >= MAX_LEVELS) return;
     puzzle_seed = seed + level_num * 4217;
 
     static const int dx[] = {0, 1, 0, -1};
@@ -66,6 +70,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
             if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
 
             // Check adjacent wall
+            bool placed = false;
             for (int d = 0; d < 4; d++) {
                 int wx = rx + dx[d];
                 int wy = ry + dy[d];
@@ -94,10 +99,11 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                     }
                     lever_placed:
                     lvl->cells[ry][rx].ornament[d] = ORNAMENT_PANEL;
+                    placed = true;
                     break;
                 }
             }
-            break;
+            if (placed) break;
         }
     }
 
@@ -112,6 +118,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
                 int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
                 if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                bool placed = false;
                 for (int d = 0; d < 4; d++) {
                     if (lvl->cells[ry + dy[d]][rx + dx[d]].type == CELL_WALL) {
                         Puzzle *p = &pl->puzzles[pl->num_puzzles++];
@@ -130,10 +137,11 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                                 }
                         bars_placed:
                         lvl->cells[ry][rx].ornament[d] = ORNAMENT_SCREEN;
+                        placed = true;
                         break;
                     }
                 }
-                break;
+                if (placed) break;
             }
         }
     }
@@ -149,6 +157,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
                 int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
                 if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                bool placed = false;
                 for (int d = 0; d < 4; d++) {
                     if (lvl->cells[ry + dy[d]][rx + dx[d]].type == CELL_WALL) {
                         Puzzle *p = &pl->puzzles[pl->num_puzzles++];
@@ -167,10 +176,11 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                                 }
                         combo_placed:
                         lvl->cells[ry][rx].ornament[d] = ORNAMENT_PANEL;
+                        placed = true;
                         break;
                     }
                 }
-                break;
+                if (placed) break;
             }
         }
     }
@@ -186,6 +196,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
                 int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
                 if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                bool placed = false;
                 for (int d = 0; d < 4; d++) {
                     if (lvl->cells[ry + dy[d]][rx + dx[d]].type == CELL_WALL) {
                         Puzzle *p = &pl->puzzles[pl->num_puzzles++];
@@ -203,10 +214,11 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                                 }
                         hidden_placed:
                         lvl->cells[ry][rx].ornament[d] = ORNAMENT_VENT;
+                        placed = true;
                         break;
                     }
                 }
-                break;
+                if (placed) break;
             }
         }
     }
@@ -280,10 +292,10 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                     p->state = 9; // 9 charges
                     p->solved = false;
                     lvl->cells[ry][rx].ornament[d] = ORNAMENT_PIPE;
+                    attempts = 0;
                     break;
                 }
             }
-            break;
         }
     }
 
@@ -310,6 +322,12 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
 }
 
 bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
+    if (!pl || !gs || pl->num_puzzles < 0 || pl->num_puzzles > MAX_PUZZLES ||
+        gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->current_level >= MAX_LEVELS || x < 0 || x >= MAP_WIDTH ||
+        y < 0 || y >= MAP_HEIGHT || face < 0 || face > DIR_WEST) {
+        return false;
+    }
     for (int i = 0; i < pl->num_puzzles; i++) {
         Puzzle *p = &pl->puzzles[i];
         if (p->x != x || p->y != y || p->face != face ||
@@ -321,7 +339,8 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
             case PUZZLE_BUTTON:
                 p->state = !p->state;
                 // Toggle linked door
-                if (p->target_x >= 0 && p->target_y >= 0) {
+                if (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
+                    p->target_y >= 0 && p->target_y < MAP_HEIGHT) {
                     MapCell *cell = &lvl->cells[p->target_y][p->target_x];
                     if (cell->type == CELL_DOOR_LOCKED)
                         cell->type = CELL_DOOR;
@@ -335,7 +354,8 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                 p->state = !p->state;
                 if (p->state == (p->solution & 1)) {
                     p->solved = true;
-                    if (p->target_x >= 0 && p->target_y >= 0) {
+                    if (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
+                        p->target_y >= 0 && p->target_y < MAP_HEIGHT) {
                         lvl->cells[p->target_y][p->target_x].type = CELL_DOOR;
                     }
                 }
@@ -345,7 +365,8 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                 p->state = (p->state + 1) % 8;
                 if (p->state == p->solution) {
                     p->solved = true;
-                    if (p->target_x >= 0 && p->target_y >= 0) {
+                    if (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
+                        p->target_y >= 0 && p->target_y < MAP_HEIGHT) {
                         lvl->cells[p->target_y][p->target_x].type = CELL_DOOR;
                     }
                 }
@@ -355,7 +376,8 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                 p->state = (p->state + 1) % 16;
                 if (p->state == p->solution) {
                     p->solved = true;
-                    if (p->target_x >= 0 && p->target_y >= 0)
+                    if (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
+                        p->target_y >= 0 && p->target_y < MAP_HEIGHT)
                         lvl->cells[p->target_y][p->target_x].type = CELL_DOOR;
                 }
                 return true;
@@ -364,7 +386,8 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                 p->state ^= (1 << (face % 8));
                 if (p->state == p->solution) {
                     p->solved = true;
-                    if (p->target_x >= 0 && p->target_y >= 0)
+                    if (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
+                        p->target_y >= 0 && p->target_y < MAP_HEIGHT)
                         lvl->cells[p->target_y][p->target_x].type = CELL_DOOR;
                 }
                 return true;
@@ -372,7 +395,8 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
             case PUZZLE_HIDDEN_BUTTON:
                 if (!p->solved) {
                     p->solved = true;
-                    if (p->target_x >= 0 && p->target_y >= 0) {
+                    if (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
+                        p->target_y >= 0 && p->target_y < MAP_HEIGHT) {
                         MapCell *cell = &lvl->cells[p->target_y][p->target_x];
                         if (cell->type == CELL_DOOR_LOCKED)
                             cell->type = CELL_DOOR;
@@ -381,14 +405,20 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                 return true;
 
             case PUZZLE_FLOOR_TRAP: {
+                if (gs->selected_droid < 0 ||
+                    gs->selected_droid >= (int)(sizeof(gs->droids) / sizeof(gs->droids[0])))
+                    return false;
                 Droid *d = &gs->droids[gs->selected_droid];
-                d->hp -= p->state;
-                if (d->hp < 0) d->hp = 0;
+                if (p->state >= d->hp)
+                    d->hp = 0;
+                else
+                    d->hp = (int16_t)(d->hp - p->state);
                 return true;
             }
 
             case PUZZLE_TELEPORTER_TRAP:
-                if (p->target_x >= 0 && p->target_y >= 0) {
+                    if (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
+                        p->target_y >= 0 && p->target_y < MAP_HEIGHT) {
                     gs->party_x = p->target_x;
                     gs->party_y = p->target_y;
                 }
@@ -399,12 +429,16 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
 
             case PUZZLE_POWER_SOCKET:
                 if (p->state > 0) {
+                    if (gs->selected_droid < 0 ||
+                        gs->selected_droid >= (int)(sizeof(gs->droids) / sizeof(gs->droids[0])))
+                        return false;
                     p->state--;
                     // Recharge selected droid (420 energy per charge)
                     Droid *d = &gs->droids[gs->selected_droid];
-                    d->energy += 42;
-                    if (d->energy > d->energy_max)
-                        d->energy = d->energy_max;
+                    int charged = (int)d->energy + 42;
+                    if (charged > d->energy_max) charged = d->energy_max;
+                    if (charged > INT16_MAX) charged = INT16_MAX;
+                    d->energy = (int16_t)charged;
                 }
                 return true;
 
@@ -412,8 +446,9 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                 int elec_dmg = 8 + gs->current_level * 3;
                 for (int di = 0; di < 4; di++) {
                     if (gs->droids[di].hp > 0) {
-                        gs->droids[di].hp -= (int16_t)elec_dmg;
-                        if (gs->droids[di].hp < 0) gs->droids[di].hp = 0;
+                        int remaining_hp = (int)gs->droids[di].hp - elec_dmg;
+                        if (remaining_hp < 0) remaining_hp = 0;
+                        gs->droids[di].hp = (int16_t)remaining_hp;
                     }
                 }
                 return true;
@@ -427,19 +462,29 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
 }
 
 void puzzle_check_step(PuzzleList *pl, GameState *gs, int x, int y) {
+    if (!pl || !gs || pl->num_puzzles < 0 || pl->num_puzzles > MAX_PUZZLES ||
+        gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->current_level >= MAX_LEVELS || x < 0 || x >= MAP_WIDTH ||
+        y < 0 || y >= MAP_HEIGHT) return;
     for (int i = 0; i < pl->num_puzzles; i++) {
         Puzzle *p = &pl->puzzles[i];
         if (p->x != x || p->y != y || p->level != gs->current_level) continue;
 
         switch (p->type) {
             case PUZZLE_FLOOR_TRAP: {
+                if (gs->selected_droid < 0 ||
+                    gs->selected_droid >= (int)(sizeof(gs->droids) / sizeof(gs->droids[0])))
+                    break;
                 Droid *d = &gs->droids[gs->selected_droid];
-                d->hp -= p->state;
-                if (d->hp < 0) d->hp = 0;
+                if (p->state >= d->hp)
+                    d->hp = 0;
+                else
+                    d->hp = (int16_t)(d->hp - p->state);
                 break;
             }
             case PUZZLE_TELEPORTER_TRAP:
-                if (p->target_x >= 0 && p->target_y >= 0) {
+                if (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
+                    p->target_y >= 0 && p->target_y < MAP_HEIGHT) {
                     gs->party_x = p->target_x;
                     gs->party_y = p->target_y;
                 }
@@ -452,6 +497,11 @@ void puzzle_check_step(PuzzleList *pl, GameState *gs, int x, int y) {
 
 bool puzzle_get_clipboard_hint(const PuzzleList *pl, const GameState *gs,
                                int x, int y, int face, char *buf, int buf_size) {
+    if (!pl || !gs || !buf || buf_size <= 0 ||
+        pl->num_puzzles < 0 || pl->num_puzzles > MAX_PUZZLES ||
+        gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->current_level >= MAX_LEVELS || x < 0 || x >= MAP_WIDTH ||
+        y < 0 || y >= MAP_HEIGHT || face < 0 || face > DIR_WEST) return false;
     for (int i = 0; i < pl->num_puzzles; i++) {
         const Puzzle *p = &pl->puzzles[i];
         if (p->x != x || p->y != y || p->face != face ||

@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define LIBERATION_PACK_MAX_OUTPUT_SIZE (128U * 1024U * 1024U)
+
 typedef struct {
     uint16_t width;
     uint16_t height;

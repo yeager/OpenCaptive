@@ -1,5 +1,6 @@
 #include "shop.h"
 #include "captive_data.h"
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -22,15 +23,23 @@
 static uint32_t shop_seed;
 
 void shop_init(ShopState *shop, const ItemDatabase *db, int level, uint32_t seed) {
+    if (!shop) return;
     memset(shop, 0, sizeof(*shop));
+    if (!db) return;
+    if (level < 0) level = 0;
     shop->active = true;
-    shop_seed = seed + level * 997;
+    /* Keep malformed caller levels from invoking signed-overflow UB. */
+    shop_seed = (uint32_t)((uint64_t)seed +
+                           (uint64_t)(int64_t)level * UINT64_C(997));
 
     // Stock varies by level — higher levels have better items
     int max_tier = 1 + level / 2;
     if (max_tier > 7) max_tier = 7;
 
-    for (int i = 0; i < db->num_defs && shop->num_items < SHOP_MAX_ITEMS; i++) {
+    int def_count = db->num_defs;
+    if (def_count < 0) def_count = 0;
+    if (def_count > MAX_ITEM_DEFS) def_count = MAX_ITEM_DEFS;
+    for (int i = 0; i < def_count && shop->num_items < SHOP_MAX_ITEMS; i++) {
         if (db->defs[i].tier <= max_tier && captive_prng(&shop_seed) % 3 == 0) {
             shop->item_ids[shop->num_items++] = db->defs[i].id;
         }
@@ -83,8 +92,10 @@ static void draw_small_num(uint32_t *pixels, int w, int h,
 
 void shop_render(const ShopState *shop, const ItemDatabase *db,
                  uint32_t *pixels, int width, int height) {
+    if (!shop || !db || !pixels || width <= 0 || height <= 0) return;
     // Dark overlay
-    for (int i = 0; i < width * height; i++)
+    size_t pixel_count = (size_t)width * (size_t)height;
+    for (size_t i = 0; i < pixel_count; i++)
         pixels[i] = (pixels[i] & 0xFF000000) | ((pixels[i] & 0xFEFEFE) >> 1);
 
     // Shop panel
@@ -106,7 +117,10 @@ void shop_render(const ShopState *shop, const ItemDatabase *db,
 
     // Item list
     int list_y = py + 16;
-    for (int i = 0; i < shop->num_items && i < 12; i++) {
+    int item_count = shop->num_items;
+    if (item_count < 0) item_count = 0;
+    if (item_count > SHOP_MAX_ITEMS) item_count = SHOP_MAX_ITEMS;
+    for (int i = 0; i < item_count && i < 12; i++) {
         const Item *item = item_db_get(db, shop->item_ids[i]);
         if (!item) continue;
 
@@ -129,7 +143,10 @@ void shop_render(const ShopState *shop, const ItemDatabase *db,
 }
 
 bool shop_buy(ShopState *shop, const ItemDatabase *db, GameState *gs) {
-    if (shop->selected < 0 || shop->selected >= shop->num_items) return false;
+    if (!shop || !shop->active || !db || !gs || gs->selected_droid < 0 || gs->selected_droid >= 4)
+        return false;
+    if (shop->num_items < 0 || shop->num_items > SHOP_MAX_ITEMS ||
+        shop->selected < 0 || shop->selected >= shop->num_items) return false;
 
     const Item *item = item_db_get(db, shop->item_ids[shop->selected]);
     if (!item || shop->gold < item->price) return false;
@@ -150,24 +167,26 @@ bool shop_buy(ShopState *shop, const ItemDatabase *db, GameState *gs) {
 }
 
 bool shop_repair(ShopState *shop, GameState *gs, int droid_idx) {
-    if (droid_idx < 0 || droid_idx >= 4) return false;
+    if (!shop || !gs || droid_idx < 0 || droid_idx >= 4) return false;
     Droid *d = &gs->droids[droid_idx];
+    if (d->hp_max < 0 || d->hp < 0 || d->hp > d->hp_max ||
+        d->energy_max < 0 || d->energy < 0 || d->energy > d->energy_max)
+        return false;
     bool needs_repair = (d->hp < d->hp_max || d->energy < d->energy_max);
     for (int i = 0; i < 6 && !needs_repair; i++)
         if (d->body_part_hp[i] < 255) needs_repair = true;
     if (!needs_repair) return false;
 
-    int damage = (d->hp_max - d->hp) + (d->energy_max - d->energy);
-    int cost = damage * 2;
+    int64_t damage = (int64_t)(d->hp_max - d->hp) +
+                     (int64_t)(d->energy_max - d->energy);
+    int64_t cost = damage * 2;
     if (cost < 10) cost = 10;
-    if (shop->gold < cost) return false;
+    if (cost > shop->gold) return false;
 
-    shop->gold -= cost;
+    shop->gold -= (int)cost;
     d->hp = d->hp_max;
     d->energy = d->energy_max;
-    for (int i = 0; i < 6; i++) {
-        d->body_parts[i] = 1;
+    for (int i = 0; i < 6; i++)
         d->body_part_hp[i] = 255;
-    }
     return true;
 }

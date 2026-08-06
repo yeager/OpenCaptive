@@ -1,4 +1,5 @@
 #include "custom_features.h"
+#include <math.h>
 #include <string.h>
 
 #define REVERB_BUFFER_SIZE 8192
@@ -11,7 +12,7 @@ static int16_t delay_buf[REVERB_BUFFER_SIZE];
 static int delay_pos = 0;
 
 void reverb_process(int16_t *buffer, int num_samples, float amount) {
-    if (amount <= 0.0f) return;
+    if (!buffer || num_samples <= 0 || !isfinite(amount) || amount <= 0.0f) return;
     if (amount > 1.0f) amount = 1.0f;
 
     float feedback = amount * 0.4f;
@@ -28,7 +29,10 @@ void reverb_process(int16_t *buffer, int num_samples, float amount) {
         float rev = (delay_buf[t1] + delay_buf[t2] * 0.7f +
                      delay_buf[t3] * 0.5f + delay_buf[t4] * 0.3f) * 0.25f;
 
-        delay_buf[delay_pos] = (int16_t)(dry + rev * feedback);
+        float delayed = dry + rev * feedback;
+        if (delayed > 32767.0f) delayed = 32767.0f;
+        if (delayed < -32768.0f) delayed = -32768.0f;
+        delay_buf[delay_pos] = (int16_t)delayed;
         delay_pos = (delay_pos + 1) % REVERB_BUFFER_SIZE;
 
         int32_t out = (int32_t)(dry * (1.0f - wet) + rev * wet);

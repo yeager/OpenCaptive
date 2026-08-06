@@ -27,7 +27,7 @@ typedef struct {
     LibShopState shop;
     DialogueState dialogue;
     int building_index;
-    uint32_t *player_gold;
+    int *player_gold;
     struct {
         char     name[24];
         uint16_t item_type;
@@ -35,8 +35,14 @@ typedef struct {
     int purchased_count;
     bool mission_complete;
     bool bar_fight;
+    bool fine_refused;
     bool fine_paid;
     bool industrial_hazard;
+    bool shop_menu_active;
+    bool special_investigated;
+    int fine_node;
+    int reputation;
+    bool reputation_priced;
 } BuildingInteraction;
 
 void building_interact_init(BuildingInteraction *bi);
@@ -45,12 +51,13 @@ bool building_interact_enter(BuildingInteraction *bi,
                              const CityGridState *grid,
                              const CityGrid *buildings,
                              int cell_x, int cell_y,
-                             uint32_t *player_gold);
+                             int *player_gold);
 
 void building_interact_choose(BuildingInteraction *bi, unsigned choice);
 void building_interact_advance(BuildingInteraction *bi);
 bool building_interact_buy(BuildingInteraction *bi, unsigned item_idx);
 void building_interact_leave(BuildingInteraction *bi);
+void building_interact_set_reputation(BuildingInteraction *bi, int reputation);
 
 const char *building_interact_text(const BuildingInteraction *bi);
 unsigned building_interact_choice_count(const BuildingInteraction *bi);

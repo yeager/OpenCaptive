@@ -6,6 +6,7 @@
 
 static void test_load_unload(void) {
     NPCDialogueData ndd;
+    memset(&ndd, 0, sizeof(ndd));
     assert(!npc_dialogue_data_load(&ndd, NULL, 0));
     assert(!ndd.loaded);
 
@@ -56,6 +57,8 @@ static void test_with_game_data(void) {
     assert(npc_dialogue_generate(&ndd, 3, NPC_STATE_NORMAL, 200, &tree));
 
     assert(!npc_dialogue_generate(&ndd, 999, NPC_STATE_NORMAL, 0, &tree));
+    assert(!npc_dialogue_generate(&ndd, 1, (NPCState)-1, 0, &tree));
+    assert(!npc_dialogue_generate(&ndd, 1, (NPCState)99, 0, &tree));
 
     npc_dialogue_data_free(&ndd);
     assert(!ndd.loaded);

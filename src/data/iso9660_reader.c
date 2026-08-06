@@ -3,11 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define ISO_MAX_FILE_SIZE (256U * 1024U * 1024U)
+
 static uint32_t read_le32(const uint8_t *p) {
     return p[0] | ((uint32_t)p[1]<<8) | ((uint32_t)p[2]<<16) | ((uint32_t)p[3]<<24);
 }
 
 static const uint8_t *sector_ptr(const ISOImage *iso, uint32_t lba) {
+    if (!iso || !iso->data) return NULL;
     if (iso->raw_mode) {
         // MODE1/2352: 16 bytes sync/header, then 2048 bytes user data
         uint64_t offset = (uint64_t)lba * ISO_RAW_SECTOR + 16;
@@ -44,35 +47,52 @@ static bool parse_pvd(ISOImage *iso) {
 }
 
 bool iso_open(ISOImage *iso, const uint8_t *data, size_t size) {
+    if (!iso) return false;
     memset(iso, 0, sizeof(*iso));
-    iso->data = data;
-    iso->size = size;
-    iso->raw_mode = false;
-    return parse_pvd(iso);
+    if (!data) return false;
+    ISOImage candidate = {0};
+    candidate.data = data;
+    candidate.size = size;
+    candidate.raw_mode = false;
+    if (!parse_pvd(&candidate)) return false;
+    *iso = candidate;
+    return true;
 }
 
 bool iso_open_raw(ISOImage *iso, const uint8_t *data, size_t size) {
+    if (!iso) return false;
     memset(iso, 0, sizeof(*iso));
-    iso->data = data;
-    iso->size = size;
-    iso->raw_mode = true;
-    return parse_pvd(iso);
+    if (!data) return false;
+    ISOImage candidate = {0};
+    candidate.data = data;
+    candidate.size = size;
+    candidate.raw_mode = true;
+    if (!parse_pvd(&candidate)) return false;
+    *iso = candidate;
+    return true;
 }
 
 int iso_list_dir(const ISOImage *iso, uint32_t dir_lba, uint32_t dir_size,
                  ISOEntry *entries, int max_entries) {
+    if (!iso || !entries || max_entries <= 0 || dir_size == 0) return 0;
     int count = 0;
-    uint32_t sectors = (dir_size + ISO_SECTOR_SIZE - 1) / ISO_SECTOR_SIZE;
+    uint32_t sectors = (uint32_t)(((uint64_t)dir_size + ISO_SECTOR_SIZE - 1U) /
+                                  ISO_SECTOR_SIZE);
 
     for (uint32_t s = 0; s < sectors && count < max_entries; s++) {
+        if (dir_lba > UINT32_MAX - s) break;
         const uint8_t *sector = sector_ptr(iso, dir_lba + s);
         if (!sector) break;
 
+        uint64_t sector_start = (uint64_t)s * ISO_SECTOR_SIZE;
+        uint32_t valid_bytes = (dir_size > sector_start) ?
+            (uint32_t)((dir_size - sector_start > ISO_SECTOR_SIZE) ?
+                       ISO_SECTOR_SIZE : dir_size - sector_start) : 0U;
         uint32_t pos = 0;
-        while (pos + 33 < ISO_SECTOR_SIZE && count < max_entries) {
+        while (pos + 33 <= valid_bytes && count < max_entries) {
             uint8_t rec_len = sector[pos];
             if (rec_len < 33) break;
-            if (pos + rec_len > ISO_SECTOR_SIZE) break;
+            if (pos + rec_len > valid_bytes) break;
 
             uint8_t name_len = sector[pos + 32];
             if (name_len > rec_len - 33) break;
@@ -106,12 +126,15 @@ int iso_list_dir(const ISOImage *iso, uint32_t dir_lba, uint32_t dir_size,
 }
 
 int iso_list_root(const ISOImage *iso, ISOEntry *entries, int max_entries) {
+    if (!iso) return 0;
     return iso_list_dir(iso, iso->root_lba, iso->root_size, entries, max_entries);
 }
 
 uint8_t *iso_read_file(const ISOImage *iso, uint32_t lba, uint32_t size) {
-    uint8_t *result = malloc(size);
+    if (!iso || !iso->data || size > ISO_MAX_FILE_SIZE) return NULL;
+    uint8_t *result = malloc(size ? size : 1U);
     if (!result) return NULL;
+    if (size == 0) return result;
 
     uint32_t remaining = size;
     uint32_t written = 0;
@@ -125,6 +148,10 @@ uint8_t *iso_read_file(const ISOImage *iso, uint32_t lba, uint32_t size) {
         memcpy(result + written, sector, chunk);
         written += chunk;
         remaining -= chunk;
+        if (remaining > 0 && cur_lba == UINT32_MAX) {
+            free(result);
+            return NULL;
+        }
         cur_lba++;
     }
 

@@ -1,14 +1,28 @@
 #include "liberation_viewport_3d.h"
+#include "custom_features.h"
+#include <limits.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
 
 void lib3d_init(Lib3dState *state) {
+    if (!state) return;
     memset(state, 0, sizeof(*state));
     state->fov_scale = 200.0f;
 }
 
+void lib3d_set_texture_filter(Lib3dState *state, bool enabled) {
+    if (!state) return;
+    state->texture_filter = enabled;
+}
+
+void lib3d_set_dynamic_lighting(Lib3dState *state, bool enabled) {
+    if (!state) return;
+    state->dynamic_lighting = enabled;
+}
+
 void lib3d_set_camera(Lib3dState *state, float x, float y, float z, float yaw) {
+    if (!state) return;
     state->cam_x = x;
     state->cam_y = y;
     state->cam_z = z;
@@ -16,6 +30,7 @@ void lib3d_set_camera(Lib3dState *state, float x, float y, float z, float yaw) {
 }
 
 void lib3d_clear(Lib3dState *state, uint32_t sky_color, uint32_t ground_color) {
+    if (!state) return;
     int half = LIB3D_VP_HEIGHT / 2;
     for (int y = 0; y < half; y++)
         for (int x = 0; x < LIB3D_VP_WIDTH; x++)
@@ -48,7 +63,9 @@ static void transform_vertex(const Lib3dState *state, const X3gVertex *v,
 
 static bool project(const Lib3dState *state, const Lib3dVec3 *v,
                     Lib3dProjected *out) {
-    if (v->z < LIB3D_NEAR_CLIP) return false;
+    if (!state || !v || !out || !isfinite(v->x) || !isfinite(v->y) ||
+        !isfinite(v->z) || !isfinite(state->fov_scale) ||
+        v->z < LIB3D_NEAR_CLIP) return false;
 
     float inv_z = state->fov_scale / v->z;
     out->sx = (int)(v->x * inv_z) + LIB3D_VP_WIDTH / 2;
@@ -130,7 +147,9 @@ static void fill_polygon(Lib3dState *state, const Lib3dVisPoly *poly,
 void lib3d_render_object(Lib3dState *state, const X3gObject *obj,
                          float obj_x, float obj_y, float obj_z,
                          const uint32_t *palette, unsigned pal_size) {
-    if (!state || !obj) return;
+    (void)palette;
+    (void)pal_size;
+    if (!state || !obj || !obj->vertices || !obj->parsed_polys) return;
 
     unsigned base_idx = state->proj_count;
 
@@ -139,31 +158,41 @@ void lib3d_render_object(Lib3dState *state, const X3gObject *obj,
         transform_vertex(state, &obj->vertices[i], obj_x, obj_y, obj_z, &view);
         Lib3dProjected p = {LIB3D_VP_WIDTH / 2, LIB3D_VP_HEIGHT / 2, view.z};
         if (!project(state, &view, &p)) {
-            p.z = view.z;
+            p.z = -INFINITY;
         }
         state->projected[state->proj_count++] = p;
     }
 
     for (unsigned i = 0; i < obj->polygon_count && state->vis_count < LIB3D_MAX_VISIBLE_POLYS; i++) {
         const X3gPolygon *poly = &obj->parsed_polys[i];
-        if (poly->vertex_count < 3) continue;
+        if (poly->vertex_count < 3 || poly->vertex_count > 8) continue;
 
         bool all_behind = true;
+        bool invalid_vertex = false;
         float avg_z = 0;
         for (int v = 0; v < poly->vertex_count; v++) {
-            unsigned vi = base_idx + poly->vertex_indices[v];
-            if (vi < state->proj_count && state->projected[vi].z >= LIB3D_NEAR_CLIP)
+            unsigned object_vertex = poly->vertex_indices[v];
+            if (object_vertex >= obj->vertex_count) {
+                invalid_vertex = true;
+                continue;
+            }
+            unsigned vi = base_idx + object_vertex;
+            if (vi >= state->proj_count ||
+                !isfinite(state->projected[vi].z)) {
+                invalid_vertex = true;
+                continue;
+            }
+            if (state->projected[vi].z >= LIB3D_NEAR_CLIP)
                 all_behind = false;
-            if (vi < state->proj_count)
-                avg_z += state->projected[vi].z;
+            avg_z += state->projected[vi].z;
         }
-        if (all_behind) continue;
+        if (all_behind || invalid_vertex || !isfinite(avg_z)) continue;
         avg_z /= poly->vertex_count;
 
         Lib3dVisPoly *vp = &state->visible[state->vis_count++];
         vp->vertex_count = poly->vertex_count;
         for (int v = 0; v < poly->vertex_count; v++)
-            vp->vertex_indices[v] = (uint8_t)(base_idx + poly->vertex_indices[v]);
+            vp->vertex_indices[v] = (uint16_t)(base_idx + poly->vertex_indices[v]);
         vp->color = poly->color;
         vp->flags = poly->flags;
         vp->normal_x = poly->normal_x;
@@ -176,7 +205,11 @@ static void textured_scanline(Lib3dState *state, int y,
                                int xa, float za, float ua, float va,
                                int xb, float zb, float ub, float vb,
                                const Lib3dTexture *tex) {
-    if (y < 0 || y >= LIB3D_VP_HEIGHT) return;
+    if (y < 0 || y >= LIB3D_VP_HEIGHT || !tex ||
+        tex->width <= 0 || tex->height <= 0 ||
+        tex->width > LIB3D_MAX_TEX_SIZE || tex->height > LIB3D_MAX_TEX_SIZE ||
+        !isfinite(za) || !isfinite(zb) ||
+        !isfinite(ua) || !isfinite(va) || !isfinite(ub) || !isfinite(vb)) return;
     if (xa > xb) {
         int ti = xa; xa = xb; xb = ti;
         float tf;
@@ -201,13 +234,63 @@ static void textured_scanline(Lib3dState *state, int y,
         float v_over_z = voz_a + (voz_b - voz_a) * t;
         float u = u_over_z * z;
         float v = v_over_z * z;
+        float tex_u = u * tex->width;
+        float tex_v = v * tex->height;
+        if (!isfinite(tex_u) || !isfinite(tex_v)) continue;
 
-        int tx = (int)(u * tex->width) % tex->width;
-        int ty = (int)(v * tex->height) % tex->height;
+        /* fmodf keeps the conversion bounded even when perspective math
+           produces very large, but still finite, texture coordinates. */
+        float wrapped_u = fmodf(tex_u, (float)tex->width);
+        float wrapped_v = fmodf(tex_v, (float)tex->height);
+        int tx = (int)wrapped_u;
+        int ty = (int)wrapped_v;
         if (tx < 0) tx += tex->width;
         if (ty < 0) ty += tex->height;
 
-        uint32_t texel = tex->pixels[ty * tex->width + tx];
+        uint32_t texel;
+        if (!state->texture_filter) {
+            texel = tex->pixels[ty * tex->width + tx];
+        } else {
+            /* Bilinear filtering is optional because the original renderer
+             * is nearest-neighbour.  Wrap at texture edges, matching the
+             * nearest-neighbour path's repeat behaviour. */
+            float fu = wrapped_u - floorf(wrapped_u);
+            float fv = wrapped_v - floorf(wrapped_v);
+            int tx1 = (tx + 1) % tex->width;
+            int ty1 = (ty + 1) % tex->height;
+            uint32_t c00 = tex->pixels[ty * tex->width + tx];
+            uint32_t c10 = tex->pixels[ty * tex->width + tx1];
+            uint32_t c01 = tex->pixels[ty1 * tex->width + tx];
+            uint32_t c11 = tex->pixels[ty1 * tex->width + tx1];
+            float w00 = (1.0f - fu) * (1.0f - fv);
+            float w10 = fu * (1.0f - fv);
+            float w01 = (1.0f - fu) * fv;
+            float w11 = fu * fv;
+            uint8_t a = (uint8_t)(((c00 >> 24) & 0xFF) * w00 +
+                                  ((c10 >> 24) & 0xFF) * w10 +
+                                  ((c01 >> 24) & 0xFF) * w01 +
+                                  ((c11 >> 24) & 0xFF) * w11);
+            uint8_t r = (uint8_t)(((c00 >> 16) & 0xFF) * w00 +
+                                  ((c10 >> 16) & 0xFF) * w10 +
+                                  ((c01 >> 16) & 0xFF) * w01 +
+                                  ((c11 >> 16) & 0xFF) * w11);
+            uint8_t g = (uint8_t)(((c00 >> 8) & 0xFF) * w00 +
+                                  ((c10 >> 8) & 0xFF) * w10 +
+                                  ((c01 >> 8) & 0xFF) * w01 +
+                                  ((c11 >> 8) & 0xFF) * w11);
+            uint8_t b = (uint8_t)((c00 & 0xFF) * w00 +
+                                  (c10 & 0xFF) * w10 +
+                                  (c01 & 0xFF) * w01 +
+                                  (c11 & 0xFF) * w11);
+            texel = ((uint32_t)a << 24) | ((uint32_t)r << 16) |
+                    ((uint32_t)g << 8) | b;
+        }
+        if (state->dynamic_lighting) {
+            int distance = z > (float)INT_MAX ? INT_MAX :
+                           z < 0.0f ? 0 : (int)z;
+            texel = lighting_shade_pixel(
+                texel, lighting_compute_intensity(distance, 127));
+        }
         if ((texel >> 24) == 0) continue;
 
         state->zbuffer[idx] = z;
@@ -221,7 +304,15 @@ void lib3d_render_textured_quad(Lib3dState *state,
                                 float x2, float y2, float z2,
                                 float x3, float y3, float z3,
                                 const Lib3dTexture *tex) {
-    if (!state || !tex || tex->width <= 0 || tex->height <= 0) return;
+    if (!state || !tex || tex->width <= 0 || tex->height <= 0 ||
+        tex->width > LIB3D_MAX_TEX_SIZE || tex->height > LIB3D_MAX_TEX_SIZE ||
+        !isfinite(state->cam_x) || !isfinite(state->cam_y) ||
+        !isfinite(state->cam_z) || !isfinite(state->cam_yaw) ||
+        !isfinite(state->fov_scale) ||
+        !isfinite(x0) || !isfinite(y0) || !isfinite(z0) ||
+        !isfinite(x1) || !isfinite(y1) || !isfinite(z1) ||
+        !isfinite(x2) || !isfinite(y2) || !isfinite(z2) ||
+        !isfinite(x3) || !isfinite(y3) || !isfinite(z3)) return;
 
     Lib3dVec3 view[4];
     float wx[4] = {x0, x1, x2, x3};
@@ -295,7 +386,8 @@ void lib3d_render_textured_quad(Lib3dState *state,
 
 void lib3d_present(Lib3dState *state, uint32_t *dest, int dest_w, int dest_h,
                    int dest_x, int dest_y) {
-    if (!state || !dest) return;
+    if (!state || !dest || dest_w <= 0 || dest_h <= 0 ||
+        state->vis_count > LIB3D_MAX_VISIBLE_POLYS) return;
 
     qsort(state->visible, state->vis_count, sizeof(Lib3dVisPoly), poly_compare);
 
@@ -322,10 +414,10 @@ void lib3d_present(Lib3dState *state, uint32_t *dest, int dest_w, int dest_h,
     }
 
     for (int y = 0; y < LIB3D_VP_HEIGHT; y++) {
-        int dy = dest_y + y;
+        int64_t dy = (int64_t)dest_y + y;
         if (dy < 0 || dy >= dest_h) continue;
         for (int x = 0; x < LIB3D_VP_WIDTH; x++) {
-            int dx = dest_x + x;
+            int64_t dx = (int64_t)dest_x + x;
             if (dx < 0 || dx >= dest_w) continue;
             dest[dy * dest_w + dx] = state->framebuffer[y * LIB3D_VP_WIDTH + x];
         }

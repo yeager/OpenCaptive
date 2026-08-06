@@ -59,6 +59,20 @@ static void test_wall_flags_boundary(void) {
     ca_init(&map);
     ASSERT(ca_cell_is_wall(&map, -1, 0) == true, "out of bounds is wall");
     ASSERT(ca_cell_wall_flags(&map, -1, 0) == 0xFF, "out of bounds flags");
+    ASSERT(ca_cell_is_wall(NULL, 0, 0) == true, "null map is wall");
+    ASSERT(ca_cell_wall_flags(NULL, 0, 0) == 0xFF, "null map flags");
+    ca_apply_rules(NULL, CA_TYPE_MAZE);
+    ca_to_dungeon_level(NULL, NULL, 0);
+}
+
+static void test_level_number_is_bounded(void) {
+    CAMap map;
+    DungeonLevel level;
+    ca_init(&map);
+    ca_to_dungeon_level(&map, &level, -1000);
+    ASSERT(level.level == 0, "negative level is clamped");
+    ca_to_dungeon_level(&map, &level, 1000);
+    ASSERT(level.level == MAX_LEVELS - 1, "high level is clamped");
 }
 
 static void test_different_types_produce_different_maps(void) {
@@ -81,6 +95,7 @@ int main(void) {
     test_deterministic();
     test_rules_modify();
     test_wall_flags_boundary();
+    test_level_number_is_bounded();
     test_different_types_produce_different_maps();
     if (failures) {
         printf("%d test(s) FAILED\n", failures);

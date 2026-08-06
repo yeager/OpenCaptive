@@ -62,13 +62,19 @@ static const uint8_t tile_templates[13][16] = {
 
 static void walk_road(CityGridState *s, int dir, int x, int y);
 
+static unsigned citygrid_seed_index(const CityGridState *s) {
+    return s->seed_lo % 9u;
+}
+
 uint16_t citygrid_prng(CityGridState *s) {
+    if (!s) return 0;
     s->prng_state = (uint16_t)(s->prng_state * 0x5E5u + 0x29u);
     return s->prng_state;
 }
 
 void citygrid_init(CityGridState *s, uint16_t seed_hi, uint16_t seed_lo,
                    uint16_t difficulty) {
+    if (!s) return;
     memset(s, 0, sizeof(*s));
     s->seed_hi = seed_hi;
     s->seed_lo = seed_lo;
@@ -82,7 +88,7 @@ static void count_roads(CityGridState *s) {
     uint16_t mask = 0;
     uint16_t count = 0;
     uint16_t bit = 1;
-    const int8_t *avail = &road_avail[s->seed_lo * 4];
+    const int8_t *avail = &road_avail[citygrid_seed_index(s) * 4];
     for (int i = 0; i < 4; i++) {
         if (avail[i] >= 0) {
             count++;
@@ -95,6 +101,9 @@ static void count_roads(CityGridState *s) {
 }
 
 static void walk_road(CityGridState *s, int dir, int x, int y) {
+    if (!s || dir < 0 || dir >= 4 || x < 0 || x >= CITYGRID_META_SIZE ||
+        y < 0 || y >= CITYGRID_META_SIZE)
+        return;
     int idx = y * CITYGRID_META_SIZE + x;
 
     if (s->meta[CITYGRID_META_SIZE * CITYGRID_META_SIZE + idx] == 0)
@@ -243,6 +252,7 @@ static void set_borders(CityGridState *s) {
 
 static int place_block(CityGridState *s, const int16_t templates[][8],
                        int tmpl_stride, int cell_count, int retry_limit) {
+    (void)tmpl_stride;
     while (retry_limit-- > 0) {
         citygrid_prng(s);
         uint16_t rval = s->prng_state;
@@ -319,7 +329,7 @@ static int place_block(CityGridState *s, const int16_t templates[][8],
 
 static void place_features(CityGridState *s) {
     s->building_counter_b = 1;
-    uint8_t count = block_count_table[s->seed_lo];
+    uint8_t count = block_count_table[citygrid_seed_index(s)];
 
     for (int i = 0; i <= (int)count; i++) {
         uint8_t sv = (s->seed_combined & 0x0F) + 1;
@@ -332,7 +342,7 @@ static void place_features(CityGridState *s) {
 
 static void place_road_blocks(CityGridState *s) {
     s->building_counter_a = s->building_counter_b + 1;
-    uint8_t count = road_count_table[s->seed_lo];
+    uint8_t count = road_count_table[citygrid_seed_index(s)];
 
     for (int i = 0; i <= (int)count; i++) {
         s->road_id = s->seed_combined & 1;
@@ -343,22 +353,13 @@ static void place_road_blocks(CityGridState *s) {
     s->building_counter_a -= diff;
 }
 
-/* sub_090E: move a1 pointer in direction d5 */
-static uint8_t *citygrid_step_dir(uint8_t *p, int dir) {
-    switch (dir & 3) {
-        case 0: return p - 64;
-        case 1: return p + 1;
-        case 2: return p + 64;
-        case 3: return p - 1;
-    }
-    return p;
-}
-
 /* sub_0932: check if cell at a1 belongs to building d7, return cell type info */
 static bool citygrid_check_building_cell(uint8_t *plane0, uint8_t *plane2,
                                          int offset, uint8_t building_id,
                                          int *dir_delta, int d4) {
-    uint8_t p2 = plane2[offset] & 0x7F;
+    uint8_t raw_p2 = plane2[offset];
+    if (raw_p2 == 0 || raw_p2 == 0xFF) return false;
+    uint8_t p2 = raw_p2 & 0x7F;
     if (p2 != building_id) return false;
 
     uint8_t cell = plane0[offset] & 0x3F;
@@ -386,8 +387,16 @@ static int citygrid_walk_to_origin(uint8_t *plane0, uint8_t *plane2,
     int d4 = 1;
     int prev = offset;
     for (;;) {
-        int next_off = offset + directions[dir & 3].offset;
-        if (next_off < 0 || next_off >= CITYGRID_CELLS) break;
+        int heading = dir & 3;
+        int x = offset % CITYGRID_WIDTH;
+        int y = offset / CITYGRID_WIDTH;
+        int next_x = x + directions[heading].dx;
+        int next_y = y + directions[heading].dy;
+        /* A linear +/-1 offset wraps between rows at the horizontal
+         * boundaries. Reject that wrap before inspecting the neighbour. */
+        if (next_x < 0 || next_x >= CITYGRID_WIDTH ||
+            next_y < 0 || next_y >= CITYGRID_HEIGHT) break;
+        int next_off = next_y * CITYGRID_WIDTH + next_x;
         int dummy_dir = dir;
         if (!citygrid_check_building_cell(plane0, plane2, next_off,
                                           building_id, &dummy_dir, d4))
@@ -402,13 +411,17 @@ static int citygrid_walk_to_origin(uint8_t *plane0, uint8_t *plane2,
 /* sub_07D2 + sub_0800: resolve building shapes */
 static void resolve_building_shapes(CityGridState *s) {
     int total = s->building_counter_a + s->building_counter_b;
+    if (total > CITYGRID_MAX_BUILDINGS)
+        total = CITYGRID_MAX_BUILDINGS;
 
     for (int i = 0; i < total; i++) {
         if (s->buildings[i].connection == 0xFF) {
             uint16_t off = s->buildings[i].grid_offset;
             if (off >= CITYGRID_CELLS) continue;
 
-            uint8_t building_id = s->plane2[off] & 0x7F;
+            uint8_t raw_building_id = s->plane2[off];
+            if (raw_building_id == 0 || raw_building_id == 0xFF) continue;
+            uint8_t building_id = raw_building_id & 0x7F;
             uint8_t cell = s->plane0[off];
             int dir = ((cell << 2) | (cell >> 6)) & 3;
 
@@ -426,19 +439,19 @@ static void resolve_building_shapes(CityGridState *s) {
                     bool is_higher = (d4 > s->building_counter_b);
 
                     int dir_check = dir;
-                    int check1 = citygrid_step_dir(s->plane0 + pos, (dir_check - 1) & 3) - s->plane0;
-                    int check2 = citygrid_step_dir(s->plane0 + pos, (dir_check + 1) & 3) - s->plane0;
+                    int check1 = pos + directions[(dir_check - 1) & 3].offset;
+                    int check2 = pos + directions[(dir_check + 1) & 3].offset;
 
                     int conn = 0;
                     if (check1 >= 0 && check1 < CITYGRID_CELLS &&
-                        s->plane2[check1] == d4) {
+                        (s->plane2[check1] & 0x7F) == (uint8_t)d4) {
                         uint8_t c = s->plane0[check1] & 0x3F;
                         bool is_0x1e = (c == 0x1E);
                         if (is_0x1e != is_higher)
                             conn = 1;
                     }
                     if (conn == 0 && check2 >= 0 && check2 < CITYGRID_CELLS &&
-                        s->plane2[check2] == d4) {
+                        (s->plane2[check2] & 0x7F) == (uint8_t)d4) {
                         uint8_t c = s->plane0[check2] & 0x3F;
                         bool is_0x1e = (c == 0x1E);
                         if (is_0x1e != is_higher)
@@ -493,7 +506,7 @@ static void cleanup_building_records(CityGridState *s) {
 
 /* sub_160E: inner road feature placement loop */
 static bool place_road_feature_inner(CityGridState *s) {
-    uint16_t mode = s->feature_mode;
+    uint32_t mode = s->feature_mode;
     int max_attempts = 4096;
 
     while (max_attempts-- > 0) {
@@ -509,6 +522,7 @@ static bool place_road_feature_inner(CityGridState *s) {
             /* Mode: find road cell (0x0D) */
             uint8_t cell = s->plane0[offset] & 0x3F;
             if (cell != 0x0D) continue;
+            s->feature_mode = (mode & 0xFFFFU) | ((uint32_t)offset << 16);
             return true;
         }
 
@@ -547,10 +561,14 @@ static bool place_road_feature_inner(CityGridState *s) {
             }
 
             if (found_target) {
+                s->feature_mode = (mode & 0xFFFFU) | ((uint32_t)coff << 16);
                 /* sub_1702: try to place in adjacent free cell */
                 int place_dir = (dir + 1) & 3;
-                int place_off = coff + directions[place_dir].offset;
-                if (place_off >= 0 && place_off < CITYGRID_CELLS &&
+                int place_x = coff % CITYGRID_WIDTH + directions[place_dir].dx;
+                int place_y = coff / CITYGRID_WIDTH + directions[place_dir].dy;
+                int place_off = place_y * CITYGRID_WIDTH + place_x;
+                if (place_x >= 0 && place_x < CITYGRID_WIDTH &&
+                    place_y >= 0 && place_y < CITYGRID_HEIGHT &&
                     s->plane0[place_off] == 0) {
                     if (!(mode & 0x08)) {
                         s->plane0[place_off] = s->feature_cell_type |
@@ -561,8 +579,11 @@ static bool place_road_feature_inner(CityGridState *s) {
                 }
 
                 place_dir = (dir + 3) & 3;
-                place_off = coff + directions[place_dir].offset;
-                if (place_off >= 0 && place_off < CITYGRID_CELLS &&
+                place_x = coff % CITYGRID_WIDTH + directions[place_dir].dx;
+                place_y = coff / CITYGRID_WIDTH + directions[place_dir].dy;
+                place_off = place_y * CITYGRID_WIDTH + place_x;
+                if (place_x >= 0 && place_x < CITYGRID_WIDTH &&
+                    place_y >= 0 && place_y < CITYGRID_HEIGHT &&
                     s->plane0[place_off] == 0) {
                     if (!(mode & 0x08)) {
                         s->plane0[place_off] = s->feature_cell_type |
@@ -594,11 +615,6 @@ static void place_road_features(CityGridState *s, uint8_t cell_type,
 /* sub_2444: backup plane0 */
 static void backup_plane0(CityGridState *s) {
     memcpy(s->plane0_backup, s->plane0, CITYGRID_CELLS);
-}
-
-/* sub_245E: restore plane0 from backup */
-static void restore_plane0(CityGridState *s) {
-    memcpy(s->plane0, s->plane0_backup, CITYGRID_CELLS);
 }
 
 /* sub_0A80: advanced feature placement with retry */
@@ -677,7 +693,7 @@ static void place_road_walls(CityGridState *s) {
                     (c2 >= 0x1D && c2 <= 0x20)) {
                     /* Place wall cell 0x2E at the original wall position */
                     s->plane0[coff] = (s->plane0[coff] & 0xC0) | 0x2E;
-                    uint8_t bid = s->plane2[coff];
+                    uint8_t bid = s->plane2[coff] & 0x7F;
                     if (bid > 0) {
                         int bidx = (bid - 1) * 4;
                         if (bidx < CITYGRID_MAX_BUILDINGS * 4)
@@ -709,7 +725,9 @@ static void find_entry_point(CityGridState *s) {
             /* Found a road cell — verify it's still road after walking */
             uint16_t found_off = (uint16_t)(s->feature_mode >> 16);
             if (found_off < CITYGRID_CELLS) {
-                uint8_t building_id = s->plane2[found_off] & 0x7F;
+                uint8_t raw_building_id = s->plane2[found_off];
+                if (raw_building_id == 0 || raw_building_id == 0xFF) continue;
+                uint8_t building_id = raw_building_id & 0x7F;
                 uint8_t cell = s->plane0[found_off];
                 int dir = ((cell << 2) | (cell >> 6)) & 3;
                 int pos = citygrid_walk_to_origin(s->plane0, s->plane2,
@@ -736,7 +754,6 @@ static void finalize_cells(CityGridState *s) {
         uint8_t cell = raw & 0x3F;
         uint8_t rotation = (raw >> 6) & 3;
         uint8_t p1_val = s->plane1[i];
-        uint8_t p2_val = s->plane2[i];
 
         uint8_t out_type = 0;
         uint8_t out_p1 = 0;
@@ -757,7 +774,6 @@ static void finalize_cells(CityGridState *s) {
             int grid_pos = i;
             if (below != 0) {
                 out_p1 = 0x20;
-                uint8_t rot_bits = rotation;
                 /* Special positions get different values */
                 if (grid_pos == 0x20 || grid_pos == 0xFE1 ||
                     grid_pos == 0x800 || grid_pos == 0x801) {
@@ -889,6 +905,7 @@ static void finalize_cells(CityGridState *s) {
 }
 
 void citygrid_generate(CityGridState *s) {
+    if (!s) return;
     memset(s->plane0, 0, CITYGRID_CELLS);
     memset(s->plane1, 0, CITYGRID_CELLS);
     memset(s->plane2, 0, CITYGRID_CELLS);
@@ -945,7 +962,7 @@ void citygrid_generate(CityGridState *s) {
 }
 
 void citygrid_map_buildings(CityGridState *s, const CityGrid *bg) {
-    if (!s || !bg || bg->total_buildings == 0) return;
+    if (!s || !bg || bg->total_buildings <= 0) return;
 
     /* The CityGen grid assigns building IDs in plane2 during road walking.
      * BuildingGen independently generates building records indexed by
@@ -959,8 +976,10 @@ void citygrid_map_buildings(CityGridState *s, const CityGrid *bg) {
     if (bg_count > CITYGEN_MAX_BUILDINGS) bg_count = CITYGEN_MAX_BUILDINGS;
 
     for (int i = 0; i < CITYGRID_CELLS; i++) {
-        uint8_t bid = s->plane2[i];
-        if (bid == 0 || bid == 0xFF) continue;
+        uint8_t raw_bid = s->plane2[i];
+        if (raw_bid == 0 || raw_bid == 0xFF) continue;
+        uint8_t bid = raw_bid & 0x7F;
+        if (bid == 0) continue;
 
         int bg_idx = (bid - 1) % bg_count;
         s->plane1[i] = bg->buildings[bg_idx].type;

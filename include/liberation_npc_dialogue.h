@@ -25,6 +25,7 @@ typedef struct {
     bool loaded;
 } NPCDialogueData;
 
+/* Callers must zero-initialize this structure before the first load. */
 bool npc_dialogue_data_load(NPCDialogueData *ndd,
                             const uint8_t *dte_compressed, size_t comp_size);
 void npc_dialogue_data_free(NPCDialogueData *ndd);

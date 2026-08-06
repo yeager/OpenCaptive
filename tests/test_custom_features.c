@@ -1,11 +1,17 @@
 #include "custom_features.h"
 #include "game_state.h"
 #include <assert.h>
+#include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 static void test_defaults(void) {
+    custom_features_defaults(NULL);
+    assert(!custom_features_load(NULL, NULL));
+    assert(!custom_features_save(NULL, NULL));
+    debug_hud_render(NULL, 0, 0, NULL, NULL);
     CustomFeatures f;
     custom_features_defaults(&f);
     assert(!f.hd_upscale);
@@ -56,6 +62,23 @@ static void test_save_load(void) {
     assert(f2.game_speed > 1.9f && f2.game_speed < 2.1f);
 
     remove(path);
+
+    FILE *malformed = fopen(path, "w");
+    assert(malformed);
+    fputs("upscale_factor=999999999999999999999999\n", malformed);
+    fputs("game_speed=nan\n", malformed);
+    fputs("minimap_opacity=2\n", malformed);
+    fputs("minimap_size=-1\n", malformed);
+    fputs("audio_sample_rate=12345\n", malformed);
+    assert(fclose(malformed) == 0);
+    custom_features_defaults(&f2);
+    assert(custom_features_load(&f2, path));
+    assert(f2.upscale_factor == 2);
+    assert(f2.game_speed > 0.9f && f2.game_speed < 1.1f);
+    assert(f2.minimap_opacity > 0.5f && f2.minimap_opacity < 0.7f);
+    assert(f2.minimap_size == 96);
+    assert(f2.audio_sample_rate == 44100);
+    remove(path);
 }
 
 static void test_upscale_2x(void) {
@@ -87,8 +110,28 @@ static void test_upscale_4x(void) {
     assert((dst[0] & 0xFF000000) == 0xFF000000);
 }
 
+static void test_upscale_rejects_invalid_buffers(void) {
+    uint32_t src[4] = {1, 2, 3, 4};
+    uint32_t dst[16];
+    memset(dst, 0xA5, sizeof(dst));
+
+    upscale_xbrz_2x(NULL, 2, 2, dst);
+    upscale_xbrz_3x(src, 0, 2, dst);
+    upscale_xbrz_4x(src, 2, 0, dst);
+    upscale_xbrz_2x(src, 2, 2, NULL);
+    upscale_xbrz_2x(src, INT_MAX, 2, dst);
+    upscale_xbrz_3x(src, INT_MAX / 3 + 1, 2, dst);
+    upscale_xbrz_4x(src, 2, INT_MAX / 4 + 1, dst);
+
+    for (size_t i = 0; i < sizeof(dst) / sizeof(dst[0]); ++i)
+        assert(dst[i] == 0xA5A5A5A5u);
+}
+
 static void test_automap(void) {
     Automap am;
+    automap_init(NULL);
+    automap_mark(NULL, 0, 0, 0);
+    assert(!automap_is_visited(NULL, 0, 0, 0));
     automap_init(&am);
 
     assert(!automap_is_visited(&am, 0, 0, 0));
@@ -103,6 +146,7 @@ static void test_automap(void) {
 }
 
 static void test_reverb(void) {
+    reverb_process(NULL, 16, 0.5f);
     int16_t buf[256];
     for (int i = 0; i < 256; i++) buf[i] = (int16_t)(i * 100);
     reverb_process(buf, 256, 0.5f);
@@ -110,6 +154,12 @@ static void test_reverb(void) {
     bool all_zero = true;
     for (int i = 0; i < 256; i++) if (buf[i] != 0) all_zero = false;
     assert(!all_zero);
+
+    int16_t before_nan[4] = {100, -100, 200, -200};
+    int16_t after_nan[4];
+    memcpy(after_nan, before_nan, sizeof(before_nan));
+    reverb_process(after_nan, 4, NAN);
+    assert(memcmp(after_nan, before_nan, sizeof(before_nan)) == 0);
 }
 
 static void test_lighting(void) {
@@ -124,12 +174,16 @@ static void test_lighting(void) {
 
     uint32_t dark = lighting_shade_pixel(c, 0.0f);
     assert((dark & 0x00FFFFFF) == 0);
+    uint32_t nan_shaded = lighting_shade_pixel(c, NAN);
+    assert((nan_shaded & 0x00FFFFFF) == 0);
 
     float i0 = lighting_compute_intensity(0, 0);
     float i5 = lighting_compute_intensity(5, 0);
     assert(i0 > i5);
     assert(i0 <= 1.0f && i0 >= 0.1f);
     assert(i5 <= 1.0f && i5 >= 0.1f);
+    float extreme = lighting_compute_intensity(0, INT_MIN);
+    assert(extreme >= 0.1f && extreme <= 1.0f);
 }
 
 static void test_replay(void) {
@@ -165,6 +219,58 @@ static void test_replay(void) {
     assert(inp != NULL);
     assert(inp->action == 2);
 
+    FILE *truncated = fopen(path, "wb");
+    assert(truncated);
+    uint32_t replay_magic = 0x4F435250;
+    uint32_t replay_version = 1;
+    uint32_t replay_seed = 0xCAFED00D;
+    uint32_t replay_count = 3;
+    assert(fwrite(&replay_magic, 4, 1, truncated) == 1);
+    assert(fwrite(&replay_version, 4, 1, truncated) == 1);
+    assert(fwrite(&replay_seed, 4, 1, truncated) == 1);
+    assert(fwrite(&replay_count, 4, 1, truncated) == 1);
+    assert(fclose(truncated) == 0);
+
+    ReplaySystem preserved;
+    replay_init(&preserved);
+    preserved.seed = 0x12345678;
+    preserved.count = 7;
+    assert(!replay_load(&preserved, path));
+    assert(preserved.seed == 0x12345678 && preserved.count == 7);
+
+    FILE *unordered = fopen(path, "wb");
+    assert(unordered);
+    replay_count = 2;
+    assert(fwrite(&replay_magic, 4, 1, unordered) == 1);
+    assert(fwrite(&replay_version, 4, 1, unordered) == 1);
+    assert(fwrite(&replay_seed, 4, 1, unordered) == 1);
+    assert(fwrite(&replay_count, 4, 1, unordered) == 1);
+    uint32_t late_tick = 10, early_tick = 5;
+    uint8_t action = 1, param = 0;
+    assert(fwrite(&late_tick, 4, 1, unordered) == 1);
+    assert(fwrite(&action, 1, 1, unordered) == 1);
+    assert(fwrite(&param, 1, 1, unordered) == 1);
+    assert(fwrite(&early_tick, 4, 1, unordered) == 1);
+    assert(fwrite(&action, 1, 1, unordered) == 1);
+    assert(fwrite(&param, 1, 1, unordered) == 1);
+    assert(fclose(unordered) == 0);
+    assert(!replay_load(&preserved, path));
+    assert(preserved.seed == 0x12345678 && preserved.count == 7);
+
+    ReplaySystem unordered_state;
+    replay_init(&unordered_state);
+    unordered_state.count = 2;
+    unordered_state.inputs[0].tick = 10;
+    unordered_state.inputs[1].tick = 5;
+    assert(!replay_save(&unordered_state, path));
+
+    assert(replay_save(&rs, path));
+    FILE *trailing = fopen(path, "ab");
+    assert(trailing && fputc(0xA5, trailing) != EOF);
+    assert(fclose(trailing) == 0);
+    assert(!replay_load(&preserved, path));
+    assert(preserved.seed == 0x12345678 && preserved.count == 7);
+
     remove(path);
 }
 
@@ -187,6 +293,8 @@ static void test_cross_save(void) {
     gs.levels[0].seed = 42;
     gs.levels[0].cells[5][10].type = CELL_DOOR;
 
+    assert(!cross_save_export(&gs, "/"));
+
     const char *path = "/tmp/test_opencaptive_cross.ocsv";
     assert(cross_save_export(&gs, path));
 
@@ -195,6 +303,7 @@ static void test_cross_save(void) {
     assert(cross_save_import(&gs2, path));
 
     assert(gs2.game_type == GAME_CAPTIVE);
+    assert(gs2.mode == STATE_GAME);
     assert(gs2.party_x == 10);
     assert(gs2.party_y == 20);
     assert(gs2.party_dir == DIR_SOUTH);
@@ -208,6 +317,66 @@ static void test_cross_save(void) {
     assert(gs2.droids[0].hp_max == 200);
     assert(gs2.levels[0].seed == 42);
     assert(gs2.levels[0].cells[5][10].type == CELL_DOOR);
+
+    gs.game_type = GAME_LIBERATION;
+    assert(!cross_save_export(&gs, path));
+    gs.game_type = GAME_CAPTIVE;
+
+    gs.droids[0].hp = gs.droids[0].hp_max + 1;
+    assert(!cross_save_export(&gs, path));
+    gs.droids[0].hp = 100;
+    gs.levels[0].cells[5][10].type = (CellType)255;
+    assert(!cross_save_export(&gs, path));
+    gs.levels[0].cells[5][10].type = CELL_DOOR;
+
+    GameState preserved;
+    memset(&preserved, 0, sizeof(preserved));
+    preserved.mission = 77;
+    preserved.party_x = 31;
+
+    assert(cross_save_export(&gs, path));
+    FILE *trailing_cross = fopen(path, "ab");
+    assert(trailing_cross && fputc(0xA5, trailing_cross) != EOF);
+    assert(fclose(trailing_cross) == 0);
+    assert(!cross_save_import(&preserved, path));
+
+    gs.game_type = (GameType)-1;
+    assert(!cross_save_export(&gs, path));
+    gs.game_type = GAME_CAPTIVE;
+
+    FILE *mutated = fopen(path, "r+b");
+    assert(mutated);
+    int32_t invalid = -1;
+    assert(fseek(mutated, 33, SEEK_SET) == 0);
+    assert(fwrite(&invalid, sizeof(invalid), 1, mutated) == 1);
+    assert(fclose(mutated) == 0);
+    assert(!cross_save_import(&preserved, path));
+
+    assert(cross_save_export(&gs, path));
+    mutated = fopen(path, "r+b");
+    assert(mutated);
+    /* Header (57 bytes) + four 58-byte droid records. */
+    assert(fseek(mutated, 57 + 4 * 58, SEEK_SET) == 0);
+    assert(fwrite(&invalid, sizeof(invalid), 1, mutated) == 1);
+    assert(fclose(mutated) == 0);
+    assert(!cross_save_import(&preserved, path));
+
+    assert(cross_save_export(&gs, path));
+    mutated = fopen(path, "r+b");
+    assert(mutated);
+    assert(fseek(mutated, 45, SEEK_SET) == 0);
+    assert(fwrite(&invalid, sizeof(invalid), 1, mutated) == 1);
+    assert(fclose(mutated) == 0);
+    assert(!cross_save_import(&preserved, path));
+
+    FILE *corrupt = fopen(path, "r+b");
+    assert(corrupt);
+    assert(fseek(corrupt, -10, SEEK_END) == 0);
+    assert(fputc(0xFF, corrupt) != EOF);
+    assert(fclose(corrupt) == 0);
+
+    assert(!cross_save_import(&preserved, path));
+    assert(preserved.mission == 77 && preserved.party_x == 31);
 
     remove(path);
 }
@@ -226,6 +395,8 @@ static void test_minimap_render(void) {
 
     uint32_t fb[320 * 200];
     memset(fb, 0, sizeof(fb));
+    minimap_render(fb, 320, 200, &level, 5, 5, DIR_NORTH, NULL, &feat);
+    feat.minimap_opacity = NAN;
     minimap_render(fb, 320, 200, &level, 5, 5, DIR_NORTH, NULL, &feat);
 
     // Check that some pixels in the minimap area were written
@@ -272,6 +443,7 @@ int main(void) {
     test_upscale_2x();
     test_upscale_3x();
     test_upscale_4x();
+    test_upscale_rejects_invalid_buffers();
     test_automap();
     test_reverb();
     test_lighting();

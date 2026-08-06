@@ -79,6 +79,9 @@ static void test_invalid(void) {
 
     uint8_t bad[20] = {'F','O','R','M', 0,0,0,8, 'B','A','D','!', 0,0,0,0, 0,0,0,0};
     assert(!x3g_open(&x3g, bad, sizeof(bad)));
+
+    assert(!x3g_open(&x3g, NULL, 0));
+    assert(x3g.raw_data == NULL && x3g.raw_size == 0 && x3g.object_count == 0);
 }
 
 static void test_close_null(void) {

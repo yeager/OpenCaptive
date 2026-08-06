@@ -45,6 +45,9 @@ static void test_single_bank(void) {
     assert(vgm.num_banks == 1);
     assert(vgm.total_sprites == 3);
     assert(vgm.bank_count[0] == 3);
+
+    assert(!vgm_open(&vgm, NULL, 0));
+    assert(vgm.num_banks == 0 && vgm.total_sprites == 0);
 }
 
 static void test_multi_bank(void) {
@@ -98,6 +101,16 @@ static void test_invalid(void) {
 
     uint8_t bad[8] = {'N', 'O', 'P', 'E', 0, 0, 0, 0};
     assert(!vgm_open(&vgm, bad, sizeof(bad)));
+
+    uint8_t truncated[16] = {'A', 'm', 'S', 'p', 0, 1, 0, 2, 0, 8, 0, 4};
+    assert(!vgm_open(&vgm, truncated, sizeof(truncated)));
+
+    uint8_t zero_width[16] = {'A', 'm', 'S', 'p', 0, 1, 0x80, 0, 0, 1, 0, 4};
+    assert(!vgm_open(&vgm, zero_width, sizeof(zero_width)));
+
+    uint8_t oversized_width[20] = {'A', 'm', 'S', 'p', 0, 1, 0x20, 0,
+                                   0, 1, 0, 1};
+    assert(!vgm_open(&vgm, oversized_width, sizeof(oversized_width)));
 }
 
 int main(void) {

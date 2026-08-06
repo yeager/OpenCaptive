@@ -90,7 +90,10 @@ void captive_view_window_build(const GameState *gs, CaptiveViewWindow *window) {
     if (!window) return;
     memset(window, 0, sizeof(*window));
     if (!gs || gs->current_level < 0 || gs->current_level >= gs->num_levels ||
-        gs->party_dir < DIR_NORTH || gs->party_dir > DIR_WEST) {
+        gs->current_level >= MAX_LEVELS ||
+        gs->party_dir < DIR_NORTH || gs->party_dir > DIR_WEST ||
+        gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
+        gs->party_y < 0 || gs->party_y >= MAP_HEIGHT) {
         return;
     }
 

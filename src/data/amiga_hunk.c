@@ -42,16 +42,17 @@ bool amiga_hunk_parse(const uint8_t *data, size_t size, AmigaHunkInfo *info) {
     uint32_t table_size, first, last;
     if (!read_be32(data, size, &offset, &table_size) ||
         !read_be32(data, size, &offset, &first) || !read_be32(data, size, &offset, &last) ||
-        first > last || table_size != last - first + 1 ||
+        first > last || (uint64_t)last - first + 1U != table_size || table_size == 0U ||
         !skip_longs(size, &offset, table_size)) return false;
     info->hunk_count = table_size;
 
     size_t end_count = 0;
+    size_t payload_hunks = 0;
     while (offset < size) {
         if (!read_be32(data, size, &offset, &value)) return false;
         value &= HUNK_TYPE_MASK;
         if (value == HUNK_END) {
-            end_count++;
+            if (++end_count > info->hunk_count) return false;
             continue;
         }
         if (value == HUNK_CODE || value == HUNK_DATA) {
@@ -59,6 +60,7 @@ bool amiga_hunk_parse(const uint8_t *data, size_t size, AmigaHunkInfo *info) {
             if (!read_be32(data, size, &offset, &longs)) return false;
             size_t payload_offset = offset;
             if (!skip_longs(size, &offset, longs)) return false;
+            if (++payload_hunks > info->hunk_count) return false;
             if (value == HUNK_CODE) {
                 if (info->code_count++ == 0) {
                     info->first_code_offset = payload_offset;
@@ -69,6 +71,7 @@ bool amiga_hunk_parse(const uint8_t *data, size_t size, AmigaHunkInfo *info) {
             }
         } else if (value == HUNK_BSS) {
             if (!read_be32(data, size, &offset, &value)) return false;
+            if (++payload_hunks > info->hunk_count) return false;
             info->bss_count++;
         } else if (value == HUNK_RELOC32) {
             uint32_t count;
@@ -89,6 +92,6 @@ bool amiga_hunk_parse(const uint8_t *data, size_t size, AmigaHunkInfo *info) {
             return false;
         }
     }
-    return end_count == info->hunk_count &&
-        info->code_count + info->data_count + info->bss_count > 0;
+    return end_count == info->hunk_count && payload_hunks == info->hunk_count &&
+        info->hunk_count > 0;
 }

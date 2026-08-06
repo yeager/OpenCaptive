@@ -63,7 +63,7 @@ typedef struct {
 
     uint8_t  feature_cell_type;
     uint8_t  feature_count;
-    uint16_t feature_mode;
+    uint32_t feature_mode; /* low flags + high word for the selected cell offset */
     uint8_t  feature_building_id;
 } CityGridState;
 

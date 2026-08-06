@@ -14,7 +14,8 @@ const uint16_t xp_skill_base[XP_SKILL_COUNT] = {
 };
 
 uint16_t xp_threshold(int skill_index, int level) {
-    if (skill_index < 0 || skill_index >= XP_SKILL_COUNT) return 0xFFFF;
+    if (skill_index < 0 || skill_index >= XP_SKILL_COUNT || level < 0)
+        return 0xFFFF;
 
     uint16_t ax = xp_skill_base[skill_index];
 
@@ -44,14 +45,14 @@ uint16_t xp_threshold(int skill_index, int level) {
 }
 
 uint32_t xp_award(int xp_value, int difficulty, int skill_level) {
+    if (xp_value < 0 || skill_level < 0) return 0;
     if (difficulty > 100) difficulty = 100;
     if (difficulty < 0) difficulty = 0;
 
-    int dx = xp_value + 3 + difficulty;
-    uint32_t m = (uint32_t)skill_level * (uint32_t)dx;
-    uint32_t m4 = m << 2;
-    uint32_t m8 = m << 3;
-    return m4 + m8;
+    uint64_t dx = (uint64_t)(uint32_t)xp_value + 3u + (uint32_t)difficulty;
+    uint64_t multiplier = (uint64_t)(uint32_t)skill_level * dx;
+    uint64_t award = multiplier * 12u;
+    return award > UINT32_MAX ? UINT32_MAX : (uint32_t)award;
 }
 
 uint16_t xp_to_display_level(uint32_t xp) {

@@ -32,6 +32,18 @@ int main(void) {
     hunk[3] = 0;
     assert(!amiga_hunk_parse(hunk, pos, &info));
 
+    uint8_t wrapped_table[64] = {0};
+    pos = 0;
+    put_be32(wrapped_table, &pos, 0x3F3);
+    put_be32(wrapped_table, &pos, 0);
+    put_be32(wrapped_table, &pos, 0);          /* wrapped table size */
+    put_be32(wrapped_table, &pos, 0);
+    put_be32(wrapped_table, &pos, 0xFFFFFFFFU);
+    put_be32(wrapped_table, &pos, 0x3E9);      /* would be code */
+    put_be32(wrapped_table, &pos, 0);
+    put_be32(wrapped_table, &pos, 0x3F2);
+    assert(!amiga_hunk_parse(wrapped_table, pos, &info));
+
     uint8_t flagged_bss[64] = {0};
     pos = 0;
     put_be32(flagged_bss, &pos, 0x3F3);       /* header */

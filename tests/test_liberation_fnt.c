@@ -1,5 +1,6 @@
 #include "liberation_fnt.h"
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -67,6 +68,12 @@ static void test_text_width(void) {
     assert(fnt_text_width(&font, "! ") == 8);
     assert(fnt_text_width(&font, "\"") == 6);
     assert(fnt_text_width(&font, "") == 0);
+
+    font.max_width = UINT16_MAX;
+    char long_text[40001];
+    memset(long_text, 'x', sizeof(long_text) - 1);
+    long_text[sizeof(long_text) - 1] = '\0';
+    assert(fnt_text_width(&font, long_text) == INT_MAX);
 }
 
 int main(void) {

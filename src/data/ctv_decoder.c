@@ -1,4 +1,5 @@
 #include "ctv_decoder.h"
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,14 +30,18 @@ static uint32_t read_le24(const uint8_t *p) {
 static bool ctv_add_sample(CtvFile *ctv, const int8_t *data, uint32_t len,
                             uint32_t rate) {
     if (ctv->count >= ctv->capacity) {
+        if (ctv->capacity > INT_MAX / 2) return false;
         int new_cap = ctv->capacity ? ctv->capacity * 2 : 16;
+        if ((size_t)new_cap > SIZE_MAX / sizeof(CtvSample)) return false;
         CtvSample *new_entries = realloc(ctv->entries, new_cap * sizeof(CtvSample));
         if (!new_entries) return false;
         ctv->entries = new_entries;
         ctv->capacity = new_cap;
     }
     CtvSample *s = &ctv->entries[ctv->count];
-    s->samples = malloc(len);
+    /* A zero-length VOC block is valid. Keep a non-NULL allocation so the
+     * sample entry is not confused with an allocation failure. */
+    s->samples = malloc(len ? len : 1U);
     if (!s->samples) return false;
     memcpy(s->samples, data, len);
     s->length = len;
@@ -53,7 +58,7 @@ bool ctv_decode(CtvFile *out, const uint8_t *data, uint32_t size) {
     if (memcmp(data, "Creative Voice File\x1a", 20) != 0) return false;
 
     uint16_t data_offset = read_le16(data + 20);
-    if (data_offset > size) return false;
+    if (data_offset < 26U || data_offset > size) return false;
 
     uint32_t pos = data_offset;
     uint32_t current_rate = 8000;
@@ -62,33 +67,52 @@ bool ctv_decode(CtvFile *out, const uint8_t *data, uint32_t size) {
         uint8_t block_type = data[pos++];
         if (block_type == 0) break;
 
-        if (pos + 3 > size) break;
+        if (size - pos < 3U) {
+            ctv_free(out);
+            return false;
+        }
         uint32_t block_len = read_le24(data + pos);
         pos += 3;
 
-        if (pos + block_len > size) break;
+        if (block_len > size - pos) {
+            ctv_free(out);
+            return false;
+        }
 
         switch (block_type) {
         case 1: {
-            if (block_len < 2) break;
+            if (block_len < 2) {
+                ctv_free(out);
+                return false;
+            }
             uint8_t sr_code = data[pos];
             uint8_t codec = data[pos + 1];
-            if (codec != 0) { pos += block_len; break; }
+            if (codec != 0) break;
             current_rate = 1000000 / (256 - sr_code);
-            ctv_add_sample(out, (const int8_t *)(data + pos + 2),
-                           block_len - 2, current_rate);
+            if (!ctv_add_sample(out, (const int8_t *)(data + pos + 2),
+                                block_len - 2, current_rate)) {
+                ctv_free(out);
+                return false;
+            }
             break;
         }
         case 2:
             if (out->count > 0) {
                 CtvSample *last = &out->entries[out->count - 1];
-                int8_t *new_data = realloc(last->samples,
-                                            last->length + block_len);
-                if (new_data) {
-                    memcpy(new_data + last->length, data + pos, block_len);
-                    last->samples = new_data;
-                    last->length += block_len;
+                size_t combined = (size_t)last->length + (size_t)block_len;
+                if (combined > UINT32_MAX) {
+                    ctv_free(out);
+                    return false;
                 }
+                int8_t *new_data = realloc(last->samples,
+                                            combined ? combined : 1U);
+                if (!new_data) {
+                    ctv_free(out);
+                    return false;
+                }
+                memcpy(new_data + last->length, data + pos, block_len);
+                last->samples = new_data;
+                last->length = (uint32_t)combined;
             }
             break;
         case 8: {
@@ -99,19 +123,24 @@ bool ctv_decode(CtvFile *out, const uint8_t *data, uint32_t size) {
             break;
         }
         case 9: {
-            if (block_len < 12) break;
+            if (block_len < 12) {
+                ctv_free(out);
+                return false;
+            }
             uint32_t sr = (uint32_t)data[pos] | ((uint32_t)data[pos+1] << 8) |
                           ((uint32_t)data[pos+2] << 16) | ((uint32_t)data[pos+3] << 24);
             uint8_t bits = data[pos + 4];
             uint8_t channels = data[pos + 5];
             uint16_t codec9 = read_le16(data + pos + 6);
-            if (codec9 != 0 || bits != 8 || channels != 1) {
-                pos += block_len;
+            if (codec9 != 0 || bits != 8 || channels != 1 || sr == 0) {
                 break;
             }
             current_rate = sr;
-            ctv_add_sample(out, (const int8_t *)(data + pos + 12),
-                           block_len - 12, current_rate);
+            if (!ctv_add_sample(out, (const int8_t *)(data + pos + 12),
+                                block_len - 12, current_rate)) {
+                ctv_free(out);
+                return false;
+            }
             break;
         }
         default:

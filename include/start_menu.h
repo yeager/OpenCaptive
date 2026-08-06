@@ -55,6 +55,9 @@ typedef struct {
     bool captive_data_ok;
     bool liberation_data_ok;
     bool captive_save_exists;
+    /* Most recently modified numbered Captive save slot, or -1 when only
+     * the legacy opencaptive.sav file is available. */
+    int captive_save_slot;
     bool liberation_save_exists;
     bool in_about;
     bool in_controls;
@@ -69,6 +72,13 @@ typedef struct {
     int scanner_phase;
     bool scanner_done;
     bool show_setup_popup;
+    bool show_version_popup;
+    int version_popup_game;
+    int version_popup_selection;
+    unsigned captive_source_mask;
+    CaptivePlatform captive_source_choice;
+    unsigned liberation_source_mask;
+    int liberation_source_choice;
     uint32_t *logo_img;
     int logo_img_w, logo_img_h;
     uint32_t *captive_img;
@@ -82,6 +92,8 @@ typedef struct {
 } StartMenu;
 
 void start_menu_init(StartMenu *menu);
+/* Re-enter the menu while retaining loaded artwork, fonts, and data path. */
+void start_menu_reinit(StartMenu *menu);
 void start_menu_free(StartMenu *menu);
 void start_menu_check_data(StartMenu *menu, const char *data_path);
 void start_menu_check_saves(StartMenu *menu);

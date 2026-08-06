@@ -27,5 +27,6 @@ int main(void) {
     assert(captive_compositor_blit(view, CAPTIVE_VIEWPORT_WIDTH, &panels[0]));
     assert(view[0] == 0xFFAABBCC);
     assert(!captive_compositor_blit(NULL, CAPTIVE_VIEWPORT_WIDTH, &panels[0]));
+    assert(!captive_compositor_blit(view, CAPTIVE_VIEWPORT_WIDTH - 1, &panels[0]));
     return 0;
 }

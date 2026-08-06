@@ -6,11 +6,17 @@ OpenCaptive has three audio subsystems: sound effects (SFX), 8SVX sample playbac
 
 ## Sound Effects (SFX)
 
-Sound effects are currently silent. Earlier builds generated placeholder tones
-and noise at startup; that code is deliberately not used because it cannot be
-compared with the original effects. The media must be identified by SHA-256,
-then its effect format and playback semantics must be decoded before samples
-are enabled.
+Captive's AdLib SFX bytecode is decoded and rendered through the software OPL2
+emulator. The runtime includes the recovered 49 sequence table, four active
+voices, bounded opcode execution, key-on/key-off handling, patch loading and
+per-tick timing. `sfx_play()` starts a mapped sequence and `sfx_update()` mixes
+its output into the SDL audio stream.
+
+The original SFX data is embedded only after its provenance has been recorded
+in the source comments; no user-supplied game-data scan is required for this
+subsystem. The implementation is not claimed to be cycle-exact OPL2 hardware,
+but the test suite verifies that every sequence starts and that representative
+sequences produce non-zero audio.
 
 ## 8SVX Sample Loader
 

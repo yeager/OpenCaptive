@@ -191,6 +191,59 @@ static void test_behind_camera(void) {
     assert(state.vis_count == 0);
 }
 
+static void test_nonfinite_vertex_is_rejected(void) {
+    Lib3dState state;
+    lib3d_init(&state);
+    lib3d_set_camera(&state, 0, 0, 0, 0);
+
+    X3gVertex verts[3] = {
+        {0, 0, 50, 0, {0,0,0,0}},
+        {10, 10, 50, 0, {0,0,0,0}},
+        {-10, 10, 50, 0, {0,0,0,0}},
+    };
+    X3gPolygon poly;
+    memset(&poly, 0, sizeof(poly));
+    poly.vertex_count = 3;
+    poly.vertex_indices[0] = 0;
+    poly.vertex_indices[1] = 1;
+    poly.vertex_indices[2] = 2;
+    X3gObject obj = {0};
+    obj.vertices = verts;
+    obj.vertex_count = 3;
+    obj.parsed_polys = &poly;
+    obj.polygon_count = 1;
+
+    state.fov_scale = NAN;
+    lib3d_render_object(&state, &obj, 0, 0, 0, NULL, 0);
+    assert(state.vis_count == 0);
+}
+
+static void test_nonfinite_textured_quad_is_rejected(void) {
+    Lib3dState state;
+    Lib3dTexture tex = {0};
+    lib3d_init(&state);
+    lib3d_clear(&state, 0, 0);
+    tex.width = 1;
+    tex.height = 1;
+    state.fov_scale = NAN;
+    lib3d_render_textured_quad(&state, 0, 0, 10, 1, 0, 10,
+                               1, 1, 10, 0, 1, 10, &tex);
+    assert(state.zbuffer[0] > 1e20f);
+}
+
+static void test_oversized_texture_is_rejected(void) {
+    Lib3dState state;
+    lib3d_init(&state);
+    lib3d_clear(&state, 0, 0);
+    Lib3dTexture tex = {0};
+    tex.width = LIB3D_MAX_TEX_SIZE + 1;
+    tex.height = 1;
+    lib3d_render_textured_quad(&state, 0, 0, 10, 1, 0, 10,
+                               1, 1, 10, 0, 1, 10, &tex);
+    for (size_t i = 0; i < sizeof(state.zbuffer) / sizeof(state.zbuffer[0]); ++i)
+        assert(state.zbuffer[i] == 1e30f);
+}
+
 static void test_textured_quad(void) {
     Lib3dState state;
     lib3d_init(&state);
@@ -240,6 +293,52 @@ static void test_textured_quad_behind(void) {
     assert(state.framebuffer[cy * LIB3D_VP_WIDTH + cx] == 0xFF000000);
 }
 
+static void test_projected_indices_above_255(void) {
+    Lib3dState state;
+    X3gVertex filler[256];
+    X3gPolygon filler_poly;
+    X3gVertex triangle_vertices[3] = {
+        { -20, -20, 100, 0, {0, 0, 0, 0} },
+        {  20, -20, 100, 0, {0, 0, 0, 0} },
+        {   0,  20, 100, 0, {0, 0, 0, 0} }
+    };
+    X3gPolygon triangle_poly;
+    X3gObject filler_object;
+    X3gObject triangle_object;
+    uint32_t dest[320 * 200];
+
+    memset(filler, 0, sizeof(filler));
+    for (size_t i = 0; i < 256; ++i) filler[i].z = 100;
+    memset(&filler_poly, 0, sizeof(filler_poly));
+    memset(&triangle_poly, 0, sizeof(triangle_poly));
+    triangle_poly.vertex_count = 3;
+    triangle_poly.vertex_indices[0] = 0;
+    triangle_poly.vertex_indices[1] = 1;
+    triangle_poly.vertex_indices[2] = 2;
+    triangle_poly.color = 0x1F;
+    memset(&filler_object, 0, sizeof(filler_object));
+    filler_object.vertices = filler;
+    filler_object.vertex_count = 256;
+    filler_object.parsed_polys = &filler_poly;
+    memset(&triangle_object, 0, sizeof(triangle_object));
+    triangle_object.vertices = triangle_vertices;
+    triangle_object.vertex_count = 3;
+    triangle_object.parsed_polys = &triangle_poly;
+    triangle_object.polygon_count = 1;
+
+    lib3d_init(&state);
+    lib3d_set_camera(&state, 0, 0, 0, 0);
+    lib3d_clear(&state, 0xFF000000, 0xFF000000);
+    lib3d_render_object(&state, &filler_object, 0, 0, 0, NULL, 0);
+    lib3d_render_object(&state, &triangle_object, 0, 0, 0, NULL, 0);
+
+    assert(state.proj_count == 259);
+    assert(state.vis_count == 1);
+    memset(dest, 0, sizeof(dest));
+    lib3d_present(&state, dest, 320, 200, 0, 0);
+    assert(dest[100 * 320 + 128] != 0xFF000000);
+}
+
 int main(void) {
     test_init();
     test_clear();
@@ -247,8 +346,12 @@ int main(void) {
     test_z_sorting();
     test_camera_rotation();
     test_behind_camera();
+    test_nonfinite_vertex_is_rejected();
+    test_nonfinite_textured_quad_is_rejected();
+    test_oversized_texture_is_rejected();
     test_textured_quad();
     test_textured_quad_behind();
+    test_projected_indices_above_255();
     printf("All liberation_viewport_3d tests passed\n");
     return 0;
 }

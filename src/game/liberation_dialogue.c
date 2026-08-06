@@ -3,11 +3,13 @@
 #include <stdio.h>
 
 void dialogue_tree_init(DialogueTree *tree) {
+    if (!tree) return;
     memset(tree, 0, sizeof(*tree));
 }
 
 static unsigned add_node(DialogueTree *tree) {
-    if (tree->node_count >= DIALOGUE_MAX_NODES) return 0;
+    if (!tree) return DIALOGUE_INVALID_NODE;
+    if (tree->node_count >= DIALOGUE_MAX_NODES) return DIALOGUE_INVALID_NODE;
     unsigned idx = tree->node_count++;
     memset(&tree->nodes[idx], 0, sizeof(DialogueNode));
     return idx;
@@ -15,7 +17,9 @@ static unsigned add_node(DialogueTree *tree) {
 
 unsigned dialogue_tree_add_text(DialogueTree *tree, const char *speaker,
                                  const char *text, unsigned next) {
+    if (next > UINT16_MAX) return DIALOGUE_INVALID_NODE;
     unsigned idx = add_node(tree);
+    if (idx == DIALOGUE_INVALID_NODE) return DIALOGUE_INVALID_NODE;
     DialogueNode *n = &tree->nodes[idx];
     n->type = DIALOGUE_NODE_TEXT;
     if (speaker) snprintf(n->speaker, sizeof(n->speaker), "%s", speaker);
@@ -27,6 +31,7 @@ unsigned dialogue_tree_add_text(DialogueTree *tree, const char *speaker,
 unsigned dialogue_tree_add_choice(DialogueTree *tree, const char *speaker,
                                    const char *prompt) {
     unsigned idx = add_node(tree);
+    if (idx == DIALOGUE_INVALID_NODE) return DIALOGUE_INVALID_NODE;
     DialogueNode *n = &tree->nodes[idx];
     n->type = DIALOGUE_NODE_CHOICE;
     if (speaker) snprintf(n->speaker, sizeof(n->speaker), "%s", speaker);
@@ -36,7 +41,9 @@ unsigned dialogue_tree_add_choice(DialogueTree *tree, const char *speaker,
 
 bool dialogue_tree_add_option(DialogueTree *tree, unsigned node_idx,
                                const char *label, unsigned target) {
-    if (node_idx >= tree->node_count) return false;
+    if (!tree || tree->node_count > DIALOGUE_MAX_NODES ||
+        node_idx >= tree->node_count || target >= tree->node_count ||
+        target >= DIALOGUE_MAX_NODES) return false;
     DialogueNode *n = &tree->nodes[node_idx];
     if (n->type != DIALOGUE_NODE_CHOICE) return false;
     if (n->choice_count >= DIALOGUE_MAX_CHOICES) return false;
@@ -48,6 +55,7 @@ bool dialogue_tree_add_option(DialogueTree *tree, unsigned node_idx,
 
 unsigned dialogue_tree_add_exit(DialogueTree *tree, const char *text) {
     unsigned idx = add_node(tree);
+    if (idx == DIALOGUE_INVALID_NODE) return DIALOGUE_INVALID_NODE;
     DialogueNode *n = &tree->nodes[idx];
     n->type = DIALOGUE_NODE_EXIT;
     if (text) snprintf(n->text, sizeof(n->text), "%s", text);
@@ -55,24 +63,41 @@ unsigned dialogue_tree_add_exit(DialogueTree *tree, const char *text) {
 }
 
 void dialogue_state_init(DialogueState *state, const DialogueTree *tree) {
+    if (!state) return;
     memset(state, 0, sizeof(*state));
     state->tree = tree;
 }
 
 void dialogue_state_start(DialogueState *state) {
-    state->active = true;
-    state->current_node = 0;
+    if (!state) return;
+    state->active = false;
+    if (!state->tree || state->tree->node_count == 0 ||
+        state->tree->node_count > DIALOGUE_MAX_NODES) return;
+    for (unsigned i = 0; i < state->tree->node_count; i++) {
+        if (state->tree->nodes[i].type != DIALOGUE_NODE_EXIT) {
+            state->active = true;
+            state->current_node = i;
+            return;
+        }
+    }
+    state->active = false;
 }
 
 const DialogueNode *dialogue_state_current(const DialogueState *state) {
-    if (!state->active || !state->tree) return NULL;
-    if (state->current_node >= state->tree->node_count) return NULL;
+    if (!state || !state->active || !state->tree ||
+        state->tree->node_count > DIALOGUE_MAX_NODES) return NULL;
+    if (state->current_node >= state->tree->node_count ||
+        state->current_node >= DIALOGUE_MAX_NODES) return NULL;
     return &state->tree->nodes[state->current_node];
 }
 
 bool dialogue_state_advance(DialogueState *state) {
+    if (!state) return false;
     const DialogueNode *node = dialogue_state_current(state);
-    if (!node) return false;
+    if (!node) {
+        state->active = false;
+        return false;
+    }
 
     if (node->type == DIALOGUE_NODE_EXIT) {
         state->active = false;
@@ -87,6 +112,10 @@ bool dialogue_state_advance(DialogueState *state) {
     state->current_node = node->next_node;
 
     const DialogueNode *next = dialogue_state_current(state);
+    if (!next) {
+        state->active = false;
+        return false;
+    }
     if (next && next->type == DIALOGUE_NODE_EXIT) {
         state->active = false;
         return false;
@@ -96,13 +125,19 @@ bool dialogue_state_advance(DialogueState *state) {
 }
 
 bool dialogue_state_choose(DialogueState *state, unsigned choice_idx) {
+    if (!state) return false;
     const DialogueNode *node = dialogue_state_current(state);
     if (!node || node->type != DIALOGUE_NODE_CHOICE) return false;
-    if (choice_idx >= node->choice_count) return false;
+    if (node->choice_count > DIALOGUE_MAX_CHOICES ||
+        choice_idx >= node->choice_count) return false;
 
     state->current_node = node->choices[choice_idx].target_node;
 
     const DialogueNode *next = dialogue_state_current(state);
+    if (!next) {
+        state->active = false;
+        return false;
+    }
     if (next && next->type == DIALOGUE_NODE_EXIT) {
         state->active = false;
         return false;

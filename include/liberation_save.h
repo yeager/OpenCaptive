@@ -9,18 +9,35 @@
 #include "liberation_city_nav.h"
 
 #define LIB_SAVE_MAGIC "LSAV"
-#define LIB_SAVE_VERSION 1
+#define LIB_SAVE_VERSION 7
+#define LIB_SAVE_PREVIOUS_VERSION 6
+#define LIB_SAVE_REPUTATION_VERSION 5
+#define LIB_SAVE_BODY_PART_VERSION 6
+#define LIB_SAVE_SKILLS_VERSION 7
+#define LIB_SAVE_XP_VERSION 3
+#define LIB_SAVE_SHARED_INVENTORY_VERSION 4
+#define LIB_SAVE_LEGACY_VERSION 1
+#define LIB_SAVE_OLD_INVENTORY_VERSION 2
 #define LIB_SAVE_MAX_DROIDS 4
 #define LIB_SAVE_MAX_MISSIONS 256
+#define LIB_SAVE_MAX_SHARED_ITEMS 40
 
 typedef struct {
     char name[16];
     int16_t hp, hp_max;
     int16_t energy, energy_max;
     uint8_t level;
-    uint8_t skills[8];
+    uint32_t xp;
+    uint8_t skills[10];
     uint16_t equipment[8];
+    uint8_t inventory[10];
+    uint8_t body_part_hp[6];
 } LibSaveDroid;
+
+typedef struct {
+    char name[24];
+    uint16_t item_type;
+} LibSaveSharedItem;
 
 typedef struct {
     uint32_t magic;
@@ -34,9 +51,12 @@ typedef struct {
     uint8_t  facing;
     uint8_t  num_droids;
     LibSaveDroid droids[LIB_SAVE_MAX_DROIDS];
+    uint8_t shared_inventory_count;
+    LibSaveSharedItem shared_inventory[LIB_SAVE_MAX_SHARED_ITEMS];
     uint8_t  mission_complete[LIB_SAVE_MAX_MISSIONS / 8];
     uint16_t generators_destroyed;
     uint16_t generators_total;
+    int16_t  reputation;
 } LibSaveData;
 
 bool lib_save_write(const LibSaveData *data, const char *path);

@@ -1,7 +1,10 @@
 #include "game_state.h"
 #include "combat.h"
+#include "puzzle.h"
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
+#include <string.h>
 
 static int generator_count(const GameState *gs) {
     int count = 0;
@@ -10,6 +13,20 @@ static int generator_count(const GameState *gs) {
             for (int x = 0; x < MAP_WIDTH; x++)
                 count += gs->levels[level].cells[y][x].type == CELL_GENERATOR;
     return count;
+}
+
+static void test_puzzle_rejects_invalid_level(void) {
+    PuzzleList puzzles;
+    DungeonLevel level;
+    puzzle_init(&puzzles);
+    memset(&level, 0, sizeof(level));
+    puzzle_generate(&puzzles, &level, -1, 1);
+    assert(puzzles.num_puzzles == 0);
+    puzzle_generate(&puzzles, &level, MAX_LEVELS, 1);
+    assert(puzzles.num_puzzles == 0);
+    puzzles.num_puzzles = -1;
+    puzzle_generate(&puzzles, &level, 0, 1);
+    assert(puzzles.num_puzzles == -1);
 }
 
 static void move_to_stair(GameState *gs, CellType stair) {
@@ -59,12 +76,249 @@ static void test_combat_respects_closed_doors(void) {
     assert(gs.droids[0].hp == hp_before);
 }
 
+static void test_combat_creatures_cannot_enter_party_tile(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 20, .hp_max = 20,
+        .range = 0, .x = 2, .y = 1, .level = 0,
+        .active = true, .alerted = true,
+    };
+    combat_tick(&creatures, &gs);
+    assert(creatures.creatures[0].x == 2 && creatures.creatures[0].y == 1);
+}
+
+static void test_combat_gold_reward_saturates(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+    gs.gold = INT_MAX;
+    gs.droids[0].weapon_damage = 0xFFFF;
+
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 1, .hp_max = 30,
+        .x = 2, .y = 1, .active = true,
+    };
+    assert(combat_droid_attack(&gs, &creatures, 0));
+    assert(gs.gold == INT_MAX);
+}
+
+static void test_combat_level_up_uses_pre_attack_xp(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+    gs.droids[0].xp = 0;
+    gs.droids[0].weapon_damage = 0xFFFF;
+
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 1, .hp_max = 32760,
+        .x = 2, .y = 1, .active = true,
+    };
+    assert(combat_droid_attack(&gs, &creatures, 0));
+    assert(gs.droids[0].xp == 3276);
+    assert(gs.droids[0].hp_max == 110);
+}
+
+static void test_combat_skips_destroyed_droids(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    gs.droids[0].hp = 0;
+    int living_hp[4];
+    for (int i = 0; i < 4; i++) living_hp[i] = gs.droids[i].hp;
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 20, .hp_max = 20,
+        .damage_min = 4, .damage_max = 4, .range = 4,
+        .x = 2, .y = 1, .level = 0, .active = true, .alerted = true,
+    };
+    combat_tick(&creatures, &gs);
+    assert(gs.droids[0].hp == 0);
+    bool one_living_droid_was_hit = false;
+    for (int i = 1; i < 4; i++)
+        if (gs.droids[i].hp < living_hp[i]) one_living_droid_was_hit = true;
+    assert(one_living_droid_was_hit);
+}
+
+static void test_combat_ignores_invalid_creature_health(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 0, .hp_max = 0,
+        .x = 2, .y = 1, .active = true,
+    };
+    assert(!combat_droid_attack(&gs, &creatures, 0));
+    assert(gs.droids[0].energy == gs.droids[0].energy_max);
+    int hp_before = gs.droids[0].hp;
+    combat_tick(&creatures, &gs);
+    assert(gs.droids[0].hp == hp_before);
+    assert(!creatures.creatures[0].active);
+}
+
+static void test_combat_extreme_damage_does_not_wrap_hp(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 20, .hp_max = 20,
+        .damage_min = INT16_MAX, .damage_max = INT16_MAX,
+        .range = 4, .x = 2, .y = 1, .level = 0, .active = true,
+        .alerted = true,
+    };
+    combat_tick(&creatures, &gs);
+    int living_hp = 0;
+    for (int i = 0; i < 4; i++)
+        if (gs.droids[i].hp > 0) living_hp++;
+    assert(living_hp == 3);
+}
+
+static void test_combat_does_not_heal_from_invalid_damage(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 10, .hp_max = 10,
+        .damage_min = -100, .damage_max = -50, .range = 4,
+        .x = 2, .y = 1, .level = 0, .active = true, .alerted = true
+    };
+    int hp_before = gs.droids[0].hp;
+    combat_tick(&creatures, &gs);
+    assert(gs.droids[0].hp <= hp_before);
+}
+
+static void test_combat_spawn_extreme_level_seed_is_defined(void) {
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    CreatureList creatures;
+    combat_init(&creatures);
+    combat_spawn_for_level(&creatures, &gs.levels[0], INT_MIN, UINT32_MAX);
+    assert(creatures.num_creatures == 0);
+    combat_init(&creatures);
+    combat_spawn_for_level(&creatures, &gs.levels[0], INT_MAX, 0);
+    assert(creatures.num_creatures == 0);
+}
+
+static void test_combat_spawn_normalizes_negative_creature_count(void) {
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+
+    CreatureList creatures;
+    combat_init(&creatures);
+    creatures.num_creatures = -1;
+    combat_spawn_for_level(&creatures, &gs.levels[0], 0, 1234);
+
+    assert(creatures.num_creatures >= 0);
+    assert(creatures.num_creatures <= MAX_CREATURES);
+}
+
+static void test_generator_counter_does_not_overflow(void) {
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+    gs.generators_destroyed = INT_MAX;
+    gs.generators_total = INT_MAX;
+    gs.levels[0].cells[1][2].type = CELL_GENERATOR;
+    combat_interact(&gs, NULL);
+    assert(gs.generators_destroyed == INT_MAX);
+}
+
+static void test_combat_rejects_invalid_position_state(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.party_dir = 99;
+    combat_interact(&gs, NULL);
+    assert(!combat_droid_attack(&gs, &creatures, 0));
+    combat_tick(&creatures, &gs);
+    gs.party_dir = DIR_NORTH;
+    gs.current_level = MAX_LEVELS;
+    combat_interact(&gs, NULL);
+    assert(!combat_droid_attack(&gs, &creatures, 0));
+}
+
 static void test_first_mission_uses_architect_seed_zero(void) {
     static GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
     assert(gs.base_id == 0);
     game_state_new_mission(&gs, 1);
     assert(gs.mission_seed == 0);
+    assert(gs.num_levels > 0);
+}
+
+static void test_extreme_mission_seed_is_defined(void) {
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    gs.base_id = 17;
+    game_state_new_mission(&gs, INT_MAX);
+    assert(gs.mission == INT_MAX);
+    assert(gs.mission_seed == (uint32_t)((uint64_t)(INT_MAX - 1) * 11U + 17U));
     assert(gs.num_levels > 0);
 }
 
@@ -84,10 +338,100 @@ static void test_campaign_progression(void) {
     assert(gs.mode == STATE_VICTORY);
 }
 
+static void test_mission_completion_rejects_overshot_generator_count(void) {
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    gs.generators_total = 3;
+    gs.generators_destroyed = 4;
+    assert(!game_state_complete_mission(&gs));
+    assert(gs.mode == STATE_MENU);
+}
+
+static void test_floor_change_rejects_corrupt_level_count(void) {
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    gs.num_levels = MAX_LEVELS + 1;
+    gs.current_level = 0;
+    assert(!game_state_change_floor(&gs, 1));
+}
+
+static void test_generated_floor_connections(void) {
+    for (uint32_t seed = 0; seed < 64; seed++) {
+        GameState gs;
+        game_state_init(&gs, GAME_CAPTIVE, 1);
+        game_state_new_mission_seeded(&gs, 1, seed);
+        for (int level = 0; level + 1 < gs.num_levels; level++) {
+            int down_x = -1, down_y = -1;
+            for (int y = 0; y < MAP_HEIGHT; y++) {
+                for (int x = 0; x < MAP_WIDTH; x++) {
+                    if (gs.levels[level].cells[y][x].type == CELL_STAIRS_DOWN) {
+                        down_x = x;
+                        down_y = y;
+                        break;
+                    }
+                }
+                if (down_x >= 0) break;
+            }
+            assert(down_x >= 0 && down_y >= 0);
+            gs.current_level = level;
+            gs.party_x = down_x;
+            gs.party_y = down_y;
+            assert(game_state_change_floor(&gs, 1));
+            assert(gs.current_level == level + 1);
+            assert(game_state_change_floor(&gs, -1));
+            assert(gs.current_level == level);
+        }
+    }
+}
+
+static void test_combat_los_rejects_corrupt_level_count(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.num_levels = MAX_LEVELS + 1;
+    gs.current_level = MAX_LEVELS;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 10, .hp_max = 10,
+        .x = 2, .y = 1, .level = MAX_LEVELS, .active = true
+    };
+    assert(!combat_droid_attack(&gs, &creatures, 0));
+}
+
+static void test_init_normalizes_invalid_mission(void) {
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 0);
+    assert(gs.mission == 1);
+    game_state_init(&gs, GAME_CAPTIVE, -7);
+    assert(gs.mission == 1);
+}
+
 int main(void) {
+    test_init_normalizes_invalid_mission();
+    test_puzzle_rejects_invalid_level();
     test_first_mission_uses_architect_seed_zero();
+    test_extreme_mission_seed_is_defined();
     test_combat_respects_closed_doors();
+    test_combat_creatures_cannot_enter_party_tile();
+    test_combat_gold_reward_saturates();
+    test_combat_level_up_uses_pre_attack_xp();
+    test_combat_skips_destroyed_droids();
+    test_combat_ignores_invalid_creature_health();
+    test_combat_extreme_damage_does_not_wrap_hp();
+    test_combat_does_not_heal_from_invalid_damage();
+    test_combat_spawn_extreme_level_seed_is_defined();
+    test_combat_spawn_normalizes_negative_creature_count();
+    test_generator_counter_does_not_overflow();
+    test_combat_rejects_invalid_position_state();
     test_campaign_progression();
+    test_mission_completion_rejects_overshot_generator_count();
+    test_floor_change_rejects_corrupt_level_count();
+    test_generated_floor_connections();
+    test_combat_los_rejects_corrupt_level_count();
     static GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
     gs.base_id = 3;

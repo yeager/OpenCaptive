@@ -7,7 +7,16 @@
 static I18nTable table;
 static bool initialized;
 
+static void copy_po_field(char *dst, const char *src) {
+    if (!dst || !src) return;
+    size_t len = strlen(src);
+    if (len >= I18N_MAX_MSGLEN) len = I18N_MAX_MSGLEN - 1;
+    memcpy(dst, src, len);
+    dst[len] = '\0';
+}
+
 static void parse_po_line(const char *line, char *out, size_t out_size) {
+    if (!line || !out || out_size == 0) return;
     const char *start = strchr(line, '"');
     if (!start) { out[0] = '\0'; return; }
     start++;
@@ -20,7 +29,14 @@ static void parse_po_line(const char *line, char *out, size_t out_size) {
                 case 't': out[i++] = '\t'; break;
                 case '\\': out[i++] = '\\'; break;
                 case '"': out[i++] = '"'; break;
-                default: out[i++] = '\\'; out[i++] = *start; break;
+                default:
+                    if (i + 1 >= out_size) {
+                        out[i] = '\0';
+                        return;
+                    }
+                    out[i++] = '\\';
+                    out[i++] = *start;
+                    break;
             }
         } else {
             out[i++] = *start;
@@ -50,8 +66,8 @@ static void load_po(const char *path) {
         if (strncmp(line, "msgid ", 6) == 0) {
             if (state == IN_MSGSTR && msgid[0] && msgstr[0] &&
                 table.count < I18N_MAX_ENTRIES) {
-                strncpy(table.entries[table.count].msgid, msgid, I18N_MAX_MSGLEN - 1);
-                strncpy(table.entries[table.count].msgstr, msgstr, I18N_MAX_MSGLEN - 1);
+                copy_po_field(table.entries[table.count].msgid, msgid);
+                copy_po_field(table.entries[table.count].msgstr, msgstr);
                 table.count++;
             }
             parse_po_line(line, msgid, sizeof(msgid));
@@ -73,8 +89,8 @@ static void load_po(const char *path) {
         } else if (line[0] == '\0') {
             if (state == IN_MSGSTR && msgid[0] && msgstr[0] &&
                 table.count < I18N_MAX_ENTRIES) {
-                strncpy(table.entries[table.count].msgid, msgid, I18N_MAX_MSGLEN - 1);
-                strncpy(table.entries[table.count].msgstr, msgstr, I18N_MAX_MSGLEN - 1);
+                copy_po_field(table.entries[table.count].msgid, msgid);
+                copy_po_field(table.entries[table.count].msgstr, msgstr);
                 table.count++;
             }
             msgid[0] = '\0';
@@ -85,8 +101,8 @@ static void load_po(const char *path) {
 
     if (state == IN_MSGSTR && msgid[0] && msgstr[0] &&
         table.count < I18N_MAX_ENTRIES) {
-        strncpy(table.entries[table.count].msgid, msgid, I18N_MAX_MSGLEN - 1);
-        strncpy(table.entries[table.count].msgstr, msgstr, I18N_MAX_MSGLEN - 1);
+        copy_po_field(table.entries[table.count].msgid, msgid);
+        copy_po_field(table.entries[table.count].msgstr, msgstr);
         table.count++;
     }
 

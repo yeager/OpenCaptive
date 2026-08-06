@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
-"POT-Creation-Date: 2026-08-03\n"
+"POT-Creation-Date: 2026-08-06 06:49+0200\n"
 "PO-Revision-Date: 2026-08-03\n"
 "Last-Translator: Daniel Nylander\n"
 "Language-Team: Czech\n"
@@ -15,316 +15,816 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#: src/engine/liberation_citygen.c:310
+msgid "Private Residence"
+msgstr ""
+
+#: src/engine/liberation_citygen.c:313
+msgid "Library"
+msgstr ""
+
+#: src/engine/liberation_citygen.c:316
+msgid "Police Station"
+msgstr ""
+
+#: src/engine/liberation_citygen.c:319
+msgid "City Records Office"
+msgstr ""
+
 # Menu
+#: src/engine/start_menu.c:874 src/engine/start_menu.c:980
+#: src/engine/start_menu.c:1211
 msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
-msgid "BY DANIEL NYLANDER"
-msgstr "OD DANIELA NYLANDERA"
-
-msgid "SELECT GAME"
-msgstr "VYBÉR HRU"
-
-msgid "CAPTIVE (1990)"
-msgstr "CAPTIVE (1990)"
-
-msgid "LIBERATION: CAPTIVE 2"
-msgstr "LIBERATION: CAPTIVE 2"
-
+#: src/engine/start_menu.c:875 src/engine/start_menu.c:1303
 msgid "SETTINGS"
 msgstr "NASTAVENÍ"
 
-msgid "QUIT"
-msgstr "UKONČIT"
-
-msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
-msgstr "NAHORU-DOLŮ: VÝBĚR  ENTER: START  ESC: UKONČIT"
-
 # Settings
+#: src/engine/start_menu.c:884
 msgid "RENDERER:"
 msgstr "RENDERER:"
 
-msgid "SCANLINES:"
-msgstr "ŘÁDKY:"
-
-msgid "CRT CURVE:"
-msgstr "CRT ZAKŘIVENÍ:"
-
-msgid "BILINEAR:"
-msgstr "BILINEÁRNÍ:"
-
-msgid "INT SCALE:"
-msgstr "INT MĚŘÍTKO:"
-
-msgid "SCALE:"
-msgstr "MĚŘÍTKO:"
-
-msgid "FULLSCREEN:"
-msgstr "CELÁ OBRAZOVKA:"
-
-msgid "VSYNC:"
-msgstr "VSYNC:"
-
-msgid "FPS LIMIT:"
-msgstr "FPS LIMIT:"
-
-msgid "BRIGHTNESS:"
-msgstr "JAS:"
-
-msgid "CONTRAST:"
-msgstr "KONTRAST:"
-
-msgid "MUSIC:"
-msgstr "HUDBA:"
-
-msgid "SFX:"
-msgstr "ZVUKY:"
-
-msgid "DATA PATH:"
-msgstr "CESTA K DATŮM:"
-
-msgid "BACK"
-msgstr "ZPĚT"
-
-msgid "ON"
-msgstr "ZAP"
-
-msgid "OFF"
-msgstr "VYP"
-
-msgid "UNLIMITED"
-msgstr "NEOMEZENO"
-
-msgid "ENTER: EDIT PATH  ESC: CANCEL"
-msgstr "ENTER: UPRAVIT CESTU  ESC: ZRUŠIT"
-
-msgid "ENTER: SAVE PATH  ESC: CANCEL"
-msgstr "ENTER: ULOŽIT CESTU  ESC: ZRUŠIT"
-
-# Building interactions
-msgid "This is %s. We're not taking visitors right now."
-msgstr "Toto je %s. Právě nepřijímáme návštěvy."
-
-msgid "Welcome to %s. The archives are available for public access."
-msgstr "Vítejte v %s. Archivy jsou veřejně přístupné."
-
-msgid "This is the %s police station. State your business."
-msgstr "Toto je policejní stanice %s. Jaký je váš požadavek?"
-
-msgid "City Records Office. How can we help?"
-msgstr "Městský archiv. Jak vám můžeme pomoci?"
-
-msgid "%s. Come in and browse."
-msgstr "%s. Pojďte dál a rozhlédněte se."
-
-msgid "Welcome to %s! What'll it be?"
-msgstr "Vítejte v %s! Co to bude?"
-
-msgid "Welcome to %s. How can we help you today?"
-msgstr "Vítejte v %s. Jak vám dnes můžeme pomoci?"
-
-msgid "%s. You shouldn't be here."
-msgstr "%s. Neměli byste tu být."
-
-msgid "You leave the building."
-msgstr "Opouštíte budovu."
-
-# Shop
-msgid "Welcome to %s! What can I do for you?"
-msgstr "Vítejte v %s! Co pro vás mohu udělat?"
-
-msgid "Goodbye!"
-msgstr "Nashledanou!"
-
-msgid "Buy/Sell"
-msgstr "Koupit/Prodat"
-
-msgid "Any news?"
-msgstr "Nějaké novinky?"
-
-msgid "Leave"
-msgstr "Odejít"
-
-msgid "You leave."
-msgstr "Odcházíte."
-
-msgid "Trade"
-msgstr "Obchod"
-
-msgid "Ask around"
-msgstr "Poptat se"
-
-# Errors
-msgid "Failed to initialize renderer"
-msgstr "Nepodařilo se inicializovat renderer"
-
-msgid "Missing game data"
-msgstr "Chybí herní data"
-
-msgid "No game data found. Please set the data path in Settings or use --data on the command line."
-msgstr "Nebyla nalezena žádná herní data. Nastavte cestu k datům v Nastavení nebo použijte --data na příkazovém řádku."
-
-msgid "You can also change the data path in Settings."
-msgstr "Cestu k datům můžete změnit také v Nastavení."
-
-msgid "Missing Liberation data"
-msgstr "Chybí data Liberation"
-
-#. Main menu
-msgid "ABOUT"
-msgstr "O APLIKACI"
-
-msgid "CONTROLS"
-msgstr "OVLÁDÁNÍ"
-
-msgid "CONTINUE"
-msgstr "POKRAČOVAT"
-
-msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
-msgstr "ŠIPKY: VÝBĚR  ENTER: START  D: SKENOVAT DATA  F1: OVLÁDÁNÍ"
-
-#. Settings menu (new entries)
-msgid "ENHANCED:"
-msgstr "VYLEPŠENÝ:"
-
-msgid "FILTERING:"
-msgstr "FILTROVÁNÍ:"
-
-msgid "BILINEAR"
-msgstr "BILINEÁRNÍ"
-
-msgid "NEAREST"
-msgstr "NEJBLIŽŠÍ"
-
-msgid "GAMMA:"
-msgstr "GAMMA:"
-
-msgid "VOLUME:"
-msgstr "HLASITOST:"
-
-msgid "SAMPLE RATE:"
-msgstr "VZORKOVACÍ FREKVENCE:"
-
-msgid "REVERB:"
-msgstr "DOZVUK:"
-
-msgid "GAME SPEED:"
-msgstr "RYCHLOST HRY:"
-
-msgid "MOUSE SENS:"
-msgstr "CITLIVOST MYŠI:"
-
+#: src/engine/start_menu.c:884
 msgid "WINDOW SIZE:"
 msgstr "VELIKOST OKNA:"
 
-#. About screen
+#: src/engine/start_menu.c:884
+msgid "SCALE:"
+msgstr "MĚŘÍTKO:"
+
+#: src/engine/start_menu.c:884
+msgid "FULLSCREEN:"
+msgstr "CELÁ OBRAZOVKA:"
+
+#: src/engine/start_menu.c:885
+msgid "INT SCALE:"
+msgstr "INT MĚŘÍTKO:"
+
+#: src/engine/start_menu.c:885
+msgid "VSYNC:"
+msgstr "VSYNC:"
+
+#: src/engine/start_menu.c:885
+msgid "FPS LIMIT:"
+msgstr "FPS LIMIT:"
+
+#: src/engine/start_menu.c:885
+msgid "FILTERING:"
+msgstr "FILTROVÁNÍ:"
+
+#: src/engine/start_menu.c:886
+msgid "SCANLINES:"
+msgstr "ŘÁDKY:"
+
+#: src/engine/start_menu.c:886
+msgid "CRT CURVE:"
+msgstr "CRT ZAKŘIVENÍ:"
+
+#: src/engine/start_menu.c:886
+msgid "BRIGHTNESS:"
+msgstr "JAS:"
+
+#: src/engine/start_menu.c:886
+msgid "CONTRAST:"
+msgstr "KONTRAST:"
+
+#: src/engine/start_menu.c:887
+msgid "GAMMA:"
+msgstr "GAMMA:"
+
+#: src/engine/start_menu.c:887
+msgid "VOLUME:"
+msgstr "HLASITOST:"
+
+#: src/engine/start_menu.c:887
+msgid "MUSIC:"
+msgstr "HUDBA:"
+
+#: src/engine/start_menu.c:887
+msgid "SFX:"
+msgstr "ZVUKY:"
+
+#: src/engine/start_menu.c:888
+msgid "REVERB:"
+msgstr "DOZVUK:"
+
+#: src/engine/start_menu.c:888
+msgid "SAMPLE RATE:"
+msgstr "VZORKOVACÍ FREKVENCE:"
+
+#: src/engine/start_menu.c:888
+msgid "GAME SPEED:"
+msgstr "RYCHLOST HRY:"
+
+#: src/engine/start_menu.c:888
+msgid "MOUSE SENS:"
+msgstr "CITLIVOST MYŠI:"
+
+#: src/engine/start_menu.c:889 src/engine/start_menu.c:1056
+msgid "DATA PATH:"
+msgstr "CESTA K DATŮM:"
+
+#: src/engine/start_menu.c:889
+msgid "LANGUAGE:"
+msgstr ""
+
+#: src/engine/start_menu.c:889
+msgid "ENHANCED:"
+msgstr "VYLEPŠENÝ:"
+
+#: src/engine/start_menu.c:889
+msgid "BACK"
+msgstr "ZPĚT"
+
+#: src/engine/start_menu.c:895 src/engine/start_menu.c:896
+#: src/engine/start_menu.c:897 src/engine/start_menu.c:901
+#: src/engine/start_menu.c:902 src/engine/start_menu.c:907
+#: src/engine/start_menu.c:908 src/engine/start_menu.c:909
+#: src/engine/start_menu.c:915 src/main.c:730 src/main.c:742
+msgid "ON"
+msgstr "ZAP"
+
+#: src/engine/start_menu.c:895 src/engine/start_menu.c:896
+#: src/engine/start_menu.c:897 src/engine/start_menu.c:901
+#: src/engine/start_menu.c:902 src/engine/start_menu.c:907
+#: src/engine/start_menu.c:908 src/engine/start_menu.c:909
+#: src/engine/start_menu.c:915 src/main.c:730 src/main.c:742
+msgid "OFF"
+msgstr "VYP"
+
+#: src/engine/start_menu.c:898
+msgid "UNLIMITED"
+msgstr "NEOMEZENO"
+
+#: src/engine/start_menu.c:900
+msgid "BILINEAR"
+msgstr "BILINEÁRNÍ"
+
+#: src/engine/start_menu.c:900
+msgid "NEAREST"
+msgstr "NEJBLIŽŠÍ"
+
+#: src/engine/start_menu.c:966
+msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
+msgstr ""
+
+#: src/engine/start_menu.c:967
+msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
+msgstr ""
+
+#: src/engine/start_menu.c:984 src/engine/start_menu.c:1303
+msgid "ABOUT"
+msgstr "O APLIKACI"
+
+#: src/engine/start_menu.c:985
 msgid "A reimplementation of:"
 msgstr "Reimplementace:"
 
-msgid "TECHNOLOGY"
-msgstr "TECHNOLOGIE"
-
+#: src/engine/start_menu.c:988
 msgid "CREDITS"
 msgstr "AUTOŘI"
 
-msgid "SYSTEM"
-msgstr "SYSTÉM"
+#: src/engine/start_menu.c:991
+msgid "TECHNOLOGY"
+msgstr "TECHNOLOGIE"
 
+#: src/engine/start_menu.c:998 src/engine/start_menu.c:1043
 msgid "PRESS ANY KEY TO RETURN"
 msgstr "STISKNĚTE LIBOVOLNOU KLÁVESU PRO NÁVRAT"
 
-#. Controls screen
+#: src/engine/start_menu.c:1007 src/engine/start_menu.c:1319
+msgid "CONTROLS"
+msgstr "OVLÁDÁNÍ"
+
+#: src/engine/start_menu.c:1011
 msgid "MOVEMENT"
 msgstr "POHYB"
 
-msgid "COMBAT & ITEMS"
-msgstr "BOJ A PŘEDMĚTY"
-
+#: src/engine/start_menu.c:1013
 msgid "Move forward"
 msgstr "Jít vpřed"
 
+#: src/engine/start_menu.c:1015
 msgid "Move backward"
 msgstr "Jít vzad"
 
+#: src/engine/start_menu.c:1017
 msgid "Turn left"
 msgstr "Otočit vlevo"
 
+#: src/engine/start_menu.c:1019
 msgid "Turn right"
 msgstr "Otočit vpravo"
 
+#: src/engine/start_menu.c:1021
+msgid "COMBAT & ITEMS"
+msgstr "BOJ A PŘEDMĚTY"
+
+#: src/engine/start_menu.c:1023
 msgid "Fire weapon"
 msgstr "Vystřelit"
 
-msgid "Inventory"
-msgstr "Inventář"
-
+#: src/engine/start_menu.c:1025
 msgid "Use item / Interact"
 msgstr "Použít předmět / Interakce"
 
+#: src/engine/start_menu.c:1027
 msgid "Cycle droids"
 msgstr "Přepnout droida"
 
-msgid "Cycle save slots"
-msgstr "Přepnout pozici uložení"
+#: src/engine/start_menu.c:1029
+msgid "Inventory"
+msgstr "Inventář"
 
+#: src/engine/start_menu.c:1031
+msgid "SYSTEM"
+msgstr "SYSTÉM"
+
+#: src/engine/start_menu.c:1033
 msgid "Save / Load game"
 msgstr "Uložit / Načíst hru"
 
+#: src/engine/start_menu.c:1035
+msgid "Cycle save slots"
+msgstr "Přepnout pozici uložení"
+
+#: src/engine/start_menu.c:1037
 msgid "Minimap / City map"
 msgstr "Minimapa / Mapa města"
 
+#: src/engine/start_menu.c:1039
 msgid "Help screen"
 msgstr "Nápověda"
 
+#: src/engine/start_menu.c:1041
 msgid "Pause menu"
 msgstr "Pauza"
 
-msgid "ESC: BACK"
-msgstr "ESC: ZPĚT"
-
-#. Data scanner
+#: src/engine/start_menu.c:1052
 msgid "DATA SCANNER"
 msgstr "SKENER DAT"
 
+#: src/engine/start_menu.c:1061
 msgid "Scanning Captive hashes..."
 msgstr "Skenování hashů Captive..."
 
+#: src/engine/start_menu.c:1062
 msgid "Scanning Liberation data..."
 msgstr "Skenování dat Liberation..."
 
+#: src/engine/start_menu.c:1082
+#, c-format
 msgid "ZIP archives found: %d"
 msgstr "Nalezené ZIP archivy: %d"
 
+#: src/engine/start_menu.c:1085
+#, c-format
+msgid "Captive: %d / %d %s"
+msgstr ""
+
+#: src/engine/start_menu.c:1092
+#, c-format
+msgid "Liberation: %d / %d %s"
+msgstr ""
+
+#: src/engine/start_menu.c:1099
 msgid "VERIFICATION"
 msgstr "OVĚŘENÍ"
 
+#: src/engine/start_menu.c:1101
 msgid "Files identified by SHA-256 content hash, not filename."
 msgstr "Soubory identifikovány pomocí SHA-256 hashe obsahu, ne názvu."
 
+#: src/engine/start_menu.c:1104
 msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
 msgstr "Vnořené ZIP, ADF obrazy disků a ISO stopy jsou skenovány."
 
+#: src/engine/start_menu.c:1107
 msgid "No filenames are trusted; only content determines identity."
 msgstr "Žádným názvům souborů se nedůvěřuje; identitu určuje pouze obsah."
 
-#. Setup popup
+#: src/engine/start_menu.c:1111
+msgid "ESC: BACK"
+msgstr "ESC: ZPĚT"
+
+#: src/engine/start_menu.c:1130
 msgid "GAME DATA NOT FOUND"
 msgstr "HERNÍ DATA NENALEZENA"
 
+#: src/engine/start_menu.c:1133
 msgid "OpenCaptive needs original game data files to run."
 msgstr "OpenCaptive potřebuje originální herní data ke spuštění."
 
+#: src/engine/start_menu.c:1136
 msgid "Place your game data in the following folder:"
 msgstr "Umístěte herní data do následující složky:"
 
+#: src/engine/start_menu.c:1141
 msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
 msgstr "Podporované formáty: ZIP archivy, ADF, ISO, surové soubory."
 
+#: src/engine/start_menu.c:1144
 msgid "Files are identified by SHA-256 hash, not filename."
 msgstr "Soubory jsou identifikovány SHA-256 hashem, ne názvem."
 
+#: src/engine/start_menu.c:1147
 msgid "You can change the data path in Settings (S)."
 msgstr "Cestu k datům můžete změnit v Nastavení (S)."
 
+#: src/engine/start_menu.c:1150
 msgid "PRESS ANY KEY TO CONTINUE"
 msgstr "STISKNĚTE LIBOVOLNOU KLÁVESU PRO POKRAČOVÁNÍ"
+
+#: src/engine/start_menu.c:1164
+msgid "SELECT GAME"
+msgstr "VYBÉR HRU"
+
+#: src/engine/start_menu.c:1166 src/engine/start_menu.c:1180
+msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
+msgstr "NAHORU-DOLŮ: VÝBĚR  ENTER: START  ESC: UKONČIT"
+
+#: src/engine/start_menu.c:1170
+msgid "CAPTIVE DOS"
+msgstr "CAPTIVE DOS"
+
+#: src/engine/start_menu.c:1170
+msgid "CAPTIVE AMIGA"
+msgstr "CAPTIVE AMIGA"
+
+#: src/engine/start_menu.c:1171
+msgid "LIBERATION CD32"
+msgstr ""
+
+#: src/engine/start_menu.c:1171
+msgid "LIBERATION AMIGA"
+msgstr ""
+
+#: src/engine/start_menu.c:1214
+msgid "BY DANIEL NYLANDER"
+msgstr "OD DANIELA NYLANDERA"
+
+#: src/engine/start_menu.c:1282 src/engine/start_menu.c:1283
+msgid "CONTINUE"
+msgstr "POKRAČOVAT"
+
+#: src/engine/start_menu.c:1319
+msgid "QUIT"
+msgstr "UKONČIT"
+
+#: src/engine/start_menu.c:1333
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+msgstr "ŠIPKY: VÝBĚR  ENTER: START  D: SKENOVAT DATA  F1: OVLÁDÁNÍ"
+
+#: src/engine/terminal.c:81
+msgid "LEVEL MAP"
+msgstr ""
+
+#: src/engine/terminal.c:121
+msgid "DROID STATUS"
+msgstr ""
+
+#: src/engine/terminal.c:126
+#, c-format
+msgid "%s HP:%d/%d EN:%d/%d"
+msgstr ""
+
+#: src/engine/terminal.c:136
+msgid "MISSION BRIEFING"
+msgstr ""
+
+#: src/engine/terminal.c:138
+#, c-format
+msgid "MISSION: %d"
+msgstr ""
+
+#: src/engine/terminal.c:141
+#, c-format
+msgid "LEVEL: %d/%d"
+msgstr ""
+
+#: src/engine/terminal.c:144
+#, c-format
+msgid "GENERATORS: %d/%d"
+msgstr ""
+
+#: src/engine/terminal.c:148
+msgid "DESTROY ALL GENERATORS"
+msgstr ""
+
+#: src/engine/terminal.c:149
+msgid "TO COMPLETE THE MISSION"
+msgstr ""
+
+#: src/engine/terminal.c:187
+msgid "TERMINAL SYSTEM V2.1"
+msgstr ""
+
+#: src/engine/terminal.c:196
+msgid "ESC:BACK"
+msgstr ""
+
+#: src/main.c:734 src/main.c:746
+msgid "LOW"
+msgstr "NÍZKÝ"
+
+#: src/main.c:734 src/main.c:746
+msgid "HIGH"
+msgstr "VYSOKÝ"
+
+#: src/main.c:734 src/main.c:746
+msgid "NORMAL"
+msgstr "NORMÁLNÍ"
+
+#: src/main.c:814 src/main.c:826
+msgid "RUNTIME OPTIONS"
+msgstr "MOŽNOSTI BĚHU"
+
+#: src/main.c:815 src/main.c:827
+msgid "ESC CLOSE"
+msgstr "ESC ZAVŘÍT"
+
+#: src/main.c:822 src/main.c:834
+msgid "PENDING"
+msgstr "ČEKÁ"
+
+#: src/main.c:831 src/main.c:843
+msgid "ACTIVATE"
+msgstr "AKTIVOVAT"
+
+#: src/main.c:836 src/main.c:848
+msgid "UP DOWN ENTER"
+msgstr "NAHORU DOLŮ ENTER"
+
+#: src/main.c:1013 src/main.c:1085 src/main.c:1034 src/main.c:1106
+msgid "Fine paid. Rep +15"
+msgstr ""
+
+#: src/main.c:1023 src/main.c:1095 src/main.c:1044 src/main.c:1116
+#, c-format
+msgid "Industrial hazard! %d damage!"
+msgstr ""
+
+#: src/main.c:1033 src/main.c:1105 src/main.c:1054 src/main.c:1126
+msgid "Bar fight! Rep -10"
+msgstr ""
+
+#: src/main.c:1062 src/main.c:1083
+msgid "Shared inventory is full."
+msgstr ""
+
+#: src/main.c:1066 src/main.c:1087
+#, c-format
+msgid "Purchased: %s"
+msgstr ""
+
+#: src/main.c:1070 src/main.c:1091
+msgid "Cannot buy that item."
+msgstr ""
+
+#: src/main.c:1134 src/main.c:1155
+msgid "Entered building interior"
+msgstr ""
+
+#: src/main.c:1241 src/main.c:1269
+msgid "Taxi: 50 gold"
+msgstr ""
+
+#: src/main.c:1384 src/main.c:1415
+msgid "Creature destroyed!"
+msgstr ""
+
+#: src/main.c:1389 src/main.c:1420
+msgid "LEVEL UP!"
+msgstr ""
+
+#: src/main.c:1394 src/main.c:1425
+#, c-format
+msgid "Droid %d fires!"
+msgstr ""
+
+#: src/main.c:1543 src/main.c:1574
+#, c-format
+msgid "Droid %d picked up item"
+msgstr ""
+
+#: src/main.c:1559 src/main.c:1590
+msgid "Fell into a pit!"
+msgstr ""
+
+#: src/main.c:1563 src/main.c:1594
+msgid "Click!"
+msgstr ""
+
+#: src/main.c:2318 src/main.c:2349
+msgid "Left building"
+msgstr ""
+
+#: src/main.c:2869 src/main.c:2903
+#, c-format
+msgid "Droid %d hit for %d!"
+msgstr ""
+
+#: src/main.c:2877 src/main.c:2911
+#, c-format
+msgid "Droid %d destroyed!"
+msgstr ""
+
+#: src/main.c:2884 src/main.c:2918
+msgid "All droids destroyed! Mission failed."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:64
+msgid "You leave."
+msgstr "Odcházíte."
+
+#: src/game/liberation_npc_dialogue.c:67 src/game/liberation_npc_dialogue.c:69
+#: src/game/liberation_npc_dialogue.c:72
+#: src/game/liberation_building_interact.c:38
+msgid "NPC"
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:68
+msgid "I don't have anything to trade right now. Try the shops."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:70
+msgid ""
+"Check the library or records office if you need information. The police "
+"might know about threats in the area."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:73
+msgid "Trade"
+msgstr "Obchod"
+
+#: src/game/liberation_npc_dialogue.c:74
+#: src/game/liberation_building_interact.c:63
+#: src/game/liberation_building_interact.c:105
+msgid "Ask around"
+msgstr "Poptat se"
+
+#: src/game/liberation_npc_dialogue.c:75 src/game/liberation_shop.c:117
+#: src/game/liberation_building_interact.c:64
+#: src/game/liberation_building_interact.c:81
+#: src/game/liberation_building_interact.c:95
+#: src/game/liberation_building_interact.c:106
+#: src/game/liberation_building_interact.c:124
+#: src/game/liberation_building_interact.c:135
+#: src/game/liberation_building_interact.c:142
+msgid "Leave"
+msgstr "Odejít"
+
+# Shop
+#: src/game/liberation_shop.c:106
+#, c-format
+msgid "Welcome to %s! What can I do for you?"
+msgstr "Vítejte v %s! Co pro vás mohu udělat?"
+
+#: src/game/liberation_shop.c:108
+msgid "Goodbye!"
+msgstr "Nashledanou!"
+
+#: src/game/liberation_shop.c:110
+msgid "Take a look at what I have."
+msgstr ""
+
+#: src/game/liberation_shop.c:112
+msgid "I might have heard something. Check back later."
+msgstr ""
+
+#: src/game/liberation_shop.c:115
+msgid "Buy"
+msgstr ""
+
+#: src/game/liberation_shop.c:116
+msgid "Any news?"
+msgstr "Nějaké novinky?"
+
+#: src/game/liberation_building_interact.c:29
+msgid "Shopkeeper"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:30
+msgid "Bartender"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:31
+msgid "Receptionist"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:32
+msgid "Librarian"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:33
+msgid "Officer"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:34
+msgid "Clerk"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:35
+msgid "Resident"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:36
+msgid "Foreman"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:37
+msgid "Agent"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:48
+msgid "You leave the building."
+msgstr "Opouštíte budovu."
+
+#: src/game/liberation_building_interact.c:53
+#, c-format
+msgid "Welcome to %s. The archives are available for public access."
+msgstr "Vítejte v %s. Archivy jsou veřejně přístupné."
+
+#: src/game/liberation_building_interact.c:56
+#, c-format
+msgid ""
+"Records indicate %d buildings in this city. The target is in a special-class "
+"building. Check the industrial and commercial districts."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:62
+msgid "Search archives"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:69
+#, c-format
+msgid "This is the %s police station. State your business."
+msgstr "Toto je policejní stanice %s. Jaký je váš požadavek?"
+
+#: src/game/liberation_building_interact.c:71
+msgid ""
+"We have reports of suspicious activity in the industrial district. Stay "
+"alert out there."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:74
+msgid "You have been fined 100 gold for disturbing the peace."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:77
+msgid "Ask for information"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:79
+msgid "Pay fine"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:86
+msgid "City Records Office. How can we help?"
+msgstr "Městský archiv. Jak vám můžeme pomoci?"
+
+#: src/game/liberation_building_interact.c:89
+#, c-format
+msgid ""
+"Building registry entry %d: %s. Cross-reference with police reports for "
+"suspect locations."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:94
+msgid "Look up records"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:100
+msgid "This is a private residence. What do you want?"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:102
+msgid ""
+"I heard strange noises from the special building down the road. Something's "
+"going on in there."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:111
+#, c-format
+msgid "Welcome to %s. This area is restricted."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:113
+msgid "WARNING: Machinery malfunction! Electrical discharge hits your droids!"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:115
+msgid ""
+"The machinery hums loudly. There might be useful equipment stored in the "
+"back, but the foreman keeps it locked."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:119
+#: src/game/liberation_building_interact.c:122
+#, fuzzy
+msgid "Look around"
+msgstr "Poptat se"
+
+#: src/game/liberation_building_interact.c:129
+#, c-format
+msgid "%s. You shouldn't be here."
+msgstr "%s. Neměli byste tu být."
+
+#: src/game/liberation_building_interact.c:131
+msgid ""
+"This location appears to be connected to your mission. The generator control "
+"panel is somewhere inside."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:134
+msgid "Investigate"
+msgstr ""
+
+# Building interactions
+#: src/game/liberation_building_interact.c:140
+#, c-format
+msgid "This is %s. We're not taking visitors right now."
+msgstr "Toto je %s. Právě nepřijímáme návštěvy."
+
+#: src/main.c:2357
+msgid "Mission complete. Rep +20"
+msgstr "Mise dokončena. Reputace +20"
+
+#~ msgid "CAPTIVE (1990)"
+#~ msgstr "CAPTIVE (1990)"
+
+#~ msgid "LIBERATION: CAPTIVE 2"
+#~ msgstr "LIBERATION: CAPTIVE 2"
+
+#~ msgid "BILINEAR:"
+#~ msgstr "BILINEÁRNÍ:"
+
+#~ msgid "%s. Come in and browse."
+#~ msgstr "%s. Pojďte dál a rozhlédněte se."
+
+#~ msgid "Welcome to %s! What'll it be?"
+#~ msgstr "Vítejte v %s! Co to bude?"
+
+#~ msgid "Welcome to %s. How can we help you today?"
+#~ msgstr "Vítejte v %s. Jak vám dnes můžeme pomoci?"
+
+#~ msgid "Buy/Sell"
+#~ msgstr "Koupit/Prodat"
+
+# Errors
+#~ msgid "Failed to initialize renderer"
+#~ msgstr "Nepodařilo se inicializovat renderer"
+
+#~ msgid "Missing game data"
+#~ msgstr "Chybí herní data"
+
+#~ msgid ""
+#~ "No game data found. Please set the data path in Settings or use --data on "
+#~ "the command line."
+#~ msgstr ""
+#~ "Nebyla nalezena žádná herní data. Nastavte cestu k datům v Nastavení nebo "
+#~ "použijte --data na příkazovém řádku."
+
+#~ msgid "You can also change the data path in Settings."
+#~ msgstr "Cestu k datům můžete změnit také v Nastavení."
+
+#~ msgid "Missing Liberation data"
+#~ msgstr "Chybí data Liberation"
+
+#~ msgid "VIEW RECONSTRUCTION"
+#~ msgstr "ZOBRAZIT REKONSTRUKCI"
+
+#~ msgid "SCANLINES"
+#~ msgstr "SKENOVACÍ ŘÁDKY"
+
+#~ msgid "CRT CURVE"
+#~ msgstr "KŘIVKA CRT"
+
+#~ msgid "BRIGHTNESS"
+#~ msgstr "JAS"
+
+#~ msgid "MUSIC"
+#~ msgstr "Hudba"
+
+#~ msgid "SFX"
+#~ msgstr "Zvuky"
+
+#~ msgid "GOD MODE"
+#~ msgstr "BOŽSKÝ REŽIM"
+
+#~ msgid "INFINITE ENERGY"
+#~ msgstr "NEKONEČNÁ ENERGIE"
+
+#~ msgid "COMPLETE OBJECTIVE"
+#~ msgstr "DOKONČIT CÍL"
+
+#~ msgid "CLOSE"
+#~ msgstr "ZAVŘÍT"
+
+#~ msgid "ENTER: EDIT PATH  ESC: CANCEL"
+#~ msgstr "ENTER: UPRAVIT CESTU  ESC: ZRUŠIT"
+
+#~ msgid "ENTER: SAVE PATH  ESC: CANCEL"
+#~ msgstr "ENTER: ULOŽIT CESTU  ESC: ZRUŠIT"

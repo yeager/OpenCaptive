@@ -75,9 +75,14 @@ static void draw_string(uint32_t *fb, int fb_w, int fb_h,
 
 void debug_hud_render(uint32_t *fb, int fb_w, int fb_h,
                       const void *game_state_ptr, const CustomFeatures *feat) {
-    if (!feat->debug_hud || !game_state_ptr) return;
+    if (!feat || !feat->debug_hud || !fb || fb_w <= 0 || fb_h <= 0 ||
+        !game_state_ptr) return;
 
     const GameState *gs = (const GameState *)game_state_ptr;
+    if (gs->current_level < 0 || gs->current_level >= MAX_LEVELS ||
+        gs->current_level >= gs->num_levels || gs->num_levels > MAX_LEVELS ||
+        gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
+        gs->party_y < 0 || gs->party_y >= MAP_HEIGHT) return;
     char buf[128];
     int y = 2;
     uint32_t color = 0xFF00FF00;
@@ -87,7 +92,9 @@ void debug_hud_render(uint32_t *fb, int fb_w, int fb_h,
     y += 8;
 
     static const char *dir_names[] = {"N", "E", "S", "W"};
-    snprintf(buf, sizeof(buf), "DIR: %s", dir_names[gs->party_dir % 4]);
+    int safe_dir = gs->party_dir % 4;
+    if (safe_dir < 0) safe_dir += 4;
+    snprintf(buf, sizeof(buf), "DIR: %s", dir_names[safe_dir]);
     draw_string(fb, fb_w, fb_h, 2, y, buf, color);
     y += 8;
 
@@ -101,7 +108,9 @@ void debug_hud_render(uint32_t *fb, int fb_w, int fb_h,
         "WALL", "FLOOR", "DOOR", "LOCKED", "UP", "DOWN",
         "SHOP", "TELE", "GEN", "TERM"
     };
-    snprintf(buf, sizeof(buf), "CELL: %s", cell_names[ct % 10]);
+    int safe_cell = (int)ct;
+    if (safe_cell < 0 || safe_cell >= 10) safe_cell = 0;
+    snprintf(buf, sizeof(buf), "CELL: %s", cell_names[safe_cell]);
     draw_string(fb, fb_w, fb_h, 2, y, buf, color);
     y += 8;
 

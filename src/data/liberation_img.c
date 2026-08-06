@@ -7,31 +7,38 @@ static uint16_t read_be16(const uint8_t *p) {
 }
 
 static uint32_t read_be32(const uint8_t *p) {
-    return (uint32_t)(p[0] << 24 | p[1] << 16 | p[2] << 8 | p[3]);
+    return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) |
+           ((uint32_t)p[2] << 8) | p[3];
 }
 
 bool img_open(ImgFile *img, const uint8_t *data, size_t size) {
-    if (!img || !data || size < 6) return false;
+    if (!img) return false;
+    memset(img, 0, sizeof(*img));
+    if (!data || size < 6) return false;
     if (memcmp(data, "ImgA", 4) != 0) return false;
 
-    memset(img, 0, sizeof(*img));
-    img->data = data;
-    img->size = size;
-    img->sprite_count = read_be16(data + 4);
+    ImgFile candidate = {0};
+    candidate.data = data;
+    candidate.size = size;
+    candidate.sprite_count = read_be16(data + 4);
 
-    if (img->sprite_count > IMG_MAX_SPRITES) return false;
-    if (6 + (size_t)img->sprite_count * 4 > size) return false;
+    if (candidate.sprite_count > IMG_MAX_SPRITES) return false;
+    size_t sprite_table_end = 6 + (size_t)candidate.sprite_count * 4;
+    if (sprite_table_end > size) return false;
 
-    for (unsigned i = 0; i < img->sprite_count; i++) {
-        img->offsets[i] = read_be32(data + 6 + i * 4);
-        if (img->offsets[i] >= size) return false;
+    for (unsigned i = 0; i < candidate.sprite_count; i++) {
+        candidate.offsets[i] = read_be32(data + 6 + i * 4);
+        if ((size_t)candidate.offsets[i] < sprite_table_end ||
+            (size_t)candidate.offsets[i] > size - 2 ||
+            (i > 0 && candidate.offsets[i] <= candidate.offsets[i - 1])) return false;
     }
 
-    for (unsigned i = 0; i < img->sprite_count; i++) {
-        uint16_t flags = read_be16(data + img->offsets[i]);
-        img->multi_frame[i] = (flags > 0);
+    for (unsigned i = 0; i < candidate.sprite_count; i++) {
+        uint16_t flags = read_be16(data + candidate.offsets[i]);
+        candidate.multi_frame[i] = (flags > 0);
     }
 
+    *img = candidate;
     return true;
 }
 
@@ -131,13 +138,20 @@ bool img_decode_multi(const ImgFile *img, unsigned index,
 
     uint16_t frame_count = read_be16(spr);
     if (frame_count > IMG_MAX_FRAMES || frame_count == 0) return false;
-    if (2 + (size_t)frame_count * 2 > spr_size) return false;
+    size_t frame_table_end = 2 + (size_t)frame_count * 2;
+    if (frame_table_end > spr_size) return false;
 
     out->frame_count = frame_count;
 
     uint16_t frame_offsets[IMG_MAX_FRAMES];
-    for (unsigned i = 0; i < frame_count; i++)
+    for (unsigned i = 0; i < frame_count; i++) {
         frame_offsets[i] = read_be16(spr + 2 + i * 2);
+        if ((size_t)frame_offsets[i] < frame_table_end ||
+            (i > 0 && frame_offsets[i] <= frame_offsets[i - 1])) {
+            img_multi_free(out);
+            return false;
+        }
+    }
 
     for (unsigned i = 0; i < frame_count; i++) {
         size_t fstart = frame_offsets[i];

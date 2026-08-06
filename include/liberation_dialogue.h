@@ -4,10 +4,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <limits.h>
 
 #define DIALOGUE_MAX_CHOICES 6
 #define DIALOGUE_MAX_TEXT 512
 #define DIALOGUE_MAX_NODES 256
+#define DIALOGUE_INVALID_NODE UINT_MAX
 
 typedef enum {
     DIALOGUE_NODE_TEXT,

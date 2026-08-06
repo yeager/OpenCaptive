@@ -2,7 +2,10 @@
 
 A modern C/SDL3 reimplementation of **Captive** (1990) and **Liberation: Captive 2** (1993) by Antony Crowther, published by Mindscape.
 
-100% gameplay parity achieved — all game logic, combat formulas, creature stats, SFX mappings, and map generation verified against original binary disassembly. Zero synthetic data.
+OpenCaptive is an actively verified reimplementation. Data formats, creature
+stats, combat primitives, audio mappings, and parts of map/city generation are
+validated against original binaries; full gameplay parity and the remaining
+runtime paths are still under development.
 
 ## Downloads
 
@@ -34,7 +37,8 @@ The sequel expands into a cyberpunk city setting with hundreds of interactive bu
 ## Features
 
 ### Both games
-- Pixel-accurate rendering using original game data (SHA-256 verified)
+- Hash-verified original data discovery and format decoding
+- Original-resolution presentation paths; full gameplay parity remains under verification
 - OPL2 FM synthesis (AdLib emulation) for music and sound effects
 - 19 languages (English, Svenska, Deutsch, Francais, Espanol, Italiano, and 13 more)
 - Save/load with multiple slots
@@ -42,9 +46,9 @@ The sequel expands into a cyberpunk city setting with hundreds of interactive bu
 - Gamepad and keyboard controls
 
 ### Captive
-- Full 10-mission campaign with procedural dungeon generation
-- 25 creature types across 8 categories with disassembly-verified damage formulas
-- 38 weapons (18 melee, 20 ranged) with original damage tables
+- Prototype 10-mission campaign and procedural dungeon generation
+- 25 creature types across 8 categories with documented source references
+- 38-item weapon catalog with documented damage tables
 - 63 MIDI music tracks across 14 categories
 - 49 AdLib SFX sequences with bytecode interpreter (4 voices, 70 Hz)
 - Intro cutscene playback (ANM format)
@@ -52,12 +56,16 @@ The sequel expands into a cyberpunk city setting with hundreds of interactive bu
 - Droid configuration, body part damage, energy system
 
 ### Liberation
-- Procedural city generation (64x64 grid, 9 building types, 8 visual themes)
-- 3D textured viewport with perspective projection and z-buffer
-- NPC dialogue, shops, bars, police, reputation system
-- Day/night cycle, taxi system, industrial hazards
-- Building interior dungeon crawls (reuses Captive dungeon systems)
-- PlotGen-driven mission briefings
+- Prototype procedural city generation (64x64 grid, 9 building types, 8 visual themes)
+- 3D textured viewport prototype with perspective projection and z-buffer
+- Prototype NPC dialogue, shops, bars, police and reputation systems
+- Prototype day/night cycle, taxi system and industrial hazards
+- Prototype building-interior flow and mission briefings
+
+These generated gameplay systems are development prototypes, not claims of
+original gameplay parity. The verified Liberation runtime boundary remains
+original presentation playback while city, plot and dialogue state are being
+reverse-engineered; Captive gameplay parity is likewise still under review.
 
 ### Start menu
 - Game cards with SHA-256 data verification status (checkmark/cross)
@@ -82,7 +90,7 @@ ninja -C build
 ctest --test-dir build -j4 --output-on-failure
 ```
 
-49 tests covering format decoders, game logic, combat, save/load, map generation, and UI.
+54 tests covering format decoders, game logic, combat, save/load, map generation, and UI.
 
 ## Running
 
@@ -174,7 +182,7 @@ src/
               x3g, Img, FNT), VFS, SHA-256, i18n, ISO9660, ADF
   custom/     Optional features (replay, cross-save)
 include/      Public headers
-tests/        49 test files
+tests/        54 test files
 docs/         Format documentation, disassembly notes
 po/           Translation files (19 languages)
 data/         Bundled fonts (DejaVu Sans Mono Bold)
@@ -184,7 +192,7 @@ tools/        Standalone utilities (hash_find, hash_extract)
 
 ## Reverse engineering
 
-All game logic has been verified against the original binaries:
+The following components have been cross-referenced against the original binaries:
 
 | Component | Source | Method |
 |-----------|--------|--------|

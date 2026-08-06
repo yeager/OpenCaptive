@@ -1,4 +1,5 @@
 #include "save_load.h"
+#include "puzzle.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,6 +21,7 @@ static void test_round_trip(void) {
     saved.tick = 12345;
     saved.gold = 777;
     saved.droids[2].hp = 37;
+    memset(saved.droids[0].name, 'D', sizeof(saved.droids[0].name));
     saved.levels[0].cells[7][12].type = CELL_FLOOR;
     saved.generators_destroyed = 1;
     saved_creatures.num_creatures = 1;
@@ -41,6 +43,7 @@ static void test_round_trip(void) {
     assert(loaded.party_x == 11 && loaded.party_y == 7);
     assert(loaded.party_dir == DIR_EAST && loaded.selected_droid == 2);
     assert(loaded.tick == 12345 && loaded.droids[2].hp == 37);
+    assert(loaded.droids[0].name[sizeof(loaded.droids[0].name) - 1] == '\0');
     assert(loaded.gold == 777);
     assert(loaded.levels[0].cells[7][12].type == CELL_FLOOR);
     assert(loaded.generators_destroyed == 1);
@@ -71,9 +74,149 @@ static void test_corrupt_save_preserves_state(void) {
     assert(target.mission == 99 && target.party_x == 55);
 }
 
+static void test_trailing_save_bytes_rejected(void) {
+    GameState saved;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&saved, GAME_CAPTIVE, 1);
+    game_state_new_mission(&saved, 1);
+    assert(save_game(&saved, &creatures, &puzzles, save_path));
+
+    FILE *file = fopen(save_path, "ab");
+    assert(file != NULL);
+    assert(fwrite("X", 1, 1, file) == 1);
+    assert(fclose(file) == 0);
+
+    GameState loaded;
+    CreatureList loaded_creatures = {0};
+    PuzzleList loaded_puzzles = {0};
+    assert(!load_game(&loaded, &loaded_creatures, &loaded_puzzles, save_path));
+}
+
+static void test_save_rejects_state_load_would_reject(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.party_x = MAP_WIDTH;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    gs.party_x = 0;
+    gs.generators_destroyed = 2;
+    gs.generators_total = 1;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    gs.generators_destroyed = 0;
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .x = 1, .y = 1, .level = 0,
+        .hp = -1, .hp_max = 10
+    };
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+}
+
+static void test_save_rejects_invalid_identifiers(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+
+    gs.mission = 0;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    gs.mission = 1;
+    gs.base_id = -1;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+}
+
+static void test_save_rejects_invalid_puzzle(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    puzzles.num_puzzles = 1;
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_BUTTON, .x = MAP_WIDTH, .y = 1,
+        .level = 0, .face = DIR_NORTH, .target_x = -1, .target_y = -1
+    };
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+
+    puzzles.puzzles[0].x = 1;
+    puzzles.puzzles[0].target_y = MAP_HEIGHT;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+}
+
+static void test_save_rejects_invalid_creature_damage(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    creatures.num_creatures = 1;
+    creatures.creatures[0].type = CREATURE_ALIEN1;
+    creatures.creatures[0].hp = 10;
+    creatures.creatures[0].hp_max = 10;
+    creatures.creatures[0].x = 1;
+    creatures.creatures[0].y = 1;
+    creatures.creatures[0].level = 0;
+    creatures.creatures[0].damage_min = -1;
+    creatures.creatures[0].damage_max = 10;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+}
+
+static void test_save_rejects_negative_creature_defense(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 10, .hp_max = 10,
+        .x = 1, .y = 1, .level = 0, .defense = -1
+    };
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+}
+
+static void test_puzzle_interact_rejects_invalid_state(void) {
+    PuzzleList puzzles = {0};
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    assert(!puzzle_interact(NULL, &gs, 0, 0, 0));
+    assert(!puzzle_interact(&puzzles, NULL, 0, 0, 0));
+    puzzle_check_step(NULL, &gs, 0, 0);
+    assert(!puzzle_get_clipboard_hint(NULL, &gs, 0, 0, 0, NULL, 0));
+
+    puzzles.num_puzzles = 1;
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_BUTTON, .x = 1, .y = 1, .level = gs.current_level,
+        .face = DIR_NORTH, .target_x = MAP_WIDTH, .target_y = 1
+    };
+    assert(puzzle_interact(&puzzles, &gs, 1, 1, DIR_NORTH));
+
+    puzzles.puzzles[0].type = PUZZLE_FLOOR_TRAP;
+    gs.selected_droid = 99;
+    assert(!puzzle_interact(&puzzles, &gs, 1, 1, DIR_NORTH));
+
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_POWER_SOCKET, .x = 1, .y = 1, .level = gs.current_level,
+        .face = DIR_NORTH, .state = 3
+    };
+    assert(!puzzle_interact(&puzzles, &gs, 1, 1, DIR_NORTH));
+    assert(puzzles.puzzles[0].state == 3);
+}
+
 int main(void) {
     test_round_trip();
     test_corrupt_save_preserves_state();
+    test_trailing_save_bytes_rejected();
+    test_save_rejects_state_load_would_reject();
+    test_save_rejects_invalid_identifiers();
+    test_save_rejects_invalid_puzzle();
+    test_save_rejects_invalid_creature_damage();
+    test_save_rejects_negative_creature_defense();
+    test_puzzle_interact_rejects_invalid_state();
     remove(save_path);
     puts("All save/load tests passed");
     return 0;

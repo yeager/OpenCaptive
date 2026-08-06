@@ -6,18 +6,60 @@
 #define CROSS_SAVE_MAGIC 0x4F435356 /* "OCSV" */
 #define CROSS_SAVE_VERSION 1
 
+static bool read_exact(FILE *fp, void *dst, size_t size, size_t count) {
+    return fp && dst && fread(dst, size, count, fp) == count;
+}
+
+static bool write_exact(FILE *fp, const void *src, size_t size, size_t count) {
+    return fp && src && fwrite(src, size, count, fp) == count;
+}
+
 bool cross_save_export(const void *game_state_ptr, const char *path) {
     const GameState *gs = (const GameState *)game_state_ptr;
+    /* Version 1 stores dungeon/party state only.  Liberation uses a
+     * different city-navigation state and must not be advertised as
+     * exportable through this Captive-only format. */
+    if (!gs || !path || gs->game_type != GAME_CAPTIVE ||
+        gs->num_levels < 1 || gs->num_levels > MAX_LEVELS ||
+        gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
+        gs->party_y < 0 || gs->party_y >= MAP_HEIGHT ||
+        gs->party_dir < DIR_NORTH || gs->party_dir > DIR_WEST || gs->mission < 1 ||
+        gs->base_id < 0 || gs->gold < 0 ||
+        gs->generators_total < 0 || gs->generators_destroyed < 0 ||
+        gs->generators_destroyed > gs->generators_total) return false;
+    for (int d = 0; d < 4; d++) {
+        const Droid *dr = &gs->droids[d];
+        if (dr->hp < 0 || dr->hp_max < 0 || dr->hp > dr->hp_max ||
+            dr->energy < 0 || dr->energy_max < 0 ||
+            dr->energy > dr->energy_max) return false;
+    }
+    for (int l = 0; l < gs->num_levels; l++) {
+        for (int y = 0; y < MAP_HEIGHT; y++) {
+            for (int x = 0; x < MAP_WIDTH; x++) {
+                if (gs->levels[l].cells[y][x].type < CELL_WALL ||
+                    gs->levels[l].cells[y][x].type > CELL_PIT) return false;
+            }
+        }
+    }
     FILE *fp = fopen(path, "wb");
     if (!fp) return false;
 
+#define WRITE_OR_FAIL(src, size, count) \
+    do { \
+        if (!write_exact(fp, (src), (size), (count))) { \
+            fclose(fp); \
+            return false; \
+        } \
+    } while (0)
+
     uint32_t magic = CROSS_SAVE_MAGIC;
     uint32_t version = CROSS_SAVE_VERSION;
-    fwrite(&magic, 4, 1, fp);
-    fwrite(&version, 4, 1, fp);
+    WRITE_OR_FAIL(&magic, 4, 1);
+    WRITE_OR_FAIL(&version, 4, 1);
 
     uint8_t game_type = (uint8_t)gs->game_type;
-    fwrite(&game_type, 1, 1, fp);
+    WRITE_OR_FAIL(&game_type, 1, 1);
 
     int32_t vals[] = {
         gs->party_x, gs->party_y, gs->party_dir,
@@ -25,50 +67,58 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
         gs->num_levels, gs->base_id,
         gs->generators_total, gs->generators_destroyed, gs->gold
     };
-    fwrite(vals, sizeof(vals), 1, fp);
-    fwrite(&gs->mission_seed, 4, 1, fp);
-    fwrite(&gs->tick, 4, 1, fp);
+    WRITE_OR_FAIL(vals, sizeof(vals), 1);
+    WRITE_OR_FAIL(&gs->mission_seed, 4, 1);
+    WRITE_OR_FAIL(&gs->tick, 4, 1);
 
     for (int d = 0; d < 4; d++) {
         const Droid *dr = &gs->droids[d];
-        fwrite(dr->name, 16, 1, fp);
-        fwrite(&dr->hp, 2, 1, fp);
-        fwrite(&dr->hp_max, 2, 1, fp);
-        fwrite(&dr->energy, 2, 1, fp);
-        fwrite(&dr->energy_max, 2, 1, fp);
-        fwrite(dr->body_parts, 6, 1, fp);
-        fwrite(dr->weapons, 2, 1, fp);
-        fwrite(dr->items, 10, 1, fp);
-        fwrite(dr->skill_levels, 10, 1, fp);
-        fwrite(&dr->xp, 4, 1, fp);
-        fwrite(&dr->weapon_damage, 2, 1, fp);
+        WRITE_OR_FAIL(dr->name, 16, 1);
+        WRITE_OR_FAIL(&dr->hp, 2, 1);
+        WRITE_OR_FAIL(&dr->hp_max, 2, 1);
+        WRITE_OR_FAIL(&dr->energy, 2, 1);
+        WRITE_OR_FAIL(&dr->energy_max, 2, 1);
+        WRITE_OR_FAIL(dr->body_parts, 6, 1);
+        WRITE_OR_FAIL(dr->weapons, 2, 1);
+        WRITE_OR_FAIL(dr->items, 10, 1);
+        WRITE_OR_FAIL(dr->skill_levels, 10, 1);
+        WRITE_OR_FAIL(&dr->xp, 4, 1);
+        WRITE_OR_FAIL(&dr->weapon_damage, 2, 1);
     }
 
     for (int l = 0; l < gs->num_levels && l < MAX_LEVELS; l++) {
         const DungeonLevel *lvl = &gs->levels[l];
-        fwrite(&lvl->level, 4, 1, fp);
-        fwrite(&lvl->seed, 4, 1, fp);
+        WRITE_OR_FAIL(&lvl->level, 4, 1);
+        WRITE_OR_FAIL(&lvl->seed, 4, 1);
         for (int y = 0; y < MAP_HEIGHT; y++) {
             for (int x = 0; x < MAP_WIDTH; x++) {
                 const MapCell *c = &lvl->cells[y][x];
                 uint8_t ct = (uint8_t)c->type;
-                fwrite(&ct, 1, 1, fp);
-                fwrite(c->wall_tex, 4, 1, fp);
-                fwrite(&c->floor_tex, 1, 1, fp);
-                fwrite(&c->ceil_tex, 1, 1, fp);
-                fwrite(&c->item_id, 1, 1, fp);
-                fwrite(&c->creature_id, 1, 1, fp);
-                fwrite(&c->flags, 1, 1, fp);
+                WRITE_OR_FAIL(&ct, 1, 1);
+                WRITE_OR_FAIL(c->wall_tex, 4, 1);
+                WRITE_OR_FAIL(&c->floor_tex, 1, 1);
+                WRITE_OR_FAIL(&c->ceil_tex, 1, 1);
+                WRITE_OR_FAIL(&c->item_id, 1, 1);
+                WRITE_OR_FAIL(&c->creature_id, 1, 1);
+                WRITE_OR_FAIL(&c->flags, 1, 1);
             }
         }
     }
 
-    fclose(fp);
-    return true;
+    bool ok = fclose(fp) == 0;
+#undef WRITE_OR_FAIL
+    return ok;
 }
 
 bool cross_save_import(void *game_state_ptr, const char *path) {
-    GameState *gs = (GameState *)game_state_ptr;
+    GameState *destination = (GameState *)game_state_ptr;
+    if (!destination || !path) return false;
+    /* Import reconstructs every serialized field.  Do not copy the caller's
+     * possibly uninitialised state before validation; failed imports leave
+     * the destination untouched and successful imports receive deterministic
+     * values for fields not present in the cross-save format. */
+    GameState restored = {0};
+    GameState *gs = &restored;
     FILE *fp = fopen(path, "rb");
     if (!fp) return false;
 
@@ -83,11 +133,23 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
     }
 
     uint8_t game_type;
-    fread(&game_type, 1, 1, fp);
-    gs->game_type = (GameType)game_type;
+    if (fread(&game_type, 1, 1, fp) != 1 || game_type != GAME_CAPTIVE) {
+        fclose(fp);
+        return false;
+    }
 
     int32_t vals[10];
-    fread(vals, sizeof(vals), 1, fp);
+    if (fread(vals, sizeof(vals), 1, fp) != 1 ||
+        vals[0] < 0 || vals[0] >= MAP_WIDTH || vals[1] < 0 || vals[1] >= MAP_HEIGHT ||
+        vals[2] < DIR_NORTH || vals[2] > DIR_WEST ||
+        vals[3] < 0 || vals[3] >= MAX_LEVELS || vals[4] < 1 ||
+        vals[5] < 1 || vals[5] > MAX_LEVELS || vals[3] >= vals[5] ||
+        vals[6] < 0 || vals[9] < 0 ||
+        vals[7] < 0 || vals[8] < 0 || vals[8] > vals[7]) {
+        fclose(fp);
+        return false;
+    }
+    gs->game_type = (GameType)game_type;
     gs->party_x = vals[0];
     gs->party_y = vals[1];
     gs->party_dir = (Direction)vals[2];
@@ -98,44 +160,82 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
     gs->generators_total = vals[7];
     gs->generators_destroyed = vals[8];
     gs->gold = vals[9];
-    fread(&gs->mission_seed, 4, 1, fp);
-    fread(&gs->tick, 4, 1, fp);
+    if (!read_exact(fp, &gs->mission_seed, 4, 1) ||
+        !read_exact(fp, &gs->tick, 4, 1)) {
+        fclose(fp);
+        return false;
+    }
+
+    long payload_start = ftell(fp);
+    if (payload_start < 0 || fseek(fp, 0, SEEK_END) != 0) {
+        fclose(fp);
+        return false;
+    }
+    long file_end = ftell(fp);
+    long long level_bytes = (long long)vals[5] *
+                            (8LL + (long long)MAP_WIDTH * MAP_HEIGHT * 10);
+    long long required_end = (long long)payload_start + 4LL * 58 + level_bytes;
+    if (file_end < 0 || (long long)file_end < required_end ||
+        fseek(fp, payload_start, SEEK_SET) != 0) {
+        fclose(fp);
+        return false;
+    }
 
     for (int d = 0; d < 4; d++) {
         Droid *dr = &gs->droids[d];
-        fread(dr->name, 16, 1, fp);
-        fread(&dr->hp, 2, 1, fp);
-        fread(&dr->hp_max, 2, 1, fp);
-        fread(&dr->energy, 2, 1, fp);
-        fread(&dr->energy_max, 2, 1, fp);
-        fread(dr->body_parts, 6, 1, fp);
-        fread(dr->weapons, 2, 1, fp);
-        fread(dr->items, 10, 1, fp);
-        fread(dr->skill_levels, 10, 1, fp);
-        fread(&dr->xp, 4, 1, fp);
-        fread(&dr->weapon_damage, 2, 1, fp);
+        if (!read_exact(fp, dr->name, 16, 1) ||
+            !read_exact(fp, &dr->hp, 2, 1) ||
+            !read_exact(fp, &dr->hp_max, 2, 1) ||
+            !read_exact(fp, &dr->energy, 2, 1) ||
+            !read_exact(fp, &dr->energy_max, 2, 1) ||
+            !read_exact(fp, dr->body_parts, 6, 1) ||
+            !read_exact(fp, dr->weapons, 2, 1) ||
+            !read_exact(fp, dr->items, 10, 1) ||
+            !read_exact(fp, dr->skill_levels, 10, 1) ||
+            !read_exact(fp, &dr->xp, 4, 1) ||
+            !read_exact(fp, &dr->weapon_damage, 2, 1) ||
+            dr->hp < 0 || dr->hp_max < 0 || dr->hp > dr->hp_max ||
+            dr->energy < 0 || dr->energy_max < 0 || dr->energy > dr->energy_max) {
+            fclose(fp);
+            return false;
+        }
+        dr->name[sizeof(dr->name) - 1] = '\0';
     }
 
     for (int l = 0; l < gs->num_levels && l < MAX_LEVELS; l++) {
         DungeonLevel *lvl = &gs->levels[l];
-        fread(&lvl->level, 4, 1, fp);
-        fread(&lvl->seed, 4, 1, fp);
+        if (!read_exact(fp, &lvl->level, 4, 1) ||
+            !read_exact(fp, &lvl->seed, 4, 1) ||
+            lvl->level < 0 || lvl->level >= MAX_LEVELS) {
+            fclose(fp);
+            return false;
+        }
         for (int y = 0; y < MAP_HEIGHT; y++) {
             for (int x = 0; x < MAP_WIDTH; x++) {
                 MapCell *c = &lvl->cells[y][x];
                 uint8_t ct;
-                fread(&ct, 1, 1, fp);
+                if (!read_exact(fp, &ct, 1, 1) || ct > CELL_PIT ||
+                    !read_exact(fp, c->wall_tex, 1, 4) ||
+                    !read_exact(fp, &c->floor_tex, 1, 1) ||
+                    !read_exact(fp, &c->ceil_tex, 1, 1) ||
+                    !read_exact(fp, &c->item_id, 1, 1) ||
+                    !read_exact(fp, &c->creature_id, 1, 1) ||
+                    !read_exact(fp, &c->flags, 1, 1)) {
+                    fclose(fp);
+                    return false;
+                }
                 c->type = (CellType)ct;
-                fread(c->wall_tex, 4, 1, fp);
-                fread(&c->floor_tex, 1, 1, fp);
-                fread(&c->ceil_tex, 1, 1, fp);
-                fread(&c->item_id, 1, 1, fp);
-                fread(&c->creature_id, 1, 1, fp);
-                fread(&c->flags, 1, 1, fp);
             }
         }
     }
 
+    long payload_end = ftell(fp);
+    if (payload_end < 0 || payload_end != file_end) {
+        fclose(fp);
+        return false;
+    }
     fclose(fp);
+    restored.mode = STATE_GAME;
+    *destination = restored;
     return true;
 }

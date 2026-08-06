@@ -39,6 +39,22 @@ static void test_compute_params_seed0(void) {
     assert(ps.num_columns >= 1 && ps.num_columns <= 15);
 }
 
+static void test_compute_params_high_seed_clamps_density(void) {
+    PlotgenState ps;
+    plotgen_init(&ps, UINT16_MAX);
+    plotgen_compute_params(&ps);
+    assert(ps.grid_density == 100);
+}
+
+static void test_compute_params_signed_column_adjustment(void) {
+    for (uint16_t seed = 0; seed < 256; seed++) {
+        PlotgenState ps;
+        plotgen_init(&ps, seed);
+        plotgen_compute_params(&ps);
+        assert(ps.num_columns >= 1 && ps.num_columns <= 15);
+    }
+}
+
 static void test_compute_params_deterministic(void) {
     PlotgenState a, b;
     plotgen_init(&a, 777);
@@ -134,6 +150,8 @@ int main(void) {
     TEST(test_prng_sequence);
     TEST(test_prng_deterministic);
     TEST(test_compute_params_seed0);
+    TEST(test_compute_params_high_seed_clamps_density);
+    TEST(test_compute_params_signed_column_adjustment);
     TEST(test_compute_params_deterministic);
     TEST(test_generate_buildings);
     TEST(test_generate_names);

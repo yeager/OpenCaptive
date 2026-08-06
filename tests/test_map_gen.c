@@ -1,6 +1,7 @@
 #include "map_gen.h"
 #include <stdio.h>
 #include <assert.h>
+#include <limits.h>
 
 static void test_deterministic(void) {
     DungeonLevel a, b;
@@ -10,6 +11,13 @@ static void test_deterministic(void) {
     for (int y = 0; y < MAP_HEIGHT; y++)
         for (int x = 0; x < MAP_WIDTH; x++)
             assert(a.cells[y][x].type == b.cells[y][x].type);
+}
+
+static void test_generated_level_retains_seed(void) {
+    DungeonLevel level;
+    map_generate(&level, 0x12345678U, 3);
+    assert(level.seed == 0x12345678U);
+    assert(level.level == 3);
 }
 
 static void test_different_seeds(void) {
@@ -51,6 +59,14 @@ static void test_border_walls(void) {
         assert(lvl.cells[y][0].type == CELL_WALL);
         assert(lvl.cells[y][MAP_WIDTH-1].type == CELL_WALL);
     }
+}
+
+static void test_level_number_is_bounded(void) {
+    DungeonLevel low, high;
+    map_generate(&low, 123, -1000000);
+    map_generate(&high, 123, 1000000);
+    assert(low.level == 0);
+    assert(high.level == MAX_LEVELS - 1);
 }
 
 static void test_has_generators(void) {
@@ -130,6 +146,15 @@ static void test_architect_base_layout(void) {
         }
     }
     assert(doors > 0);
+}
+
+static void test_base_levels_store_their_logical_level(void) {
+    DungeonLevel levels[MAX_LEVELS];
+    int count = 0;
+    map_generate_base(levels, &count, 179);
+    assert(count > 1);
+    for (int i = 0; i < count; i++)
+        assert(levels[i].level == i);
 }
 
 static void test_logical_floors_are_connected(void) {
@@ -243,6 +268,7 @@ static void test_ca_segments_preserved(void) {
         }
     }
     assert(has_segments > 0);
+    assert(partial_walls > 0);
 }
 
 static void test_mapgen_output_validation(void) {
@@ -251,13 +277,12 @@ static void test_mapgen_output_validation(void) {
             DungeonLevel lvl;
             map_generate(&lvl, (uint32_t)(seed * 1000 + 1), level);
 
-            int walls = 0, floors = 0, doors = 0, generators = 0;
+            int walls = 0, floors = 0, generators = 0;
             for (int y = 0; y < MAP_HEIGHT; y++) {
                 for (int x = 0; x < MAP_WIDTH; x++) {
                     switch (lvl.cells[y][x].type) {
                         case CELL_WALL: walls++; break;
                         case CELL_FLOOR: floors++; break;
-                        case CELL_DOOR: case CELL_DOOR_LOCKED: doors++; break;
                         case CELL_GENERATOR: generators++; break;
                         default: break;
                     }
@@ -336,6 +361,24 @@ static void test_exterior_entrance_range(void) {
     }
 }
 
+static void test_exterior_clamps_invalid_entrance(void) {
+    DungeonLevel low, high;
+    map_generate_exterior(&low, -1000, 1);
+    map_generate_exterior(&high, INT_MAX, 1);
+    assert(low.cells[1][1].type == CELL_STAIRS_DOWN);
+    assert(high.cells[1][MAP_WIDTH - 2].type == CELL_STAIRS_DOWN);
+}
+
+static void test_exterior_rejects_null_destination(void) {
+    map_generate_exterior(NULL, 10, 1);
+}
+
+static void test_base_generator_clears_count_on_null_levels(void) {
+    int count = 99;
+    map_generate_base(NULL, &count, 1);
+    assert(count == 0);
+}
+
 static void test_mapgen_connectivity(void) {
     /* Every generated level's floor cells must be connected */
     for (int seed = 0; seed < 10; seed++) {
@@ -371,15 +414,18 @@ static void test_mapgen_connectivity(void) {
 
 int main(void) {
     test_deterministic();
+    test_generated_level_retains_seed();
     test_different_seeds();
     test_has_floor();
     test_border_walls();
+    test_level_number_is_bounded();
     test_has_generators();
     test_mission_seed_formula();
     test_recovered_original_prng();
     test_first_base_start_matches_architect_special_case();
     test_implementation_prng_regression();
     test_architect_base_layout();
+    test_base_levels_store_their_logical_level();
     test_logical_floors_are_connected();
     test_architect_seed_range();
     test_ca_segments_preserved();
@@ -388,6 +434,9 @@ int main(void) {
     test_exterior_deterministic();
     test_exterior_different_seeds();
     test_exterior_entrance_range();
+    test_exterior_clamps_invalid_entrance();
+    test_exterior_rejects_null_destination();
+    test_base_generator_clears_count_on_null_levels();
     test_mapgen_connectivity();
     printf("All map generator tests passed\n");
     return 0;

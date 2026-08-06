@@ -8,10 +8,12 @@ static uint16_t ca_prng(uint16_t *state) {
 }
 
 void ca_init(CAMap *map) {
+    if (!map) return;
     memset(map, 0, sizeof(*map));
 }
 
 void ca_generate_pattern(CAMap *map, uint16_t *prng_state) {
+    if (!map || !prng_state) return;
     for (int y = 0; y < CA_HEIGHT; y++) {
         for (int x = 0; x < CA_WIDTH; x++) {
             uint16_t r = ca_prng(prng_state);
@@ -202,6 +204,7 @@ static void ca_apply_mixed(CAMap *map) {
 }
 
 void ca_apply_rules(CAMap *map, CAMapType type) {
+    if (!map) return;
     switch (type) {
         case CA_TYPE_MAZE:  ca_apply_maze(map); break;
         case CA_TYPE_ROOMS: ca_apply_rooms(map); break;
@@ -211,7 +214,7 @@ void ca_apply_rules(CAMap *map, CAMapType type) {
 }
 
 bool ca_cell_is_wall(const CAMap *map, int x, int y) {
-    if (x < 0 || x >= CA_WIDTH || y < 0 || y >= CA_HEIGHT) return true;
+    if (!map || x < 0 || x >= CA_WIDTH || y < 0 || y >= CA_HEIGHT) return true;
     const uint8_t *c = map->cells[y][x];
     /* A cell is wall if any of its 5 wall segment bits are set */
     return ((c[0] & 0x10) | (c[1] & 0x10) | (c[2] & 0x08) |
@@ -219,7 +222,7 @@ bool ca_cell_is_wall(const CAMap *map, int x, int y) {
 }
 
 uint8_t ca_cell_wall_flags(const CAMap *map, int x, int y) {
-    if (x < 0 || x >= CA_WIDTH || y < 0 || y >= CA_HEIGHT) return 0xFF;
+    if (!map || x < 0 || x >= CA_WIDTH || y < 0 || y >= CA_HEIGHT) return 0xFF;
     const uint8_t *c = map->cells[y][x];
     uint8_t flags = 0;
     if (c[0] & 0x10) flags |= 0x01;
@@ -231,6 +234,9 @@ uint8_t ca_cell_wall_flags(const CAMap *map, int x, int y) {
 }
 
 void ca_to_dungeon_level(const CAMap *map, DungeonLevel *level, int level_num) {
+    if (!map || !level) return;
+    if (level_num < 0) level_num = 0;
+    if (level_num >= MAX_LEVELS) level_num = MAX_LEVELS - 1;
     memset(level, 0, sizeof(*level));
     level->level = level_num;
 

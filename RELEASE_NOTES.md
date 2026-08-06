@@ -1,5 +1,14 @@
 # OpenCaptive Release Notes
 
+## v1.1.79 (2026-08-06)
+
+### Release and CI hardening
+- Release jobs now fail when iOS or Android packaging fails instead of publishing a partial release.
+- Android releases no longer fall back to an unsigned debug APK.
+- Release creation verifies that every desktop and mobile artifact exists and is non-empty.
+- Added and expanded automated coverage for data readers, launcher, terminal, shop, game state, audio, lighting, and Liberation rendering.
+- Synchronized the 19-language catalog and compiled message catalogs.
+
 ## v1.1.72 (2026-08-04)
 
 ### macOS localization
