@@ -19,6 +19,13 @@ int main(void) {
     start_menu_init(&menu);
     assert(menu.music_enabled && menu.sfx_enabled);
 
+    /* Re-entry preserves the user's path and remains valid for a menu that
+     * has already initialized its resources. */
+    snprintf(menu.data_path, sizeof(menu.data_path), "/tmp/opencaptive-data");
+    start_menu_reinit(&menu);
+    assert(strcmp(menu.data_path, "/tmp/opencaptive-data") == 0);
+    assert(menu.data_path_cursor == (int)strlen(menu.data_path));
+
     /* Small targets must not make the fixed-size popups write out of bounds. */
     menu.show_setup_popup = true;
     start_menu_render(&menu, tiny_pixels, 16, 16);

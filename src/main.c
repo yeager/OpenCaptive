@@ -466,7 +466,11 @@ static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu,
 static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *config,
                                   const CustomFeatures *feat,
                                   bool music_enabled, bool sfx_enabled) {
-    start_menu_init(menu);
+    /* Returning from pause must retain the menu's loaded artwork and fonts.
+     * start_menu_init() clears those pointers without freeing them; the
+     * resource-preserving reinit also remains safe for the zeroed menu used
+     * during the first startup. */
+    start_menu_reinit(menu);
     strncpy(menu->data_path, config->data_path, sizeof(menu->data_path) - 1);
     menu->data_path[sizeof(menu->data_path) - 1] = '\0';
     menu->data_path_cursor = (int)strlen(menu->data_path);
