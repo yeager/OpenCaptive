@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive dataskanner-cache)
+
+- Dataskannern cachelagrar nu även hashningar som inte gav någon träff, så
+  gamla saknade filer inte genomsöks på nytt vid varje uppstart.
+- Cache-signaturen innehåller metadata för hela dataträdet och upptäcker därför
+  både nya filer och ersatta filer utan att lita på filnamn eller gammal data.
+- Lade till regressionstest för negativ cache och ändring av källfil.
+
 ## 2026-08-07 (Captive riktade väggtexturer)
 
 - Captives viewport väljer nu väggtextur efter den faktiska väggens riktning,

@@ -266,6 +266,39 @@ static void test_finds_hash_in_extracted_tree(void) {
     assert(TEST_RMDIR(test_dir) == 0);
 }
 
+static void test_negative_cache_invalidates_when_source_changes(void) {
+    const char *test_dir = "test-vfs-negative-cache";
+    const char *test_file = "test-vfs-negative-cache/payload.bin";
+    const char *payload_hash =
+        "9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a";
+    static const unsigned char missing_payload[] = "not-game-data";
+    static const unsigned char matching_payload[] = { 1, 2, 3, 4 };
+    assert(TEST_MKDIR(test_dir) == 0);
+    FILE *f = fopen(test_file, "wb");
+    assert(f && fwrite(missing_payload, 1, sizeof(missing_payload) - 1U, f) ==
+                    sizeof(missing_payload) - 1U);
+    assert(fclose(f) == 0);
+
+    DataVFS vfs;
+    assert(vfs_init(&vfs, test_dir));
+    size_t size = 0;
+    assert(vfs_find_sha256(&vfs, payload_hash, &size) == NULL);
+    /* The repeated miss must be served by the persistent negative entry. */
+    assert(vfs_find_sha256(&vfs, payload_hash, &size) == NULL);
+
+    f = fopen(test_file, "wb");
+    assert(f && fwrite(matching_payload, 1, sizeof(matching_payload), f) ==
+                    sizeof(matching_payload));
+    assert(fclose(f) == 0);
+    uint8_t *result = vfs_find_sha256(&vfs, payload_hash, &size);
+    assert(result && size == sizeof(matching_payload) &&
+           memcmp(result, matching_payload, size) == 0);
+    free(result);
+    vfs_free(&vfs);
+    assert(remove(test_file) == 0);
+    assert(TEST_RMDIR(test_dir) == 0);
+}
+
 static void test_reads_and_hashes_empty_file(void) {
     FILE *f = fopen("test-vfs-empty.bin", "wb");
     assert(f && fclose(f) == 0);
@@ -351,6 +384,7 @@ int main(void) {
     test_rejects_invalid_hash_text();
     test_rejects_overlong_data_path();
     test_finds_hash_in_extracted_tree();
+    test_negative_cache_invalidates_when_source_changes();
     test_reads_and_hashes_empty_file();
     test_reads_empty_stored_zip_entry();
     test_reads_empty_deflated_zip_entry();

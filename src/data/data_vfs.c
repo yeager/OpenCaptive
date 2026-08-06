@@ -33,6 +33,8 @@
 static int compare_zip_paths(const void *left, const void *right);
 static void vfs_cache_signature(const DataVFS *vfs, char out[65]);
 static bool cache_source_signature(const char *path, char out[65]);
+static void cache_tree_metadata(SHA256Context *ctx, const char *path,
+                                int depth);
 
 static uint16_t read_u16(const uint8_t *p) {
     return (uint16_t)((uint16_t)p[0] | ((uint16_t)p[1] << 8));
@@ -666,22 +668,55 @@ static void vfs_cache_signature(const DataVFS *vfs, char out[65]) {
     sha256_init(&ctx);
     sha256_update(&ctx, (const uint8_t *)vfs->data_path,
                   strlen(vfs->data_path) + 1);
-    /* Cache entries validate their own source file or archive.  The global
-     * namespace signature therefore only needs the selected root and the
-     * discovered archive identities; recursively hashing every loose-file
-     * metadata record here would make opening the VFS proportional to the
-     * whole game-data tree before the first menu frame. */
-    struct stat root_st;
-    if (stat(vfs->data_path, &root_st) == 0)
-        cache_meta_update(&ctx, vfs->data_path, &root_st);
-    for (int i = 0; i < vfs->num_zips; ++i) {
-        struct stat st;
-        if (stat(vfs->zip_paths[i], &st) == 0)
-            cache_meta_update(&ctx, vfs->zip_paths[i], &st);
-    }
+    /* Negative cache entries must notice content replacements in nested
+     * directories as well as new files.  Record metadata only: this walk is
+     * much cheaper than reading every file, and the content is still hashed
+     * whenever the signature changes. */
+    cache_tree_metadata(&ctx, vfs->data_path, 0);
     sha256_final(&ctx, digest);
     for (int i = 0; i < 32; ++i) snprintf(out + i * 2, 3, "%02x", digest[i]);
     out[64] = '\0';
+}
+
+static void cache_tree_metadata(SHA256Context *ctx, const char *path,
+                                int depth) {
+    if (!ctx || !path || depth > 32) return;
+    struct stat current;
+    if (stat(path, &current) != 0) return;
+    cache_meta_update(ctx, path, &current);
+
+#ifdef _WIN32
+    char pattern[1024];
+    if (!(current.st_mode & _S_IFDIR) ||
+        snprintf(pattern, sizeof(pattern), "%s\\*", path) >=
+            (int)sizeof(pattern)) return;
+    WIN32_FIND_DATAA entry;
+    HANDLE handle = FindFirstFileA(pattern, &entry);
+    if (handle == INVALID_HANDLE_VALUE) return;
+    do {
+        if (!strcmp(entry.cFileName, ".") || !strcmp(entry.cFileName, "..") ||
+            !strcmp(entry.cFileName, ".cache")) continue;
+        char child[1024];
+        if (snprintf(child, sizeof(child), "%s\\%s", path,
+                     entry.cFileName) >= (int)sizeof(child)) continue;
+        cache_tree_metadata(ctx, child, depth + 1);
+    } while (FindNextFileA(handle, &entry));
+    FindClose(handle);
+#else
+    if (!S_ISDIR(current.st_mode)) return;
+    DIR *dir = opendir(path);
+    if (!dir) return;
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..") ||
+            !strcmp(entry->d_name, ".cache")) continue;
+        char child[1024];
+        if (snprintf(child, sizeof(child), "%s/%s", path,
+                     entry->d_name) >= (int)sizeof(child)) continue;
+        cache_tree_metadata(ctx, child, depth + 1);
+    }
+    closedir(dir);
+#endif
 }
 
 static const char *vfs_cache_home(void) {
@@ -756,6 +791,57 @@ static uint8_t *vfs_cache_read(const char hash[65], const char signature[65],
     }
     if (out_size) *out_size = cached_size;
     return cached;
+}
+
+static bool vfs_cache_read_negative(const char hash[65],
+                                    const char signature[65]) {
+    const char *home = vfs_cache_home();
+    if (!home || !valid_sha256_text(hash) || !valid_sha256_text(signature))
+        return false;
+    char path[1200], stored[160];
+    if (snprintf(path, sizeof(path), "%s/.cache/opencaptive/%s.miss",
+                 home, hash) >= (int)sizeof(path)) return false;
+    FILE *f = fopen(path, "rb");
+    if (!f) return false;
+    size_t n = fread(stored, 1, sizeof(stored) - 1U, f);
+    fclose(f);
+    stored[n] = '\0';
+    char expected[70];
+    if (snprintf(expected, sizeof(expected), "v2\n%s\n", signature) >=
+        (int)sizeof(expected)) return false;
+    return strcmp(stored, expected) == 0;
+}
+
+static void vfs_cache_write_negative(const char hash[65],
+                                     const char signature[65]) {
+    const char *home = vfs_cache_home();
+    if (!home || !valid_sha256_text(hash) || !valid_sha256_text(signature))
+        return;
+    char base[1024], parent[1024], path[1200], temporary[1250];
+    if (snprintf(base, sizeof(base), "%s/.cache/opencaptive", home) >=
+            (int)sizeof(base) ||
+        snprintf(parent, sizeof(parent), "%s/.cache", home) >=
+            (int)sizeof(parent) ||
+        snprintf(path, sizeof(path), "%s/%s.miss", base, hash) >=
+            (int)sizeof(path)) return;
+    (void)mkdir(parent, 0755);
+    (void)mkdir(base, 0755);
+    unsigned long process_id = cache_process_id();
+    if (snprintf(temporary, sizeof(temporary), "%s.tmp.%lu", path,
+                 process_id) >= (int)sizeof(temporary)) return;
+    FILE *f = fopen(temporary, "wb");
+    if (!f) return;
+    char contents[75];
+    int length = snprintf(contents, sizeof(contents), "v2\n%s\n", signature);
+    bool ok = length > 0 && length < (int)sizeof(contents) &&
+              fwrite(contents, 1, (size_t)length, f) == (size_t)length;
+    int close_result = fclose(f);
+    ok = ok && close_result == 0;
+    if (!ok) {
+        remove(temporary);
+        return;
+    }
+    if (!replace_cache_file(temporary, path)) remove(temporary);
 }
 
 static void vfs_cache_write(const char hash[65], const uint8_t *data, size_t size,
@@ -916,17 +1002,13 @@ static uint8_t *find_hash_in_directory(const char *path, const char expected_sha
 uint8_t *vfs_find_sha256(const DataVFS *vfs, const char expected_sha256[65], size_t *out_size) {
     if (!vfs || !vfs->initialized || !valid_sha256_text(expected_sha256)) return NULL;
     char signature[65];
-    /* The VFS signature is fixed when the instance is opened.  Cache entries
-     * carry their own source fingerprint, so probing the complete metadata
-     * tree for every hash would only make a multi-file startup scan walk the
-     * entire data root repeatedly. */
-    if (!vfs->cache_signature_valid) {
-        vfs_cache_signature(vfs, signature);
-    } else {
-        memcpy(signature, vfs->cache_signature, sizeof(signature));
-    }
+    /* Recompute metadata before both positive and negative lookups.  This is
+     * content-free and keeps a long-lived VFS correct if the user replaces a
+     * game file while the start menu is open. */
+    vfs_cache_signature(vfs, signature);
     uint8_t *cached = vfs_cache_read(expected_sha256, signature, out_size);
     if (cached) return cached;
+    if (vfs_cache_read_negative(expected_sha256, signature)) return NULL;
     size_t found_size = 0;
     char source_path[1024] = {0};
     uint8_t *loose = find_hash_in_directory(vfs->data_path, expected_sha256,
@@ -948,6 +1030,7 @@ uint8_t *vfs_find_sha256(const DataVFS *vfs, const char expected_sha256[65], siz
             return data;
         }
     }
+    vfs_cache_write_negative(expected_sha256, signature);
     return NULL;
 }
 
