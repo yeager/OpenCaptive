@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Säker Liberation-itemkonvertering)
+
+- 16-bitars Liberation-itemtyper trunceras inte längre tyst till 8-bitars
+  Captive-ID:n när de återställs eller flyttas till en droid.
+- Ogiltig equipment rensas vid save-restore och felaktiga shared/shop-/bar-
+  objekt stannar i shared inventory i stället för att bli korrupta runtime-
+  items.
+
 ## 2026-08-06 (Liberation hazard leder korrekt till game-over)
 
 - En industrial hazard som förstör alla droids när en byggnad lämnas sätter

@@ -648,6 +648,30 @@ static bool liberation_intro_active;
 static bool liberation_mission_menu_active;
 static bool skip_liberation_intro_requested;
 
+/* Liberation saves keep their shared item type wide enough for the original
+ * format, while the active OpenCaptive droid inventory uses the Captive
+ * database's 8-bit IDs.  Never truncate a shared/save item into a different
+ * runtime item. */
+static bool liberation_runtime_item_id(uint16_t item_type, uint8_t *out_id) {
+    if (!out_id || item_type == 0 || item_type > UINT8_MAX) return false;
+    uint8_t id = (uint8_t)item_type;
+    if (!item_db_get(&item_db, id)) return false;
+    *out_id = id;
+    return true;
+}
+
+static bool liberation_is_armor_id(uint8_t item_id) {
+    const Item *item = item_db_get(&item_db, item_id);
+    return item && item->category >= ITEM_ARMOR_HEAD &&
+           item->category <= ITEM_ARMOR_HAND;
+}
+
+static bool liberation_is_weapon_id(uint8_t item_id) {
+    const Item *item = item_db_get(&item_db, item_id);
+    return item && item->category >= ITEM_WEAPON_MELEE &&
+           item->category <= ITEM_WEAPON_SPRAY;
+}
+
 static int menu_audio_sample_rate(const StartMenu *menu) {
     static const int sample_rates[] = {22050, 44100, 48000};
     int choice = menu ? menu->audio_sample_rate : 1;
@@ -1136,14 +1160,23 @@ static void restore_liberation_save_state(GameState *gs_ptr,
         if (save->version >= LIB_SAVE_SKILLS_VERSION)
             memcpy(gs_ptr->droids[i].skill_levels + 8,
                    save->droids[i].skills + 8, 2);
-        for (int p = 0; p < 6; p++)
-            gs_ptr->droids[i].body_parts[p] =
-                (uint8_t)save->droids[i].equipment[p];
-        for (int w = 0; w < 2; w++)
-            gs_ptr->droids[i].weapons[w] =
-                (uint8_t)save->droids[i].equipment[6 + w];
+        for (int p = 0; p < 6; p++) {
+            uint8_t id;
+            if (liberation_runtime_item_id(save->droids[i].equipment[p], &id) &&
+                liberation_is_armor_id(id))
+                gs_ptr->droids[i].body_parts[p] = id;
+        }
+        for (int w = 0; w < 2; w++) {
+            uint8_t id;
+            if (liberation_runtime_item_id(save->droids[i].equipment[6 + w], &id) &&
+                liberation_is_weapon_id(id))
+                gs_ptr->droids[i].weapons[w] = id;
+        }
         memcpy(gs_ptr->droids[i].items, save->droids[i].inventory,
                sizeof(gs_ptr->droids[i].items));
+        for (size_t si = 0; si < sizeof(gs_ptr->droids[i].items); si++)
+            if (!item_db_get(&item_db, gs_ptr->droids[i].items[si]))
+                gs_ptr->droids[i].items[si] = 0;
         if (save->version >= LIB_SAVE_BODY_PART_VERSION)
             memcpy(gs_ptr->droids[i].body_part_hp, save->droids[i].body_part_hp,
                    sizeof(gs_ptr->droids[i].body_part_hp));
@@ -2837,9 +2870,14 @@ int main(int argc, char *argv[]) {
                                     if (lib_inv_cursor >= 0 &&
                                         lib_inv_cursor < gs.lib_inventory_count) {
                                         Droid *d = &gs.droids[gs.selected_droid];
+                                        uint8_t item_id;
+                                        if (!liberation_runtime_item_id(
+                                                gs.lib_inventory[lib_inv_cursor].item_type,
+                                                &item_id))
+                                            break;
                                         for (int si = 0; si < 10; si++) {
                                             if (d->items[si] == 0) {
-                                                d->items[si] = (uint8_t)gs.lib_inventory[lib_inv_cursor].item_type;
+                                                d->items[si] = item_id;
                                                 for (int j = lib_inv_cursor; j < gs.lib_inventory_count - 1; j++)
                                                     gs.lib_inventory[j] = gs.lib_inventory[j + 1];
                                                 gs.lib_inventory_count--;
