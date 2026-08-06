@@ -875,7 +875,7 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
     renderer_apply_display(renderer, config);
     renderer_set_effects(renderer, config->bilinear, config->scanlines,
                          config->crt_curvature,
-                         config->brightness, config->contrast);
+                         config->brightness, config->contrast, config->gamma);
 }
 
 static const char *popup_label(int item) {
@@ -2303,7 +2303,7 @@ int main(int argc, char *argv[]) {
                                                  config.scanlines,
                                                  config.crt_curvature,
                                                  config.brightness,
-                                                 config.contrast);
+                                                 config.contrast, config.gamma);
                             renderer_apply_display(&renderer, &config);
                             music_set_enabled(&music_sys, menu.music_enabled);
                             sound_set_enabled(&sound_sys, menu.sfx_enabled);
@@ -2343,7 +2343,7 @@ int main(int argc, char *argv[]) {
                                                  config.scanlines,
                                                  config.crt_curvature,
                                                  config.brightness,
-                                                 config.contrast);
+                                                 config.contrast, config.gamma);
                             renderer_apply_display(&renderer, &config);
                             music_set_enabled(&music_sys, menu.music_enabled);
                             sound_set_enabled(&sound_sys, menu.sfx_enabled);
@@ -2367,7 +2367,7 @@ int main(int argc, char *argv[]) {
                                                  config.scanlines,
                                                  config.crt_curvature,
                                                  config.brightness,
-                                                 config.contrast);
+                                                 config.contrast, config.gamma);
                             renderer_apply_display(&renderer, &config);
                             music_set_enabled(&music_sys, menu.music_enabled);
                             sound_set_enabled(&sound_sys, menu.sfx_enabled);
@@ -2409,7 +2409,7 @@ int main(int argc, char *argv[]) {
                                                  config.scanlines,
                                                  config.crt_curvature,
                                                  config.brightness,
-                                                 config.contrast);
+                                                 config.contrast, config.gamma);
                             renderer_apply_display(&renderer, &config);
                             music_set_enabled(&music_sys, menu.music_enabled);
                             sound_set_enabled(&sound_sys, menu.sfx_enabled);

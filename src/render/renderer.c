@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "custom_features.h"
 #include <limits.h>
+#include <math.h>
 #include <stdio.h>
 
 static bool renderer_bilinear;
@@ -8,6 +9,7 @@ static bool renderer_scanlines;
 static bool renderer_crt_curvature;
 static int renderer_brightness = 50;
 static int renderer_contrast = 50;
+static int renderer_gamma = 50;
 
 static bool renderer_create_framebuffer(OpenCaptiveRenderer *r, int width, int height) {
     SDL_Texture *texture = SDL_CreateTexture(r->renderer,
@@ -93,7 +95,7 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
     }
 
     renderer_set_effects(r, config->bilinear, config->scanlines, config->crt_curvature,
-                         config->brightness, config->contrast);
+                         config->brightness, config->contrast, config->gamma);
     r->window_width = w;
     r->window_height = h;
     r->mode = config->render_mode;
@@ -127,15 +129,30 @@ void renderer_apply_display(OpenCaptiveRenderer *r, const OpenCaptiveConfig *con
 }
 
 void renderer_set_effects(OpenCaptiveRenderer *r, bool bilinear, bool scanlines,
-                          bool crt_curvature, int brightness, int contrast) {
+                          bool crt_curvature, int brightness, int contrast,
+                          int gamma) {
     if (!r || !r->framebuffer) return;
     renderer_bilinear = bilinear;
     renderer_scanlines = scanlines;
     renderer_crt_curvature = crt_curvature;
     renderer_brightness = brightness < 0 ? 0 : (brightness > 100 ? 100 : brightness);
     renderer_contrast = contrast < 0 ? 0 : (contrast > 100 ? 100 : contrast);
+    renderer_gamma = gamma < 0 ? 0 : (gamma > 100 ? 100 : gamma);
     SDL_SetTextureScaleMode(r->framebuffer,
         renderer_bilinear ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
+}
+
+static uint8_t apply_gamma(uint8_t value) {
+    if (renderer_gamma == 50 || value == 0 || value == 255) return value;
+    /* 50 is neutral. Higher values brighten mid-tones and lower values
+     * darken them; keep the exponent finite at the slider's zero endpoint. */
+    double level = renderer_gamma > 0 ? (double)renderer_gamma : 1.0;
+    double exponent = 50.0 / level;
+    double normalized = (double)value / 255.0;
+    int adjusted = (int)lround(pow(normalized, exponent) * 255.0);
+    if (adjusted < 0) return 0;
+    if (adjusted > 255) return 255;
+    return (uint8_t)adjusted;
 }
 
 void renderer_set_upscale(OpenCaptiveRenderer *r, bool enabled, int factor) {
@@ -222,7 +239,8 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
         bool apply_curvature = renderer_crt_curvature &&
                                render_width > 1 && render_height > 1;
         if (renderer_scanlines || apply_curvature ||
-            renderer_brightness != 50 || renderer_contrast != 50) {
+            renderer_brightness != 50 || renderer_contrast != 50 ||
+            renderer_gamma != 50) {
             size_t pixel_count = (size_t)render_width * (size_t)render_height;
             if (pixel_count <= SIZE_MAX / sizeof(*processed))
                 processed = (uint32_t *)SDL_malloc(pixel_count * sizeof(*processed));
@@ -240,9 +258,9 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
                     uint32_t color = (sx < 0 || sx >= render_width ||
                                       sy < 0 || sy >= render_height)
                         ? 0xFF000000 : source[sy * render_width + sx];
-                    uint8_t red = apply_channel((color >> 16) & 0xFF);
-                    uint8_t green = apply_channel((color >> 8) & 0xFF);
-                    uint8_t blue = apply_channel(color & 0xFF);
+                    uint8_t red = apply_gamma(apply_channel((color >> 16) & 0xFF));
+                    uint8_t green = apply_gamma(apply_channel((color >> 8) & 0xFF));
+                    uint8_t blue = apply_gamma(apply_channel(color & 0xFF));
                     if (renderer_scanlines && (y & 1)) {
                         red = (uint8_t)(red * 3 / 5);
                         green = (uint8_t)(green * 3 / 5);

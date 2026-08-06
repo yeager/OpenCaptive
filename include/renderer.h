@@ -27,7 +27,8 @@ void renderer_apply_display(OpenCaptiveRenderer *r, const OpenCaptiveConfig *con
 bool renderer_set_canvas(OpenCaptiveRenderer *r, int width, int height,
                          const OpenCaptiveConfig *config);
 void renderer_set_effects(OpenCaptiveRenderer *r, bool bilinear, bool scanlines,
-                          bool crt_curvature, int brightness, int contrast);
+                          bool crt_curvature, int brightness, int contrast,
+                          int gamma);
 void renderer_set_upscale(OpenCaptiveRenderer *r, bool enabled, int factor);
 void renderer_set_widescreen(OpenCaptiveRenderer *r, bool enabled, int width);
 void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels);

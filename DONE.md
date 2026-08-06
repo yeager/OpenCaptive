@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Gamma i renderaren)
+
+- Inställningen `GAMMA` i startmenyn används nu av rendererens aktiva
+  postprocessning med 50 % som neutral nivå.
+- Ändringen gäller även när F10-popupen ändrar grafikinställningar i realtid;
+  gamma aktiverar postprocessning även när övriga effekter är avstängda.
+- Werror-kompilering och hela testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (Säkrare referensbildsläsning)
 
 - VGA- och PPM-referensläsarna avbryter nu korrekt efter avkortade filer och
