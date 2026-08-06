@@ -275,28 +275,19 @@ The executable structure, dispatch tables and descriptor format are documented a
 
 ## Viewport renderer
 
-The viewport renderer (`src/render/viewport.c`) draws the first-person dungeon
-view using the 19-cell trapezoid from `captive_view_window_build()` and
-hash-verified PL5 panel sheets from the texture atlas:
+`src/render/viewport.c` retains an experimental renderer based on the
+19-cell trapezoid from `captive_view_window_build()` and hash-verified PL5
+source sheets. It is intentionally bypassed at runtime. Its placement and
+scaling rules were an approximation, not the original descriptor sequence,
+so displaying it would make a plausible-looking but false parity claim.
 
-- **5 depth ranges** with perspective-correct cell sizing
-- **Back-to-front compositing** matching the documented draw order
-- **Wall faces**: front, left and right walls sampled from PL5 source sheets
-- **Floor/ceiling strips**: sampled from PL5 sheets per range
-- **Doors**: drawn from the dedicated door PL5 sheet
-- **Ornaments**: wall decorations from the icon PL5 sheet
-- **Special cells**: visual markers for stairs, generators and shops
-
-The renderer uses real PL5 pixel data exclusively — no synthetic textures. Each
-wall/floor/ceiling fragment is sampled from the hash-verified source sheets at
-positions determined by the cell's texture indices. Transparency is handled by
-skipping pixels where the source ARGB has zero RGB.
-
-This is the first stage of viewport parity. The original DOS renderer uses a
-descriptor table with exact source rectangles, destinations and blitter flags.
-Until that table is fully recovered, the current renderer approximates the
-projection geometry from documented view dimensions rather than using the
-original per-descriptor coordinates.
+The active Captive path draws only the verified original `GAME SCRN` shell and
+leaves its dynamic 144×112 viewport unchanged. The original DOS renderer is a
+back-to-front sequence of descriptor-driven planar copies with caller-specific
+destination bases, mask behaviour and per-cell ordering. Restoring the view
+therefore requires those commands to be recovered from the original runtime,
+then compared against DOS-VGA captures. Until then no generated perspective,
+floor, ceiling, door, creature or object pixels are presented as game output.
 
 ## SFX system
 

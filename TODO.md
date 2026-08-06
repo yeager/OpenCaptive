@@ -3,11 +3,12 @@
 ## Captive parity
 
 ### Viewport
-- [x] Viewport renders directly from 5-byte cell bitmasks (no separate descriptor table)
-- [x] Map CA cell bit positions to exact 3D wall segments in viewport renderer
-- [x] Verify panel compositing order against DOS VGA captures (verified: HUD shell rendered from original GAME SCRN PL5 asset with SHA-256 verified hash, viewport composited at original coordinates CAPTIVE_VIEWPORT_X/Y)
-- [x] Add creature sprite rendering (ALIEN1-6.PL5)
-- [x] Add item/object rendering in viewport (OBJECTS.PL5)
+- [x] Preserve the verified original `GAME SCRN` HUD shell at its native position
+- [x] Recover 19-cell sampling and ordered visibility cleanup for analysis
+- [x] Recover the static DOS descriptor record layout and source-bank indirection
+- [ ] Recover the complete original per-cell descriptor sequence, destination bases and draw order
+- [ ] Reproduce original planar mask, mirror and overwrite behaviour in the active viewport
+- [ ] Verify a playable Captive viewport pixel-for-pixel against original DOS captures
 
 ### Combat
 - [x] Disassemble combat formula section of CAPPO.EXE (hit check, damage calc, scaling)
