@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Release version consistency)
+
+- Synkade den körbara versionssträngen med v1.1.79; den rapporterade tidigare
+  felaktigt v1.1.78 trots att CMake och releasepaketen var v1.1.79.
+- Lade till `version_consistency` som jämför headerns version med CMake-versionen
+  vid kompilering.
+
 ## 2026-08-06 (Windows CI release fix)
 
 - Gjorde scan-cachens filmetadata portabel över Windows genom att använda

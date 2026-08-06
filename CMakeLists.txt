@@ -219,6 +219,14 @@ add_executable(test_sha256 tests/test_sha256.c src/data/sha256.c)
 target_include_directories(test_sha256 PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME sha256 COMMAND test_sha256)
 
+add_executable(test_version_consistency tests/test_version_consistency.c)
+target_include_directories(test_version_consistency PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_compile_definitions(test_version_consistency PRIVATE
+    OPENCAPTIVE_CMAKE_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+    OPENCAPTIVE_CMAKE_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+    OPENCAPTIVE_CMAKE_VERSION_PATCH=${PROJECT_VERSION_PATCH})
+add_test(NAME version_consistency COMMAND test_version_consistency)
+
 add_executable(test_iso9660_reader tests/test_iso9660_reader.c
     src/data/iso9660_reader.c src/data/sha256.c)
 target_include_directories(test_iso9660_reader PRIVATE ${CMAKE_SOURCE_DIR}/include)
