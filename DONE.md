@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive LOS-hörn)
+
+- Ranged combat och creature-LOS blockerar nu diagonala hörn där båda
+  sidocellerna är väggar eller stängda dörrar.
+- Lade till regressionsfall för skott genom ett helt blockerat hörn.
+- Lokal Werror/CTest: 58/58 tester passerar.
+
 ## 2026-08-06 (Captive fiende-kollisioner per våning)
 
 - Fiende-AI: rörelse på aktuell nivå blockeras inte längre av en aktiv fiende

@@ -153,12 +153,23 @@ static bool combat_has_line_of_sight(const GameState *gs,
 
     while (x != x1 || y != y1) {
         int twice_error = error * 2;
+        int old_x = x;
+        int old_y = y;
         if (twice_error > -dy) { error -= dy; x += sx; }
         if (twice_error < dx) { error += dx; y += sy; }
-        if (x == x1 && y == y1) break;
         if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT ||
             blocks_movement_or_sight(gs->levels[gs->current_level].cells[y][x].type))
             return false;
+        /* A diagonal step cannot see through the corner formed by two
+         * blocking cells.  Without this check the target at (x+1,y+1) was
+         * visible even when both (x+1,y) and (x,y+1) were closed. */
+        if (x != old_x && y != old_y) {
+            CellType side_a = gs->levels[gs->current_level].cells[old_y][x].type;
+            CellType side_b = gs->levels[gs->current_level].cells[y][old_x].type;
+            if (blocks_movement_or_sight(side_a) &&
+                blocks_movement_or_sight(side_b)) return false;
+        }
+        if (x == x1 && y == y1) break;
     }
     return true;
 }

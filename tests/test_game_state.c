@@ -303,6 +303,33 @@ static void test_combat_respects_closed_doors(void) {
     assert(gs.droids[0].hp == hp_before);
 }
 
+static void test_combat_line_of_sight_respects_blocked_corners(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_SOUTH;
+    gs.droids[0].weapons[0] = 18;
+    gs.droids[0].weapon_damage = 0x0505;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+    gs.levels[0].cells[1][2].type = CELL_WALL;
+    gs.levels[0].cells[2][1].type = CELL_WALL;
+
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 30, .hp_max = 30,
+        .x = 2, .y = 2, .level = 0, .active = true,
+    };
+    assert(!combat_droid_attack(&gs, &creatures, 0));
+    assert(creatures.creatures[0].hp == 30);
+    assert(gs.droids[0].energy == gs.droids[0].energy_max);
+}
+
 static void test_combat_creatures_cannot_enter_party_tile(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -781,6 +808,7 @@ int main(void) {
     test_first_mission_uses_architect_seed_zero();
     test_extreme_mission_seed_is_defined();
     test_combat_respects_closed_doors();
+    test_combat_line_of_sight_respects_blocked_corners();
     test_combat_creatures_cannot_enter_party_tile();
     test_combat_creatures_move_cardinally();
     test_combat_creature_collision_ignores_other_levels();
