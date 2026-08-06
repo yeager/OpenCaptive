@@ -1736,7 +1736,7 @@ int main(int argc, char *argv[]) {
                 "  --data <path>         Set game data directory\n"
                 "  --data-dir <path>     Alias for --data\n"
                 "  --enhanced            Enable enhanced 3D renderer\n"
-                "  --platform <name>     Set platform: dos, atari, amiga\n"
+                "  --platform <name>     Set playable Captive platform: dos\n"
                 "  --scale <n>           Window scale factor (1-5, default 3)\n"
                 "  --resolution <WxH>    Window resolution (e.g. 1920x1080)\n"
                 "  --fullscreen          Start in fullscreen mode\n"
@@ -1808,10 +1808,9 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "--platform") == 0 && i + 1 < argc) {
             const char *platform = argv[++i];
             if (strcmp(platform, "dos") == 0) config.platform = CAPTIVE_PLATFORM_DOS;
-            else if (strcmp(platform, "atari") == 0) config.platform = CAPTIVE_PLATFORM_ATARI_ST;
-            else if (strcmp(platform, "amiga") == 0) config.platform = CAPTIVE_PLATFORM_AMIGA;
             else {
-                fprintf(stderr, "Unknown platform: %s (expected dos, atari or amiga)\n", platform);
+                fprintf(stderr, "Unsupported Captive platform: %s (only dos is playable)\n",
+                        platform);
                 return 2;
             }
         } else if (strcmp(argv[i], "--scale") == 0 && i + 1 < argc) {

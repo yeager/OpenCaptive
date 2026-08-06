@@ -3,7 +3,6 @@
 #include "data_vfs.h"
 #include "sha256.h"
 #include "liberation_data.h"
-#include "captive_amiga_data.h"
 #include "i18n.h"
 #include <stdlib.h>
 #include <string.h>
@@ -432,11 +431,14 @@ void start_menu_check_data(StartMenu *menu, const char *data_path) {
         uint8_t *d = vfs_find_sha256(&vfs, captive_required_hashes[i], &sz);
         if (d) free(d); else { dos_valid = false; break; }
     }
-    bool amiga_valid = captive_amiga_data_verify(&vfs);
-    menu->captive_source_mask = (dos_valid ? (1U << CAPTIVE_PLATFORM_DOS) : 0U) |
-        (amiga_valid ? (1U << CAPTIVE_PLATFORM_AMIGA) : 0U);
+    /* The Amiga verifier is intentionally not part of this playable-source
+       mask yet: the Captive runtime currently loads the DOS PL5 atlas and
+       has no Amiga graphics adapter. Advertising a verified ADF as a launch
+       source made the version popup select Amiga and then silently load DOS
+       assets instead. The verifier remains available to --verify-data. */
+    menu->captive_source_mask = dos_valid ? (1U << CAPTIVE_PLATFORM_DOS) : 0U;
     menu->captive_data_ok = menu->captive_source_mask != 0U;
-    menu->captive_source_choice = dos_valid ? CAPTIVE_PLATFORM_DOS : CAPTIVE_PLATFORM_AMIGA;
+    menu->captive_source_choice = CAPTIVE_PLATFORM_DOS;
     LiberationData lib_data = {0};
     menu->liberation_data_ok = liberation_data_open(&lib_data, &vfs);
     liberation_data_close(&lib_data);

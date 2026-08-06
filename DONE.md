@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive platform selection)
+
+- Hindrade startmenyn från att erbjuda verifierade Amiga-ADF:er som spelbar
+  Captive-version när runtime fortfarande laddar DOS-grafikatlasen.
+- Uppdaterade README så `--platform` och Amiga-verifieringen beskriver den
+  faktiska runtime-statusen.
+
 ## 2026-08-06 (Cross-save armor durability)
 
 - Cross-save v2 sparar nu droidarnas individuella `body_part_hp`, så skadad

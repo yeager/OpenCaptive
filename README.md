@@ -120,7 +120,7 @@ Place your game data files (ZIP archives, loose files, ADF disk images) in the d
 |------|-------------|
 | `--data <path>` | Path to game data directory |
 | `--game captive\|liberation` | Start specific game directly |
-| `--platform dos\|atari\|amiga` | Captive platform mode (default: `dos`) |
+| `--platform dos` | Captive runtime platform (the current playable renderer) |
 | `--scale <N>` | Window scale factor, 1-5 (default: `3`) |
 | `--lang <code>` | Language code (en, sv, de, fr, es, it, ja, ko, zh, ...) |
 | `--fullscreen` | Start in fullscreen mode |
@@ -165,8 +165,10 @@ Place your game data files (ZIP archives, loose files, ADF disk images) in the d
 
 12 required files identified by SHA-256 content hash. Supported sources:
 - DOS version (CAPPO.EXE, PL5 graphics, CAP_A.BIN sound driver)
-- Amiga ADF disk images (880KB)
-- Atari ST disk images
+- Amiga ADF disk images (880KB) — verified by `--verify-data`; native Captive
+  runtime loading is not yet exposed as a playable source
+- Atari ST disk images — format support is available for analysis; no separate
+  Atari runtime source is currently exposed
 - ZIP archives (nested scanning supported)
 
 ### Liberation: Captive 2

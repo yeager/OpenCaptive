@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Captive's launcher no longer presents verified Amiga ADF data as a playable
+  version before a native Amiga graphics adapter exists; `--verify-data` still
+  validates that media for development.
 - Cross-save v2 preserves individual droid armor durability while remaining
   compatible with imports from the previous v1 format.
 - CustomFeatures-konfigurationen accepterar nu valfria blanksteg runt
