@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Teleporter trap destinations)
+
+- Säkrade teleporterfällor så att genererade mål alltid är golv och att
+  laddade/manuellt skapade mål inte kan placera spelaren i vägg eller dörr.
+- Lade till regressionstester för både interaktion och genererade fällor.
+
 ## 2026-08-06 (Liberation save version 5)
 
 - Återställde läsning av Liberation-save version 5; versionskontrollen

@@ -31,6 +31,8 @@
   header, seed, count, and input ticks.
 - Liberation save loading now accepts version 5 files, including their
   reputation field, matching the versions advertised by the loader.
+- Teleporter traps now select walkable floor destinations and reject blocked
+  targets when interacting with generated or loaded puzzle data.
 - GitHub Actions workflows now use `actions/checkout@v6` and the Node 24
   runtime, removing the checkout action's Node 20 deprecation warning.
 

@@ -52,6 +52,49 @@ static void test_button_combo_solution_is_reachable(void) {
     assert(gs.levels[0].cells[5][5].type == CELL_DOOR);
 }
 
+static void test_teleporter_never_enters_blocked_cell(void) {
+    GameState gs;
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_TELEPORTER_TRAP, .x = 3, .y = 3, .level = 0,
+        .target_x = 8, .target_y = 8
+    };
+    puzzles.num_puzzles = 1;
+    gs.levels[0].cells[8][8].type = CELL_WALL;
+    gs.party_x = 3;
+    gs.party_y = 3;
+    assert(puzzle_interact(&puzzles, &gs, 3, 3, DIR_NORTH));
+    assert(gs.party_x == 3 && gs.party_y == 3);
+    puzzle_check_step(&puzzles, &gs, 3, 3);
+    assert(gs.party_x == 3 && gs.party_y == 3);
+
+    gs.levels[0].cells[8][8].type = CELL_FLOOR;
+    assert(puzzle_interact(&puzzles, &gs, 3, 3, DIR_NORTH));
+    assert(gs.party_x == 8 && gs.party_y == 8);
+}
+
+static void test_generated_teleporters_target_floor(void) {
+    GameState gs;
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    puzzle_generate(&puzzles, &gs.levels[5], 5, 0x12345678);
+    for (int i = 0; i < puzzles.num_puzzles; i++) {
+        const Puzzle *p = &puzzles.puzzles[i];
+        if (p->type != PUZZLE_TELEPORTER_TRAP) continue;
+        assert(p->target_x >= 0 && p->target_x < MAP_WIDTH);
+        assert(p->target_y >= 0 && p->target_y < MAP_HEIGHT);
+        assert(gs.levels[5].cells[p->target_y][p->target_x].type == CELL_FLOOR);
+    }
+}
+
 static void move_to_stair(GameState *gs, CellType stair) {
     for (int y = 0; y < MAP_HEIGHT; y++)
         for (int x = 0; x < MAP_WIDTH; x++)
@@ -437,6 +480,8 @@ int main(void) {
     test_init_normalizes_invalid_mission();
     test_puzzle_rejects_invalid_level();
     test_button_combo_solution_is_reachable();
+    test_teleporter_never_enters_blocked_cell();
+    test_generated_teleporters_target_floor();
     test_first_mission_uses_architect_seed_zero();
     test_extreme_mission_seed_is_defined();
     test_combat_respects_closed_doors();

@@ -6,6 +6,14 @@
 
 static uint32_t puzzle_seed;
 
+static bool valid_teleport_destination(const GameState *gs, int x, int y) {
+    if (!gs || gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->current_level >= MAX_LEVELS || x < 0 || x >= MAP_WIDTH ||
+        y < 0 || y >= MAP_HEIGHT) return false;
+    CellType cell = gs->levels[gs->current_level].cells[y][x].type;
+    return cell != CELL_WALL && cell != CELL_DOOR && cell != CELL_DOOR_LOCKED;
+}
+
 void puzzle_init(PuzzleList *pl) {
     if (!pl) return;
     memset(pl, 0, sizeof(*pl));
@@ -272,9 +280,18 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 p->face = 0;
                 p->state = 0;
                 p->solved = false;
-                int tx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
-                int ty = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
-                p->target_x = tx; p->target_y = ty;
+                p->target_x = -1;
+                p->target_y = -1;
+                for (int target_attempts = 0; target_attempts < 60;
+                     target_attempts++) {
+                    int tx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
+                    int ty = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
+                    if (lvl->cells[ty][tx].type == CELL_FLOOR) {
+                        p->target_x = tx;
+                        p->target_y = ty;
+                        break;
+                    }
+                }
                 break;
             }
         }
@@ -424,8 +441,8 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
             }
 
             case PUZZLE_TELEPORTER_TRAP:
-                    if (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
-                        p->target_y >= 0 && p->target_y < MAP_HEIGHT) {
+                    if (valid_teleport_destination(gs, p->target_x,
+                                                   p->target_y)) {
                     gs->party_x = p->target_x;
                     gs->party_y = p->target_y;
                 }
@@ -490,8 +507,8 @@ void puzzle_check_step(PuzzleList *pl, GameState *gs, int x, int y) {
                 break;
             }
             case PUZZLE_TELEPORTER_TRAP:
-                if (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
-                    p->target_y >= 0 && p->target_y < MAP_HEIGHT) {
+                if (valid_teleport_destination(gs, p->target_x,
+                                               p->target_y)) {
                     gs->party_x = p->target_x;
                     gs->party_y = p->target_y;
                 }
