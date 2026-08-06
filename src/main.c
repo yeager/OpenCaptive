@@ -930,6 +930,10 @@ static void popup_render(const GameState *gs, const CustomFeatures *features,
 static void restore_liberation_save_state(GameState *gs_ptr,
                                           const LibSaveData *save) {
     if (!gs_ptr || !save) return;
+    /* Pending police fines belong to the live interaction flow and are not
+     * represented in the legacy Liberation save format.  Do not let a fine
+     * from the pre-load session leak into the restored session. */
+    lib_bar_fight_pending = false;
     memset(gs_ptr->droids, 0, sizeof(gs_ptr->droids));
     for (int i = 0; i < 4; i++)
         memset(gs_ptr->droids[i].body_part_hp, 255,

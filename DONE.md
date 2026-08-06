@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation save state isolation)
+
+- Temporära pending-böter från ett tidigare Liberation-spel läcker inte längre
+  in efter att ett save har laddats.
+- Save-load behandlar nu det runtime-state som inte finns i det äldre
+  save-formatet som nytt och tomt.
+
 ## 2026-08-06 (Liberation police dialogue rebuild)
 
 - Polisdialogen byggs nu om när ett pending barbråk kopplas till besöket, så

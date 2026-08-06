@@ -9,6 +9,8 @@
   next police-station visit, where it can be paid or refused.
 - The police dialogue now rebuilds its choices when that pending fine is
   attached, so the payment option is visible rather than only stored in state.
+- Loading a Liberation save now clears transient pending police-fine state from
+  the previous live session.
 - F10's live original/enhanced display toggle now synchronizes the renderer
   state immediately while a game is running.
 - Droids carrying a melee weapon in one hand and a ranged weapon in the other
