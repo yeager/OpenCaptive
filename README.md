@@ -106,7 +106,7 @@ ninja -C build
 ctest --test-dir build -j4 --output-on-failure
 ```
 
-55 tests covering format decoders, game logic, combat, save/load, map generation, audio, rendering, UI, and release-version consistency.
+56 tests covering format decoders, game logic, combat, save/load, map generation, audio, rendering, UI, and release-version consistency.
 
 ## Running
 
