@@ -348,6 +348,8 @@ static void test_combat_creatures_cannot_enter_party_tile(void) {
         .range = 0, .x = 2, .y = 1, .level = 0,
         .active = true, .alerted = true,
     };
+    assert(combat_cell_occupied(&creatures, 0, 2, 1));
+    assert(!combat_cell_occupied(&creatures, 1, 2, 1));
     combat_tick(&creatures, &gs);
     assert(creatures.creatures[0].x == 2 && creatures.creatures[0].y == 1);
 }

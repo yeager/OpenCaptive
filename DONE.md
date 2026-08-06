@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive party-fiende-kollision)
+
+- Party kan inte längre gå in i en aktiv fiendes ruta; movement och creature-AI
+  använder nu samma occupancy-regel.
+- Lokal Werror/CTest: 58/58 tester passerar.
+
 ## 2026-08-06 (Captive inventory-droidval)
 
 - Tangenterna `1`–`4` byter nu aktiv droid direkt inne i Captive-inventoryt

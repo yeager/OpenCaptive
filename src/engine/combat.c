@@ -15,8 +15,7 @@ static uint32_t combat_rand(void) {
     return captive_combat_prng(&combat_seed);
 }
 
-static bool combat_cell_occupied(const CreatureList *cl, int level,
-                                 int x, int y) {
+bool combat_cell_occupied(const CreatureList *cl, int level, int x, int y) {
     if (!cl || cl->num_creatures <= 0) return false;
     int count = cl->num_creatures > MAX_CREATURES ? MAX_CREATURES :
                 cl->num_creatures;
