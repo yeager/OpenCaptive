@@ -3549,9 +3549,9 @@ int main(int argc, char *argv[]) {
             }
 
             case STATE_PAUSE: {
-                int pw = (gs.game_type == GAME_LIBERATION)
+                int pw = (gs.game_type == GAME_LIBERATION && !lib_in_dungeon)
                     ? LIBERATION_SCREEN_WIDTH : CAPTIVE_ORIGINAL_WIDTH;
-                int ph = (gs.game_type == GAME_LIBERATION)
+                int ph = (gs.game_type == GAME_LIBERATION && !lib_in_dungeon)
                     ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
                 for (int i = 0; i < pw * ph; i++)
                     framebuffer[i] = (framebuffer[i] & 0xFF000000)

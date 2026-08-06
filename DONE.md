@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Säker pausrendering inne i Liberation-dungeon)
+
+- Pausvyn använder nu 320×200 när Liberation befinner sig i dungeonläge,
+  precis som huvudloopen och den underliggande Captive-vyn.
+- Det förhindrar att pausrenderingen skriver 320×256 pixlar till en
+  320×200-framebuffer.
+
 ## 2026-08-06 (Holomap-återgång synkroniserar menyn)
 
 - ESC från Captives holomap går nu genom samma menyåtergång som övriga
