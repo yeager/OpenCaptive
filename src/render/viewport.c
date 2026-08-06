@@ -299,7 +299,12 @@ void viewport_render(const CaptiveViewWindow *window,
                 /* Full wall or no segment data — draw solid */
                 draw_wall(framebuffer, fb_width, fb_height, atlas,
                           cell_left, rp->top_y, cell_w, rp->wall_height,
-                          vp_x, vp_y, cell->wall_tex[0], range);
+                          /* A solid wall cell is viewed from the side facing
+                           * the party.  wall_tex is stored in map (N/E/S/W)
+                           * order, so that face is opposite the party's
+                           * viewing direction. */
+                          vp_x, vp_y,
+                          cell->wall_tex[(window->facing + 2) & 3], range);
             } else {
                 /* Partial wall: draw only the active CA segments.
                  * 5 segments divide the cell width into 5 columns:
@@ -322,7 +327,8 @@ void viewport_render(const CaptiveViewWindow *window,
                     if (sw < 1) sw = 1;
                     draw_wall(framebuffer, fb_width, fb_height, atlas,
                               sx, rp->top_y, sw, rp->wall_height,
-                              vp_x, vp_y, cell->wall_tex[0], range);
+                              vp_x, vp_y,
+                              cell->wall_tex[(window->facing + 2) & 3], range);
                 }
             }
 
@@ -374,7 +380,8 @@ void viewport_render(const CaptiveViewWindow *window,
                 if (side_w < 2) side_w = 2;
                 draw_wall(framebuffer, fb_width, fb_height, atlas,
                           cell_left, rp->top_y, side_w, rp->wall_height,
-                          vp_x, vp_y, cell->wall_tex[3], range);
+                          vp_x, vp_y,
+                          cell->wall_tex[(window->facing + 3) & 3], range);
                 if (cell->ornament[(window->facing + 3) & 3] != ORNAMENT_NONE)
                     draw_ornament(framebuffer, fb_width, fb_height, atlas,
                                   cell_left, rp->top_y + rp->wall_height / 3,
@@ -399,7 +406,8 @@ void viewport_render(const CaptiveViewWindow *window,
                 draw_wall(framebuffer, fb_width, fb_height, atlas,
                           cell_right - side_w + 1, rp->top_y,
                           side_w, rp->wall_height,
-                          vp_x, vp_y, cell->wall_tex[1], range);
+                          vp_x, vp_y,
+                          cell->wall_tex[(window->facing + 1) & 3], range);
                 if (cell->ornament[(window->facing + 1) & 3] != ORNAMENT_NONE)
                     draw_ornament(framebuffer, fb_width, fb_height, atlas,
                                   cell_right - side_w + 1,

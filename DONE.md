@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive riktade väggtexturer)
+
+- Captives viewport väljer nu väggtextur efter den faktiska väggens riktning,
+  även när spelaren vänder sig. Tidigare låstes frontal-, vänster- och
+  högerväggar till fasta texturindex.
+- Lade till ett regressionstest som verifierar att en vridning ändrar den
+  renderade riktade väggen.
+
 ## 2026-08-07 (Captive replay interaction)
 
 - Replay-inspelning kodar nu även Enter och numeriskt Enter som Captive-

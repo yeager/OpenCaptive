@@ -83,6 +83,42 @@ int main(void) {
                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
     assert(memcmp(without_ornament, framebuffer, sizeof(framebuffer)) != 0);
 
+    /* Directional wall textures must rotate with the player.  The fixture
+     * uses a distinct source panel for each absolute map direction; a fixed
+     * [0]/[1]/[3] lookup would render the same wall after turning. */
+    static const uint32_t panel_colors[] = {
+        0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFF00
+    };
+    for (int panel = 0; panel < 4; ++panel)
+        for (int y = 0; y < 200; ++y)
+            for (int x = panel * 80; x < (panel + 1) * 80; ++x)
+                texture_pixels[y * 320 + x] = panel_colors[panel];
+    for (int y = 0; y < MAP_HEIGHT; ++y)
+        for (int x = 0; x < MAP_WIDTH; ++x)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+    for (int d = 0; d < 4; ++d)
+        gs.levels[0].cells[10][10].wall_tex[d] = (uint8_t)d;
+    for (int d = 0; d < 4; ++d)
+        gs.levels[0].cells[9][10].wall_tex[d] = (uint8_t)d;
+    gs.levels[0].cells[9][10].type = CELL_WALL;
+    gs.party_dir = DIR_NORTH;
+    captive_view_window_build(&gs, &window);
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render(&window, &atlas, framebuffer,
+                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+    uint32_t north_view[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
+    memcpy(north_view, framebuffer, sizeof(north_view));
+
+    gs.party_dir = DIR_EAST;
+    captive_view_window_build(&gs, &window);
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render(&window, &atlas, framebuffer,
+                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+    assert(memcmp(north_view, framebuffer, sizeof(framebuffer)) != 0);
+
+    gs.party_dir = DIR_NORTH;
     creatures.num_creatures = 1;
     creatures.creatures[0].type = CREATURE_ALIEN1;
     creatures.creatures[0].active = true;
