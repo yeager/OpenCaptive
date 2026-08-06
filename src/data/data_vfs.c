@@ -582,6 +582,43 @@ static uint8_t *read_regular_file(const char *path, size_t *out_size) {
  * hashing every asset again. */
 static void cache_meta_update(SHA256Context *ctx, const char *path,
                               const struct stat *st) {
+#ifdef _WIN32
+    /* _stat64 exposes second-resolution times on Windows.  Two archive
+     * replacements in the same second could therefore reuse a stale cache
+     * entry.  The file-information API provides the native 100 ns timestamp
+     * together with the file identity, while still avoiding a content hash. */
+    HANDLE handle = CreateFileA(path, FILE_READ_ATTRIBUTES,
+                                 FILE_SHARE_READ | FILE_SHARE_WRITE |
+                                 FILE_SHARE_DELETE, NULL, OPEN_EXISTING,
+                                 FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    if (handle != INVALID_HANDLE_VALUE) {
+        BY_HANDLE_FILE_INFORMATION info;
+        if (GetFileInformationByHandle(handle, &info)) {
+            ULARGE_INTEGER write_time;
+            write_time.HighPart = info.ftLastWriteTime.dwHighDateTime;
+            write_time.LowPart = info.ftLastWriteTime.dwLowDateTime;
+            unsigned long long file_index =
+                ((unsigned long long)info.nFileIndexHigh << 32) |
+                info.nFileIndexLow;
+            unsigned long long file_size =
+                ((unsigned long long)info.nFileSizeHigh << 32) |
+                info.nFileSizeLow;
+            char line[1200];
+            int n = snprintf(line, sizeof(line), "%s|%llu|%llu|%lu|%llu|%lu\n",
+                             path, file_size,
+                             (unsigned long long)write_time.QuadPart,
+                             info.dwVolumeSerialNumber, file_index,
+                             info.dwFileAttributes);
+            CloseHandle(handle);
+            if (n > 0 && n < (int)sizeof(line)) {
+                sha256_update(ctx, (const uint8_t *)line, (size_t)n);
+                return;
+            }
+        } else {
+            CloseHandle(handle);
+        }
+    }
+#endif
     char line[1200];
     long mtime_nsec = 0;
 #if defined(__APPLE__)
