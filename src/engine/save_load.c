@@ -213,7 +213,8 @@ static bool valid_puzzle_target(const Puzzle *p) {
 
 static bool valid_creature_runtime_state(const Creature *c) {
     return c && c->speed <= 60 && c->range <= 7 && c->cooldown <= 60 &&
-           c->respawn_timer <= 600;
+           c->respawn_timer <= 600 &&
+           ((!c->active && c->hp == 0) || (c->active && c->hp > 0));
 }
 
 static bool valid_item_id(const ItemDatabase *db, uint8_t item_id) {

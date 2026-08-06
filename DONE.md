@@ -3322,3 +3322,5 @@
 - Captive-fienders jakt använder nu ett kardinalt steg per tick i stället för
   diagonal rörelse. De kan därför inte längre skära genom dungeonhörn; ett
   regressionsprov verifierar rörelsen.
+- Captive-savefiler avvisar nu fiender med inkonsekvent livstillstånd, till
+  exempel aktiv med noll HP eller inaktiv med positiv HP.

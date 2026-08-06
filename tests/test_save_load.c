@@ -281,6 +281,10 @@ static void test_save_rejects_invalid_creature_runtime_fields(void) {
     creatures.creatures[0].speed = 0;
     creatures.creatures[0].range = 8;
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    creatures.creatures[0].range = 0;
+    creatures.creatures[0].active = false;
+    creatures.creatures[0].hp = 10;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
 }
 
 static void test_load_rejects_noncanonical_creature_flag(void) {
