@@ -27,6 +27,22 @@ bool combat_cell_occupied(const CreatureList *cl, int level, int x, int y) {
     return false;
 }
 
+bool combat_change_floor_if_clear(GameState *gs, CreatureList *cl,
+                                  int direction) {
+    if (!gs) return false;
+    int old_level = gs->current_level;
+    int old_x = gs->party_x;
+    int old_y = gs->party_y;
+    if (!game_state_change_floor(gs, direction)) return false;
+    if (combat_cell_occupied(cl, gs->current_level, gs->party_x, gs->party_y)) {
+        gs->current_level = old_level;
+        gs->party_x = old_x;
+        gs->party_y = old_y;
+        return false;
+    }
+    return true;
+}
+
 void combat_init(CreatureList *cl) {
     if (!cl) return;
     memset(cl, 0, sizeof(*cl));

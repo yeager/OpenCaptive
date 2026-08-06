@@ -770,6 +770,50 @@ static void test_generated_floor_connections(void) {
     }
 }
 
+static void test_floor_arrival_rejects_active_creature(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission_seeded(&gs, 1, 17);
+
+    int down_x = -1, down_y = -1;
+    for (int y = 0; y < MAP_HEIGHT && down_x < 0; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (gs.levels[0].cells[y][x].type == CELL_STAIRS_DOWN) {
+                down_x = x;
+                down_y = y;
+                break;
+            }
+        }
+    }
+    assert(down_x >= 0 && down_y >= 0);
+    int arrival_x = -1, arrival_y = -1;
+    for (int y = 0; y < MAP_HEIGHT && arrival_x < 0; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (gs.levels[1].cells[y][x].type == CELL_STAIRS_UP) {
+                arrival_x = x;
+                arrival_y = y;
+                break;
+            }
+        }
+    }
+    assert(arrival_x >= 0 && arrival_y >= 0);
+    gs.current_level = 0;
+    gs.party_x = down_x;
+    gs.party_y = down_y;
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 10, .hp_max = 10,
+        .x = arrival_x, .y = arrival_y, .level = 1, .active = true
+    };
+    assert(!combat_change_floor_if_clear(&gs, &creatures, 1));
+    assert(gs.current_level == 0 && gs.party_x == down_x && gs.party_y == down_y);
+
+    creatures.creatures[0].active = false;
+    assert(combat_change_floor_if_clear(&gs, &creatures, 1));
+    assert(gs.current_level == 1 && gs.party_x == arrival_x && gs.party_y == arrival_y);
+}
+
 static void test_combat_los_rejects_corrupt_level_count(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -831,6 +875,7 @@ int main(void) {
     test_mission_completion_rejects_overshot_generator_count();
     test_floor_change_rejects_corrupt_level_count();
     test_generated_floor_connections();
+    test_floor_arrival_rejects_active_creature();
     test_combat_los_rejects_corrupt_level_count();
     static GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);

@@ -5,7 +5,9 @@
 - Trappor kan inte längre lämna party ovanpå en aktiv fiende på
   mottagningsvåningen. Övergången återställs till den ursprungliga våningen
   om ankomstcellen är blockerad.
-- Lokal Werror/CTest körs efter ändringen.
+- Kollisionstätningen ligger i en gemensam combat-hjälpfunktion och täcks av
+  ett regressionstest.
+- Lokal Werror/CTest: 58/58 tester passerar.
 
 ## 2026-08-06 (Captive teleporter-kollision)
 

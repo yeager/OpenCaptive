@@ -71,6 +71,10 @@ void combat_init(CreatureList *cl);
 void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
                             int level_num, uint32_t seed);
 bool combat_cell_occupied(const CreatureList *cl, int level, int x, int y);
+
+/* Change Captive floors only when the generated arrival cell is not occupied
+ * by an active creature.  A rejected transition leaves the game state intact. */
+bool combat_change_floor_if_clear(GameState *gs, CreatureList *cl, int direction);
 void combat_tick(CreatureList *cl, GameState *gs);
 bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx);
 void combat_interact(GameState *gs, const void *item_db);
