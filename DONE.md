@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive creature-occlusion)
+
+- Aktiva fiender ritas nu bara i giltiga, synliga 19-cellerspositioner och
+  kan inte längre renderas genom väggar eller utanför kartan.
+- Lade till viewport-regression för synlig fiende respektive fiende i vägg.
+- Lokal Werror/CTest: 58/58 tester passerar.
+
 ## 2026-08-06 (Captive teleportlandning)
 
 - Rörelseflödet använder nu den faktiska landningsrutan efter en teleporter

@@ -535,9 +535,12 @@ static const uint32_t creature_colors[CREATURE_COUNT] = {
 void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
                                const TextureAtlas *atlas,
                                uint32_t *framebuffer, int fb_width, int fb_height) {
-    if (!gs || !cl || !framebuffer) return;
+    if (!gs || !cl || !framebuffer || fb_width <= 0 || fb_height <= 0) return;
 
     (void)atlas;
+
+    CaptiveViewWindow view_window;
+    captive_view_window_build(gs, &view_window);
 
     int vp_x = CAPTIVE_VIEWPORT_X;
     int vp_y = CAPTIVE_VIEWPORT_Y;
@@ -560,6 +563,8 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
     for (int i = 0; i < creature_count; i++) {
         const Creature *c = &cl->creatures[i];
         if (!c->active || c->level != gs->current_level) continue;
+        if (c->x < 0 || c->x >= MAP_WIDTH || c->y < 0 || c->y >= MAP_HEIGHT)
+            continue;
 
         int rel_x = c->x - gs->party_x;
         int rel_y = c->y - gs->party_y;
@@ -568,6 +573,18 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
 
         if (forward < 0 || forward > 4) continue;
         if (lateral < -2 || lateral > 2) continue;
+
+        int visible_index = -1;
+        for (int vi = 0; vi < CAPTIVE_VISIBLE_CELL_COUNT; vi++) {
+            if (captive_visible_cell_positions[vi].forward == forward &&
+                captive_visible_cell_positions[vi].lateral == lateral) {
+                visible_index = vi;
+                break;
+            }
+        }
+        if (visible_index < 0 || view_window.hidden[visible_index] ||
+            view_window.visible[visible_index].type == CELL_WALL)
+            continue;
 
         const RangeParams *rp = &range_params[forward];
         int total_w = rp->right_x - rp->left_x + 1;

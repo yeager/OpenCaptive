@@ -72,13 +72,22 @@ int main(void) {
     creatures.creatures[0].type = CREATURE_ALIEN1;
     creatures.creatures[0].active = true;
     creatures.creatures[0].level = 0;
-    creatures.creatures[0].x = 10;
-    creatures.creatures[0].y = 9;
+    creatures.creatures[0].x = 11;
+    creatures.creatures[0].y = 10;
     for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
         framebuffer[i] = 0xFF010203;
     viewport_render_creatures(&gs, &creatures, &atlas, framebuffer,
                               CAPTIVE_ORIGINAL_WIDTH,
                               CAPTIVE_ORIGINAL_HEIGHT);
     assert(viewport_changed(framebuffer));
+
+    creatures.creatures[0].x = 10;
+    creatures.creatures[0].y = 9; /* Wall directly ahead of the party. */
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render_creatures(&gs, &creatures, &atlas, framebuffer,
+                              CAPTIVE_ORIGINAL_WIDTH,
+                              CAPTIVE_ORIGINAL_HEIGHT);
+    assert(!viewport_changed(framebuffer));
     return 0;
 }
