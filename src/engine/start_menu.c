@@ -799,7 +799,8 @@ MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
 }
 
 void start_menu_handle_mouse_motion(StartMenu *menu, float x, float y) {
-    if (!menu || menu->in_settings || menu->in_about || menu->in_controls || menu->in_scanner)
+    if (!menu || menu->show_setup_popup || menu->show_version_popup ||
+        menu->in_settings || menu->in_about || menu->in_controls || menu->in_scanner)
         return;
     int item = hit_test_main_menu(menu, x, y);
     if (item >= 0) menu->selected_item = item;

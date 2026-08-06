@@ -31,6 +31,11 @@ int main(void) {
     start_menu_render(&menu, tiny_pixels, 16, 16);
     assert(start_menu_handle_click(&menu, 480.0f, 300.0f) == MENU_RESULT_NONE);
     assert(!menu.show_setup_popup);
+    menu.selected_item = 4;
+    menu.show_setup_popup = true;
+    start_menu_handle_mouse_motion(&menu, 200.0f, 200.0f);
+    assert(menu.selected_item == 4);
+    menu.show_setup_popup = false;
     menu.show_setup_popup = true;
     menu.show_setup_popup = false;
     menu.show_version_popup = true;
