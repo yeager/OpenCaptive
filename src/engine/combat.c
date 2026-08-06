@@ -15,6 +15,19 @@ static uint32_t combat_rand(void) {
     return captive_combat_prng(&combat_seed);
 }
 
+static bool combat_cell_occupied(const CreatureList *cl, int level,
+                                 int x, int y) {
+    if (!cl || cl->num_creatures <= 0) return false;
+    int count = cl->num_creatures > MAX_CREATURES ? MAX_CREATURES :
+                cl->num_creatures;
+    for (int i = 0; i < count; i++) {
+        const Creature *c = &cl->creatures[i];
+        if (c->active && c->level == level && c->x == x && c->y == y)
+            return true;
+    }
+    return false;
+}
+
 void combat_init(CreatureList *cl) {
     if (!cl) return;
     memset(cl, 0, sizeof(*cl));
@@ -55,7 +68,8 @@ void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
                 int spawn_y = y + (s / 2);
                 if (spawn_x < 0 || spawn_x >= MAP_WIDTH ||
                     spawn_y < 0 || spawn_y >= MAP_HEIGHT ||
-                    lvl->cells[spawn_y][spawn_x].type != CELL_FLOOR)
+                    lvl->cells[spawn_y][spawn_x].type != CELL_FLOOR ||
+                    combat_cell_occupied(cl, level_num, spawn_x, spawn_y))
                     continue;
                 SpawnEntry *se = &sr.entries[s];
                 Creature *c = &cl->creatures[cl->num_creatures++];

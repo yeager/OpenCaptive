@@ -194,6 +194,30 @@ static void test_generated_triple_levers_use_all_eight_states(void) {
     assert(found_extended_solution);
 }
 
+static void test_combat_spawn_never_overlaps_active_creatures(void) {
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    for (uint32_t seed = 0; seed < 256; seed++) {
+        CreatureList creatures;
+        combat_init(&creatures);
+        combat_spawn_for_level(&creatures, &gs.levels[0], 0, seed);
+        for (int i = 0; i < creatures.num_creatures; i++) {
+            const Creature *a = &creatures.creatures[i];
+            if (!a->active) continue;
+            for (int j = i + 1; j < creatures.num_creatures; j++) {
+                const Creature *b = &creatures.creatures[j];
+                assert(!b->active || a->level != b->level ||
+                       a->x != b->x || a->y != b->y);
+            }
+        }
+    }
+}
+
 static void move_to_stair(GameState *gs, CellType stair) {
     for (int y = 0; y < MAP_HEIGHT; y++)
         for (int x = 0; x < MAP_WIDTH; x++)
@@ -666,6 +690,7 @@ int main(void) {
     test_generated_power_socket_has_no_stale_target();
     test_generated_electric_traps_face_walls();
     test_generated_triple_levers_use_all_eight_states();
+    test_combat_spawn_never_overlaps_active_creatures();
     test_first_mission_uses_architect_seed_zero();
     test_extreme_mission_seed_is_defined();
     test_combat_respects_closed_doors();

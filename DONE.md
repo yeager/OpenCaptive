@@ -3313,3 +3313,6 @@
 - Generatorn placerar nu väggmonterade el-fällor endast mot riktiga väggceller.
   De kan därför inte längre skapas på en ogiltig väggyta utan fungerande
   interaktion; ett regressionsprov verifierar placeringen.
+- Captive-fiender spawnas nu inte ovanpå redan aktiva fiender på samma nivå.
+  Gruppspawn behåller därför unika kartpositioner, med ett regressionsprov över
+  många frön.
