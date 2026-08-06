@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Atomic replay and feature configuration)
+
+- Replay- och feature-konfigurationsfiler skrivs till temporära filer och byts
+  atomiskt efter lyckad skrivning.
+- Skyddar inspelningar och användarens runtime-konfiguration mot trunkerade
+  filer vid avbrott eller skrivfel.
+- Verifierade `test_custom_features` och diff-format.
+
 ## 2026-08-06 (Atomic cross-save export)
 
 - Captives portabla cross-save skrivs färdigt till en temporär fil innan den

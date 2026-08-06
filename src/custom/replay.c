@@ -1,6 +1,11 @@
 #include "custom_features.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #define REPLAY_MAGIC 0x4F435250 /* "OCRP" */
 #define REPLAY_VERSION 1
@@ -22,6 +27,15 @@ static bool read_u32_le(FILE *fp, uint32_t *value) {
     return true;
 }
 
+static bool replace_replay_file(const char *temporary_path, const char *path) {
+#ifdef _WIN32
+    return MoveFileExA(temporary_path, path,
+                       MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+#else
+    return rename(temporary_path, path) == 0;
+#endif
+}
+
 void replay_init(ReplaySystem *rs) {
     if (!rs) return;
     memset(rs, 0, sizeof(*rs));
@@ -41,8 +55,16 @@ bool replay_save(const ReplaySystem *rs, const char *path) {
     for (int i = 1; i < rs->count; i++) {
         if (rs->inputs[i].tick < rs->inputs[i - 1].tick) return false;
     }
-    FILE *fp = fopen(path, "wb");
-    if (!fp) return false;
+    size_t path_length = strlen(path);
+    if (path_length > SIZE_MAX - 5) return false;
+    char *temporary_path = malloc(path_length + 5);
+    if (!temporary_path) return false;
+    snprintf(temporary_path, path_length + 5, "%s.tmp", path);
+    FILE *fp = fopen(temporary_path, "wb");
+    if (!fp) {
+        free(temporary_path);
+        return false;
+    }
 
     uint32_t count = (uint32_t)rs->count;
 
@@ -51,6 +73,8 @@ bool replay_save(const ReplaySystem *rs, const char *path) {
         !write_u32_le(fp, rs->seed) ||
         !write_u32_le(fp, count)) {
         fclose(fp);
+        remove(temporary_path);
+        free(temporary_path);
         return false;
     }
 
@@ -59,11 +83,21 @@ bool replay_save(const ReplaySystem *rs, const char *path) {
             fwrite(&rs->inputs[i].action, 1, 1, fp) != 1 ||
             fwrite(&rs->inputs[i].param, 1, 1, fp) != 1) {
             fclose(fp);
+            remove(temporary_path);
+            free(temporary_path);
             return false;
         }
     }
 
-    return fclose(fp) == 0;
+    if (fclose(fp) != 0) {
+        remove(temporary_path);
+        free(temporary_path);
+        return false;
+    }
+    bool ok = replace_replay_file(temporary_path, path);
+    if (!ok) remove(temporary_path);
+    free(temporary_path);
+    return ok;
 }
 
 bool replay_load(ReplaySystem *rs, const char *path) {

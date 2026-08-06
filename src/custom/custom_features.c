@@ -6,6 +6,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+static bool replace_features_file(const char *temporary_path, const char *path) {
+#ifdef _WIN32
+    return MoveFileExA(temporary_path, path,
+                       MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+#else
+    return rename(temporary_path, path) == 0;
+#endif
+}
 
 static int parse_int_or_default(const char *text, int fallback) {
     if (!text || !text[0]) return fallback;
@@ -116,8 +128,16 @@ bool custom_features_load(CustomFeatures *f, const char *path) {
 
 bool custom_features_save(const CustomFeatures *f, const char *path) {
     if (!f || !path) return false;
-    FILE *fp = fopen(path, "w");
-    if (!fp) return false;
+    size_t path_length = strlen(path);
+    if (path_length > SIZE_MAX - 5) return false;
+    char *temporary_path = malloc(path_length + 5);
+    if (!temporary_path) return false;
+    snprintf(temporary_path, path_length + 5, "%s.tmp", path);
+    FILE *fp = fopen(temporary_path, "w");
+    if (!fp) {
+        free(temporary_path);
+        return false;
+    }
 
     fprintf(fp, "hd_upscale=%d\n", f->hd_upscale);
     fprintf(fp, "upscale_factor=%d\n", f->upscale_factor);
@@ -146,5 +166,13 @@ bool custom_features_save(const CustomFeatures *f, const char *path) {
 
     bool write_ok = !ferror(fp);
     int close_result = fclose(fp);
-    return write_ok && close_result == 0;
+    if (!write_ok || close_result != 0) {
+        remove(temporary_path);
+        free(temporary_path);
+        return false;
+    }
+    bool ok = replace_features_file(temporary_path, path);
+    if (!ok) remove(temporary_path);
+    free(temporary_path);
+    return ok;
 }
