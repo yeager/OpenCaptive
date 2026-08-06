@@ -3324,3 +3324,11 @@
   regressionsprov verifierar rörelsen.
 - Captive-savefiler avvisar nu fiender med inkonsekvent livstillstånd, till
   exempel aktiv med noll HP eller inaktiv med positiv HP.
+# 2026-08-06
+
+- Aktiverade Captive-dungeonvyn i spel-loopen: den validerade 19-cells-vyn,
+  objekt och aktiva fiender renderas nu över HUD-skalet i stället för att
+  renderingsrutinerna avslutas direkt.
+- Lade till `test_viewport`, som verifierar att både dungeon- och creature-
+  rendering skriver till Captive-vyn.
+- Lokal Werror-svit: 58/58 tester passerar.

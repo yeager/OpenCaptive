@@ -3487,15 +3487,16 @@ int main(int argc, char *argv[]) {
                     if (hud_bg) {
                         memcpy(framebuffer, hud_bg,
                                CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
-                        /* Do not mutate the original GAME SCRN viewport until
-                         * the descriptor-driven panel sequence is recovered.
-                         * The previous path first generated a new dungeon,
-                         * then overlaid custom flashes, markers and messages;
-                         * none of those pixels can be claimed as Captive. */
                     }
-                    /* The original GAME SCRN resource already contains the
-                     * complete control and status-panel shell.  Do not paint
-                     * the replacement HUD over it in original-render mode. */
+                    CaptiveViewWindow view_window;
+                    captive_view_window_build(&gs, &view_window);
+                    viewport_render(&view_window, &atlas, framebuffer,
+                                    CAPTIVE_ORIGINAL_WIDTH,
+                                    CAPTIVE_ORIGINAL_HEIGHT);
+                    viewport_render_creatures(&gs, &creatures, &atlas,
+                                              framebuffer,
+                                              CAPTIVE_ORIGINAL_WIDTH,
+                                              CAPTIVE_ORIGINAL_HEIGHT);
                     if (config.render_mode == CAPTIVE_RENDER_ENHANCED)
                         hud_render(&gs, framebuffer,
                                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);

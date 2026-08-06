@@ -205,6 +205,13 @@ add_executable(test_captive_compositor tests/test_captive_compositor.c
 target_include_directories(test_captive_compositor PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME captive_compositor COMMAND test_captive_compositor)
 
+add_executable(test_viewport
+    tests/test_viewport.c
+    src/render/viewport.c
+    src/engine/captive_view_window.c)
+target_include_directories(test_viewport PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME viewport COMMAND test_viewport)
+
 add_executable(test_dos_vga_reference tests/test_dos_vga_reference.c
     src/data/dos_vga_reference.c src/data/pl5_decoder.c)
 target_include_directories(test_dos_vga_reference PRIVATE ${CMAKE_SOURCE_DIR}/include)
