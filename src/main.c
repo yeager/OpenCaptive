@@ -2037,7 +2037,7 @@ int main(int argc, char *argv[]) {
              * hidden behind the start screen. */
             gs.mode = STATE_DROID_CONFIG;
             droid_config_cursor = 0;
-            printf("Starting verified Captive presentation\n");
+            printf("Starting Captive original presentation (dungeon compositor pending)\n");
         }
     } else if (start_directly && requested_game == GAME_LIBERATION) {
         if (!liberation_data_open(&liberation_data, &vfs)) {
@@ -2960,75 +2960,11 @@ int main(int argc, char *argv[]) {
                     if (hud_bg) {
                         memcpy(framebuffer, hud_bg,
                                CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
-                        if (gs.mode == STATE_GAME && textures_loaded) {
-                            CaptiveViewWindow vw;
-                            captive_view_window_build(&gs, &vw);
-                            viewport_render(&vw, &atlas, framebuffer,
-                                            CAPTIVE_ORIGINAL_WIDTH,
-                                            CAPTIVE_ORIGINAL_HEIGHT);
-                            viewport_render_creatures(&gs, &creatures, &atlas,
-                                            framebuffer, CAPTIVE_ORIGINAL_WIDTH,
-                                            CAPTIVE_ORIGINAL_HEIGHT);
-                            if (damage_flash_ttl > 0) {
-                                damage_flash_ttl--;
-                                for (int fy = CAPTIVE_VIEWPORT_Y; fy < CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT; fy++)
-                                    for (int fx = CAPTIVE_VIEWPORT_X; fx < CAPTIVE_VIEWPORT_X + CAPTIVE_VIEWPORT_WIDTH; fx++) {
-                                        uint32_t *p = &framebuffer[fy * CAPTIVE_ORIGINAL_WIDTH + fx];
-                                        uint32_t r = (*p >> 16) & 0xFF;
-                                        r = r + 60 > 255 ? 255 : r + 60;
-                                        *p = (*p & 0xFF00FFFF) | (r << 16);
-                                    }
-                            }
-                            // Additional viewport flash effects
-                            #define VP_FLASH(ttl_var, channel_shift, amount) \
-                                if (ttl_var > 0) { ttl_var--; \
-                                    for (int fy = CAPTIVE_VIEWPORT_Y; fy < CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT; fy++) \
-                                        for (int fx = CAPTIVE_VIEWPORT_X; fx < CAPTIVE_VIEWPORT_X + CAPTIVE_VIEWPORT_WIDTH; fx++) { \
-                                            uint32_t *p = &framebuffer[fy * CAPTIVE_ORIGINAL_WIDTH + fx]; \
-                                            uint32_t c = (*p >> channel_shift) & 0xFF; \
-                                            c = c + amount > 255 ? 255 : c + amount; \
-                                            *p = (*p & ~(0xFFu << channel_shift)) | (c << channel_shift); \
-                                        } \
-                                }
-                            VP_FLASH(levelup_flash_ttl, 8, 80)   // green flash
-                            VP_FLASH(generator_flash_ttl, 0, 90) // blue flash
-                            VP_FLASH(recharge_flash_ttl, 8, 50)  // green flash
-                            VP_FLASH(door_flash_ttl, 16, 30)     // subtle red
-                            VP_FLASH(creature_death_flash_ttl, 0, 70) // blue flash
-                            if (stair_flash_ttl > 0) {
-                                stair_flash_ttl--;
-                                for (int fy = CAPTIVE_VIEWPORT_Y; fy < CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT; fy++)
-                                    for (int fx = CAPTIVE_VIEWPORT_X; fx < CAPTIVE_VIEWPORT_X + CAPTIVE_VIEWPORT_WIDTH; fx++)
-                                        framebuffer[fy * CAPTIVE_ORIGINAL_WIDTH + fx] =
-                                            0xFF000000 | (stair_flash_ttl * 40);
-                            }
-                            #undef VP_FLASH
-                            if (fire_flash_ttl > 0) {
-                                fire_flash_ttl--;
-                                int mcx = CAPTIVE_VIEWPORT_X + CAPTIVE_VIEWPORT_WIDTH / 2;
-                                int mcy = CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT - 8;
-                                for (int fy = mcy - 4; fy <= mcy + 4; fy++)
-                                    for (int fx = mcx - 6; fx <= mcx + 6; fx++)
-                                        if (fx >= CAPTIVE_VIEWPORT_X && fx < CAPTIVE_VIEWPORT_X + CAPTIVE_VIEWPORT_WIDTH &&
-                                            fy >= CAPTIVE_VIEWPORT_Y && fy < CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT)
-                                            framebuffer[fy * CAPTIVE_ORIGINAL_WIDTH + fx] = 0xFFFFFF00;
-                            }
-                            for (int mi = 0; mi < MSG_LOG_SIZE; mi++) {
-                                if (msg_log[mi].ttl <= 0) continue;
-                                draw_simple_text(framebuffer, CAPTIVE_ORIGINAL_WIDTH,
-                                    CAPTIVE_ORIGINAL_HEIGHT,
-                                    CAPTIVE_VIEWPORT_X + 4,
-                                    CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT - 12 - mi * 10,
-                                    msg_log[mi].text, msg_log[mi].color, 1);
-                            }
-                        } else {
-                            for (int y = 0; y < CAPTIVE_VIEWPORT_HEIGHT; ++y) {
-                                uint32_t *row = framebuffer +
-                                    (CAPTIVE_VIEWPORT_Y + y) * CAPTIVE_ORIGINAL_WIDTH +
-                                    CAPTIVE_VIEWPORT_X;
-                                memset(row, 0, CAPTIVE_VIEWPORT_WIDTH * sizeof(*row));
-                            }
-                        }
+                        /* Do not mutate the original GAME SCRN viewport until
+                         * the descriptor-driven panel sequence is recovered.
+                         * The previous path first generated a new dungeon,
+                         * then overlaid custom flashes, markers and messages;
+                         * none of those pixels can be claimed as Captive. */
                     }
                     /* The original GAME SCRN resource already contains the
                      * complete control and status-panel shell.  Do not paint
