@@ -1610,8 +1610,16 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 char path[64];
                 snprintf(path, sizeof(path), "opencaptive_slot%d.sav", quicksave_slot);
                 save_game(gs, &creatures, &puzzles, path);
+                if (custom_feat_ptr->cross_save) {
+                    char cross_path[64];
+                    snprintf(cross_path, sizeof(cross_path),
+                             "opencaptive_slot%d.ocsv", quicksave_slot);
+                    cross_save_export(gs, cross_path);
+                }
             } else {
                 save_game(gs, &creatures, &puzzles, "opencaptive.sav");
+                if (custom_feat_ptr && custom_feat_ptr->cross_save)
+                    cross_save_export(gs, "opencaptive.ocsv");
             }
             return;
         case SDLK_F6:

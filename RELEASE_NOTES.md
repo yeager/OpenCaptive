@@ -3,6 +3,8 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Captive F5-sparning skapar nu även den portabla `.ocsv`-filen när
+  cross-save-export är aktiverat; quicksave behåller samma slotnummer.
 - Liberation-sessioner återställer nu transient dungeon-, byggnads-, strids-
   och inventarietillstånd. Ett ogiltigt Continue-save startar en ren session
   i stället för att ärva tillstånd från föregående spel.

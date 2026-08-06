@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Enable cross-save export)
+
+- `--cross-save-export` och `cross_save=1` används nu av Captive F5-sparning.
+- Vanliga sparningar skapar `opencaptive.ocsv`; quicksave använder motsvarande
+  `opencaptive_slotN.ocsv` bredvid den normala `.sav`-filen.
+
 ## 2026-08-06 (Liberation session reset)
 
 - Varje ny Liberation-session nollställer nu transient lägesdata för dungeon,

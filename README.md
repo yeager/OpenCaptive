@@ -81,6 +81,9 @@ reverse-engineered; Captive gameplay parity is likewise still under review.
 - Data Scanner (D key) — reports verified game files per game
 - Scanner results are cached by file identity and metadata, so unchanged files are not hashed again
 - If multiple verified versions of a game are available, launch opens a localized version-selection popup
+- With `cross_save=1` or `--cross-save-export`, Captive F5 saves also create a
+  portable `.ocsv` file beside the normal save (`opencaptive.ocsv` or the
+  matching quicksave slot).
 
 ## Building
 
@@ -149,7 +152,7 @@ Place your game data files (ZIP archives, loose files, ADF disk images) in the d
 #### System
 | Key | Action |
 |-----|--------|
-| F5 | Save game |
+| F5 | Save game (also exports `.ocsv` when cross-save export is enabled) |
 | F9 | Load game |
 | F6 | Cycle save slots |
 | M | Minimap |
