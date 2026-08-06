@@ -1,5 +1,10 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive replay interaction)
+
+- Replay-inspelning kodar nu även Enter och numeriskt Enter som Captive-
+  interaktion, med samma stabila actionkod som F.
+
 ## 2026-08-07 (Captive interaction key)
 
 - Enter aktiverar nu samma interaktionsflöde som F i Captive.

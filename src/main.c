@@ -350,7 +350,9 @@ static bool replay_encode_key(SDL_Keycode key, uint8_t *action) {
         case SDLK_3: *action = 12; return true;
         case SDLK_4: *action = 13; return true;
         case SDLK_SPACE: *action = 14; return true;
-        case SDLK_F: *action = 15; return true;
+        case SDLK_F:
+        case SDLK_RETURN:
+        case SDLK_KP_ENTER: *action = 15; return true;
         case SDLK_PERIOD: *action = 16; return true;
         case SDLK_COMMA: *action = 17; return true;
         case SDLK_H: *action = 18; return true;
