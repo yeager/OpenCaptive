@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Renderer-val)
+
+- Startmenyns `RENDERER`-val skickas nu vidare till SDL3: AUTO, GPU eller
+  SOFTWARE används vid renderer-initiering.
+- Ogiltiga configvärden faller tillbaka till AUTO.
+- Werror-kompilering och hela testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (Fönsterstorlek från startmenyn)
 
 - `WINDOW SIZE` kopieras nu från menyinställningen till konfigurationen och

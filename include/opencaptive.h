@@ -37,6 +37,7 @@ typedef enum {
 typedef struct {
     CaptivePlatform platform;
     CaptiveRenderMode render_mode;
+    int renderer_backend; // 0=auto, 1=gpu, 2=software
     const char *data_path;
     int scale_factor;
     int window_width;

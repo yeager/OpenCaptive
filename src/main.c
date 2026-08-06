@@ -451,6 +451,7 @@ static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu,
     config->platform = menu->platform;
     config->render_mode = menu->enhanced_mode
         ? CAPTIVE_RENDER_ENHANCED : CAPTIVE_RENDER_ORIGINAL;
+    config->renderer_backend = menu->renderer_backend;
     config->scale_factor = menu->scale_factor;
     int window_size = menu->window_size;
     if (window_size < 0 || window_size >= 4) window_size = 1;
@@ -490,6 +491,9 @@ static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *conf
     menu->data_path[sizeof(menu->data_path) - 1] = '\0';
     menu->data_path_cursor = (int)strlen(menu->data_path);
     menu->enhanced_mode = config->render_mode == CAPTIVE_RENDER_ENHANCED;
+    menu->renderer_backend = config->renderer_backend;
+    if (menu->renderer_backend < 0 || menu->renderer_backend > 2)
+        menu->renderer_backend = 0;
     menu->music_enabled = music_enabled;
     menu->sfx_enabled = sfx_enabled;
     menu->fullscreen = config->fullscreen;
@@ -1797,6 +1801,7 @@ int main(int argc, char *argv[]) {
     OpenCaptiveConfig config = {
         .platform = CAPTIVE_PLATFORM_DOS,
         .render_mode = CAPTIVE_RENDER_ORIGINAL,
+        .renderer_backend = 0,
         .data_path = default_data_path,
         .scale_factor = 3,
         .window_width = 1280,

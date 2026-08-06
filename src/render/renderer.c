@@ -71,7 +71,10 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
     SDL_SetWindowSize(r->window, w, h);
     SDL_SetWindowPosition(r->window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
-    r->renderer = SDL_CreateRenderer(r->window, NULL);
+    const char *renderer_name = NULL;
+    if (config->renderer_backend == 1) renderer_name = "gpu";
+    else if (config->renderer_backend == 2) renderer_name = "software";
+    r->renderer = SDL_CreateRenderer(r->window, renderer_name);
     if (!r->renderer) {
         fprintf(stderr, "SDL_CreateRenderer: %s\n", SDL_GetError());
         SDL_DestroyWindow(r->window);
