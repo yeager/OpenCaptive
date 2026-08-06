@@ -1,6 +1,7 @@
 #include "save_load.h"
 #include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define SAVE_MAGIC 0x4F435356  // "OCSV" - OpenCaptive Save
@@ -150,54 +151,51 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
 
     // Build a replacement state first.  A truncated or invalid save must not
     // damage the game currently in memory.
-    GameState restored;
+    GameState *restored = calloc(1, sizeof(*restored));
+    if (!restored) {
+        fclose(f);
+        return false;
+    }
     CreatureList restored_creatures = {0};
     PuzzleList restored_puzzles = {0};
-    game_state_init(&restored, GAME_CAPTIVE, (int)hdr.mission);
-    restored.base_id = (int)hdr.base_id;
-    game_state_new_mission(&restored, (int)hdr.mission);
-    if (restored.mission_seed != hdr.mission_seed ||
-        restored.num_levels != hdr.num_levels ||
-        hdr.current_level >= restored.num_levels) {
-        fclose(f);
-        return false;
-    }
+#define LOAD_FAIL() do { fclose(f); free(restored); return false; } while (0)
+    game_state_init(restored, GAME_CAPTIVE, (int)hdr.mission);
+    restored->base_id = (int)hdr.base_id;
+    game_state_new_mission(restored, (int)hdr.mission);
+    if (restored->mission_seed != hdr.mission_seed ||
+        restored->num_levels != hdr.num_levels ||
+        hdr.current_level >= restored->num_levels)
+        LOAD_FAIL();
 
-    restored.party_x = hdr.party_x;
-    restored.party_y = hdr.party_y;
-    restored.party_dir = (Direction)hdr.party_dir;
-    restored.current_level = hdr.current_level;
-    restored.generators_total = hdr.generators_total;
-    restored.generators_destroyed = hdr.generators_destroyed;
-    restored.gold = hdr.gold;
-    restored.tick = hdr.tick;
-    restored.selected_droid = hdr.selected_droid;
+    restored->party_x = hdr.party_x;
+    restored->party_y = hdr.party_y;
+    restored->party_dir = (Direction)hdr.party_dir;
+    restored->current_level = hdr.current_level;
+    restored->generators_total = hdr.generators_total;
+    restored->generators_destroyed = hdr.generators_destroyed;
+    restored->gold = hdr.gold;
+    restored->tick = hdr.tick;
+    restored->selected_droid = hdr.selected_droid;
 
-    if (fread(restored.droids, sizeof(restored.droids), 1, f) != 1) {
-        fclose(f);
-        return false;
-    }
-    for (size_t i = 0; i < sizeof(restored.droids) / sizeof(restored.droids[0]); ++i) {
-        restored.droids[i].name[sizeof(restored.droids[i].name) - 1] = '\0';
-        const Droid *droid = &restored.droids[i];
+    if (fread(restored->droids, sizeof(restored->droids), 1, f) != 1)
+        LOAD_FAIL();
+    for (size_t i = 0; i < sizeof(restored->droids) / sizeof(restored->droids[0]); ++i) {
+        restored->droids[i].name[sizeof(restored->droids[i].name) - 1] = '\0';
+        const Droid *droid = &restored->droids[i];
         if (droid->hp < 0 || droid->hp > droid->hp_max ||
             droid->hp_max < 0 || droid->energy < 0 ||
-            droid->energy > droid->energy_max || droid->energy_max < 0) {
-            fclose(f);
-            return false;
-        }
+            droid->energy > droid->energy_max || droid->energy_max < 0)
+            LOAD_FAIL();
     }
 
     // Restore cell types (doors opened etc.)
-    for (int i = 0; i < restored.num_levels; i++) {
+    for (int i = 0; i < restored->num_levels; i++) {
         for (int y = 0; y < MAP_HEIGHT; y++) {
             for (int x = 0; x < MAP_WIDTH; x++) {
                 uint8_t type;
-                if (fread(&type, 1, 1, f) != 1 || type > CELL_PIT) {
-                    fclose(f);
-                    return false;
-                }
-                restored.levels[i].cells[y][x].type = (CellType)type;
+                if (fread(&type, 1, 1, f) != 1 || type > CELL_PIT)
+                    LOAD_FAIL();
+                restored->levels[i].cells[y][x].type = (CellType)type;
             }
         }
     }
@@ -208,21 +206,19 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
               (size_t)hdr.num_creatures, f) != (size_t)hdr.num_creatures ||
         fread(restored_puzzles.puzzles, sizeof(Puzzle),
               (size_t)hdr.num_puzzles, f) != (size_t)hdr.num_puzzles) {
-        fclose(f);
-        return false;
+        LOAD_FAIL();
     }
     for (int i = 0; i < restored_creatures.num_creatures; i++) {
         const Creature *creature = &restored_creatures.creatures[i];
         if (creature->type < CREATURE_NONE || creature->type >= CREATURE_COUNT ||
             creature->x < 0 || creature->x >= MAP_WIDTH ||
             creature->y < 0 || creature->y >= MAP_HEIGHT ||
-            creature->level < 0 || creature->level >= restored.num_levels ||
+            creature->level < 0 || creature->level >= restored->num_levels ||
             creature->hp < 0 || creature->hp_max < 0 ||
             creature->hp > creature->hp_max || creature->damage_min < 0 ||
             creature->damage_max < creature->damage_min ||
             creature->defense < 0) {
-            fclose(f);
-            return false;
+            LOAD_FAIL();
         }
     }
     for (int i = 0; i < restored_puzzles.num_puzzles; i++) {
@@ -230,12 +226,11 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
         if (puzzle->type < PUZZLE_NONE || puzzle->type > PUZZLE_WALL_ELECTRIC ||
             puzzle->x < 0 || puzzle->x >= MAP_WIDTH ||
             puzzle->y < 0 || puzzle->y >= MAP_HEIGHT ||
-            puzzle->level < 0 || puzzle->level >= restored.num_levels ||
+            puzzle->level < 0 || puzzle->level >= restored->num_levels ||
             puzzle->face < 0 || puzzle->face > DIR_WEST ||
             puzzle->target_x < -1 || puzzle->target_x >= MAP_WIDTH ||
             puzzle->target_y < -1 || puzzle->target_y >= MAP_HEIGHT) {
-            fclose(f);
-            return false;
+            LOAD_FAIL();
         }
     }
 
@@ -243,18 +238,21 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
      * concatenated or mismatched save cannot be accepted as valid state. */
     long payload_end = ftell(f);
     if (payload_end < 0 || fseek(f, 0, SEEK_END) != 0) {
-        fclose(f);
-        return false;
+        LOAD_FAIL();
     }
     long file_end = ftell(f);
     if (file_end < 0 || payload_end != file_end) {
-        fclose(f);
+        LOAD_FAIL();
+    }
+    if (fclose(f) != 0) {
+        free(restored);
         return false;
     }
-    fclose(f);
-    restored.mode = STATE_GAME;
-    *gs = restored;
+    restored->mode = STATE_GAME;
+    *gs = *restored;
+    free(restored);
     *creatures = restored_creatures;
     *puzzles = restored_puzzles;
+#undef LOAD_FAIL
     return true;
 }

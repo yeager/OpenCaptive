@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Save/import state stack usage)
+
+- Flyttade temporära `GameState`-objekt i Captive-save och cross-save-import
+  från stacken till heapen. Save-laddning kunde annars återinföra samma
+  Windows-stackoverflow som missionsstarten.
+- Alla relevanta save-, Liberation-save- och custom-feature-tester passerar.
+
 ## 2026-08-06 (Main game-state stack usage)
 
 - Flyttade den långlivade `GameState`-instansen i huvudloopen till statiskt

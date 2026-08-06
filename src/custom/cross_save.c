@@ -1,6 +1,7 @@
 #include "custom_features.h"
 #include "game_state.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define CROSS_SAVE_MAGIC 0x4F435356 /* "OCSV" */
@@ -117,25 +118,26 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
      * possibly uninitialised state before validation; failed imports leave
      * the destination untouched and successful imports receive deterministic
      * values for fields not present in the cross-save format. */
-    GameState restored = {0};
-    GameState *gs = &restored;
     FILE *fp = fopen(path, "rb");
     if (!fp) return false;
-
-    uint32_t magic, version;
-    if (fread(&magic, 4, 1, fp) != 1 || magic != CROSS_SAVE_MAGIC) {
+    GameState *gs = calloc(1, sizeof(*gs));
+    if (!gs) {
         fclose(fp);
         return false;
     }
+#define IMPORT_FAIL() do { fclose(fp); free(gs); return false; } while (0)
+
+    uint32_t magic, version;
+    if (fread(&magic, 4, 1, fp) != 1 || magic != CROSS_SAVE_MAGIC) {
+        IMPORT_FAIL();
+    }
     if (fread(&version, 4, 1, fp) != 1 || version != CROSS_SAVE_VERSION) {
-        fclose(fp);
-        return false;
+        IMPORT_FAIL();
     }
 
     uint8_t game_type;
     if (fread(&game_type, 1, 1, fp) != 1 || game_type != GAME_CAPTIVE) {
-        fclose(fp);
-        return false;
+        IMPORT_FAIL();
     }
 
     int32_t vals[10];
@@ -146,8 +148,7 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
         vals[5] < 1 || vals[5] > MAX_LEVELS || vals[3] >= vals[5] ||
         vals[6] < 0 || vals[9] < 0 ||
         vals[7] < 0 || vals[8] < 0 || vals[8] > vals[7]) {
-        fclose(fp);
-        return false;
+        IMPORT_FAIL();
     }
     gs->game_type = (GameType)game_type;
     gs->party_x = vals[0];
@@ -162,14 +163,12 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
     gs->gold = vals[9];
     if (!read_exact(fp, &gs->mission_seed, 4, 1) ||
         !read_exact(fp, &gs->tick, 4, 1)) {
-        fclose(fp);
-        return false;
+        IMPORT_FAIL();
     }
 
     long payload_start = ftell(fp);
     if (payload_start < 0 || fseek(fp, 0, SEEK_END) != 0) {
-        fclose(fp);
-        return false;
+        IMPORT_FAIL();
     }
     long file_end = ftell(fp);
     long long level_bytes = (long long)vals[5] *
@@ -177,8 +176,7 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
     long long required_end = (long long)payload_start + 4LL * 58 + level_bytes;
     if (file_end < 0 || (long long)file_end < required_end ||
         fseek(fp, payload_start, SEEK_SET) != 0) {
-        fclose(fp);
-        return false;
+        IMPORT_FAIL();
     }
 
     for (int d = 0; d < 4; d++) {
@@ -196,8 +194,7 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
             !read_exact(fp, &dr->weapon_damage, 2, 1) ||
             dr->hp < 0 || dr->hp_max < 0 || dr->hp > dr->hp_max ||
             dr->energy < 0 || dr->energy_max < 0 || dr->energy > dr->energy_max) {
-            fclose(fp);
-            return false;
+            IMPORT_FAIL();
         }
         dr->name[sizeof(dr->name) - 1] = '\0';
     }
@@ -207,8 +204,7 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
         if (!read_exact(fp, &lvl->level, 4, 1) ||
             !read_exact(fp, &lvl->seed, 4, 1) ||
             lvl->level < 0 || lvl->level >= MAX_LEVELS) {
-            fclose(fp);
-            return false;
+            IMPORT_FAIL();
         }
         for (int y = 0; y < MAP_HEIGHT; y++) {
             for (int x = 0; x < MAP_WIDTH; x++) {
@@ -221,8 +217,7 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
                     !read_exact(fp, &c->item_id, 1, 1) ||
                     !read_exact(fp, &c->creature_id, 1, 1) ||
                     !read_exact(fp, &c->flags, 1, 1)) {
-                    fclose(fp);
-                    return false;
+                    IMPORT_FAIL();
                 }
                 c->type = (CellType)ct;
             }
@@ -231,11 +226,15 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
 
     long payload_end = ftell(fp);
     if (payload_end < 0 || payload_end != file_end) {
-        fclose(fp);
+        IMPORT_FAIL();
+    }
+    if (fclose(fp) != 0) {
+        free(gs);
         return false;
     }
-    fclose(fp);
-    restored.mode = STATE_GAME;
-    *destination = restored;
+    gs->mode = STATE_GAME;
+    *destination = *gs;
+    free(gs);
+#undef IMPORT_FAIL
     return true;
 }
