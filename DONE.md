@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Mission generation stack usage)
+
+- Flyttade missionsgeneratorns temporära basnivåer från stacken till heapen.
+  Windows hade annars risk för stackoverflow när alla möjliga dungeon-nivåer
+  skapades samtidigt.
+- Full state- och Werror-verifiering körs efter ändringen.
+
 ## 2026-08-06 (Safe language selection)
 
 - Normaliserar språkval till säkra tvåbokstavskoder innan PO-filer öppnas;

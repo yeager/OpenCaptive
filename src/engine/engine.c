@@ -1,6 +1,7 @@
 #include "game_state.h"
 #include "captive_data.h"
 #include "map_gen.h"
+#include <stdlib.h>
 #include <string.h>
 
 void game_state_init(GameState *gs, GameType type, int mission) {
@@ -54,7 +55,11 @@ void game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed) {
     int base_levels = 0;
     /* map_generate_base() may legally emit MAX_LEVELS logical floors even
        though only MAX_LEVELS - 1 can be copied after the exterior level. */
-    DungeonLevel base_buf[MAX_LEVELS];
+    /* A DungeonLevel contains the complete 64x32 map.  Keeping all possible
+       base levels automatic here overflows the default Windows thread stack
+       even though the caller only needs the copied levels below. */
+    DungeonLevel *base_buf = calloc(MAX_LEVELS, sizeof(*base_buf));
+    if (!base_buf) return;
     map_generate_base(base_buf, &base_levels, gs->mission_seed);
 
     /* Find base entrance x on floor 0 row 0 */
@@ -70,6 +75,7 @@ void game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed) {
     map_generate_exterior(&gs->levels[0], entrance_x, gs->mission_seed);
     for (int i = 0; i < base_levels && i + 1 < MAX_LEVELS; i++)
         gs->levels[i + 1] = base_buf[i];
+    free(base_buf);
     gs->num_levels = (base_levels + 1 <= MAX_LEVELS) ? base_levels + 1 : MAX_LEVELS;
 
     /* Place a STAIRS_UP at the base entrance so the exterior connects back */
