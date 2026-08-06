@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Reverb från startmenyn)
+
+- Startmenyns `REVERB`-val appliceras nu på den aktiva ljudmixern när nästa
+  spelstart konfigureras; tidigare sparades valet men mixerflaggan behöll
+  föregående värde.
+- Werror-kompilering och hela testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (Icke-blockerande dataskanner)
 
 - Startmenyns D-skanner kör nu en verifierad hashkontroll per menyframe i

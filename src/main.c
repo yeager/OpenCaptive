@@ -639,6 +639,10 @@ static void apply_menu_audio(const StartMenu *menu) {
         music_set_enabled(&music_sys, music_enabled);
     }
 
+    /* Reverb is a menu-owned setting too.  Keep the amount selected by the
+     * feature configuration, but apply the menu's enable/disable choice to
+     * the live mixer before the next game session starts. */
+    sound_set_reverb(&sound_sys, menu->audio_reverb, sound_sys.reverb_amount);
     float volume = (float)menu->master_volume / 100.0f;
     sound_set_volume(&sound_sys, volume);
     music_set_volume(&music_sys, volume);
