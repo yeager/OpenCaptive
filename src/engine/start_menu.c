@@ -597,9 +597,16 @@ void start_menu_start_scan(StartMenu *menu, const char *data_path,
     menu->liberation_source_mask = 0U;
     menu->captive_source_choice = CAPTIVE_PLATFORM_DOS;
     menu->liberation_source_choice = LIBERATION_SOURCE_NONE;
+    menu->scanner_zip_count = 0;
     menu->scanner_captive_found = 0;
+    menu->scanner_captive_total = (int)CAPTIVE_HASH_COUNT;
     menu->scanner_liberation_found = 0;
+    menu->scanner_liberation_total = (int)LIBERATION_RESOURCE_COUNT;
     menu->scanner_progress = 0;
+    menu->scanner_total = menu->scanner_captive_total +
+                          menu->scanner_liberation_total;
+    menu->scanner_phase = 0;
+    menu->scanner_captive_index = 0;
     menu->scanner_done = false;
     if (!data_path || !data_path[0]) {
         menu->scanner_background = false;
@@ -612,17 +619,7 @@ void start_menu_start_scan(StartMenu *menu, const char *data_path,
         return;
     }
     menu->scanner_vfs_ready = true;
-    menu->scanner_captive_index = 0;
     menu->scanner_zip_count = menu->scanner_vfs.num_zips;
-    menu->scanner_captive_total = (int)CAPTIVE_HASH_COUNT;
-    menu->scanner_captive_found = 0;
-    menu->scanner_liberation_total = (int)LIBERATION_RESOURCE_COUNT;
-    menu->scanner_liberation_found = 0;
-    menu->scanner_total = (int)CAPTIVE_HASH_COUNT +
-                          (int)LIBERATION_RESOURCE_COUNT;
-    menu->scanner_progress = 0;
-    menu->scanner_phase = 0;
-    menu->scanner_done = false;
 }
 
 void start_menu_update(StartMenu *menu) {

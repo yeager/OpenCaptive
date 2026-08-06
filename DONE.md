@@ -6,6 +6,7 @@
   versionsstatus.
 - Tomma eller ogiltiga sökvägar kan därför inte lämna kvar gröna
   tillgänglighetsmarkeringar från en föregående datakatalog.
+- Scannerpopupens ZIP- och progressräknare återställs samtidigt.
 - Regressionstest täcker tom sökväg och att bakgrundsskanningen avslutas
   korrekt.
 

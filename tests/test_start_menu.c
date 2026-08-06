@@ -58,6 +58,7 @@ int main(void) {
     assert(!menu.scanner_background && menu.scanner_done);
     assert(!menu.captive_data_ok && !menu.liberation_data_ok);
     assert(menu.captive_source_mask == 0U && menu.liberation_source_mask == 0U);
+    assert(menu.scanner_zip_count == 0 && menu.scanner_progress == 0);
 
     menu.in_settings = true;
     menu.settings_cursor = 15; /* SFX */
