@@ -1447,13 +1447,16 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                          gs->lib_inventory[i].name);
                 save.shared_inventory[i].item_type = gs->lib_inventory[i].item_type;
             }
-            lib_save_write(&save, "liberation.sav");
+            if (!lib_save_write(&save, "liberation.sav"))
+                fprintf(stderr, "Could not write Liberation save: liberation.sav\n");
             break;
         }
         case SDLK_F9: {
             LibSaveData save;
             if (lib_save_read(&save, "liberation.sav")) {
                 restore_liberation_save_state(gs, &save);
+            } else {
+                fprintf(stderr, "Could not load Liberation save: liberation.sav\n");
             }
             break;
         }
@@ -1609,17 +1612,21 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             if (custom_feat_ptr && custom_feat_ptr->quicksave) {
                 char path[64];
                 snprintf(path, sizeof(path), "opencaptive_slot%d.sav", quicksave_slot);
-                save_game(gs, &creatures, &puzzles, path);
+                if (!save_game(gs, &creatures, &puzzles, path))
+                    fprintf(stderr, "Could not write Captive save: %s\n", path);
                 if (custom_feat_ptr->cross_save) {
                     char cross_path[64];
                     snprintf(cross_path, sizeof(cross_path),
                              "opencaptive_slot%d.ocsv", quicksave_slot);
-                    cross_save_export(gs, cross_path);
+                    if (!cross_save_export(gs, cross_path))
+                        fprintf(stderr, "Could not write cross-save: %s\n", cross_path);
                 }
             } else {
-                save_game(gs, &creatures, &puzzles, "opencaptive.sav");
+                if (!save_game(gs, &creatures, &puzzles, "opencaptive.sav"))
+                    fprintf(stderr, "Could not write Captive save: opencaptive.sav\n");
                 if (custom_feat_ptr && custom_feat_ptr->cross_save)
-                    cross_save_export(gs, "opencaptive.ocsv");
+                    if (!cross_save_export(gs, "opencaptive.ocsv"))
+                        fprintf(stderr, "Could not write cross-save: opencaptive.ocsv\n");
             }
             return;
         case SDLK_F6:
@@ -1631,9 +1638,11 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             if (custom_feat_ptr && custom_feat_ptr->quicksave) {
                 char path[64];
                 snprintf(path, sizeof(path), "opencaptive_slot%d.sav", quicksave_slot);
-                load_game(gs, &creatures, &puzzles, path);
+                if (!load_game(gs, &creatures, &puzzles, path))
+                    fprintf(stderr, "Could not load Captive save: %s\n", path);
             } else {
-                load_game(gs, &creatures, &puzzles, "opencaptive.sav");
+                if (!load_game(gs, &creatures, &puzzles, "opencaptive.sav"))
+                    fprintf(stderr, "Could not load Captive save: opencaptive.sav\n");
             }
             return;
         case SDLK_F7:

@@ -3,6 +3,8 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Save/load- och cross-save-fel rapporteras nu tydligt på stderr i stället för
+  att tyst ignoreras av inputflödet.
 - `--replay-record` skriver nu faktiskt replay-filen vid avslutning, med
   `opencaptive.ocrp` som standard. `--replay-output <fil>` väljer annan sökväg.
 - Replay-filer och feature-konfiguration skrivs nu också atomiskt, så en

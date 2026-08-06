@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Save/load failure diagnostics)
+
+- Captive-, Liberation- och cross-save-returvärden kontrolleras nu i
+  tangentflödet.
+- Misslyckade skrivningar eller läsningar rapporteras på stderr i stället för
+  att användaren lämnas utan förklaring.
+
 ## 2026-08-06 (Replay recording output)
 
 - `--replay-record` sparar nu den inspelade Captive-replayen när programmet
