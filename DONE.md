@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation police dialogue rebuild)
+
+- Polisdialogen byggs nu om när ett pending barbråk kopplas till besöket, så
+  betalningsvalet faktiskt visas i spelgränssnittet.
+- Lade till regressionstest för betalning, guldavdrag och avslutad dialog.
+
 ## 2026-08-06 (Liberation police fine flow)
 
 - Barbråkets påföljd sparas nu tills nästa besök på en polisstation, så

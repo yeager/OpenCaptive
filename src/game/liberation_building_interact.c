@@ -216,6 +216,15 @@ bool building_interact_enter(BuildingInteraction *bi,
     return true;
 }
 
+void building_interact_set_bar_fight(BuildingInteraction *bi, bool pending) {
+    if (!bi || !bi->active || bi->type != INTERACT_POLICE) return;
+    bi->bar_fight = pending;
+    /* The police choice list depends on whether a fine is pending.  Rebuild
+     * it before the first frame is shown; changing the flag alone is too late
+     * because building_interact_enter already created the old tree. */
+    build_generic_dialogue(bi, bi->shop.shop_name);
+}
+
 void building_interact_choose(BuildingInteraction *bi, unsigned choice) {
     if (!bi || !bi->active) return;
     const DialogueNode *node = dialogue_state_current(&bi->dialogue);

@@ -1377,7 +1377,8 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                         &lib_buildings, lib_nav.cell_x, lib_nav.cell_y,
                         &gs->gold)) {
                     if (lib_interact.type == INTERACT_POLICE)
-                        lib_interact.bar_fight = lib_bar_fight_pending;
+                        building_interact_set_bar_fight(&lib_interact,
+                                                        lib_bar_fight_pending);
                     building_interact_set_reputation(&lib_interact, gs->reputation);
                     lib_in_building = true;
                 }

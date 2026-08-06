@@ -398,6 +398,30 @@ static void test_police_fine_refusal_is_recorded(void) {
     assert(bi.fine_refused);
 }
 
+static void test_police_fine_payment_is_recorded(void) {
+    CityGrid bg;
+    memset(&bg, 0, sizeof(bg));
+    bg.total_buildings = 1;
+    bg.buildings[0].type = BUILDING_POLICE;
+    strcpy(bg.buildings[0].name, "Station");
+    CityGridState grid;
+    memset(&grid, 0, sizeof(grid));
+    grid.plane2[0] = 1;
+
+    BuildingInteraction bi;
+    building_interact_init(&bi);
+    int gold = 125;
+    assert(building_interact_enter(&bi, &grid, &bg, 0, 0, &gold));
+    building_interact_set_bar_fight(&bi, true); /* preceding bar visit */
+    assert(building_interact_choice_count(&bi) == 3);
+    building_interact_choose(&bi, 1); /* Pay fine */
+    assert(gold == 25);
+    assert(bi.fine_paid);
+    assert(!bi.bar_fight);
+    building_interact_advance(&bi);
+    assert(!bi.active);
+}
+
 static void test_special_building_requires_investigate(void) {
     CityGrid bg;
     memset(&bg, 0, sizeof(bg));
@@ -607,6 +631,7 @@ int main(void) {
     test_building_interact_bar();
     test_building_interact_generic();
     test_police_fine_refusal_is_recorded();
+    test_police_fine_payment_is_recorded();
     test_special_building_requires_investigate();
     test_building_interact_buy();
     test_bar_fight_uses_seeded_quarter_chance();
