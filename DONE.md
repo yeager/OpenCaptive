@@ -8,6 +8,8 @@
 - Korrigerat så att numeriskt Enter verkligen når Captive-interaktionen.
 - Captive-ornament på golvceller renderas nu på rätt vägg, inklusive pusselpaneler.
 - Captive-pusselpaneler återskapas nu vid Continue/F9 efter laddning av sparfil.
+- Numeriskt Enter fungerar nu även i Captive-konfiguration, terminal, inventory,
+  shop, HOLA-karta och pausmeny.
 
 ## 2026-08-07 (Captive interaction key)
 
