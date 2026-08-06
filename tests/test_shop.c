@@ -52,7 +52,8 @@ static void test_shop_clamps_negative_level(void) {
 
 static void test_shop_repair_rejects_invalid_droid_stats(void) {
     ShopState shop = {.gold = 1000};
-    GameState gs = {0};
+    static GameState gs;
+    gs = (GameState){0};
     Droid *d = &gs.droids[0];
 
     d->hp = -1;
@@ -70,7 +71,8 @@ static void test_shop_repair_rejects_invalid_droid_stats(void) {
 
 static void test_shop_repair_handles_large_valid_stats(void) {
     ShopState shop = {.gold = INT_MAX};
-    GameState gs = {0};
+    static GameState gs;
+    gs = (GameState){0};
     Droid *d = &gs.droids[0];
 
     d->hp = 0;
@@ -84,7 +86,8 @@ static void test_shop_repair_handles_large_valid_stats(void) {
 
 static void test_shop_repair_preserves_equipment(void) {
     ShopState shop = {.gold = 1000};
-    GameState gs = {0};
+    static GameState gs;
+    gs = (GameState){0};
     Droid *d = &gs.droids[0];
     d->hp = 90;
     d->hp_max = 100;
