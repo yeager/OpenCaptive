@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Architect-baskartor får nu en minsta spelbar täthet per logisk våning.
+  Detta förhindrar att vissa seedvärden, bland annat 161, skapar en
+  underdimensionerad rotvåning.
 - Liberation-kartans finaliseringssteg använder nu rätt cellplan för
   navigering/rendering och behåller byggnads-ID:n separat för entréer,
   byggnadsdialoger, väggfärger och snabbresor.

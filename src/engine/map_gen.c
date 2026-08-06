@@ -310,6 +310,54 @@ static void architect_try_room(DungeonLevel *level, const int section_floor[16],
             if (level->cells[y][x].type == CELL_WALL) carve(level, x, y);
 }
 
+static int architect_floor_cell_count(const DungeonLevel *level,
+                                      const int section_floor[16], int floor) {
+    int count = 0;
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (section_floor[architect_section_at(x, y)] == floor &&
+                level->cells[y][x].type != CELL_WALL)
+                count++;
+        }
+    }
+    return count;
+}
+
+/* A short Architect walk can terminate in a sealed-looking pocket when a
+ * section is small.  Grow the existing connected component until it has a
+ * useful minimum footprint, while refusing to cross the section assigned to
+ * another logical floor. */
+static void architect_ensure_minimum_floor(DungeonLevel *level,
+                                            const int section_floor[16],
+                                            int floor, int minimum) {
+    int count = architect_floor_cell_count(level, section_floor, floor);
+    while (count < minimum) {
+        bool carved = false;
+        for (int y = 0; y < MAP_HEIGHT && !carved; y++) {
+            for (int x = 0; x < MAP_WIDTH && !carved; x++) {
+                if (section_floor[architect_section_at(x, y)] != floor ||
+                    level->cells[y][x].type != CELL_WALL ||
+                    x < 1 || x >= MAP_WIDTH - 1 ||
+                    y < 1 || y >= MAP_HEIGHT - 1)
+                    continue;
+                int open_neighbors = 0;
+                for (int d = 0; d < 4; d++) {
+                    int nx = x + dx[d], ny = y + dy[d];
+                    if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT &&
+                        section_floor[architect_section_at(nx, ny)] == floor &&
+                        level->cells[ny][nx].type != CELL_WALL)
+                        open_neighbors++;
+                }
+                if (open_neighbors == 0) continue;
+                carve(level, x, y);
+                count++;
+                carved = true;
+            }
+        }
+        if (!carved) break;
+    }
+}
+
 static void architect_carve_floor(DungeonLevel *level, const int section_floor[16],
                                   int floor, int start_x, int start_y) {
     level->cells[start_y][start_x].type = CELL_FLOOR;
@@ -328,6 +376,7 @@ static void architect_carve_floor(DungeonLevel *level, const int section_floor[1
         }
         if (!architect_find_frontier(level, section_floor, floor, &x, &y)) break;
     }
+    architect_ensure_minimum_floor(level, section_floor, floor, 21);
 }
 
 static bool architect_pick_cell(const DungeonLevel *level, int *x, int *y) {

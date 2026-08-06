@@ -249,7 +249,9 @@ static void assert_base_is_playable(uint32_t seed) {
 static void test_architect_seed_range(void) {
     /* Cover the documented early-map section masks and a broad selection of
      * later mission/base seeds. */
-    for (uint32_t seed = 0; seed < 128; seed++)
+    /* Include seeds outside the original smoke range; seed 161 previously
+     * produced an under-sized but nominally valid root floor. */
+    for (uint32_t seed = 0; seed < 10000; seed++)
         assert_base_is_playable(seed);
 }
 

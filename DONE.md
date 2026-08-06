@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Architect base density)
+
+- Kampanjans Architect-generator garanterar nu minst 21 spelbara celler per
+  logisk våning inom dess tilldelade sektion.
+- Garantin korsar inte sektionsgränser och återställer inte trappor eller
+  andra interaktiva celler.
+- Seed-svepet i karttestet utökades till 10 000 värden och fångar bland annat
+  den tidigare underdimensionerade rotvåningen för seed 161.
+
 ## 2026-08-06 (Liberation city-grid finalization)
 
 - Den finaliserade Liberation-kartan skriver nu celltyper till det plan som
