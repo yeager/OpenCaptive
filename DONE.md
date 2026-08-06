@@ -1,5 +1,10 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Manuell CI-körning)
+
+- Build-workflowen stöder nu `workflow_dispatch`, så aktuell `main` kan
+  verifieras manuellt när GitHub Actions lämnar äldre push-körningar i kö.
+
 ## 2026-08-06 (Windows cache-invalidation i dataskannern)
 
 - GitHub Actions avslöjade att en ersatt lös fil kunde få gammal hashcache
