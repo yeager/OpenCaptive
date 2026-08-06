@@ -78,6 +78,25 @@ relocation and source-bank indirection reproducible. It is an analysis oracle
 only: no dump bytes are embedded in OpenCaptive or used as a game-data
 substitute.
 
+### Panel matches against the captured frame
+
+The fixture and the 320×200 VGA frame with SHA-256
+`9003c4a8818cb97f8299ac90cfe51e90e535ab9a725545526fe75f14ddb8dd7e`
+also make individual panel commands testable without treating the dump as
+runtime input.  Source pixels are expanded with the original PL5 packing,
+the transparent-write and horizontal-flip flag bits are applied, then the
+opaque pixels are compared with the captured viewport.
+
+| Graphic ID | Source | Flags | Captured viewport position | Evidence |
+| ---: | --- | ---: | --- | --- |
+| `0x010` | bank 0, offset `0x1a04`, 16×98 pixels | `0x02` | `(32,64)` | 1 511 of 1 568 source pixels agree; the rest are covered by later panels. |
+| `0x01a` | bank 0, offset `0x1a0e`, 16×98 pixels | `0x07` | `(48,64)` | 1 356 of 1 356 opaque pixels agree exactly. |
+
+These two commands establish the left-side 32-pixel panel pair for this
+specific captured view.  They do not yet identify the original cell-to-graphic
+selection table, the full draw order, or a general dynamic renderer; those
+remain necessary before claiming viewport parity.
+
 The captured selector table resolves the first seven source-bank slots to
 these DOS PL5 content hashes:
 
