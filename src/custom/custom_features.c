@@ -1,4 +1,5 @@
 #include "custom_features.h"
+#include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <math.h>
@@ -51,6 +52,9 @@ bool custom_features_load(CustomFeatures *f, const char *path) {
         char key[64];
         char val[64];
         if (sscanf(line, " %63[^=]= %63s", key, val) != 2) continue;
+        char *key_end = key + strlen(key);
+        while (key_end > key && isspace((unsigned char)key_end[-1]))
+            *--key_end = '\0';
 
         if (strcmp(key, "hd_upscale") == 0) f->hd_upscale = parse_int_or_default(val, 0) != 0;
         else if (strcmp(key, "upscale_factor") == 0) f->upscale_factor = parse_int_or_default(val, f->upscale_factor);

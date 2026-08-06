@@ -66,6 +66,17 @@ static void test_save_load(void) {
 
     remove(path);
 
+    FILE *spaced = fopen(path, "w");
+    assert(spaced);
+    fputs(" minimap = 1\n", spaced);
+    fputs(" game_speed = 2.0\n", spaced);
+    assert(fclose(spaced) == 0);
+    custom_features_defaults(&f2);
+    assert(custom_features_load(&f2, path));
+    assert(f2.minimap);
+    assert(f2.game_speed > 1.9f && f2.game_speed < 2.1f);
+    remove(path);
+
     FILE *malformed = fopen(path, "w");
     assert(malformed);
     fputs("upscale_factor=999999999999999999999999\n", malformed);

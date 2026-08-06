@@ -3,6 +3,8 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- CustomFeatures-konfigurationen accepterar nu valfria blanksteg runt
+  likhetstecknet.
 - GitHub Actions build jobs now have a 20-minute timeout, preventing a
   stalled platform runner from blocking CI indefinitely.
 - Liberation 3D rasterization now clips extreme projected spans before scanline iteration, avoiding overflow and pathological frame times from oversized coordinates.

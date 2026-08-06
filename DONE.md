@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Whitespace-tolerant custom config)
+
+- Lät CustomFeatures-konfigurationen acceptera blanksteg runt `=`, så
+  `key = value` fungerar lika som `key=value`.
+- Lade till regressionstest för blankstegsformaterad konfiguration.
+
 ## 2026-08-06 (CI job timeouts)
 
 - Lade till 20 minuters tidsgräns för Linux-, macOS- och Windows-jobben i
