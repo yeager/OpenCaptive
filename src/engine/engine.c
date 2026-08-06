@@ -36,10 +36,12 @@ void game_state_init(GameState *gs, GameType type, int mission) {
 void game_state_new_mission(GameState *gs, int mission) {
     if (!gs) return;
     if (mission < 1) mission = 1;
-    gs->mission = mission;
-    gs->mission_seed = (uint32_t)((uint64_t)(mission - 1) * UINT64_C(11) +
-                                  (uint64_t)(int64_t)gs->base_id);
-    game_state_new_mission_seeded(gs, mission, gs->mission_seed);
+    uint32_t seed = (uint32_t)((uint64_t)(mission - 1) * UINT64_C(11) +
+                               (uint64_t)(int64_t)gs->base_id);
+    /* Let the seeded implementation commit mission metadata only after its
+     * temporary dungeon allocation succeeds.  Updating these fields here
+     * would reintroduce a partially changed state on allocation failure. */
+    game_state_new_mission_seeded(gs, mission, seed);
 }
 
 void game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed) {
