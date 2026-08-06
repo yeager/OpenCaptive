@@ -30,6 +30,15 @@ static void test_hp_scales_with_difficulty(void) {
     printf("PASS: hp_scales_with_difficulty (%d → %d)\n", hp_low, hp_high);
 }
 
+static void test_hp_uses_highest_difficulty_step(void) {
+    int at_seven = creature_calc_hp(1, 7, 128);
+    int at_eight = creature_calc_hp(1, 8, 128);
+    assert(at_eight > at_seven);
+    assert(at_eight == 156);
+    printf("PASS: hp_uses_highest_difficulty_step (%d → %d)\n",
+           at_seven, at_eight);
+}
+
 static void test_hp_bounds(void) {
     assert(creature_calc_hp(0, 0, 128) == 6);
     assert(creature_calc_hp(99, 0, 128) == 6);
@@ -60,6 +69,7 @@ int main(void) {
     test_hp_formula_weakest();
     test_hp_formula_strongest();
     test_hp_scales_with_difficulty();
+    test_hp_uses_highest_difficulty_step();
     test_hp_bounds();
     test_sprite_map();
     test_category_groups();

@@ -62,7 +62,10 @@ int creature_calc_hp(int creature_type, int difficulty, int modifier) {
         return 6;
     const CreatureTypeDef *def = &creature_types[creature_type - 1];
     if (difficulty < 0) difficulty = 0;
-    if (difficulty > 7) difficulty = 7;
+    /* Recovered formula at 0x9B12 uses an eight-step difficulty scale:
+     * base = min + ((max - min) * difficulty) / 8.  Keep this helper
+     * aligned with spawn_compute_hp(), including the highest dungeon level. */
+    if (difficulty > 8) difficulty = 8;
 
     int range = def->hp_max - def->hp_min;
     int base = def->hp_min + (range * difficulty) / 8;
