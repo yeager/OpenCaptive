@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Liberation F9 bygger nu om den seedade staden innan sparat tillstånd
+  återställs, så ett uppdrag från en annan session inte blandas med gamla
+  byggnader och navigeringsceller.
 - Windows VFS-cachemetadata använder nu filsystemets högupplösta ändringstid
   och filidentitet. Snabba ersättningar av ett ZIP-arkiv kan därför inte
   återanvända en gammal cachepost på Windows.

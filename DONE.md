@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation F9 world restore)
+
+- F9 regenererar nu Liberation-staden från sparfilens mission och seed innan
+  navigator, droids och progression återställs.
+- Rensar samtidigt intro-, missionsmeny- och briefingflöden som hör till den
+  föregående live-sessionen.
+- Verifierade `liberation_save`, `game_state` och Werror-kompilering.
+
 ## 2026-08-06 (Windows VFS cache precision)
 
 - Windows-cache-signaturen använder nu 100 ns-ändringstid, volym och

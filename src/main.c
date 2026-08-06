@@ -1454,6 +1454,21 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_F9: {
             LibSaveData save;
             if (lib_save_read(&save, "liberation.sav")) {
+                /* The save contains the mission seed, while the generated
+                 * city is intentionally derived at runtime.  Rebuild that
+                 * deterministic world before restoring the saved navigator;
+                 * otherwise F9 could place a mission from one city into the
+                 * buildings and plot state of the previous live session. */
+                if (liberation_prototype_gameplay_enabled) {
+                    gs->mission = (int)save.mission;
+                    gs->mission_seed = ((uint32_t)save.seed_hi << 16) |
+                                       save.seed_lo;
+                    lib_city_generated = false;
+                    start_liberation_session(gs);
+                    liberation_intro_active = false;
+                    liberation_mission_menu_active = false;
+                    lib_mission_briefing = false;
+                }
                 restore_liberation_save_state(gs, &save);
             } else {
                 fprintf(stderr, "Could not load Liberation save: liberation.sav\n");
