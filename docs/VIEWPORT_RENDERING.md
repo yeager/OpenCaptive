@@ -54,6 +54,10 @@ Back-to-front:
 
 ## Internal graphics
 
+The in-game F10 popup can toggle scanlines, CRT curvature, bilinear scaling,
+texture filtering and dynamic lighting without restarting the game. These are
+presentation options; they do not change the verified source assets.
+
 - Sprites: monochrome bit patterns (black=colored, white=transparent)
 - Composited via bitplane overlay
 - Explosion/death: 2 bitmaps, pixel-level combination

@@ -888,7 +888,7 @@ static void popup_render(const GameState *gs, const CustomFeatures *features,
     draw_centered(fb, pw, ph, y + 7, _("RUNTIME OPTIONS"), 0xFFFFFFFF, 1);
     draw_centered(fb, pw, ph, y + 17, _("F10 OR ESC CLOSE"), 0xFF99AACC, 1);
     for (int i = 0; i < POPUP_ITEMS; i++) {
-        int row_y = y + 29 + i * 10;
+        int row_y = y + 29 + i * 9;
         uint32_t color = i == runtime_popup.selected ? 0xFFFFFF44 : 0xFFCCDDEE;
         draw_simple_text(fb, pw, ph, x + 12, row_y, popup_label(i), color, 1);
         const char *value = "";

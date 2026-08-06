@@ -10,6 +10,9 @@
 - Release creation verifies that every desktop and mobile artifact exists and is non-empty.
 - Added and expanded automated coverage for data readers, launcher, terminal, shop, game state, audio, lighting, and Liberation rendering.
 - Synchronized the 19-language catalog and compiled message catalogs.
+- Added an in-game F10 runtime popup with live display controls (including
+  scanlines, CRT, filtering and lighting) plus optional gameplay cheats and
+  overlays; the control is documented in the start menu and controls reference.
 - Corrected generated Liberation button-combination puzzles so their solution
   is reachable through the currently implemented single-panel interaction.
 

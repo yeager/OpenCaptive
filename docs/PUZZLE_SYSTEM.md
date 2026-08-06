@@ -4,6 +4,9 @@
 
 ## Overview
 
+The start menu's Controls screen documents F10. During a game, F10 opens the
+runtime options popup for live display changes and optional cheats.
+
 Puzzles are wall-mounted interactive elements that control doors and provide resources. They are procedurally generated during map creation.
 
 ## Puzzle Types

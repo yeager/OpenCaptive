@@ -71,6 +71,7 @@ bool custom_features_load(CustomFeatures *f, const char *path) {
         else if (strcmp(key, "hq_midi") == 0) f->hq_midi = parse_int_or_default(val, 0) != 0;
         else if (strcmp(key, "audio_sample_rate") == 0) f->audio_sample_rate = parse_int_or_default(val, f->audio_sample_rate);
         else if (strcmp(key, "automap") == 0) f->automap = parse_int_or_default(val, 0) != 0;
+        else if (strcmp(key, "reveal_map") == 0) f->reveal_map = parse_int_or_default(val, 0) != 0;
         else if (strcmp(key, "cross_save") == 0) f->cross_save = parse_int_or_default(val, 0) != 0;
         else if (strcmp(key, "replay_record") == 0) f->replay_record = parse_int_or_default(val, 0) != 0;
         else if (strcmp(key, "texture_filter") == 0) f->texture_filter = parse_int_or_default(val, 0) != 0;
@@ -131,6 +132,7 @@ bool custom_features_save(const CustomFeatures *f, const char *path) {
     fprintf(fp, "hq_midi=%d\n", f->hq_midi);
     fprintf(fp, "audio_sample_rate=%d\n", f->audio_sample_rate);
     fprintf(fp, "automap=%d\n", f->automap);
+    fprintf(fp, "reveal_map=%d\n", f->reveal_map);
     fprintf(fp, "cross_save=%d\n", f->cross_save);
     fprintf(fp, "replay_record=%d\n", f->replay_record);
     fprintf(fp, "texture_filter=%d\n", f->texture_filter);

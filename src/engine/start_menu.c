@@ -1070,6 +1070,9 @@ static void render_controls(StartMenu *menu, uint32_t *pixels, int width, int he
     ttf_text(pixels, width, height, rx, y, _("Help screen"), small, 0xFFAAAACC); y += 20;
     ttf_text(pixels, width, height, lx, y, "ESC", small, 0xFF88AACC);
     ttf_text(pixels, width, height, rx, y, _("Pause menu"), small, 0xFFAAAACC);
+    y += 20;
+    ttf_text(pixels, width, height, lx, y, "F10", small, 0xFF88AACC);
+    ttf_text(pixels, width, height, rx, y, _("Runtime options: graphics and cheats"), small, 0xFFAAAACC);
 
     ttf_text_centered(pixels, width, height, height - 30, _("PRESS ANY KEY TO RETURN"), small, 0xFF555555);
     draw_border(pixels, width, height, 10, 10, width - 20, height - 20, 0xFF444488, 2);
@@ -1361,7 +1364,7 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
     }
 
     ttf_text_centered(pixels, width, height, height - 25,
-                       _("ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"),
+                       _("ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS  F10: IN-GAME OPTIONS"),
                        small, 0xFF444444);
     draw_border(pixels, width, height, 10, 10, width - 20, height - 20, 0xFF444488, 2);
 

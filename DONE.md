@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (F10 runtime options)
+
+- Lade till F10-popup i spelvyn med realtidsreglage för grafik, minimap,
+  debug-HUD och Liberation-filter/ljussättning.
+- Lade till valbara fusk för gudaläge, oändlig energi, kartvisning och
+  slutfört mål; fusk gäller bara under körning och sparas inte.
+- Dokumenterade F10 i startmenyn, kontrollistan, README och tekniska docs.
+- Uppdaterade POT/PO/MO-underlaget för alla 19 språk.
+
 ## 2026-08-06 (Reachable button-combination puzzles)
 
 - Begränsade knappkombinationslösningen till den panelbit som den nuvarande

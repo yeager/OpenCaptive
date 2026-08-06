@@ -32,6 +32,7 @@ typedef struct {
     int  audio_sample_rate;     // 22050, 44100, 48000
 
     bool automap;               // reveal visited cells permanently
+    bool reveal_map;            // cheat: show every cell on the minimap
     bool cross_save;            // portable save format
 
     bool replay_record;

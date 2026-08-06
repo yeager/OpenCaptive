@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: OpenCaptive 1.1.29\n"
-"Report-Msgid-Bugs-To: daniel@danielnylander.se\n"
-"POT-Creation-Date: 2026-08-06 06:49+0200\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-06 11:21+0200\n"
 "PO-Revision-Date: 2026-08-03\n"
 "Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
 "Language-Team: Swedish\n"
@@ -31,349 +31,355 @@ msgstr ""
 msgid "City Records Office"
 msgstr ""
 
-#: src/engine/start_menu.c:874 src/engine/start_menu.c:980
-#: src/engine/start_menu.c:1211
+#: src/engine/start_menu.c:905 src/engine/start_menu.c:1011
+#: src/engine/start_menu.c:1245
 msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
-#: src/engine/start_menu.c:875 src/engine/start_menu.c:1303
+#: src/engine/start_menu.c:906 src/engine/start_menu.c:1337
 msgid "SETTINGS"
 msgstr "INSTÄLLNINGAR"
 
-#: src/engine/start_menu.c:884
+#: src/engine/start_menu.c:915
 msgid "RENDERER:"
 msgstr "RENDERARE:"
 
-#: src/engine/start_menu.c:884
+#: src/engine/start_menu.c:915
 msgid "WINDOW SIZE:"
 msgstr "FÖNSTERSTORLEK:"
 
-#: src/engine/start_menu.c:884
+#: src/engine/start_menu.c:915
 msgid "SCALE:"
 msgstr "SKALA:"
 
-#: src/engine/start_menu.c:884
+#: src/engine/start_menu.c:915
 msgid "FULLSCREEN:"
 msgstr "HELSKÄRM:"
 
-#: src/engine/start_menu.c:885
+#: src/engine/start_menu.c:916
 msgid "INT SCALE:"
 msgstr "HEL SKALA:"
 
-#: src/engine/start_menu.c:885
+#: src/engine/start_menu.c:916
 msgid "VSYNC:"
 msgstr "VSYNC:"
 
-#: src/engine/start_menu.c:885
+#: src/engine/start_menu.c:916
 msgid "FPS LIMIT:"
 msgstr "FPS-GRÄNS:"
 
-#: src/engine/start_menu.c:885
+#: src/engine/start_menu.c:916
 msgid "FILTERING:"
 msgstr "FILTRERING:"
 
-#: src/engine/start_menu.c:886
+#: src/engine/start_menu.c:917
 msgid "SCANLINES:"
 msgstr "SKANLINJER:"
 
-#: src/engine/start_menu.c:886
+#: src/engine/start_menu.c:917
 msgid "CRT CURVE:"
 msgstr "CRT-KURVA:"
 
-#: src/engine/start_menu.c:886
+#: src/engine/start_menu.c:917
 msgid "BRIGHTNESS:"
 msgstr "LJUSSTYRKA:"
 
-#: src/engine/start_menu.c:886
+#: src/engine/start_menu.c:917
 msgid "CONTRAST:"
 msgstr "KONTRAST:"
 
-#: src/engine/start_menu.c:887
+#: src/engine/start_menu.c:918
 msgid "GAMMA:"
 msgstr "GAMMA:"
 
-#: src/engine/start_menu.c:887
+#: src/engine/start_menu.c:918
 msgid "VOLUME:"
 msgstr "VOLYM:"
 
-#: src/engine/start_menu.c:887
+#: src/engine/start_menu.c:918
 msgid "MUSIC:"
 msgstr "MUSIK:"
 
-#: src/engine/start_menu.c:887
+#: src/engine/start_menu.c:918
 msgid "SFX:"
 msgstr "LJUDEFFEKTER:"
 
-#: src/engine/start_menu.c:888
+#: src/engine/start_menu.c:919
 msgid "REVERB:"
 msgstr "REVERB:"
 
-#: src/engine/start_menu.c:888
+#: src/engine/start_menu.c:919
 msgid "SAMPLE RATE:"
 msgstr "SAMPLINGSFREKVENS:"
 
-#: src/engine/start_menu.c:888
+#: src/engine/start_menu.c:919
 msgid "GAME SPEED:"
 msgstr "SPELHASTIGHET:"
 
-#: src/engine/start_menu.c:888
+#: src/engine/start_menu.c:919
 msgid "MOUSE SENS:"
 msgstr "MUSKÄNSLIGHET:"
 
-#: src/engine/start_menu.c:889 src/engine/start_menu.c:1056
+#: src/engine/start_menu.c:920 src/engine/start_menu.c:1090
 msgid "DATA PATH:"
 msgstr "DATASÖKVÄG:"
 
-#: src/engine/start_menu.c:889
+#: src/engine/start_menu.c:920
 msgid "LANGUAGE:"
 msgstr "SPRÅK:"
 
-#: src/engine/start_menu.c:889
+#: src/engine/start_menu.c:920
 msgid "ENHANCED:"
 msgstr "FÖRBÄTTRAD:"
 
-#: src/engine/start_menu.c:889
+#: src/engine/start_menu.c:920
 msgid "BACK"
 msgstr "TILLBAKA"
 
-#: src/engine/start_menu.c:895 src/engine/start_menu.c:896
-#: src/engine/start_menu.c:897 src/engine/start_menu.c:901
-#: src/engine/start_menu.c:902 src/engine/start_menu.c:907
-#: src/engine/start_menu.c:908 src/engine/start_menu.c:909
-#: src/engine/start_menu.c:915 src/main.c:730 src/main.c:742
+#: src/engine/start_menu.c:926 src/engine/start_menu.c:927
+#: src/engine/start_menu.c:928 src/engine/start_menu.c:932
+#: src/engine/start_menu.c:933 src/engine/start_menu.c:938
+#: src/engine/start_menu.c:939 src/engine/start_menu.c:940
+#: src/engine/start_menu.c:946 src/main.c:770
 msgid "ON"
 msgstr "PÅ"
 
-#: src/engine/start_menu.c:895 src/engine/start_menu.c:896
-#: src/engine/start_menu.c:897 src/engine/start_menu.c:901
-#: src/engine/start_menu.c:902 src/engine/start_menu.c:907
-#: src/engine/start_menu.c:908 src/engine/start_menu.c:909
-#: src/engine/start_menu.c:915 src/main.c:730 src/main.c:742
+#: src/engine/start_menu.c:926 src/engine/start_menu.c:927
+#: src/engine/start_menu.c:928 src/engine/start_menu.c:932
+#: src/engine/start_menu.c:933 src/engine/start_menu.c:938
+#: src/engine/start_menu.c:939 src/engine/start_menu.c:940
+#: src/engine/start_menu.c:946 src/main.c:770
 msgid "OFF"
 msgstr "AV"
 
-#: src/engine/start_menu.c:898
+#: src/engine/start_menu.c:929
 msgid "UNLIMITED"
 msgstr "OBEGRÄNSAD"
 
-#: src/engine/start_menu.c:900
+#: src/engine/start_menu.c:931 src/main.c:865
 msgid "BILINEAR"
 msgstr "BILINJÄR"
 
-#: src/engine/start_menu.c:900
+#: src/engine/start_menu.c:931
 msgid "NEAREST"
 msgstr "NÄRMSTA"
 
-#: src/engine/start_menu.c:966
+#: src/engine/start_menu.c:997
 msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
 msgstr "SKRIV SÖKVÄG  ENTER: BEKRÄFTA  ESC: AVBRYT"
 
-#: src/engine/start_menu.c:967
+#: src/engine/start_menu.c:998
 msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
 msgstr "UPP-NER: VÄLJ  VÄNSTER-HÖGER: ÄNDRA  ESC: TILLBAKA"
 
-#: src/engine/start_menu.c:984 src/engine/start_menu.c:1303
+#: src/engine/start_menu.c:1015 src/engine/start_menu.c:1337
 msgid "ABOUT"
 msgstr "OM"
 
-#: src/engine/start_menu.c:985
+#: src/engine/start_menu.c:1016
 msgid "A reimplementation of:"
 msgstr "En omimplementering av:"
 
-#: src/engine/start_menu.c:988
+#: src/engine/start_menu.c:1019
 msgid "CREDITS"
 msgstr "MEDVERKANDE"
 
-#: src/engine/start_menu.c:991
+#: src/engine/start_menu.c:1022
 msgid "TECHNOLOGY"
 msgstr "TEKNIK"
 
-#: src/engine/start_menu.c:998 src/engine/start_menu.c:1043
+#: src/engine/start_menu.c:1029 src/engine/start_menu.c:1077
 msgid "PRESS ANY KEY TO RETURN"
 msgstr "TRYCK VALFRI TANGENT FÖR ATT GÅ TILLBAKA"
 
-#: src/engine/start_menu.c:1007 src/engine/start_menu.c:1319
+#: src/engine/start_menu.c:1038 src/engine/start_menu.c:1353
 msgid "CONTROLS"
 msgstr "KONTROLLER"
 
-#: src/engine/start_menu.c:1011
+#: src/engine/start_menu.c:1042
 msgid "MOVEMENT"
 msgstr "RÖRELSE"
 
-#: src/engine/start_menu.c:1013
+#: src/engine/start_menu.c:1044
 msgid "Move forward"
 msgstr "Gå framåt"
 
-#: src/engine/start_menu.c:1015
+#: src/engine/start_menu.c:1046
 msgid "Move backward"
 msgstr "Gå bakåt"
 
-#: src/engine/start_menu.c:1017
+#: src/engine/start_menu.c:1048
 msgid "Turn left"
 msgstr "Sväng vänster"
 
-#: src/engine/start_menu.c:1019
+#: src/engine/start_menu.c:1050
 msgid "Turn right"
 msgstr "Sväng höger"
 
-#: src/engine/start_menu.c:1021
+#: src/engine/start_menu.c:1052
 msgid "COMBAT & ITEMS"
 msgstr "STRID & FÖREMÅL"
 
-#: src/engine/start_menu.c:1023
+#: src/engine/start_menu.c:1054
 msgid "Fire weapon"
 msgstr "Avfyra vapen"
 
-#: src/engine/start_menu.c:1025
+#: src/engine/start_menu.c:1056
 msgid "Use item / Interact"
 msgstr "Använd föremål / Interagera"
 
-#: src/engine/start_menu.c:1027
+#: src/engine/start_menu.c:1058
 msgid "Cycle droids"
 msgstr "Byt droid"
 
-#: src/engine/start_menu.c:1029
+#: src/engine/start_menu.c:1060
 msgid "Inventory"
 msgstr "Utrustning"
 
-#: src/engine/start_menu.c:1031
+#: src/engine/start_menu.c:1062
 msgid "SYSTEM"
 msgstr "SYSTEM"
 
-#: src/engine/start_menu.c:1033
+#: src/engine/start_menu.c:1064
 msgid "Save / Load game"
 msgstr "Spara / Ladda spel"
 
-#: src/engine/start_menu.c:1035
+#: src/engine/start_menu.c:1066
 msgid "Cycle save slots"
 msgstr "Byt sparplats"
 
-#: src/engine/start_menu.c:1037
+#: src/engine/start_menu.c:1068
 msgid "Minimap / City map"
 msgstr "Minikarta / Stadskarta"
 
-#: src/engine/start_menu.c:1039
+#: src/engine/start_menu.c:1070
 msgid "Help screen"
 msgstr "Hjälpskärm"
 
-#: src/engine/start_menu.c:1041
+#: src/engine/start_menu.c:1072
 msgid "Pause menu"
 msgstr "Pausmeny"
 
-#: src/engine/start_menu.c:1052
+#: src/engine/start_menu.c:1075
+msgid "Runtime options: graphics and cheats"
+msgstr "Köralternativ: grafik och fusk"
+
+#: src/engine/start_menu.c:1086
 msgid "DATA SCANNER"
 msgstr "DATASKANNER"
 
-#: src/engine/start_menu.c:1061
+#: src/engine/start_menu.c:1095
 msgid "Scanning Captive hashes..."
 msgstr "Skannar Captive-hashar..."
 
-#: src/engine/start_menu.c:1062
+#: src/engine/start_menu.c:1096
 msgid "Scanning Liberation data..."
 msgstr "Skannar Liberation-data..."
 
-#: src/engine/start_menu.c:1082
+#: src/engine/start_menu.c:1116
 #, c-format
 msgid "ZIP archives found: %d"
 msgstr "ZIP-arkiv hittade: %d"
 
-#: src/engine/start_menu.c:1085
+#: src/engine/start_menu.c:1119
 #, c-format
 msgid "Captive: %d / %d %s"
 msgstr ""
 
-#: src/engine/start_menu.c:1092
+#: src/engine/start_menu.c:1126
 #, c-format
 msgid "Liberation: %d / %d %s"
 msgstr ""
 
-#: src/engine/start_menu.c:1099
+#: src/engine/start_menu.c:1133
 msgid "VERIFICATION"
 msgstr "VERIFIERING"
 
-#: src/engine/start_menu.c:1101
+#: src/engine/start_menu.c:1135
 msgid "Files identified by SHA-256 content hash, not filename."
 msgstr "Filer identifieras med SHA-256-innehållshash, inte filnamn."
 
-#: src/engine/start_menu.c:1104
+#: src/engine/start_menu.c:1138
 msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
 msgstr "Nästlade ZIP, ADF-diskavbilder och ISO-spår skannas."
 
-#: src/engine/start_menu.c:1107
+#: src/engine/start_menu.c:1141
 msgid "No filenames are trusted; only content determines identity."
 msgstr "Inga filnamn litas på; bara innehållet avgör identiteten."
 
-#: src/engine/start_menu.c:1111
+#: src/engine/start_menu.c:1145
 msgid "ESC: BACK"
 msgstr "ESC: TILLBAKA"
 
-#: src/engine/start_menu.c:1130
+#: src/engine/start_menu.c:1164
 msgid "GAME DATA NOT FOUND"
 msgstr "SPELDATA HITTADES INTE"
 
-#: src/engine/start_menu.c:1133
+#: src/engine/start_menu.c:1167
 msgid "OpenCaptive needs original game data files to run."
 msgstr "OpenCaptive behöver originalspeldata för att köras."
 
-#: src/engine/start_menu.c:1136
+#: src/engine/start_menu.c:1170
 msgid "Place your game data in the following folder:"
 msgstr "Placera din speldata i följande mapp:"
 
-#: src/engine/start_menu.c:1141
+#: src/engine/start_menu.c:1175
 msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
 msgstr "Format som stöds: ZIP-arkiv, ADF, ISO, råfiler."
 
-#: src/engine/start_menu.c:1144
+#: src/engine/start_menu.c:1178
 msgid "Files are identified by SHA-256 hash, not filename."
 msgstr "Filer identifieras med SHA-256-hash, inte filnamn."
 
-#: src/engine/start_menu.c:1147
+#: src/engine/start_menu.c:1181
 msgid "You can change the data path in Settings (S)."
 msgstr "Du kan ändra datasökvägen i Inställningar (S)."
 
-#: src/engine/start_menu.c:1150
+#: src/engine/start_menu.c:1184
 msgid "PRESS ANY KEY TO CONTINUE"
 msgstr "TRYCK VALFRI TANGENT FÖR ATT FORTSÄTTA"
 
-#: src/engine/start_menu.c:1164
+#: src/engine/start_menu.c:1198
 msgid "SELECT GAME"
 msgstr "VÄLJ SPEL"
 
-#: src/engine/start_menu.c:1166 src/engine/start_menu.c:1180
+#: src/engine/start_menu.c:1200 src/engine/start_menu.c:1214
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
 msgstr "UPP-NER: VÄLJ  ENTER: STARTA  ESC: AVSLUTA"
 
-#: src/engine/start_menu.c:1170
+#: src/engine/start_menu.c:1204
 msgid "CAPTIVE DOS"
 msgstr "CAPTIVE DOS"
 
-#: src/engine/start_menu.c:1170
+#: src/engine/start_menu.c:1204
 msgid "CAPTIVE AMIGA"
 msgstr "CAPTIVE AMIGA"
 
-#: src/engine/start_menu.c:1171
+#: src/engine/start_menu.c:1205
 msgid "LIBERATION CD32"
 msgstr ""
 
-#: src/engine/start_menu.c:1171
+#: src/engine/start_menu.c:1205
 msgid "LIBERATION AMIGA"
 msgstr ""
 
-#: src/engine/start_menu.c:1214
+#: src/engine/start_menu.c:1248
 msgid "BY DANIEL NYLANDER"
 msgstr "AV DANIEL NYLANDER"
 
-#: src/engine/start_menu.c:1282 src/engine/start_menu.c:1283
+#: src/engine/start_menu.c:1316 src/engine/start_menu.c:1317
 msgid "CONTINUE"
 msgstr "FORTSÄTT"
 
-#: src/engine/start_menu.c:1319
+#: src/engine/start_menu.c:1353
 msgid "QUIT"
 msgstr "AVSLUTA"
 
-#: src/engine/start_menu.c:1333
-msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
-msgstr "PILAR: VÄLJ  ENTER: STARTA  D: SKANNA DATA  F1: KONTROLLER"
+#: src/engine/start_menu.c:1367
+msgid ""
+"ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS  F10: IN-GAME "
+"OPTIONS"
+msgstr "PILAR: VÄLJ  ENTER: STARTA  D: SKANNA DATA  F1: KONTROLLER  F10: ALTERNATIV I SPELET"
 
 #: src/engine/terminal.c:81
 msgid "LEVEL MAP"
@@ -423,113 +429,173 @@ msgstr ""
 msgid "ESC:BACK"
 msgstr ""
 
-#: src/main.c:734 src/main.c:746
+#: src/main.c:774
 msgid "LOW"
 msgstr "LÅG"
 
-#: src/main.c:734 src/main.c:746
+#: src/main.c:774
 msgid "HIGH"
 msgstr "HÖG"
 
-#: src/main.c:734 src/main.c:746
+#: src/main.c:774
 msgid "NORMAL"
 msgstr "NORMAL"
 
-#: src/main.c:814 src/main.c:826
+#: src/main.c:862
+msgid "ENHANCED DISPLAY"
+msgstr "FÖRBÄTTRAD VISNING"
+
+#: src/main.c:863
+msgid "SCANLINES"
+msgstr "SKANNINGSRADER"
+
+#: src/main.c:864
+msgid "CRT CURVE"
+msgstr "CRT-KURVA"
+
+#: src/main.c:866
+msgid "TEXTURE FILTER"
+msgstr "TEXTURFILTER"
+
+#: src/main.c:867
+msgid "DYNAMIC LIGHTING"
+msgstr "DYNAMISK LJUSSÄTTNING"
+
+#: src/main.c:868
+msgid "BRIGHTNESS"
+msgstr "LJUSSTYRKA"
+
+#: src/main.c:869
+msgid "MUSIC"
+msgstr "Musik"
+
+#: src/main.c:870
+msgid "SFX"
+msgstr "Ljudeffekter"
+
+#: src/main.c:871
+msgid "GOD MODE"
+msgstr "GUDALÄGE"
+
+#: src/main.c:872
+msgid "INFINITE ENERGY"
+msgstr "OÄNDLIG ENERGI"
+
+#: src/main.c:873
+msgid "MINIMAP"
+msgstr "MINIKARTA"
+
+#: src/main.c:874
+msgid "REVEAL MAP"
+msgstr "VISA HELA KARTAN"
+
+#: src/main.c:875
+msgid "DEBUG HUD"
+msgstr "FELSÖKNINGS-HUD"
+
+#: src/main.c:876
+msgid "COMPLETE OBJECTIVE"
+msgstr "SLUTFÖR MÅL"
+
+#: src/main.c:877
+msgid "CLOSE"
+msgstr "STÄNG"
+
+#: src/main.c:888
 msgid "RUNTIME OPTIONS"
 msgstr "KÖRALTERNATIV"
 
-#: src/main.c:815 src/main.c:827
-msgid "ESC CLOSE"
-msgstr "ESC STÄNG"
+#: src/main.c:889
+msgid "F10 OR ESC CLOSE"
+msgstr "F10 ELLER ESC STÄNG"
 
-#: src/main.c:822 src/main.c:834
-msgid "PENDING"
-msgstr "VÄNTAR"
-
-#: src/main.c:831 src/main.c:843
+#: src/main.c:914
 msgid "ACTIVATE"
 msgstr "AKTIVERA"
 
-#: src/main.c:836 src/main.c:848
-msgid "UP DOWN ENTER"
-msgstr "UPP NER ENTER"
+#: src/main.c:919
+msgid "UP DOWN ENTER TOGGLE"
+msgstr "UPP NER ENTER VÄXLA"
 
-#: src/main.c:1013 src/main.c:1085 src/main.c:1034 src/main.c:1106
+#: src/main.c:1107 src/main.c:1184
 msgid "Fine paid. Rep +15"
 msgstr ""
 
-#: src/main.c:1023 src/main.c:1095 src/main.c:1044 src/main.c:1116
+#: src/main.c:1117 src/main.c:1194
 #, c-format
 msgid "Industrial hazard! %d damage!"
 msgstr ""
 
-#: src/main.c:1033 src/main.c:1105 src/main.c:1054 src/main.c:1126
+#: src/main.c:1132 src/main.c:1209
 msgid "Bar fight! Rep -10"
 msgstr ""
 
-#: src/main.c:1062 src/main.c:1083
+#: src/main.c:1161
 msgid "Shared inventory is full."
 msgstr ""
 
-#: src/main.c:1066 src/main.c:1087
+#: src/main.c:1165
 #, c-format
 msgid "Purchased: %s"
 msgstr ""
 
-#: src/main.c:1070 src/main.c:1091
+#: src/main.c:1169
 msgid "Cannot buy that item."
 msgstr ""
 
-#: src/main.c:1134 src/main.c:1155
+#: src/main.c:1238
 msgid "Entered building interior"
 msgstr ""
 
-#: src/main.c:1241 src/main.c:1269
+#: src/main.c:1353
 msgid "Taxi: 50 gold"
 msgstr ""
 
-#: src/main.c:1384 src/main.c:1415
+#: src/main.c:1501
 msgid "Creature destroyed!"
 msgstr ""
 
-#: src/main.c:1389 src/main.c:1420
+#: src/main.c:1506
 msgid "LEVEL UP!"
 msgstr ""
 
-#: src/main.c:1394 src/main.c:1425
+#: src/main.c:1511
 #, c-format
 msgid "Droid %d fires!"
 msgstr ""
 
-#: src/main.c:1543 src/main.c:1574
+#: src/main.c:1660
 #, c-format
 msgid "Droid %d picked up item"
 msgstr ""
 
-#: src/main.c:1559 src/main.c:1590
+#: src/main.c:1676
 msgid "Fell into a pit!"
 msgstr ""
 
-#: src/main.c:1563 src/main.c:1594
+#: src/main.c:1680
 msgid "Click!"
 msgstr ""
 
-#: src/main.c:2318 src/main.c:2349
+#: src/main.c:2463
 msgid "Left building"
 msgstr ""
 
-#: src/main.c:2869 src/main.c:2903
+#: src/main.c:2474
+msgid "Mission complete. Rep +20"
+msgstr "Uppdrag slutfört. Anseende +20"
+
+#: src/main.c:3028
 #, c-format
 msgid "Droid %d hit for %d!"
 msgstr ""
 
-#: src/main.c:2877 src/main.c:2911
+#: src/main.c:3036
 #, c-format
 msgid "Droid %d destroyed!"
 msgstr ""
 
-#: src/main.c:2884 src/main.c:2918
+#: src/main.c:3043
 msgid "All droids destroyed! Mission failed."
 msgstr ""
 
@@ -744,9 +810,17 @@ msgstr ""
 msgid "This is %s. We're not taking visitors right now."
 msgstr "Det här är %s. Vi tar inte emot besökare just nu."
 
-#: src/main.c:2357
-msgid "Mission complete. Rep +20"
-msgstr "Uppdrag slutfört. Anseende +20"
+#~ msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
+#~ msgstr "PILAR: VÄLJ  ENTER: STARTA  D: SKANNA DATA  F1: KONTROLLER"
+
+#~ msgid "ESC CLOSE"
+#~ msgstr "ESC STÄNG"
+
+#~ msgid "PENDING"
+#~ msgstr "VÄNTAR"
+
+#~ msgid "UP DOWN ENTER"
+#~ msgstr "UPP NER ENTER"
 
 #~ msgid "CAPTIVE (1990)"
 #~ msgstr "CAPTIVE (1990)"
@@ -790,30 +864,3 @@ msgstr "Uppdrag slutfört. Anseende +20"
 
 #~ msgid "VIEW RECONSTRUCTION"
 #~ msgstr "VISA REKONSTRUKTION"
-
-#~ msgid "SCANLINES"
-#~ msgstr "SKANNINGSRADER"
-
-#~ msgid "CRT CURVE"
-#~ msgstr "CRT-KURVA"
-
-#~ msgid "BRIGHTNESS"
-#~ msgstr "LJUSSTYRKA"
-
-#~ msgid "MUSIC"
-#~ msgstr "Musik"
-
-#~ msgid "SFX"
-#~ msgstr "Ljudeffekter"
-
-#~ msgid "GOD MODE"
-#~ msgstr "GUDALÄGE"
-
-#~ msgid "INFINITE ENERGY"
-#~ msgstr "OÄNDLIG ENERGI"
-
-#~ msgid "COMPLETE OBJECTIVE"
-#~ msgstr "SLUTFÖR MÅL"
-
-#~ msgid "CLOSE"
-#~ msgstr "STÄNG"

@@ -28,6 +28,7 @@ static void test_defaults(void) {
     assert(f.reverb_amount > 0.2f && f.reverb_amount < 0.4f);
     assert(f.audio_sample_rate == 44100);
     assert(!f.automap);
+    assert(!f.reveal_map);
     assert(!f.cross_save);
     assert(!f.replay_record);
     assert(!f.texture_filter);
@@ -43,6 +44,7 @@ static void test_save_load(void) {
     f1.debug_hud = true;
     f1.audio_reverb = true;
     f1.automap = true;
+    f1.reveal_map = true;
     f1.dynamic_lighting = true;
     f1.game_speed = 2.0f;
 
@@ -58,6 +60,7 @@ static void test_save_load(void) {
     assert(f2.debug_hud == true);
     assert(f2.audio_reverb == true);
     assert(f2.automap == true);
+    assert(f2.reveal_map == true);
     assert(f2.dynamic_lighting == true);
     assert(f2.game_speed > 1.9f && f2.game_speed < 2.1f);
 

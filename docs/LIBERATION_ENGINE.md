@@ -8,8 +8,17 @@ Liberation currently opens only after the CD32 presentation track has been
 found by its SHA-256 digest and its presentation resources have been verified.
 It can display the first fully decoded frame of the original intro and city
 ANIM resources at their native 320×256 PAL resolution. Selecting a game, the
-intro-to-city transition and the F10 display/audio menu are intentionally
+intro-to-city transition and the F10 display/audio/cheat menu are intentionally
 limited to that presentation boundary.
+
+## F10 runtime options
+
+During a game, F10 opens a localized popup. Arrow keys select an entry and
+Enter toggles it; F10 or Escape closes the popup. Display effects are applied
+to the next presented frame. Texture filtering and dynamic lighting are also
+updated immediately for the active Liberation 3D renderer. The popup includes
+God Mode and Infinite Energy, minimap/debug overlays, and a one-shot Complete
+Objective action. Runtime cheats are not written into game saves.
 
 This is not yet a playable reimplementation of Liberation: Captive 2. The
 runtime does not invent city movement, buildings, objectives, NPCs, interiors,
