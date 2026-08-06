@@ -1436,6 +1436,7 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 return;
             }
             case SDLK_RETURN:
+            case SDLK_KP_ENTER:
             case SDLK_SPACE:
                 building_interact_advance(&lib_interact);
                 if (!lib_interact.active) {
@@ -2758,7 +2759,8 @@ int main(int argc, char *argv[]) {
                         if (droid_config_renaming) {
                             SDL_Keycode k = event.key.key;
                             Droid *rd = &gs.droids[droid_config_cursor];
-                            if (k == SDLK_RETURN || k == SDLK_ESCAPE) {
+                            if (k == SDLK_RETURN || k == SDLK_KP_ENTER ||
+                                k == SDLK_ESCAPE) {
                                 droid_config_renaming = false;
                             } else if (k == SDLK_BACKSPACE && droid_config_name_pos > 0) {
                                 rd->name[--droid_config_name_pos] = '\0';
@@ -2796,7 +2798,8 @@ int main(int argc, char *argv[]) {
                                 uint16_t td = gs.droids[droid_config_cursor].weapon_damage;
                                 gs.droids[droid_config_cursor].weapon_damage = gs.droids[next].weapon_damage;
                                 gs.droids[next].weapon_damage = td;
-                            } else if (event.key.key == SDLK_RETURN) {
+                            } else if (event.key.key == SDLK_RETURN ||
+                                       event.key.key == SDLK_KP_ENTER) {
                                 if (gs.game_type == GAME_CAPTIVE && gs.num_levels == 0) {
                                     bool mission_ready = custom.replay_playback && replay.seed != 0
                                         ? game_state_new_mission_seeded(&gs, gs.mission, replay.seed)
@@ -2835,7 +2838,9 @@ int main(int argc, char *argv[]) {
                                 liberation_mission_menu_pixels != NULL;
                         } else if (liberation_mission_menu_active &&
                                    event.type == SDL_EVENT_KEY_DOWN &&
-                                   (event.key.key == SDLK_RETURN || event.key.key == SDLK_SPACE)) {
+                                   (event.key.key == SDLK_RETURN ||
+                                    event.key.key == SDLK_KP_ENTER ||
+                                    event.key.key == SDLK_SPACE)) {
                             liberation_mission_menu_active = false;
                         } else if (liberation_mission_menu_active &&
                                    event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
@@ -2855,7 +2860,8 @@ int main(int argc, char *argv[]) {
                                 liberation_mission_menu_active = false;
                         } else if (lib_mission_briefing &&
                                    event.type == SDL_EVENT_KEY_DOWN &&
-                                   event.key.key == SDLK_RETURN) {
+                                   (event.key.key == SDLK_RETURN ||
+                                    event.key.key == SDLK_KP_ENTER)) {
                             lib_mission_briefing = false;
                         } else if (liberation_prototype_gameplay_enabled &&
                                    !liberation_intro_active && !liberation_mission_menu_active &&
@@ -2919,6 +2925,7 @@ int main(int argc, char *argv[]) {
                                 terminal_handle_key(&terminal, 0x51);
                                 break;
                             case SDLK_RETURN:
+                            case SDLK_KP_ENTER:
                                 terminal_handle_key(&terminal, 0x0D);
                                 if (!terminal.active) gs.mode = STATE_GAME;
                                 break;
@@ -2944,7 +2951,8 @@ int main(int argc, char *argv[]) {
                                 case SDLK_2: gs.selected_droid = 1; break;
                                 case SDLK_3: gs.selected_droid = 2; break;
                                 case SDLK_4: gs.selected_droid = 3; break;
-                                case SDLK_RETURN: {
+                                case SDLK_RETURN:
+                                case SDLK_KP_ENTER: {
                                     if (lib_inv_cursor >= 0 &&
                                         lib_inv_cursor < gs.lib_inventory_count) {
                                         Droid *d = &gs.droids[gs.selected_droid];
@@ -3033,6 +3041,7 @@ int main(int argc, char *argv[]) {
                                     break;
                                 }
                                 case SDLK_RETURN:
+                                case SDLK_KP_ENTER:
                                     droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x0D);
                                     break;
                                 default: break;
@@ -3056,6 +3065,7 @@ int main(int argc, char *argv[]) {
                                 shop.selected = shop_next_selection(&shop);
                                 break;
                             case SDLK_RETURN:
+                            case SDLK_KP_ENTER:
                                 shop_buy(&shop, &item_db, &gs);
                                 break;
                             case SDLK_R:
@@ -3069,6 +3079,7 @@ int main(int argc, char *argv[]) {
                     if (event.type == SDL_EVENT_KEY_DOWN) {
                         switch (event.key.key) {
                             case SDLK_RETURN:
+                            case SDLK_KP_ENTER:
                                 if (game_state_new_mission(&gs, gs.mission + 1)) {
                                     generate_captive_puzzles(&gs);
                                     generate_captive_encounters(&gs);
@@ -3166,6 +3177,7 @@ int main(int argc, char *argv[]) {
                                 if (pause_cursor < 2) pause_cursor++;
                                 break;
                             case SDLK_RETURN:
+                            case SDLK_KP_ENTER:
                             case SDLK_RETURN2:
                             pause_activate:
                                 if (pause_cursor == 0) {
