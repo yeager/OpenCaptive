@@ -164,7 +164,11 @@ static int distance(int x1, int y1, int x2, int y2) {
     int dy = y1 - y2;
     if (dx < 0) dx = -dx;
     if (dy < 0) dy = -dy;
-    return (dx > dy) ? dx : dy;
+    /* Captive movement and weapon reach are cardinal.  Chebyshev distance
+     * incorrectly allowed a melee weapon to hit a diagonal target and made
+     * ranged/creature detection extend farther around corners than the
+     * documented Manhattan-based combat rules. */
+    return dx + dy;
 }
 
 static bool blocks_movement_or_sight(CellType cell) {

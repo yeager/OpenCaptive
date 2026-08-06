@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive Manhattan combat reach)
+
+- Stridsavståndet använder nu Manhattan-avstånd i stället för Chebyshev-
+  avstånd.
+- Närstridsvapen kan därför inte längre träffa diagonalt genom en enda
+  rörelseaxel; samma korrigering gäller varelsers upptäckt och attackräckvidd.
+- Regressionstest lagt till för diagonalt mål med närstridsvapen.
+
 ## 2026-08-07 (Captive mission-allocation failure)
 
 - Uppdragsgenerering returnerar nu lyckad/misslyckad status i stället för att

@@ -527,6 +527,32 @@ static void test_combat_uses_ranged_hand_when_melee_is_first(void) {
     assert(combat_droid_attack(&gs, &creatures, 0));
 }
 
+static void test_combat_melee_rejects_diagonal_target(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    assert(game_state_new_mission(&gs, 1));
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+    gs.droids[0].weapons[0] = 13; /* melee */
+    gs.droids[0].weapon_damage = 0x0505;
+
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 30, .hp_max = 30,
+        .x = 2, .y = 2, .level = 0, .active = true,
+    };
+    assert(!combat_droid_attack(&gs, &creatures, 0));
+    assert(creatures.creatures[0].hp == 30);
+    assert(gs.droids[0].energy == gs.droids[0].energy_max);
+}
+
 static void test_combat_does_not_treat_non_weapon_as_ranged(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -937,6 +963,7 @@ int main(void) {
     test_combat_gold_reward_saturates();
     test_combat_level_up_uses_pre_attack_xp();
     test_combat_uses_ranged_hand_when_melee_is_first();
+    test_combat_melee_rejects_diagonal_target();
     test_combat_does_not_treat_non_weapon_as_ranged();
     test_combat_requires_equipped_weapon();
     test_combat_skips_destroyed_droids();
