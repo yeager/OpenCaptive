@@ -399,27 +399,7 @@ static void get_default_data_path(char *buf, size_t bufsize) {
 }
 
 static bool validate_data_path(const DataVFS *vfs) {
-    static const char *required[] = {
-        "71bcf404103f1ac2920800a8bc166939bb49a1204cf51bebce8aca7dd5faafde",
-        "1ec1f90adbcfcb3b99b64a56cf1c669b409b7d3a76bc09cedb056f503bfb1959",
-        "47ad15b4a593c37880d0306b6a0f51b7a9f20615cf6a188f23716d5b48315524",
-        "43833e4a8df622f84d53698a76c6d18f910c1cca79c6b89cbfacc563f695356c",
-        "8b7301fc6c302fd673a81d23e7a99d715aa02d5b404c1e1edea19ceccccc9681",
-        "519d3ef4494f0e868479a90c8a47249b840598e382c7ba3272f417ce3daf5936",
-        "7edb8ee856a91e835ea86dda00af49fda3dae730d694bd7234b7fa96d711e296",
-        "978d18857d5ffcf6fb7b91fb22c02b85079db0171caeac3d290a69b276cf098f",
-        "dec7143f063c98459ab2f267ed135204cdee1b521eda9810b219e8c10e05c7e8",
-        "ce00ba2bc78f160b934486fe101a90264163356e02e7acbea2a41cf5d125b017",
-        "21db7daf64cff3b0cae19c3e7eb2057762df9110055e7253175024ecb146fb6b",
-        "dfca77f0e219962242226f11f9697f580f92e8ad24786296a5b2571b20c2b707",
-    };
-    if (!vfs || !vfs->initialized) return false;
-    for (size_t i = 0; i < sizeof(required) / sizeof(required[0]); i++) {
-        size_t size = 0; uint8_t *data = vfs_find_sha256(vfs, required[i], &size);
-        if (!data) return false;
-        free(data);
-    }
-    return captive_scene_assets_available(vfs);
+    return captive_data_available(vfs);
 }
 
 static void show_missing_liberation_data_dialog(const char *data_path) {

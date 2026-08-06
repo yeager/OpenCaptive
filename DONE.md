@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive gemensamt datamanifest)
+
+- Captive-start, startmenyns skanner och `--verify-data captive` använder nu
+  samma centrala manifest med 25 verifierade boot- och atlasresurser.
+- Duplicerade hashlistor i `main.c` och startmenyn är borttagna, så framtida
+  manifeständringar kan inte ge olika verifieringsresultat i olika vägar.
+- `build-werror` och hela testsviten (58/58) passerar efter ändringen.
+
 ## 2026-08-06 (Captive gemensam atlasverifiering)
 
 - Startmeny, `--verify-data` och Captive-start använder nu samma kompletta

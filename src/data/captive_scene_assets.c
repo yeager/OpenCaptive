@@ -1,6 +1,11 @@
 #include "captive_scene_assets.h"
 #include <stdlib.h>
 
+const char *const captive_boot_source_hashes[CAPTIVE_BOOT_SOURCE_COUNT] = {
+    "71bcf404103f1ac2920800a8bc166939bb49a1204cf51bebce8aca7dd5faafde",
+    "1ec1f90adbcfcb3b99b64a56cf1c669b409b7d3a76bc09cedb056f503bfb1959",
+};
+
 const char *const captive_view_source_hashes[CAPTIVE_VIEW_SOURCE_COUNT] = {
     "47ad15b4a593c37880d0306b6a0f51b7a9f20615cf6a188f23716d5b48315524",
     "43833e4a8df622f84d53698a76c6d18f910c1cca79c6b89cbfacc563f695356c",
@@ -35,6 +40,26 @@ bool captive_scene_assets_available(const DataVFS *vfs) {
     for (int i = 0; i < CAPTIVE_VIEW_SOURCE_COUNT; ++i) {
         size_t size = 0;
         uint8_t *data = vfs_find_sha256(vfs, captive_view_source_hashes[i], &size);
+        if (!data) return false;
+        free(data);
+    }
+    return true;
+}
+
+const char *captive_required_source_hash(size_t index) {
+    if (index < CAPTIVE_BOOT_SOURCE_COUNT)
+        return captive_boot_source_hashes[index];
+    if (index < CAPTIVE_REQUIRED_SOURCE_COUNT)
+        return captive_view_source_hashes[index - CAPTIVE_BOOT_SOURCE_COUNT];
+    return NULL;
+}
+
+bool captive_data_available(const DataVFS *vfs) {
+    if (!vfs || !vfs->initialized) return false;
+    for (size_t i = 0; i < CAPTIVE_REQUIRED_SOURCE_COUNT; ++i) {
+        size_t size = 0;
+        uint8_t *data = vfs_find_sha256(vfs, captive_required_source_hash(i),
+                                         &size);
         if (!data) return false;
         free(data);
     }

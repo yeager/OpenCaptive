@@ -32,8 +32,10 @@ to a runtime manifest.
 
 ## Captive manifest
 
-The current Captive startup manifest verifies the intro plus textures needed by
-the active renderer. Examples:
+The current Captive startup manifest verifies the two boot resources plus all
+23 first-person atlas surfaces needed by the active renderer (25 hashes in
+total). The CLI verifier, start menu and incremental scanner consume this same
+manifest. Examples:
 
 | Purpose | SHA-256 |
 | --- | --- |
@@ -92,8 +94,8 @@ The scanner walks the configured data path and examines every file the VFS can
 reach. It reports:
 
 - **ZIP archive count** — how many ZIP containers were found and indexed.
-- **Captive files found** (N/12) — the number of verified Captive data files
-  out of the 12 required by the manifest.
+- **Captive files found** (N/25) — the number of verified Captive data files
+  out of the 25 required by the manifest.
 - **Liberation files found** (N/7) — the number of verified Liberation data
   files out of the 7 required by the manifest.
 - **Per-game status** — `[OK]` when all required files are present, `[MISSING]`

@@ -13,21 +13,7 @@
 
 extern unsigned char *load_png_file(const char *path, int *w, int *h);
 
-/* These two files are required by the Captive DOS boot path.  The complete
- * first-person atlas is kept in captive_scene_assets.c so startup, rendering
- * and the incremental scanner cannot drift apart. */
-static const char *captive_boot_hashes[] = {
-    "71bcf404103f1ac2920800a8bc166939bb49a1204cf51bebce8aca7dd5faafde",
-    "1ec1f90adbcfcb3b99b64a56cf1c669b409b7d3a76bc09cedb056f503bfb1959",
-};
-#define CAPTIVE_BOOT_HASH_COUNT \
-    (sizeof(captive_boot_hashes) / sizeof(captive_boot_hashes[0]))
-#define CAPTIVE_HASH_COUNT (CAPTIVE_BOOT_HASH_COUNT + CAPTIVE_VIEW_SOURCE_COUNT)
-
-static const char *captive_scan_hash(size_t index) {
-    if (index < CAPTIVE_BOOT_HASH_COUNT) return captive_boot_hashes[index];
-    return captive_view_source_hashes[index - CAPTIVE_BOOT_HASH_COUNT];
-}
+#define CAPTIVE_HASH_COUNT CAPTIVE_REQUIRED_SOURCE_COUNT
 
 static void stop_data_scanner(StartMenu *menu);
 
@@ -459,7 +445,7 @@ void start_menu_check_data(StartMenu *menu, const char *data_path) {
     bool dos_valid = true;
     for (size_t i = 0; i < CAPTIVE_HASH_COUNT; i++) {
         size_t sz = 0;
-        uint8_t *d = vfs_find_sha256(&vfs, captive_scan_hash(i), &sz);
+        uint8_t *d = vfs_find_sha256(&vfs, captive_required_source_hash(i), &sz);
         if (d) free(d); else { dos_valid = false; break; }
     }
     /* The Amiga verifier is intentionally not part of this playable-source
@@ -637,7 +623,7 @@ void start_menu_update(StartMenu *menu) {
         if (menu->scanner_captive_index < CAPTIVE_HASH_COUNT) {
             size_t sz = 0;
             uint8_t *d = vfs_find_sha256(&menu->scanner_vfs,
-                                         captive_scan_hash(menu->scanner_captive_index),
+                                         captive_required_source_hash(menu->scanner_captive_index),
                                          &sz);
             if (d) {
                 free(d);

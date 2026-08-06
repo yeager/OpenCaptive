@@ -181,7 +181,8 @@ Place your game data files (ZIP archives, loose files, ADF disk images) in the d
 
 ### Captive
 
-12 required files identified by SHA-256 content hash. Supported sources:
+25 required files identified by SHA-256 content hash, including the two boot
+resources and the complete first-person atlas. Supported sources:
 - DOS version (CAPPO.EXE, PL5 graphics, CAP_A.BIN sound driver)
 - Amiga ADF disk images (880KB) — verified by `--verify-data`; native Captive
   runtime loading is not yet exposed as a playable source
