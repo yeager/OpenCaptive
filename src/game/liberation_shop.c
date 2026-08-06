@@ -15,6 +15,15 @@ static const char *shop_item_names[] = {
     "Charge Pack", "Targeting System", "Gravity Boots", "Data Crystal",
 };
 
+/* These labels are later transferred to the shared inventory and converted
+ * to the Captive item database.  The old name_idx + 1 mapping turned the
+ * first products into body parts (for example Laser Pistol became HEAD).
+ * Keep the catalogue names, but store real runtime item IDs. */
+static const uint8_t shop_item_ids[] = {
+    18, 21, 30, 11, 8, 55, 12, 2,
+    11, 55, 49, 8, 43, 11, 5, 56,
+};
+
 static const char *bar_item_names[] = {
     "Synthi-Ale", "Neuro-Fizz", "Grav-Tonic", "Plasma Punch",
     "Ion Brew", "Dark Matter", "Quasar Shot", "Nebula Wine",
@@ -41,7 +50,7 @@ void lib_shop_generate_inventory(LibShopState *shop) {
         unsigned name_idx = shop_prng(&state) % 16;
         snprintf(item->name, sizeof(item->name), "%s", shop_item_names[name_idx]);
         item->price = 50 + (shop_prng(&state) % 450);
-        item->item_type = (uint16_t)(name_idx + 1);
+        item->item_type = shop_item_ids[name_idx];
         item->quantity = 1 + (shop_prng(&state) & 3);
         item->quality = 50 + (shop_prng(&state) % 51);
     }

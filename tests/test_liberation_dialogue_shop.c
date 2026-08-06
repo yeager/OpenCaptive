@@ -144,6 +144,20 @@ static void test_dialogue_rejects_corrupt_choice_count(void) {
     assert(!dialogue_state_choose(&state, 0));
 }
 
+static uint16_t expected_shop_item_id(const char *name) {
+    static const struct { const char *name; uint16_t id; } entries[] = {
+        {"Laser Pistol", 18}, {"Plasma Rifle", 21}, {"Ion Cannon", 30},
+        {"Shield Generator", 11}, {"Power Cell", 8},
+        {"Neural Interface", 55}, {"Servo Motor", 12}, {"Armour Plate", 2},
+        {"Sensor Array", 11}, {"Navigation Chip", 55},
+        {"Communicator", 49}, {"Medikit", 8}, {"Charge Pack", 43},
+        {"Targeting System", 11}, {"Gravity Boots", 5}, {"Data Crystal", 56},
+    };
+    for (size_t i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
+        if (strcmp(name, entries[i].name) == 0) return entries[i].id;
+    return 0;
+}
+
 static void test_police_fine_refusal_rejects_wrapped_choice(void) {
     BuildingInteraction bi;
     building_interact_init(&bi);
@@ -178,6 +192,7 @@ static void test_shop_inventory(void) {
         assert(shop.items[i].price > 0);
         assert(shop.items[i].quantity > 0);
         assert(strlen(shop.items[i].name) > 0);
+        assert(shop.items[i].item_type == expected_shop_item_id(shop.items[i].name));
     }
 }
 

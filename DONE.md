@@ -3301,3 +3301,6 @@
 - RNC-dekoderns framåtriktade bitläsare avvisar nu avkortade strömmar i stället
   för att fylla på med syntetiska nollbitar. Ett regressionsprov säkerställer
   att korrupt Liberation-data inte kan passera som en giltig dekodning.
+- Liberation-butiken mappar nu sina produktnamn till riktiga Captive-item-ID:n.
+  Exempelvis blir Laser Pistol inte längre felaktigt droiddelen HEAD; ett
+  regressionsprov verifierar hela produktkatalogens runtime-mappning.
