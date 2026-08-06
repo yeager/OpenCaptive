@@ -301,6 +301,16 @@ static void test_cross_save(void) {
     const char *path = "/tmp/test_opencaptive_cross.ocsv";
     assert(cross_save_export(&gs, path));
 
+    FILE *header = fopen(path, "rb");
+    assert(header);
+    uint8_t header_bytes[8];
+    assert(fread(header_bytes, 1, sizeof(header_bytes), header) == sizeof(header_bytes));
+    assert(fclose(header) == 0);
+    assert(header_bytes[0] == 0x56 && header_bytes[1] == 0x53 &&
+           header_bytes[2] == 0x43 && header_bytes[3] == 0x4F);
+    assert(header_bytes[4] == 1 && header_bytes[5] == 0 &&
+           header_bytes[6] == 0 && header_bytes[7] == 0);
+
     GameState gs2;
     memset(&gs2, 0, sizeof(gs2));
     static const char data_path[] = "/tmp/opencaptive-cross-data";
@@ -358,9 +368,9 @@ static void test_cross_save(void) {
 
     FILE *mutated = fopen(path, "r+b");
     assert(mutated);
-    int32_t invalid = -1;
+    const uint8_t invalid[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
     assert(fseek(mutated, 33, SEEK_SET) == 0);
-    assert(fwrite(&invalid, sizeof(invalid), 1, mutated) == 1);
+    assert(fwrite(invalid, 1, sizeof(invalid), mutated) == sizeof(invalid));
     assert(fclose(mutated) == 0);
     assert(!cross_save_import(&preserved, path));
 
@@ -369,7 +379,7 @@ static void test_cross_save(void) {
     assert(mutated);
     /* Header (57 bytes) + four 58-byte droid records. */
     assert(fseek(mutated, 57 + 4 * 58, SEEK_SET) == 0);
-    assert(fwrite(&invalid, sizeof(invalid), 1, mutated) == 1);
+    assert(fwrite(invalid, 1, sizeof(invalid), mutated) == sizeof(invalid));
     assert(fclose(mutated) == 0);
     assert(!cross_save_import(&preserved, path));
 
@@ -377,7 +387,7 @@ static void test_cross_save(void) {
     mutated = fopen(path, "r+b");
     assert(mutated);
     assert(fseek(mutated, 45, SEEK_SET) == 0);
-    assert(fwrite(&invalid, sizeof(invalid), 1, mutated) == 1);
+    assert(fwrite(invalid, 1, sizeof(invalid), mutated) == sizeof(invalid));
     assert(fclose(mutated) == 0);
     assert(!cross_save_import(&preserved, path));
 

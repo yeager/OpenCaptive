@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Portable cross-save encoding)
+
+- Skrev cross-save-header, heltalsfält och droid-/nivåmetadata med explicit
+  little-endian-kodning i stället för plattformsberoende minnesrepresentation.
+- Lade till regressionstest som låser filformatets byteordning och gör korruptions-
+  testerna plattformsoberoende.
+
 ## 2026-08-06 (GitHub Actions checkout runtime)
 
 - Uppdaterade alla build- och releasejobb från `actions/checkout@v4` till v6,

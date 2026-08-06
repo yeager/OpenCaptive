@@ -7,6 +7,44 @@
 #define CROSS_SAVE_MAGIC 0x4F435356 /* "OCSV" */
 #define CROSS_SAVE_VERSION 1
 
+static bool read_exact(FILE *fp, void *dst, size_t size, size_t count);
+static bool write_exact(FILE *fp, const void *src, size_t size, size_t count);
+
+/* Cross-save is explicitly portable. Do not write native integer object
+ * representations: the old implementation happened to work on the current
+ * little-endian runners but produced unreadable files on big-endian hosts. */
+static bool write_le16(FILE *fp, uint16_t value) {
+    uint8_t bytes[2] = { (uint8_t)value, (uint8_t)(value >> 8) };
+    return write_exact(fp, bytes, 1, sizeof(bytes));
+}
+
+static bool write_le32(FILE *fp, uint32_t value) {
+    uint8_t bytes[4] = { (uint8_t)value, (uint8_t)(value >> 8),
+                         (uint8_t)(value >> 16), (uint8_t)(value >> 24) };
+    return write_exact(fp, bytes, 1, sizeof(bytes));
+}
+
+static bool read_le16(FILE *fp, uint16_t *value) {
+    uint8_t bytes[2];
+    if (!read_exact(fp, bytes, 1, sizeof(bytes))) return false;
+    *value = (uint16_t)bytes[0] | ((uint16_t)bytes[1] << 8);
+    return true;
+}
+
+static bool read_le32(FILE *fp, uint32_t *value) {
+    uint8_t bytes[4];
+    if (!read_exact(fp, bytes, 1, sizeof(bytes))) return false;
+    *value = (uint32_t)bytes[0] | ((uint32_t)bytes[1] << 8) |
+             ((uint32_t)bytes[2] << 16) | ((uint32_t)bytes[3] << 24);
+    return true;
+}
+
+static int16_t decode_i16(uint16_t raw) {
+    if (raw <= (uint16_t)INT16_MAX) return (int16_t)raw;
+    if (raw == UINT16_C(0x8000)) return INT16_MIN;
+    return (int16_t)-(int)(UINT32_C(0x10000) - raw);
+}
+
 static bool read_exact(FILE *fp, void *dst, size_t size, size_t count) {
     return fp && dst && fread(dst, size, count, fp) == count;
 }
@@ -54,10 +92,11 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
         } \
     } while (0)
 
-    uint32_t magic = CROSS_SAVE_MAGIC;
-    uint32_t version = CROSS_SAVE_VERSION;
-    WRITE_OR_FAIL(&magic, 4, 1);
-    WRITE_OR_FAIL(&version, 4, 1);
+    if (!write_le32(fp, CROSS_SAVE_MAGIC) ||
+        !write_le32(fp, CROSS_SAVE_VERSION)) {
+        fclose(fp);
+        return false;
+    }
 
     uint8_t game_type = (uint8_t)gs->game_type;
     WRITE_OR_FAIL(&game_type, 1, 1);
@@ -68,29 +107,44 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
         gs->num_levels, gs->base_id,
         gs->generators_total, gs->generators_destroyed, gs->gold
     };
-    WRITE_OR_FAIL(vals, sizeof(vals), 1);
-    WRITE_OR_FAIL(&gs->mission_seed, 4, 1);
-    WRITE_OR_FAIL(&gs->tick, 4, 1);
+    for (size_t i = 0; i < sizeof(vals) / sizeof(vals[0]); i++)
+        if (!write_le32(fp, (uint32_t)vals[i])) {
+            fclose(fp);
+            return false;
+        }
+    if (!write_le32(fp, gs->mission_seed) || !write_le32(fp, gs->tick)) {
+        fclose(fp);
+        return false;
+    }
 
     for (int d = 0; d < 4; d++) {
         const Droid *dr = &gs->droids[d];
         WRITE_OR_FAIL(dr->name, 16, 1);
-        WRITE_OR_FAIL(&dr->hp, 2, 1);
-        WRITE_OR_FAIL(&dr->hp_max, 2, 1);
-        WRITE_OR_FAIL(&dr->energy, 2, 1);
-        WRITE_OR_FAIL(&dr->energy_max, 2, 1);
+        if (!write_le16(fp, (uint16_t)dr->hp) ||
+            !write_le16(fp, (uint16_t)dr->hp_max) ||
+            !write_le16(fp, (uint16_t)dr->energy) ||
+            !write_le16(fp, (uint16_t)dr->energy_max)) {
+            fclose(fp);
+            return false;
+        }
         WRITE_OR_FAIL(dr->body_parts, 6, 1);
         WRITE_OR_FAIL(dr->weapons, 2, 1);
         WRITE_OR_FAIL(dr->items, 10, 1);
         WRITE_OR_FAIL(dr->skill_levels, 10, 1);
-        WRITE_OR_FAIL(&dr->xp, 4, 1);
-        WRITE_OR_FAIL(&dr->weapon_damage, 2, 1);
+        if (!write_le32(fp, dr->xp) ||
+            !write_le16(fp, dr->weapon_damage)) {
+            fclose(fp);
+            return false;
+        }
     }
 
     for (int l = 0; l < gs->num_levels && l < MAX_LEVELS; l++) {
         const DungeonLevel *lvl = &gs->levels[l];
-        WRITE_OR_FAIL(&lvl->level, 4, 1);
-        WRITE_OR_FAIL(&lvl->seed, 4, 1);
+        if (!write_le32(fp, (uint32_t)lvl->level) ||
+            !write_le32(fp, lvl->seed)) {
+            fclose(fp);
+            return false;
+        }
         for (int y = 0; y < MAP_HEIGHT; y++) {
             for (int x = 0; x < MAP_WIDTH; x++) {
                 const MapCell *c = &lvl->cells[y][x];
@@ -131,10 +185,10 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
 #define IMPORT_FAIL() do { fclose(fp); free(gs); return false; } while (0)
 
     uint32_t magic, version;
-    if (fread(&magic, 4, 1, fp) != 1 || magic != CROSS_SAVE_MAGIC) {
+    if (!read_le32(fp, &magic) || magic != CROSS_SAVE_MAGIC) {
         IMPORT_FAIL();
     }
-    if (fread(&version, 4, 1, fp) != 1 || version != CROSS_SAVE_VERSION) {
+    if (!read_le32(fp, &version) || version != CROSS_SAVE_VERSION) {
         IMPORT_FAIL();
     }
 
@@ -143,8 +197,17 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
         IMPORT_FAIL();
     }
 
+    uint32_t raw_vals[10];
     int32_t vals[10];
-    if (fread(vals, sizeof(vals), 1, fp) != 1 ||
+    bool vals_fit = true;
+    for (size_t i = 0; i < sizeof(raw_vals) / sizeof(raw_vals[0]); i++) {
+        if (!read_le32(fp, &raw_vals[i]) || raw_vals[i] > INT32_MAX) {
+            vals_fit = false;
+            break;
+        }
+        vals[i] = (int32_t)raw_vals[i];
+    }
+    if (!vals_fit ||
         vals[0] < 0 || vals[0] >= MAP_WIDTH || vals[1] < 0 || vals[1] >= MAP_HEIGHT ||
         vals[2] < DIR_NORTH || vals[2] > DIR_WEST ||
         vals[3] < 0 || vals[3] >= MAX_LEVELS || vals[4] < 1 ||
@@ -164,8 +227,8 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
     gs->generators_total = vals[7];
     gs->generators_destroyed = vals[8];
     gs->gold = vals[9];
-    if (!read_exact(fp, &gs->mission_seed, 4, 1) ||
-        !read_exact(fp, &gs->tick, 4, 1)) {
+    if (!read_le32(fp, &gs->mission_seed) ||
+        !read_le32(fp, &gs->tick)) {
         IMPORT_FAIL();
     }
 
@@ -184,18 +247,23 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
 
     for (int d = 0; d < 4; d++) {
         Droid *dr = &gs->droids[d];
+        uint16_t hp, hp_max, energy, energy_max, weapon_damage;
         if (!read_exact(fp, dr->name, 16, 1) ||
-            !read_exact(fp, &dr->hp, 2, 1) ||
-            !read_exact(fp, &dr->hp_max, 2, 1) ||
-            !read_exact(fp, &dr->energy, 2, 1) ||
-            !read_exact(fp, &dr->energy_max, 2, 1) ||
+            !read_le16(fp, &hp) || !read_le16(fp, &hp_max) ||
+            !read_le16(fp, &energy) || !read_le16(fp, &energy_max) ||
             !read_exact(fp, dr->body_parts, 6, 1) ||
             !read_exact(fp, dr->weapons, 2, 1) ||
             !read_exact(fp, dr->items, 10, 1) ||
             !read_exact(fp, dr->skill_levels, 10, 1) ||
-            !read_exact(fp, &dr->xp, 4, 1) ||
-            !read_exact(fp, &dr->weapon_damage, 2, 1) ||
-            dr->hp < 0 || dr->hp_max < 0 || dr->hp > dr->hp_max ||
+            !read_le32(fp, &dr->xp) || !read_le16(fp, &weapon_damage)) {
+            IMPORT_FAIL();
+        }
+        dr->hp = decode_i16(hp);
+        dr->hp_max = decode_i16(hp_max);
+        dr->energy = decode_i16(energy);
+        dr->energy_max = decode_i16(energy_max);
+        dr->weapon_damage = weapon_damage;
+        if (dr->hp < 0 || dr->hp_max < 0 || dr->hp > dr->hp_max ||
             dr->energy < 0 || dr->energy_max < 0 || dr->energy > dr->energy_max) {
             IMPORT_FAIL();
         }
@@ -204,11 +272,13 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
 
     for (int l = 0; l < gs->num_levels && l < MAX_LEVELS; l++) {
         DungeonLevel *lvl = &gs->levels[l];
-        if (!read_exact(fp, &lvl->level, 4, 1) ||
-            !read_exact(fp, &lvl->seed, 4, 1) ||
-            lvl->level < 0 || lvl->level >= MAX_LEVELS) {
+        uint32_t level, seed;
+        if (!read_le32(fp, &level) || level > INT32_MAX ||
+            !read_le32(fp, &seed) || level >= MAX_LEVELS) {
             IMPORT_FAIL();
         }
+        lvl->level = (int)level;
+        lvl->seed = seed;
         for (int y = 0; y < MAP_HEIGHT; y++) {
             for (int x = 0; x < MAP_WIDTH; x++) {
                 MapCell *c = &lvl->cells[y][x];
