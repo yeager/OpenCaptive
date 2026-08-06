@@ -3247,3 +3247,6 @@
 - Startmenyn ändrar inte längre hover-markeringen bakom setup- eller
   versionspopupen. När popupen stängs ligger markeringen därför kvar på rätt
   huvudmenyrad.
+- Windows-CI:s VFS-cachetest är nu deterministiskt: ersättningsarkivet ändrar
+  storlek så att källfingeravtrycket alltid invalideras även vid mycket snabba
+  omskrivningar inom samma Windows-tidsupplösning.

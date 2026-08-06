@@ -159,11 +159,15 @@ static void test_reads_zip_in_nested_data_directory(void) {
 
 static void test_replacing_zip_invalidates_live_cache(void) {
     const unsigned char original[] = { 1, 2, 3, 4 };
-    const unsigned char replacement[] = { 5, 6, 7, 8 };
+    /* A size change makes the source fingerprint change on every supported
+     * filesystem.  Same-size rewrites can retain identical observable
+     * metadata on Windows when they happen within one filesystem timestamp
+     * tick, which would make this cache test timing-dependent. */
+    const unsigned char replacement[] = { 5, 6, 7, 8, 9 };
     const char *original_hash =
         "9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a";
     const char *replacement_hash =
-        "55e5509f8052998294266ee5b50cb592938191fb5d67f73cac2e60b0276b1bdd";
+        "761ca8fd7dd51248e00a7dc1c746bbde94e51cb06aa67194843c495a863e0106";
 
     write_stored_zip("test-vfs-replace.zip", "payload.bin",
                      original, sizeof(original));
