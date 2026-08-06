@@ -754,26 +754,28 @@ static void vfs_cache_signature(const DataVFS *vfs, char out[65]) {
     cache_tree_metadata(&ctx, vfs->data_path, 0);
     for (int i = 0; i < vfs->num_zips; ++i) {
         struct stat st;
-        if (stat(vfs->zip_paths[i], &st) == 0) cache_meta_update(&ctx, vfs->zip_paths[i], &st);
+        if (stat(vfs->zip_paths[i], &st) == 0)
+            cache_meta_update(&ctx, vfs->zip_paths[i], &st);
     }
     sha256_final(&ctx, digest);
     for (int i = 0; i < 32; ++i) snprintf(out + i * 2, 3, "%02x", digest[i]);
     out[64] = '\0';
 }
 
-/* Probe only the data root and discovered archives.  Loose-file cache entries
- * carry their own source fingerprint and are validated individually when a
- * cache hit is read, so this common path does not walk the whole data tree. */
+/* Probe the complete metadata tree.  A directory timestamp is not guaranteed
+ * to change when a file is replaced on Windows, so probing only the data root
+ * can leave a live VFS using a stale global cache signature.  This still
+ * avoids reading or hashing file contents; the per-source fingerprint in the
+ * cache entry remains the final validation for loose files. */
 static void vfs_cache_probe_signature(const DataVFS *vfs, char out[65]) {
     SHA256Context ctx;
     uint8_t digest[32];
     sha256_init(&ctx);
     sha256_update(&ctx, (const uint8_t *)vfs->data_path,
                   strlen(vfs->data_path) + 1);
-    struct stat st;
-    if (stat(vfs->data_path, &st) == 0)
-        cache_meta_update(&ctx, vfs->data_path, &st);
+    cache_tree_metadata(&ctx, vfs->data_path, 0);
     for (int i = 0; i < vfs->num_zips; ++i) {
+        struct stat st;
         if (stat(vfs->zip_paths[i], &st) == 0)
             cache_meta_update(&ctx, vfs->zip_paths[i], &st);
     }

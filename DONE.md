@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Windows cache-invalidation i dataskannern)
+
+- GitHub Actions avslöjade att en ersatt lös fil kunde få gammal hashcache
+  på Windows när katalogens metadata inte ändrades.
+- VFS:ens snabba cacheprobe omfattar nu hela metadata-trädet, utan att läsa
+  eller hasha filinnehåll, så ersatta lösa filer invaliderar sina poster.
+- `data_vfs`-regressionstestet passerar lokalt efter ändringen.
+
 ## 2026-08-06 (Icke-blockerande Liberation-skanning)
 
 - Startmenyns Liberation-skanning verifierar nu bara nödvändiga källfiler
