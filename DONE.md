@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Main game-state stack usage)
+
+- Flyttade den långlivade `GameState`-instansen i huvudloopen till statiskt
+  minne. Den innehåller alla dungeon-nivåer och kunde annars överskrida
+  Windows standardstack vid programstart.
+- Full lokal testsvit passerar efter ändringen.
+
 ## 2026-08-06 (Mission generation stack usage)
 
 - Flyttade missionsgeneratorns temporära basnivåer från stacken till heapen.

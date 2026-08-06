@@ -1982,7 +1982,10 @@ int main(int argc, char *argv[]) {
     liberation_texture_filter = custom.texture_filter;
     liberation_dynamic_lighting = custom.dynamic_lighting;
 
-    GameState gs;
+    /* GameState owns every generated dungeon level.  Keeping it automatic
+     * here can exhaust the default Windows main-thread stack before the
+     * renderer has even started. */
+    static GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
     gs.config = config;
 
