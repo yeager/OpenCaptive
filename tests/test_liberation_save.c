@@ -269,6 +269,32 @@ static void test_read_previous_version_without_reputation(void) {
     unlink(TEST_PATH);
 }
 
+static void test_read_reputation_version(void) {
+    /* Version 5 added reputation and has the same on-disk shape as v7 when
+       no droid records are present. */
+    LibSaveData data;
+    memset(&data, 0, sizeof(data));
+    data.city_x = 0;
+    data.city_y = 0;
+    data.mission = 1;
+    data.reputation = -42;
+    assert(lib_save_write(&data, TEST_PATH));
+
+    FILE *f = fopen(TEST_PATH, "r+b");
+    assert(f != NULL);
+    assert(fseek(f, 4, SEEK_SET) == 0);
+    uint8_t version[2] = {0, LIB_SAVE_REPUTATION_VERSION};
+    assert(fwrite(version, 1, sizeof(version), f) == sizeof(version));
+    assert(fclose(f) == 0);
+
+    LibSaveData loaded;
+    memset(&loaded, 0xA5, sizeof(loaded));
+    assert(lib_save_read(&loaded, TEST_PATH));
+    assert(loaded.version == LIB_SAVE_REPUTATION_VERSION);
+    assert(loaded.reputation == -42);
+    unlink(TEST_PATH);
+}
+
 static void test_from_state(void) {
     CityNavState nav;
     memset(&nav, 0, sizeof(nav));
@@ -361,6 +387,7 @@ int main(void) {
     test_read_rejects_truncated_droid_payload();
     test_read_rejects_trailing_bytes();
     test_read_previous_version_without_reputation();
+    test_read_reputation_version();
     test_from_state();
     test_from_state_without_droids_is_empty();
     test_legacy_version_record_size_is_supported();

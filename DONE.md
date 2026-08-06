@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation save version 5)
+
+- Återställde läsning av Liberation-save version 5; versionskontrollen
+  deklarerade stödet men avvisade annars alla v5-filer.
+- Lade till regressionstest som läser ett v5-save med reputation-data.
+
 ## 2026-08-06 (Portable replay encoding)
 
 - Skrev replay-header, seed, antal och tickfält med explicit little-endian-

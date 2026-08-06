@@ -29,6 +29,8 @@
   the existing v1 layout while making exports portable across CPU byte orders.
 - Replay files now use the same explicit little-endian encoding for their v1
   header, seed, count, and input ticks.
+- Liberation save loading now accepts version 5 files, including their
+  reputation field, matching the versions advertised by the loader.
 - GitHub Actions workflows now use `actions/checkout@v6` and the Node 24
   runtime, removing the checkout action's Node 20 deprecation warning.
 
