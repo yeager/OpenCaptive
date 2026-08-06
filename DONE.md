@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive fiende-kollisioner per våning)
+
+- Fiende-AI: rörelse på aktuell nivå blockeras inte längre av en aktiv fiende
+  som råkar ha samma koordinater på en annan våning.
+- Lade till regressionsfall som täcker två våningar.
+- Lokal Werror/CTest: 58/58 tester passerar.
+
 ## 2026-08-06 (Captive creature-occlusion)
 
 - Aktiva fiender ritas nu bara i giltiga, synliga 19-cellerspositioner och

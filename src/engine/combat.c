@@ -269,6 +269,7 @@ void combat_tick(CreatureList *cl, GameState *gs) {
                 bool blocked = nx == gs->party_x && ny == gs->party_y;
                 for (int j = 0; j < creature_count; j++) {
                     if (j != i && cl->creatures[j].active &&
+                        cl->creatures[j].level == gs->current_level &&
                         cl->creatures[j].x == nx && cl->creatures[j].y == ny) {
                         blocked = true;
                         break;
