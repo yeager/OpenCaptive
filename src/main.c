@@ -2784,12 +2784,19 @@ int main(int argc, char *argv[]) {
                                 gs.droids[next].weapon_damage = td;
                             } else if (event.key.key == SDLK_RETURN) {
                                 if (gs.game_type == GAME_CAPTIVE && gs.num_levels == 0) {
-                                    if (custom.replay_playback && replay.seed != 0)
-                                        game_state_new_mission_seeded(&gs, gs.mission, replay.seed);
-                                    else
-                                        game_state_new_mission(&gs, gs.mission);
-                                    generate_captive_puzzles(&gs);
-                                    generate_captive_encounters(&gs);
+                                    bool mission_ready = custom.replay_playback && replay.seed != 0
+                                        ? game_state_new_mission_seeded(&gs, gs.mission, replay.seed)
+                                        : game_state_new_mission(&gs, gs.mission);
+                                    if (mission_ready) {
+                                        generate_captive_puzzles(&gs);
+                                        generate_captive_encounters(&gs);
+                                    } else {
+                                        /* Keep the configuration screen active if
+                                         * the temporary mission map could not be
+                                         * allocated; an empty dungeon must never
+                                         * enter the gameplay loop. */
+                                        break;
+                                    }
                                 }
                                 gs.mode = STATE_GAME;
                             }
@@ -3048,11 +3055,12 @@ int main(int argc, char *argv[]) {
                     if (event.type == SDL_EVENT_KEY_DOWN) {
                         switch (event.key.key) {
                             case SDLK_RETURN:
-                                game_state_new_mission(&gs, gs.mission + 1);
-                                generate_captive_puzzles(&gs);
-                                generate_captive_encounters(&gs);
-                                gs.mode = STATE_GAME;
-                                music_play(&music_sys, MUSIC_BASE);
+                                if (game_state_new_mission(&gs, gs.mission + 1)) {
+                                    generate_captive_puzzles(&gs);
+                                    generate_captive_encounters(&gs);
+                                    gs.mode = STATE_GAME;
+                                    music_play(&music_sys, MUSIC_BASE);
+                                }
                                 break;
                             case SDLK_S:
                                 shop_return_mode = STATE_HOLAMAP;

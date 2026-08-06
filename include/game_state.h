@@ -154,8 +154,8 @@ typedef struct {
 } GameState;
 
 void game_state_init(GameState *gs, GameType type, int mission);
-void game_state_new_mission(GameState *gs, int mission);
-void game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed);
+bool game_state_new_mission(GameState *gs, int mission);
+bool game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed);
 bool game_state_change_floor(GameState *gs, int direction);
 bool game_state_complete_mission(GameState *gs);
 

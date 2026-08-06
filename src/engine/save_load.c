@@ -481,7 +481,7 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
 #define LOAD_FAIL() do { fclose(f); free(restored); return false; } while (0)
     game_state_init(restored, GAME_CAPTIVE, (int)hdr.mission);
     restored->base_id = (int)hdr.base_id;
-    game_state_new_mission(restored, (int)hdr.mission);
+    if (!game_state_new_mission(restored, (int)hdr.mission)) LOAD_FAIL();
     if (restored->mission_seed != hdr.mission_seed ||
         restored->num_levels != hdr.num_levels ||
         hdr.current_level >= restored->num_levels)

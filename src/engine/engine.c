@@ -42,19 +42,19 @@ void game_state_init(GameState *gs, GameType type, int mission) {
     }
 }
 
-void game_state_new_mission(GameState *gs, int mission) {
-    if (!gs) return;
+bool game_state_new_mission(GameState *gs, int mission) {
+    if (!gs) return false;
     if (mission < 1) mission = 1;
     uint32_t seed = (uint32_t)((uint64_t)(mission - 1) * UINT64_C(11) +
                                (uint64_t)(int64_t)gs->base_id);
     /* Let the seeded implementation commit mission metadata only after its
      * temporary dungeon allocation succeeds.  Updating these fields here
      * would reintroduce a partially changed state on allocation failure. */
-    game_state_new_mission_seeded(gs, mission, seed);
+    return game_state_new_mission_seeded(gs, mission, seed);
 }
 
-void game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed) {
-    if (!gs) return;
+bool game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed) {
+    if (!gs) return false;
     if (mission < 1) mission = 1;
 
     // Architect creates one flattened 64x32 base whose 16x8 sections are
@@ -67,7 +67,7 @@ void game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed) {
        base levels automatic here overflows the default Windows thread stack
        even though the caller only needs the copied levels below. */
     DungeonLevel *base_buf = calloc(MAX_LEVELS, sizeof(*base_buf));
-    if (!base_buf) return;
+    if (!base_buf) return false;
     map_generate_base(base_buf, &base_levels, seed);
 
     /* Do not partially replace the active mission before the temporary map
@@ -125,9 +125,10 @@ void game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed) {
             }
         }
     }
-placed:
+    placed:
     gs->party_dir = DIR_NORTH;
     gs->mode = STATE_GAME;
+    return true;
 }
 
 bool game_state_change_floor(GameState *gs, int direction) {

@@ -29,6 +29,11 @@ static void test_puzzle_rejects_invalid_level(void) {
     assert(puzzles.num_puzzles == -1);
 }
 
+static void test_new_mission_rejects_null_state(void) {
+    assert(!game_state_new_mission(NULL, 1));
+    assert(!game_state_new_mission_seeded(NULL, 1, 0));
+}
+
 static void test_button_combo_solution_is_reachable(void) {
     GameState gs;
     PuzzleList puzzles = {0};
@@ -910,6 +915,7 @@ static void test_init_normalizes_invalid_mission(void) {
 }
 
 int main(void) {
+    test_new_mission_rejects_null_state();
     test_init_normalizes_invalid_mission();
     test_puzzle_rejects_invalid_level();
     test_button_combo_solution_is_reachable();

@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive mission-allocation failure)
+
+- Uppdragsgenerering returnerar nu lyckad/misslyckad status i stället för att
+  tyst lämna ett delvis initierat spel.
+- Start från droidkonfiguration, byte från Holomap och save-load går inte
+  längre vidare till spel med en tom dungeon om temporär kartallokering
+  misslyckas.
+- Regressionstestet täcker null-state-kontraktet för båda generator-API:erna.
+
 ## 2026-08-07 (Captive Holomap-shop transition)
 
 - Captive-shoppen minns nu om den öppnades från aktivt spel eller Holomap.
