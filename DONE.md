@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Empty deflated ZIP entries)
+
+- VFS-dekodern accepterar nu även giltiga deflaterade ZIP-poster med noll
+  bytes, i linje med hanteringen av tomma lösa och lagrade ZIP-filer.
+- Lade till regressionstest som täcker den komprimerade tomma posten i den
+  vanliga ZIP-vägen.
+
 ## 2026-08-06 (Runtime screen localization)
 
 - Synliga rubriker och statusmeddelanden i spelvyn använder nu samma l10n-väg

@@ -201,7 +201,7 @@ static uint8_t *zip_extract(const char *zip_path, const char *rel_path, size_t *
             (uint64_t)zip_size) break;
         if (fseek(f, local_name_len + local_extra_len, SEEK_CUR) != 0) break;
 
-        uint8_t *comp_data = malloc(comp_size);
+        uint8_t *comp_data = malloc(comp_size ? comp_size : 1U);
         if (!comp_data) break;
         if (fread(comp_data, 1, comp_size, f) != comp_size) {
             free(comp_data);
@@ -229,7 +229,10 @@ static uint8_t *zip_extract(const char *zip_path, const char *rel_path, size_t *
             strm.next_in = comp_data;
             strm.avail_in = comp_size;
             strm.next_out = out;
-            strm.avail_out = uncomp_size;
+            /* zlib needs a non-zero output window even for a valid empty
+             * deflate stream.  Keep the allocation addressable and verify
+             * that the stream still produced exactly the declared size. */
+            strm.avail_out = uncomp_size ? uncomp_size : 1U;
 
             if (inflateInit2(&strm, -MAX_WBITS) != Z_OK) {
                 free(comp_data);
@@ -284,7 +287,7 @@ static uint8_t *zip_extract_memory_entry(const uint8_t *archive, size_t archive_
         strm.next_in = (Bytef *)(archive + data_offset);
         strm.avail_in = comp_size;
         strm.next_out = out;
-        strm.avail_out = uncomp_size;
+        strm.avail_out = uncomp_size ? uncomp_size : 1U;
         int init_result = inflateInit2(&strm, -MAX_WBITS);
         if (init_result != Z_OK) {
             free(out);

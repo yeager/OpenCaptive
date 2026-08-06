@@ -53,6 +53,34 @@ static void write_stored_zip(const char *path, const char *name,
     assert(fclose(f) == 0);
 }
 
+static void write_empty_deflated_zip(const char *path, const char *name) {
+    /* Raw DEFLATE representation of an empty stream. */
+    const unsigned char compressed[] = {0x03, 0x00};
+    FILE *f = fopen(path, "wb");
+    assert(f);
+    unsigned name_size = (unsigned)strlen(name);
+    const unsigned crc = 0;
+
+    put32(f, 0x04034b50); put16(f, 20); put16(f, 0); put16(f, 8);
+    put16(f, 0); put16(f, 0); put32(f, crc); put32(f, sizeof(compressed));
+    put32(f, 0); put16(f, name_size); put16(f, 0);
+    fwrite(name, 1, name_size, f);
+    fwrite(compressed, 1, sizeof(compressed), f);
+
+    unsigned cd_offset = 30 + name_size + (unsigned)sizeof(compressed);
+    put32(f, 0x02014b50); put16(f, 20); put16(f, 20); put16(f, 0);
+    put16(f, 8); put16(f, 0); put16(f, 0); put32(f, crc);
+    put32(f, sizeof(compressed));
+    put32(f, 0); put16(f, name_size); put16(f, 0); put16(f, 0); put16(f, 0);
+    put16(f, 0); put32(f, 0); put32(f, 0);
+    fwrite(name, 1, name_size, f);
+
+    unsigned cd_size = 46 + name_size;
+    put32(f, 0x06054b50); put16(f, 0); put16(f, 0); put16(f, 1); put16(f, 1);
+    put32(f, cd_size); put32(f, cd_offset); put16(f, 0);
+    assert(fclose(f) == 0);
+}
+
 static void test_reads_prefixed_case_insensitive_zip_entry(void) {
     const unsigned char payload[] = { 1, 2, 3, 4 };
     write_stored_zip("test-vfs-assets.zip", "captIve/CAPICS/WALLA.PL5", payload, sizeof(payload));
@@ -199,6 +227,18 @@ static void test_reads_empty_stored_zip_entry(void) {
     assert(remove("test-vfs-empty.zip") == 0);
 }
 
+static void test_reads_empty_deflated_zip_entry(void) {
+    write_empty_deflated_zip("test-vfs-empty-deflated.zip", "empty.bin");
+    DataVFS vfs;
+    assert(vfs_init(&vfs, "."));
+    size_t size = 99;
+    uint8_t *result = vfs_read_file(&vfs, "empty.bin", &size);
+    assert(result && size == 0);
+    free(result);
+    vfs_free(&vfs);
+    assert(remove("test-vfs-empty-deflated.zip") == 0);
+}
+
 static void test_finds_hash_in_nested_zip(void) {
     const unsigned char payload[] = { 0xca, 0xfe, 0xba, 0xbe };
     write_stored_zip("test-vfs-inner.zip", "original-media.adf", payload, sizeof(payload));
@@ -234,6 +274,7 @@ int main(void) {
     test_finds_hash_in_extracted_tree();
     test_reads_and_hashes_empty_file();
     test_reads_empty_stored_zip_entry();
+    test_reads_empty_deflated_zip_entry();
     test_finds_hash_in_nested_zip();
     puts("All data VFS tests passed");
     return 0;
