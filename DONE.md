@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive spawn-positioner)
+
+- Nya Captive-encounters och byggnadsinteriörer undviker nu alltid partiets
+  aktuella ruta när fiender skapas.
+- Den tidigare spawnvägen kunde skapa en aktiv fiende direkt ovanpå party,
+  vilket gav inkonsekvent rendering, omedelbar kollision och ett save-läge
+  som senare avvisades av valideringen.
+- Regressionstestet täcker 512 deterministiska seeds; Werror, UBSAN och hela
+  testsviten (58/58) passerar.
+
 ## 2026-08-07 (Captive gemensamt datamanifest)
 
 - Captive-start, startmenyns skanner och `--verify-data captive` använder nu

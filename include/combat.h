@@ -70,6 +70,13 @@ typedef struct {
 void combat_init(CreatureList *cl);
 void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
                             int level_num, uint32_t seed);
+/* Spawn a level's encounters without placing an active creature on the
+ * current party cell.  The plain API remains useful for isolated generation
+ * tests that do not have a party state. */
+void combat_spawn_for_level_avoiding_party(CreatureList *cl,
+                                           const DungeonLevel *lvl,
+                                           int level_num, uint32_t seed,
+                                           const GameState *gs);
 bool combat_cell_occupied(const CreatureList *cl, int level, int x, int y);
 
 /* Change Captive floors only when the generated arrival cell is not occupied

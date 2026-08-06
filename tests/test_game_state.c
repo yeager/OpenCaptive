@@ -256,6 +256,27 @@ static void test_combat_spawn_never_overlaps_active_creatures(void) {
     }
 }
 
+static void test_combat_spawn_avoids_party_cell(void) {
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+
+    for (uint32_t seed = 0; seed < 512; seed++) {
+        CreatureList creatures;
+        combat_init(&creatures);
+        combat_spawn_for_level_avoiding_party(&creatures, &gs.levels[0], 0,
+                                              seed, &gs);
+        assert(!combat_cell_occupied(&creatures, gs.current_level,
+                                     gs.party_x, gs.party_y));
+    }
+}
+
 static void move_to_stair(GameState *gs, CellType stair) {
     for (int y = 0; y < MAP_HEIGHT; y++)
         for (int x = 0; x < MAP_WIDTH; x++)
@@ -869,6 +890,7 @@ int main(void) {
     test_combat_does_not_heal_from_invalid_damage();
     test_combat_spawn_extreme_level_seed_is_defined();
     test_combat_spawn_normalizes_negative_creature_count();
+    test_combat_spawn_avoids_party_cell();
     test_generator_counter_does_not_overflow();
     test_combat_rejects_invalid_position_state();
     test_campaign_progression();

@@ -48,8 +48,10 @@ void combat_init(CreatureList *cl) {
     memset(cl, 0, sizeof(*cl));
 }
 
-void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
-                            int level_num, uint32_t seed) {
+static void combat_spawn_for_level_internal(CreatureList *cl,
+                                             const DungeonLevel *lvl,
+                                             int level_num, uint32_t seed,
+                                             const GameState *avoid_party) {
     if (!cl || !lvl || level_num < 0 || level_num >= MAX_LEVELS) return;
     if (cl->num_creatures < 0) cl->num_creatures = 0;
     if (cl->num_creatures > MAX_CREATURES) return;
@@ -84,6 +86,9 @@ void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
                 if (spawn_x < 0 || spawn_x >= MAP_WIDTH ||
                     spawn_y < 0 || spawn_y >= MAP_HEIGHT ||
                     lvl->cells[spawn_y][spawn_x].type != CELL_FLOOR ||
+                    (avoid_party && level_num == avoid_party->current_level &&
+                     spawn_x == avoid_party->party_x &&
+                     spawn_y == avoid_party->party_y) ||
                     combat_cell_occupied(cl, level_num, spawn_x, spawn_y))
                     continue;
                 SpawnEntry *se = &sr.entries[s];
@@ -128,6 +133,23 @@ void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
             break;
         }
     }
+}
+
+void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
+                            int level_num, uint32_t seed) {
+    combat_spawn_for_level_internal(cl, lvl, level_num, seed, NULL);
+}
+
+void combat_spawn_for_level_avoiding_party(CreatureList *cl,
+                                           const DungeonLevel *lvl,
+                                           int level_num, uint32_t seed,
+                                           const GameState *gs) {
+    if (!gs || gs->current_level < 0 || gs->current_level >= MAX_LEVELS ||
+        gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
+        gs->party_y < 0 || gs->party_y >= MAP_HEIGHT)
+        combat_spawn_for_level_internal(cl, lvl, level_num, seed, NULL);
+    else
+        combat_spawn_for_level_internal(cl, lvl, level_num, seed, gs);
 }
 
 static int distance(int x1, int y1, int x2, int y2) {

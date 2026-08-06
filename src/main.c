@@ -589,8 +589,8 @@ static void generate_captive_encounters(const GameState *gs) {
         gs->num_levels < 1 || gs->num_levels > MAX_LEVELS) return;
     combat_init(&creatures);
     for (int level = 0; level < gs->num_levels; level++)
-        combat_spawn_for_level(&creatures, &gs->levels[level], level,
-                               gs->mission_seed);
+        combat_spawn_for_level_avoiding_party(&creatures, &gs->levels[level],
+                                              level, gs->mission_seed, gs);
 }
 
 #define MSG_LOG_SIZE 4
@@ -1490,8 +1490,8 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                                     if (gs->levels[f].cells[y3][x3].type == CELL_GENERATOR)
                                         gs->generators_total++;
                         combat_init(&creatures);
-                        combat_spawn_for_level(&creatures, &gs->levels[0], 0,
-                                               gs->mission_seed);
+                        combat_spawn_for_level_avoiding_party(
+                            &creatures, &gs->levels[0], 0, gs->mission_seed, gs);
                         msg_push(_("Entered building interior"), 0xFF44AAFF);
                     }
                 }
