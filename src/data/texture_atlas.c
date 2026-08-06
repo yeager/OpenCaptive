@@ -52,6 +52,13 @@ bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs) {
         atlas->loaded = atlas->loaded && atlas->wall_sheets[i] >= 0;
     for (int i = 0; i < CAPTIVE_VIEW_SOURCE_COUNT; ++i)
         atlas->loaded = atlas->loaded && atlas->view_sheets[i] >= 0;
+    if (!atlas->loaded) {
+        /* Loading can fail after several hash-verified sheets have already
+         * allocated pixel buffers.  Leave callers with a clean, empty atlas
+         * even when they only inspect the boolean return value. */
+        texture_atlas_free(atlas);
+        return false;
+    }
     return atlas->loaded;
 }
 
