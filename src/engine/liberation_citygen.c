@@ -209,6 +209,8 @@ void citygen_place_buildings(CityGrid *grid) {
  */
 void citygen_assign_types(CityGrid *grid) {
     if (!grid) return;
+    if (grid->total_buildings > CITYGEN_MAX_BUILDINGS)
+        grid->total_buildings = CITYGEN_MAX_BUILDINGS;
     /* Seed scramble: ror 4 before assignment (0x1A80) */
     grid->prng_state = ror16(grid->prng_state, 4);
 

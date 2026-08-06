@@ -177,6 +177,16 @@ static void test_high_level_derived_counts_are_consistent(void) {
            grid.side_buildings + grid.road_buildings + grid.buildings_per_segment + 1);
 }
 
+static void test_assign_types_clamps_corrupt_building_count(void) {
+    CityGrid grid;
+    citygen_init(&grid, 123, 4);
+    grid.total_buildings = CITYGEN_MAX_BUILDINGS + 1;
+    citygen_assign_types(&grid);
+    assert(grid.total_buildings == CITYGEN_MAX_BUILDINGS);
+    for (int i = 0; i < CITYGEN_MAX_BUILDINGS; i++)
+        assert(grid.buildings[i].type < CITYGEN_BUILDING_TYPES);
+}
+
 int main(void) {
     printf("test_liberation_citygen:\n");
     test_prng();
@@ -190,6 +200,7 @@ int main(void) {
     test_level_scaling();
     test_high_level_density_clamps();
     test_high_level_derived_counts_are_consistent();
+    test_assign_types_clamps_corrupt_building_count();
     printf("All liberation citygen tests passed.\n");
     return 0;
 }
