@@ -380,6 +380,36 @@ static void test_load_rejects_noncanonical_creature_flag(void) {
     assert(!load_game(&loaded, &loaded_creatures, &loaded_puzzles, save_path));
 }
 
+static void test_load_rejects_noncanonical_puzzle_flag(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    puzzles.num_puzzles = 1;
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_LEVER, .x = 1, .y = 1, .level = 0,
+        .face = DIR_NORTH, .target_x = -1, .target_y = -1,
+        .solved = false
+    };
+    assert(save_game(&gs, &creatures, &puzzles, save_path));
+
+    FILE *file = fopen(save_path, "r+b");
+    assert(file != NULL);
+    long puzzle_offset = 72L + 4L * 64L +
+        (long)gs.num_levels * MAP_WIDTH * MAP_HEIGHT * 2L;
+    /* Puzzle v5: solved is the final byte after type, four coordinates,
+     * state, solution and two target coordinates. */
+    assert(fseek(file, puzzle_offset + 30, SEEK_SET) == 0);
+    assert(fputc(2, file) != EOF);
+    assert(fclose(file) == 0);
+
+    GameState loaded;
+    CreatureList loaded_creatures = {0};
+    PuzzleList loaded_puzzles = {0};
+    assert(!load_game(&loaded, &loaded_creatures, &loaded_puzzles, save_path));
+}
+
 static void test_puzzle_interact_rejects_invalid_state(void) {
     PuzzleList puzzles = {0};
     GameState gs;
@@ -466,6 +496,7 @@ int main(void) {
     test_save_rejects_invalid_creature_runtime_fields();
     test_save_rejects_blocked_runtime_positions();
     test_load_rejects_noncanonical_creature_flag();
+    test_load_rejects_noncanonical_puzzle_flag();
     test_puzzle_interact_rejects_invalid_state();
     test_power_socket_recharges_420_energy();
     test_binary_lever_hint_uses_bit_zero();

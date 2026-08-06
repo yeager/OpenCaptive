@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive save validation)
+
+- Sparfiler avvisar nu icke-kanoniska värden för pusslens boolska statusflagga.
+- Regressionstest säkerställer att en manipulerad `solved`-byte inte kan skapa
+  en ogiltig C-`bool` vid laddning.
+
 ## 2026-08-07 (Captive button placement)
 
 - Knappgeneratorn placerar nu bara knappar med en faktisk vägg bakom sig.

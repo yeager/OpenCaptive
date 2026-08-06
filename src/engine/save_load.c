@@ -195,12 +195,15 @@ static bool write_puzzle_v5(FILE *f, const Puzzle *p) {
 
 static bool read_puzzle_v5(FILE *f, Puzzle *p) {
     uint32_t type;
-    return read_u32_le(f, &type) && (p->type = (PuzzleType)type, true) &&
+    uint8_t solved;
+    bool ok = read_u32_le(f, &type) && (p->type = (PuzzleType)type, true) &&
            read_i32_le(f, &p->x) && read_i32_le(f, &p->y) &&
            read_i32_le(f, &p->level) && read_i32_le(f, &p->face) &&
            fread(&p->state, 1, 1, f) == 1 && fread(&p->solution, 1, 1, f) == 1 &&
            read_i32_le(f, &p->target_x) && read_i32_le(f, &p->target_y) &&
-           fread(&p->solved, 1, 1, f) == 1;
+           fread(&solved, 1, 1, f) == 1 && solved <= 1;
+    if (ok) p->solved = solved != 0;
+    return ok;
 }
 
 static bool valid_puzzle_target(const Puzzle *p) {
