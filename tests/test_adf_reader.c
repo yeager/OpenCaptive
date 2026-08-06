@@ -13,7 +13,7 @@ static void put_be32(uint8_t *p, uint32_t value) {
 }
 
 int main(void) {
-    static uint8_t image[ADF_DISK_SIZE];
+    static uint8_t image[ADF_DISK_SIZE + ADF_SECTOR_SIZE];
     ADFDisk disk;
     memset(&disk, 0xA5, sizeof(disk));
     assert(!adf_open(&disk, image, ADF_DISK_SIZE - 1U));
@@ -42,6 +42,10 @@ int main(void) {
     assert(empty != NULL);
     assert(empty_size == 0);
     free(empty);
+
+    /* Extra bytes after a standard ADF are not additional disk blocks. */
+    put_be32(image + ADF_DISK_SIZE, 2);
+    assert(adf_read_file(&disk, ADF_DISK_SIZE / ADF_SECTOR_SIZE, NULL) == NULL);
 
     put_be32(entry, 8); /* T_DATA is not a file header */
     assert(adf_read_file(&disk, ADF_ROOT_BLOCK + 1U, NULL) == NULL);

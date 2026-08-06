@@ -6,10 +6,15 @@ static uint32_t read_be32(const uint8_t *p) {
     return ((uint32_t)p[0]<<24)|((uint32_t)p[1]<<16)|((uint32_t)p[2]<<8)|p[3];
 }
 
+static size_t disk_limit(const ADFDisk *disk) {
+    (void)disk;
+    return ADF_DISK_SIZE;
+}
+
 static const uint8_t *block_ptr(const ADFDisk *disk, uint32_t block) {
     if (!disk || !disk->data) return NULL;
     uint64_t offset = (uint64_t)block * ADF_SECTOR_SIZE;
-    if (offset + ADF_SECTOR_SIZE > disk->size) return NULL;
+    if (offset + ADF_SECTOR_SIZE > disk_limit(disk)) return NULL;
     return disk->data + (size_t)offset;
 }
 
@@ -54,7 +59,7 @@ int adf_list_root(const ADFDisk *disk, ADFEntry *entries, int max_entries) {
     int count = 0;
     for (int i = 0; i < 72 && count < max_entries; i++) {
         uint32_t block_num = read_be32(root + 24 + i * 4);
-        size_t blocks_left = disk->size / ADF_SECTOR_SIZE + 1U;
+        size_t blocks_left = disk_limit(disk) / ADF_SECTOR_SIZE + 1U;
         while (block_num != 0 && count < max_entries && blocks_left-- > 0) {
             const uint8_t *hdr = block_ptr(disk, block_num);
             if (!hdr) break;
@@ -94,7 +99,7 @@ uint8_t *adf_read_file(const ADFDisk *disk, uint32_t header_block, uint32_t *out
     if (read_be32(hdr) != 2) return NULL; /* T_HEADER */
 
     uint32_t file_size = read_be32(hdr + 324);
-    if ((uint64_t)file_size > disk->size) return NULL;
+    if ((uint64_t)file_size > disk_limit(disk)) return NULL;
 
     uint8_t *result = malloc(file_size ? file_size : 1U);
     if (!result) return NULL;
@@ -109,7 +114,7 @@ uint8_t *adf_read_file(const ADFDisk *disk, uint32_t header_block, uint32_t *out
         uint32_t first_data = read_be32(hdr + 16);
         uint32_t written = 0;
         uint32_t data_block = first_data;
-        size_t blocks_left = disk->size / ADF_SECTOR_SIZE + 1U;
+        size_t blocks_left = disk_limit(disk) / ADF_SECTOR_SIZE + 1U;
 
         while (data_block != 0 && remaining > 0 && blocks_left-- > 0) {
             const uint8_t *db = block_ptr(disk, data_block);
@@ -133,7 +138,7 @@ uint8_t *adf_read_file(const ADFDisk *disk, uint32_t header_block, uint32_t *out
         // Extension blocks for files > 72*512 bytes
         uint32_t written = 0;
         uint32_t cur_header = header_block;
-        size_t blocks_left = disk->size / ADF_SECTOR_SIZE + 1U;
+        size_t blocks_left = disk_limit(disk) / ADF_SECTOR_SIZE + 1U;
 
         while (remaining > 0 && cur_header != 0 && blocks_left-- > 0) {
             const uint8_t *h = block_ptr(disk, cur_header);
