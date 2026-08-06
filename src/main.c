@@ -3712,21 +3712,21 @@ int main(int argc, char *argv[]) {
                 memset(framebuffer, 0, (size_t)pw * ph * sizeof(uint32_t));
                 draw_centered(framebuffer, pw, ph, 5, _("CONTROLS"), 0xFFFFFF44, 2);
                 const char *help[] = {
-                    "W/UP: Move forward",
-                    "S/DOWN: Move backward",
-                    "A/LEFT: Turn left",
-                    "D/RIGHT: Turn right",
-                    "F/ENTER: Interact",
-                    "TAB: Inventory",
-                    "1-4: Select droid",
-                    "SPACE: Attack",
-                    ".: Stairs down",
-                    ",: Stairs up",
-                    "F5: Save  F9: Load",
-                    "H: This help",
-                    "ESC: Pause menu",
+                    _("W/UP: Move forward"),
+                    _("S/DOWN: Move backward"),
+                    _("A/LEFT: Turn left"),
+                    _("D/RIGHT: Turn right"),
+                    _("F/ENTER: Interact"),
+                    _("TAB: Inventory"),
+                    _("1-4: Select droid"),
+                    _("SPACE: Attack"),
+                    _(".: Stairs down"),
+                    _(",: Stairs up"),
+                    _("F5: Save  F9: Load"),
+                    _("H: This help"),
+                    _("ESC: Pause menu"),
                     "",
-                    "Press any key",
+                    _("Press any key"),
                 };
                 int nlines = (int)(sizeof(help) / sizeof(help[0]));
                 for (int i = 0; i < nlines; i++)
@@ -3771,12 +3771,12 @@ int main(int argc, char *argv[]) {
                     int yy = 35 + d * 28;
                     uint32_t col = (d == droid_config_cursor) ? 0xFFFFFF44 : 0xFF888888;
                     char line[80];
-                    snprintf(line, sizeof(line), "%s %s  HP:%d  EN:%d",
+                    snprintf(line, sizeof(line), _("%s %s  HP:%d  EN:%d"),
                              (d == droid_config_cursor) ? ">" : " ",
                              gs.droids[d].name, gs.droids[d].hp, gs.droids[d].energy);
                     draw_simple_text(framebuffer, cw, ch, 10, yy, line, col, 1);
                     char parts[64];
-                    snprintf(parts, sizeof(parts), "  Parts: %d %d %d %d %d %d",
+                    snprintf(parts, sizeof(parts), _("  Parts: %d %d %d %d %d %d"),
                              gs.droids[d].body_part_hp[0], gs.droids[d].body_part_hp[1],
                              gs.droids[d].body_part_hp[2], gs.droids[d].body_part_hp[3],
                              gs.droids[d].body_part_hp[4], gs.droids[d].body_part_hp[5]);
@@ -3784,11 +3784,11 @@ int main(int argc, char *argv[]) {
                 }
                 if (droid_config_renaming) {
                     char ren[48];
-                    snprintf(ren, sizeof(ren), "RENAME: %s_", gs.droids[droid_config_cursor].name);
+                    snprintf(ren, sizeof(ren), _("RENAME: %s_"), gs.droids[droid_config_cursor].name);
                     draw_centered(framebuffer, cw, ch, ch - 35, ren, 0xFFFFFF00, 1);
                 } else {
                     draw_simple_text(framebuffer, cw, ch, 10, ch - 35,
-                                     "R:RENAME  S:SWAP WEAPONS", 0xFF666666, 1);
+                                     _("R:RENAME  S:SWAP WEAPONS"), 0xFF666666, 1);
                 }
                 draw_centered(framebuffer, cw, ch, ch - 20, _("ENTER: START MISSION"), 0xFF00CC00, 1);
                 break;

@@ -956,3 +956,78 @@ msgstr ""
 #: src/main.c:3087
 msgid "VERIFIED LIBERATION PRESENTATION DATA REQUIRED"
 msgstr ""
+
+#: src/main.c
+msgid "W/UP: Move forward"
+msgstr ""
+
+#: src/main.c
+msgid "S/DOWN: Move backward"
+msgstr ""
+
+#: src/main.c
+msgid "A/LEFT: Turn left"
+msgstr ""
+
+#: src/main.c
+msgid "D/RIGHT: Turn right"
+msgstr ""
+
+#: src/main.c
+msgid "F/ENTER: Interact"
+msgstr ""
+
+#: src/main.c
+msgid "TAB: Inventory"
+msgstr ""
+
+#: src/main.c
+msgid "1-4: Select droid"
+msgstr ""
+
+#: src/main.c
+msgid "SPACE: Attack"
+msgstr ""
+
+#: src/main.c
+msgid ".: Stairs down"
+msgstr ""
+
+#: src/main.c
+msgid ",: Stairs up"
+msgstr ""
+
+#: src/main.c
+msgid "F5: Save  F9: Load"
+msgstr ""
+
+#: src/main.c
+msgid "H: This help"
+msgstr ""
+
+#: src/main.c
+msgid "ESC: Pause menu"
+msgstr ""
+
+#: src/main.c
+msgid "Press any key"
+msgstr ""
+
+#: src/main.c
+#, c-format
+msgid "%s %s  HP:%d  EN:%d"
+msgstr ""
+
+#: src/main.c
+#, c-format
+msgid "  Parts: %d %d %d %d %d %d"
+msgstr ""
+
+#: src/main.c
+#, c-format
+msgid "RENAME: %s_"
+msgstr ""
+
+#: src/main.c
+msgid "R:RENAME  S:SWAP WEAPONS"
+msgstr ""

@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive hjälp- och droidkonfiguration l10n)
+
+- Captives hjälpskärm använder nu i18n för rörelse, interaktion, inventarie,
+  strid, sparning och paus.
+- Droidkonfigurationens status, namnbyte och vapenbytesinstruktioner går nu
+  också via i18n i stället för hårdkodad engelska.
+- Lade till de nya meddelande-ID:na i `po/messages.pot` för de 18 språkfilerna;
+  språk utan färdig översättning använder den säkra engelska fallbacken.
+- Werror-bygg och hela den lokala testsviten är verifierade: 58 av 58 test
+  passerar.
+
 ## 2026-08-07 (Captive deterministisk skanningscache)
 
 - Metadata-signaturen för dataskanningen sorterar nu kataloginnehållet innan
