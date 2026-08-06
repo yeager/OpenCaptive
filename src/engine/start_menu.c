@@ -3,7 +3,7 @@
 #include "data_vfs.h"
 #include "sha256.h"
 #include "liberation_data.h"
-#include "texture_atlas.h"
+#include "captive_scene_assets.h"
 #include "i18n.h"
 #include <stdlib.h>
 #include <string.h>
@@ -13,21 +13,21 @@
 
 extern unsigned char *load_png_file(const char *path, int *w, int *h);
 
-static const char *captive_required_hashes[] = {
+/* These two files are required by the Captive DOS boot path.  The complete
+ * first-person atlas is kept in captive_scene_assets.c so startup, rendering
+ * and the incremental scanner cannot drift apart. */
+static const char *captive_boot_hashes[] = {
     "71bcf404103f1ac2920800a8bc166939bb49a1204cf51bebce8aca7dd5faafde",
     "1ec1f90adbcfcb3b99b64a56cf1c669b409b7d3a76bc09cedb056f503bfb1959",
-    "47ad15b4a593c37880d0306b6a0f51b7a9f20615cf6a188f23716d5b48315524",
-    "43833e4a8df622f84d53698a76c6d18f910c1cca79c6b89cbfacc563f695356c",
-    "8b7301fc6c302fd673a81d23e7a99d715aa02d5b404c1e1edea19ceccccc9681",
-    "519d3ef4494f0e868479a90c8a47249b840598e382c7ba3272f417ce3daf5936",
-    "7edb8ee856a91e835ea86dda00af49fda3dae730d694bd7234b7fa96d711e296",
-    "978d18857d5ffcf6fb7b91fb22c02b85079db0171caeac3d290a69b276cf098f",
-    "dec7143f063c98459ab2f267ed135204cdee1b521eda9810b219e8c10e05c7e8",
-    "ce00ba2bc78f160b934486fe101a90264163356e02e7acbea2a41cf5d125b017",
-    "21db7daf64cff3b0cae19c3e7eb2057762df9110055e7253175024ecb146fb6b",
-    "dfca77f0e219962242226f11f9697f580f92e8ad24786296a5b2571b20c2b707",
 };
-#define CAPTIVE_HASH_COUNT (sizeof(captive_required_hashes)/sizeof(captive_required_hashes[0]))
+#define CAPTIVE_BOOT_HASH_COUNT \
+    (sizeof(captive_boot_hashes) / sizeof(captive_boot_hashes[0]))
+#define CAPTIVE_HASH_COUNT (CAPTIVE_BOOT_HASH_COUNT + CAPTIVE_VIEW_SOURCE_COUNT)
+
+static const char *captive_scan_hash(size_t index) {
+    if (index < CAPTIVE_BOOT_HASH_COUNT) return captive_boot_hashes[index];
+    return captive_view_source_hashes[index - CAPTIVE_BOOT_HASH_COUNT];
+}
 
 static void stop_data_scanner(StartMenu *menu);
 
@@ -459,7 +459,7 @@ void start_menu_check_data(StartMenu *menu, const char *data_path) {
     bool dos_valid = true;
     for (size_t i = 0; i < CAPTIVE_HASH_COUNT; i++) {
         size_t sz = 0;
-        uint8_t *d = vfs_find_sha256(&vfs, captive_required_hashes[i], &sz);
+        uint8_t *d = vfs_find_sha256(&vfs, captive_scan_hash(i), &sz);
         if (d) free(d); else { dos_valid = false; break; }
     }
     /* The Amiga verifier is intentionally not part of this playable-source
@@ -637,7 +637,7 @@ void start_menu_update(StartMenu *menu) {
         if (menu->scanner_captive_index < CAPTIVE_HASH_COUNT) {
             size_t sz = 0;
             uint8_t *d = vfs_find_sha256(&menu->scanner_vfs,
-                                         captive_required_hashes[menu->scanner_captive_index],
+                                         captive_scan_hash(menu->scanner_captive_index),
                                          &sz);
             if (d) {
                 free(d);

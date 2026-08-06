@@ -3430,3 +3430,10 @@
 - Lade till `test_viewport`, som verifierar att både dungeon- och creature-
   rendering skriver till Captive-vyn.
 - Lokal Werror-svit: 58/58 tester passerar.
+## 2026-08-07 (Captive komplett skannerframsteg)
+
+- Startmenyns Captive-skanning verifierar nu bootfilerna tillsammans med
+  hela den 23-delade förstapersonsatlasen.
+- Framstegsindikatorn kan därför inte längre visa en färdig Captive-kontroll
+  innan samma resurser som renderaren kräver är verifierade.
+- `build-werror` och hela testsviten (58/58) passerar.
