@@ -3304,3 +3304,6 @@
 - Liberation-butiken mappar nu sina produktnamn till riktiga Captive-item-ID:n.
   Exempelvis blir Laser Pistol inte längre felaktigt droiddelen HEAD; ett
   regressionsprov verifierar hela produktkatalogens runtime-mappning.
+- Captive-savefiler får inte längre styra droidens härledda vapenskada. Vid
+  laddning räknas `weapon_damage` om från validerade vapenplatser, med ett
+  regressionsprov för manipulerade sparfiler.

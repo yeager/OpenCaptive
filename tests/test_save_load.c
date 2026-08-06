@@ -99,6 +99,28 @@ static void test_corrupt_save_preserves_state(void) {
     assert(target.mission == 99 && target.party_x == 55);
 }
 
+static void test_load_recomputes_derived_weapon_damage(void) {
+    GameState saved, loaded;
+    CreatureList creatures = {0}, loaded_creatures = {0};
+    PuzzleList puzzles = {0}, loaded_puzzles = {0};
+    game_state_init(&saved, GAME_CAPTIVE, 1);
+    game_state_new_mission(&saved, 1);
+    saved.droids[0].weapons[0] = 13; /* KNUCKLE-DUSTER */
+    assert(save_game(&saved, &creatures, &puzzles, save_path));
+
+    FILE *file = fopen(save_path, "r+b");
+    assert(file != NULL);
+    /* v5 header is 18 little-endian u32 fields; weapon_damage is the final
+     * two bytes of the first 64-byte droid record. */
+    assert(fseek(file, 72 + 62, SEEK_SET) == 0);
+    assert(fputc(0xFF, file) != EOF && fputc(0xFF, file) != EOF);
+    assert(fclose(file) == 0);
+
+    assert(load_game(&loaded, &loaded_creatures, &loaded_puzzles, save_path));
+    assert(loaded.droids[0].weapons[0] == 13);
+    assert(loaded.droids[0].weapon_damage != UINT16_MAX);
+}
+
 static void test_trailing_save_bytes_rejected(void) {
     GameState saved;
     CreatureList creatures = {0};
@@ -316,6 +338,7 @@ static void test_binary_lever_hint_uses_bit_zero(void) {
 int main(void) {
     test_round_trip();
     test_corrupt_save_preserves_state();
+    test_load_recomputes_derived_weapon_damage();
     test_trailing_save_bytes_rejected();
     test_unknown_item_id_rejected();
     test_droid_slots_use_matching_item_categories();

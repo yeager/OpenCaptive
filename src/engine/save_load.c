@@ -234,6 +234,27 @@ static bool valid_droid_items(const ItemDatabase *db, const Droid *d) {
     return true;
 }
 
+static void recalc_weapon_damage(const ItemDatabase *db, Droid *d) {
+    if (!db || !d) return;
+    uint16_t best = 0;
+    int best_damage = 0;
+    for (size_t i = 0; i < sizeof(d->weapons); ++i) {
+        const Item *item = item_db_get(db, d->weapons[i]);
+        if (!item || item->damage_min < 0 || item->damage_min > UINT8_MAX ||
+            item->damage_max < 0 || item->damage_max > UINT8_MAX)
+            continue;
+        uint8_t lo = (uint8_t)item->damage_min;
+        uint8_t hi = (uint8_t)item->damage_max;
+        uint16_t encoded = (uint16_t)lo | ((uint16_t)hi << 8);
+        int damage = (int)lo * (int)hi;
+        if (damage > best_damage || (damage == best_damage && encoded > best)) {
+            best_damage = damage;
+            best = encoded;
+        }
+    }
+    d->weapon_damage = best;
+}
+
 static bool replace_save_file(const char *temporary_path, const char *path) {
 #ifdef _WIN32
     /* The CRT rename() refuses to replace an existing file on Windows. */
@@ -443,6 +464,10 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
             droid->energy > droid->energy_max || droid->energy_max < 0 ||
             !valid_droid_items(&item_db, droid))
             LOAD_FAIL();
+        /* weapon_damage is a derived combat cache, not authoritative save
+         * state. Recompute it from validated weapon slots so a modified or
+         * stale save cannot grant arbitrary damage after loading. */
+        recalc_weapon_damage(&item_db, &restored->droids[i]);
     }
 
     // Restore cell types (doors opened etc.)
