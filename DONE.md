@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (F10 renderer synchronization)
+
+- F10-popupens byte mellan original/enhanced grafikläge uppdaterar nu även
+  rendererns live state direkt, inte bara spelkonfigurationen och
+  postprocess-effekterna.
+
 ## 2026-08-06 (Mixed droid weapons)
 
 - Droidar med närstridsvapen i ena handen och skjutvapen i den andra kan nu

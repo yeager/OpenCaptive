@@ -852,6 +852,10 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
         case POPUP_CLOSE: runtime_popup.open = false; break;
     }
     gs->config = *config;
+    /* Keep the renderer's live mode/display state in sync with the popup.
+     * The menu path already applies this after configuration changes, but
+     * F10 must do it immediately while a game is running. */
+    renderer_apply_display(renderer, config);
     renderer_set_effects(renderer, config->bilinear, config->scanlines,
                          config->crt_curvature,
                          config->brightness, config->contrast);
