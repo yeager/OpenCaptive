@@ -51,12 +51,18 @@ bool city_nav_is_road(const CityGridState *grid, int x, int y) {
     return cell == CITYGRID_CELL_ROAD || cell == 0x0A || cell == 0x1F;
 }
 
+static bool is_road_feature_cell(uint8_t cell) {
+    /* Raw generation values and their finalized output equivalents. */
+    return cell == 0x21 || cell == 0x22 || cell == 0x23 ||
+           cell == 0x0B || cell == 0x0E;
+}
+
 bool city_nav_is_wall(const CityGridState *grid, int x, int y) {
+    uint8_t cell = city_nav_get_cell(grid, x, y);
     /* Building cells carry type/ID bits in plane0 and are not encoded as
-     * CITYGRID_CELL_WALL.  They are nevertheless solid city geometry.
-     * Keep the walkability predicate as the single source of truth so the
-     * renderer cannot draw a blocked building cell as ground. */
-    return !city_nav_is_road(grid, x, y);
+     * CITYGRID_CELL_WALL.  They are nevertheless solid city geometry. Road
+     * feature cells are blocked too, but remain ground with a prop on top. */
+    return !city_nav_is_road(grid, x, y) && !is_road_feature_cell(cell);
 }
 
 bool city_nav_is_building_entrance(const CityGridState *grid, int x, int y) {
@@ -157,10 +163,6 @@ void city_nav_update(CityNavState *nav, float dt) {
         nav->smooth_x = base_x + nav->move_dx * CITY_CELL_SIZE * nav->move_progress;
         nav->smooth_y = base_y + nav->move_dy * CITY_CELL_SIZE * nav->move_progress;
     }
-}
-
-static bool is_road_feature(uint8_t cell) {
-    return cell == 0x21 || cell == 0x22 || cell == 0x23;
 }
 
 static void render_ground_quad(Lib3dState *render,
@@ -303,8 +305,13 @@ void city_nav_render(CityNavState *nav, const CityGridState *grid,
                 if (road_w) render_wall_quad(render, wx, wy + cs, wx, wy, CITY_WALL_HEIGHT, wall_color);
             } else {
                 render_ground_quad(render, wx, wy, wx + cs, wy + cs, 0x0C);
-                if (is_road_feature(cell))
-                    render_road_feature(render, wx + cs * 0.5f, wy + cs * 0.5f, cell);
+                if (is_road_feature_cell(cell)) {
+                    uint8_t render_type = cell;
+                    if (cell == 0x0B) render_type = 0x23;
+                    else if (cell == 0x0E) render_type = 0x22;
+                    render_road_feature(render, wx + cs * 0.5f,
+                                        wy + cs * 0.5f, render_type);
+                }
             }
         }
     }
@@ -392,8 +399,13 @@ void city_nav_render_textured(CityNavState *nav, const CityGridState *grid,
                 }
             } else {
                 render_ground_quad(render, wx, wy, wx + cs, wy + cs, 0x0C);
-                if (is_road_feature(cell))
-                    render_road_feature(render, wx + cs * 0.5f, wy + cs * 0.5f, cell);
+                if (is_road_feature_cell(cell)) {
+                    uint8_t render_type = cell;
+                    if (cell == 0x0B) render_type = 0x23;
+                    else if (cell == 0x0E) render_type = 0x22;
+                    render_road_feature(render, wx + cs * 0.5f,
+                                        wy + cs * 0.5f, render_type);
+                }
             }
         }
     }

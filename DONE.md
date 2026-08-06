@@ -5,6 +5,8 @@
 - Korrigerade Liberation-stadens väggklassning så att byggnadsceller med
   typbitar i `plane0` renderas som solida väggar i stället för genomskinlig
   mark.
+- Bevarade samtidigt telefon- och postboxceller som markbundna specialobjekt;
+  de är blockerade för rörelse men ska inte renderas som väggar.
 - Lade till regressionstest som säkerställer att en sådan cell både är
   blockerad för navigation och klassad som vägg.
 
