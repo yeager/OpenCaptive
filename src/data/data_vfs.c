@@ -945,14 +945,6 @@ uint8_t *vfs_find_sha256(const DataVFS *vfs, const char expected_sha256[65], siz
                          strcmp(probe, vfs->cache_probe_signature) != 0;
     if (probe_changed || !vfs->cache_signature_valid) {
         vfs_cache_signature(vfs, signature);
-        /* vfs_find_sha256 historically accepted const DataVFS so callers can
-         * expose a read-only VFS.  The cache bookkeeping is mutable state;
-         * update it only after the complete replacement signature exists. */
-        DataVFS *mutable_vfs = (DataVFS *)(uintptr_t)vfs;
-        memcpy(mutable_vfs->cache_signature, signature, sizeof(signature));
-        mutable_vfs->cache_signature_valid = true;
-        memcpy(mutable_vfs->cache_probe_signature, probe, sizeof(probe));
-        mutable_vfs->cache_probe_signature_valid = true;
     } else {
         memcpy(signature, vfs->cache_signature, sizeof(signature));
     }
