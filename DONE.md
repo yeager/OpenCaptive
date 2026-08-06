@@ -3219,3 +3219,7 @@
 - Liberation-renderaren kan nu använda `dynamic_lighting` för avståndsbaserad
   ljusintensitet på texturer. Avstängt läge lämnar tidigare färgresultat
   oförändrat.
+- F10-popupen stängs nu automatiskt när ett alternativ byter spelläge, så
+  exempelvis `COMPLETE OBJECTIVE` inte lämnar en osynlig modal som blockerar
+  holomapens input. Liberation-missionspriten kontrollerar dessutom sina
+  dimensioner mot 320×256-canvasen innan den kopieras.

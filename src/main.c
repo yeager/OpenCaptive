@@ -1223,6 +1223,14 @@ static bool load_liberation_mission_menu(void) {
         free(bytes);
         return false;
     }
+    /* The verified resource is a 320x109 composition placed at y=56.  Keep
+     * malformed or incompatible data from making the later row copy write
+     * past the native Liberation canvas. */
+    if (sprite.width > LIBERATION_SCREEN_WIDTH ||
+        sprite.height > LIBERATION_SCREEN_HEIGHT - LIBERATION_MISSION_MENU_Y) {
+        free(bytes);
+        return false;
+    }
     size_t count = (size_t)sprite.width * sprite.height;
     uint32_t *pixels = calloc(count, sizeof(*pixels));
     bool ok = pixels && amos_sprite_decode_argb(&sprite, pixels, count);
@@ -2414,6 +2422,13 @@ int main(int argc, char *argv[]) {
             }
             if (runtime_popup.open) {
                 popup_handle_event(&gs, &config, &renderer, &custom, &event);
+                /* A runtime option may change the game mode (for example
+                 * COMPLETE OBJECTIVE enters the Captive holomap).  The
+                 * popup is only rendered in STATE_GAME; leaving it marked
+                 * open here would create an invisible modal that swallowed
+                 * every subsequent event until F10/Escape was pressed. */
+                if (gs.mode != STATE_GAME)
+                    runtime_popup.open = false;
                 continue;
             }
 
