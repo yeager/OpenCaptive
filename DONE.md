@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive Windows-CI)
+
+- Flyttade den sista stora `GameState`-allokeringen i `droid_ui`-testet från
+  Windows-stackens begränsade minne till statiskt testminne.
+- Det åtgärdar segfaulten i GitHub Actions Windows-testet utan att ändra
+  Captives körkod.
+
 ## 2026-08-07 (Captive dataskanner-cache)
 
 - Dataskannern cachelagrar nu även hashningar som inte gav någon träff, så

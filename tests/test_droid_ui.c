@@ -98,7 +98,8 @@ static void test_weapon_damage_uses_product_not_packed_order(void) {
 
 static void test_unequip_armor_preserves_item_when_inventory_full(void) {
     DroidUIState ui;
-    GameState gs = {0};
+    static GameState gs;
+    memset(&gs, 0, sizeof(gs));
     ItemDatabase db;
     item_db_init(&db);
     gs.droids[0].body_parts[0] = 1; /* HEAD */
