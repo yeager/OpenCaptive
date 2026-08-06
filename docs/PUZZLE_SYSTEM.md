@@ -25,7 +25,7 @@ Puzzles are wall-mounted interactive elements that control doors and provide res
 
 ### Power Socket (PUZZLE_POWER_SOCKET)
 - Available from level 2+
-- 9 charges, each restores 42 energy to selected droid
+- 9 charges, each restores 420 energy to selected droid, capped at the droid's energy maximum
 - Placed on wall faces with ORNAMENT_PIPE visual
 
 ## Generation

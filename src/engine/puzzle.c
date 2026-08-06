@@ -435,7 +435,7 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                     p->state--;
                     // Recharge selected droid (420 energy per charge)
                     Droid *d = &gs->droids[gs->selected_droid];
-                    int charged = (int)d->energy + 42;
+                    int charged = (int)d->energy + 420;
                     if (charged > d->energy_max) charged = d->energy_max;
                     if (charged > INT16_MAX) charged = INT16_MAX;
                     d->energy = (int16_t)charged;

@@ -207,6 +207,30 @@ static void test_puzzle_interact_rejects_invalid_state(void) {
     assert(puzzles.puzzles[0].state == 3);
 }
 
+static void test_power_socket_recharges_420_energy(void) {
+    PuzzleList puzzles = {0};
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.selected_droid = 0;
+    gs.droids[0].energy = 100;
+    gs.droids[0].energy_max = 1000;
+    puzzles.num_puzzles = 1;
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_POWER_SOCKET, .x = 1, .y = 1, .level = gs.current_level,
+        .face = DIR_NORTH, .state = 1
+    };
+
+    assert(puzzle_interact(&puzzles, &gs, 1, 1, DIR_NORTH));
+    assert(gs.droids[0].energy == 520);
+    assert(puzzles.puzzles[0].state == 0);
+
+    gs.droids[0].energy = 900;
+    puzzles.puzzles[0].state = 1;
+    assert(puzzle_interact(&puzzles, &gs, 1, 1, DIR_NORTH));
+    assert(gs.droids[0].energy == 1000);
+}
+
 int main(void) {
     test_round_trip();
     test_corrupt_save_preserves_state();
@@ -217,6 +241,7 @@ int main(void) {
     test_save_rejects_invalid_creature_damage();
     test_save_rejects_negative_creature_defense();
     test_puzzle_interact_rejects_invalid_state();
+    test_power_socket_recharges_420_energy();
     remove(save_path);
     puts("All save/load tests passed");
     return 0;

@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Power socket recharge)
+
+- Korrigerade power socket så att varje laddning ger 420 energi, i linje med
+  spel- och systemdokumentationen, med bibehållen maxgräns.
+- Lade till regressionstest för normal laddning och maxgräns.
+
 ## 2026-08-06 (X3G EXVL bounds)
 
 - Avvisar nu tomma `EXVL`-chunks innan vertexantalet läses. Det förhindrar
