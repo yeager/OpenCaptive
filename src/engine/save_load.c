@@ -214,6 +214,34 @@ static bool valid_puzzle_target(const Puzzle *p) {
             p->target_y >= 0 && p->target_y < MAP_HEIGHT);
 }
 
+static OrnamentType puzzle_ornament(PuzzleType type) {
+    switch (type) {
+        case PUZZLE_BUTTON: return ORNAMENT_BUTTON;
+        case PUZZLE_BARS: return ORNAMENT_SCREEN;
+        case PUZZLE_LEVER:
+        case PUZZLE_TRIPLE_LEVER:
+        case PUZZLE_BUTTON_COMBO:
+        case PUZZLE_WALL_ELECTRIC: return ORNAMENT_PANEL;
+        case PUZZLE_HIDDEN_BUTTON: return ORNAMENT_VENT;
+        case PUZZLE_POWER_SOCKET: return ORNAMENT_PIPE;
+        default: return ORNAMENT_NONE;
+    }
+}
+
+static void restore_puzzle_ornaments(GameState *gs, const PuzzleList *puzzles) {
+    if (!gs || !puzzles || puzzles->num_puzzles < 0 ||
+        puzzles->num_puzzles > MAX_PUZZLES) return;
+    for (int i = 0; i < puzzles->num_puzzles; i++) {
+        const Puzzle *p = &puzzles->puzzles[i];
+        OrnamentType ornament = puzzle_ornament(p->type);
+        if (ornament == ORNAMENT_NONE || p->level < 0 ||
+            p->level >= gs->num_levels || p->level >= MAX_LEVELS ||
+            p->x < 0 || p->x >= MAP_WIDTH || p->y < 0 || p->y >= MAP_HEIGHT ||
+            p->face < DIR_NORTH || p->face > DIR_WEST) continue;
+        gs->levels[p->level].cells[p->y][p->x].ornament[p->face] = ornament;
+    }
+}
+
 static bool valid_runtime_position(const GameState *gs, int level,
                                    int x, int y) {
     if (!gs || level < 0 || level >= gs->num_levels || level >= MAX_LEVELS ||
@@ -586,6 +614,11 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
             LOAD_FAIL();
         }
     }
+    /* The deterministic map rebuild restores ordinary ornaments, but puzzle
+     * panels are generated at runtime and are not part of the cell-type/item
+     * payload. Reattach them after validation so Continue/F9 preserves the
+     * visible interaction as well as the puzzle state. */
+    restore_puzzle_ornaments(restored, &restored_puzzles);
 
     /* The format has no extension area.  Reject trailing bytes so a
      * concatenated or mismatched save cannot be accepted as valid state. */

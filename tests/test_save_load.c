@@ -38,6 +38,7 @@ static void test_round_trip(void) {
         .face = DIR_NORTH, .target_x = -1, .target_y = -1,
         .state = 1, .solution = 1, .solved = true,
     };
+    saved.levels[0].cells[7][9].type = CELL_FLOOR;
 
     assert(save_game(&saved, &saved_creatures, &saved_puzzles, save_path));
     /* Version 5 is a fixed little-endian stream, not a dump of C structs.
@@ -74,6 +75,7 @@ static void test_round_trip(void) {
     assert(!loaded_creatures.creatures[0].active);
     assert(loaded_puzzles.num_puzzles == 1);
     assert(loaded_puzzles.puzzles[0].solved);
+    assert(loaded.levels[0].cells[7][9].ornament[DIR_NORTH] == ORNAMENT_PANEL);
     assert(loaded.config.render_mode == CAPTIVE_RENDER_ENHANCED);
     assert(loaded.config.scanlines);
     assert(loaded.config.brightness == 73);
