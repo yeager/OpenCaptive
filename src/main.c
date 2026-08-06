@@ -2996,14 +2996,26 @@ int main(int argc, char *argv[]) {
             frame_width = CAPTIVE_ORIGINAL_WIDTH;
             frame_height = CAPTIVE_ORIGINAL_HEIGHT;
         }
+        bool renderer_ready = true;
         if (renderer.canvas_width != frame_width || renderer.canvas_height != frame_height)
-            renderer_set_canvas(&renderer, frame_width, frame_height, &config);
-        renderer_set_upscale(&renderer,
-                             custom.hd_upscale && frame_width <= 640 && frame_height <= 400,
-                             custom.upscale_factor);
-        renderer_set_widescreen(&renderer,
-                                custom.widescreen && frame_width <= 640 && frame_height <= 400,
-                                custom.widescreen_width);
+            renderer_ready = renderer_set_canvas(&renderer, frame_width, frame_height,
+                                                 &config);
+        if (renderer_ready)
+            renderer_ready = renderer_set_upscale(
+                &renderer,
+                custom.hd_upscale && frame_width <= 640 && frame_height <= 400,
+                custom.upscale_factor);
+        if (renderer_ready)
+            renderer_ready = renderer_set_widescreen(
+                &renderer,
+                custom.widescreen && frame_width <= 640 && frame_height <= 400,
+                custom.widescreen_width);
+        if (!renderer_ready) {
+            fprintf(stderr, "Could not resize renderer framebuffer: %s\n",
+                    SDL_GetError());
+            exit_status = 1;
+            break;
+        }
 
         memset(framebuffer, 0, (size_t)frame_width * frame_height * sizeof(uint32_t));
 

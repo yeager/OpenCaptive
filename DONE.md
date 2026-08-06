@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Säkra canvasbyten i rendereraren)
+
+- Rendererens canvas-, upscale- och widescreenbyten returnerar nu felstatus
+  när SDL inte kan skapa den nya framebuffer-texturen.
+- Huvudloopen fortsätter inte med nya bildmått mot en gammal texture vid ett
+  sådant fel, vilket förhindrar felaktig stride eller buffertläsning.
+- Werror-bygget och hela testsuiten passerar efter ändringen.
+
 ## 2026-08-06 (Klickzoner följer logotypens storlek)
 
 - Startmenyns mus-hit-test använder nu samma beräknade logotyphöjd som

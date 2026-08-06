@@ -207,40 +207,42 @@ static uint8_t apply_gamma(uint8_t value) {
     return (uint8_t)adjusted;
 }
 
-void renderer_set_upscale(OpenCaptiveRenderer *r, bool enabled, int factor) {
-    if (!r || !r->renderer) return;
+bool renderer_set_upscale(OpenCaptiveRenderer *r, bool enabled, int factor) {
+    if (!r || !r->renderer) return false;
     if (!enabled) factor = 1;
-    if (factor < 1 || factor > 4) return;
+    if (factor < 1 || factor > 4) return false;
     int texture_width, texture_height;
     if (!renderer_texture_size(r->canvas_width, r->canvas_height,
                                r->widescreen, r->widescreen_width,
                                enabled, factor,
-                               &texture_width, &texture_height)) return;
+                               &texture_width, &texture_height)) return false;
     if (r->hd_upscale == enabled && r->upscale_factor == factor &&
         r->texture_width == texture_width && r->texture_height == texture_height)
-        return;
-    if (!renderer_create_framebuffer(r, texture_width, texture_height)) return;
+        return true;
+    if (!renderer_create_framebuffer(r, texture_width, texture_height)) return false;
     r->hd_upscale = enabled;
     r->upscale_factor = factor;
     SDL_SetTextureScaleMode(r->framebuffer,
         renderer_bilinear ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
+    return true;
 }
 
-void renderer_set_widescreen(OpenCaptiveRenderer *r, bool enabled, int width) {
-    if (!r || !r->renderer) return;
+bool renderer_set_widescreen(OpenCaptiveRenderer *r, bool enabled, int width) {
+    if (!r || !r->renderer) return false;
     if (width < 0) width = 0;
     int texture_width, texture_height;
     if (!renderer_texture_size(r->canvas_width, r->canvas_height, enabled, width,
                                r->hd_upscale, r->upscale_factor,
-                               &texture_width, &texture_height)) return;
+                               &texture_width, &texture_height)) return false;
     if (r->widescreen == enabled && r->widescreen_width == width &&
         r->texture_width == texture_width && r->texture_height == texture_height)
-        return;
-    if (!renderer_create_framebuffer(r, texture_width, texture_height)) return;
+        return true;
+    if (!renderer_create_framebuffer(r, texture_width, texture_height)) return false;
     r->widescreen = enabled;
     r->widescreen_width = width;
     SDL_SetTextureScaleMode(r->framebuffer,
         renderer_bilinear ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
+    return true;
 }
 
 void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {

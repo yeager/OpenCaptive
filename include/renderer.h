@@ -30,8 +30,8 @@ bool renderer_set_canvas(OpenCaptiveRenderer *r, int width, int height,
 void renderer_set_effects(OpenCaptiveRenderer *r, bool bilinear, bool scanlines,
                           bool crt_curvature, int brightness, int contrast,
                           int gamma);
-void renderer_set_upscale(OpenCaptiveRenderer *r, bool enabled, int factor);
-void renderer_set_widescreen(OpenCaptiveRenderer *r, bool enabled, int width);
+bool renderer_set_upscale(OpenCaptiveRenderer *r, bool enabled, int factor);
+bool renderer_set_widescreen(OpenCaptiveRenderer *r, bool enabled, int width);
 void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels);
 void renderer_shutdown(OpenCaptiveRenderer *r);
 
