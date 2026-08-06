@@ -24,6 +24,22 @@ static int previous_grid_cell(int index) {
     return index - 1;
 }
 
+/* Return a neighbouring cell only when the move stays inside the grid.
+ * A linear +/-1 offset otherwise aliases the opposite edge of an adjacent
+ * row, which can make CityGen connect unrelated buildings. */
+static int neighbour_grid_cell(int index, int direction) {
+    if (index < 0 || index >= CITYGRID_CELLS || direction < 0 || direction > 3)
+        return -1;
+    int x = index % CITYGRID_WIDTH;
+    int y = index / CITYGRID_WIDTH;
+    int nx = x + directions[direction].dx;
+    int ny = y + directions[direction].dy;
+    if (nx < 0 || nx >= CITYGRID_WIDTH ||
+        ny < 0 || ny >= CITYGRID_HEIGHT)
+        return -1;
+    return ny * CITYGRID_WIDTH + nx;
+}
+
 static const int8_t road_avail[36] = {
     -1, 1, 8, 7,  -1,-1, 2, 0,   1,-1, 3, 8,   2,-1,-1, 4,
      8, 3,-1, 5,   6, 4,-1,-1,   7, 8, 5,-1,  -1, 0, 6,-1,
@@ -453,18 +469,18 @@ static void resolve_building_shapes(CityGridState *s) {
                     bool is_higher = (d4 > s->building_counter_b);
 
                     int dir_check = dir;
-                    int check1 = pos + directions[(dir_check - 1) & 3].offset;
-                    int check2 = pos + directions[(dir_check + 1) & 3].offset;
+                    int check1 = neighbour_grid_cell(pos, (dir_check - 1) & 3);
+                    int check2 = neighbour_grid_cell(pos, (dir_check + 1) & 3);
 
                     int conn = 0;
-                    if (check1 >= 0 && check1 < CITYGRID_CELLS &&
+                    if (check1 >= 0 &&
                         (s->plane2[check1] & 0x7F) == (uint8_t)d4) {
                         uint8_t c = s->plane0[check1] & 0x3F;
                         bool is_0x1e = (c == 0x1E);
                         if (is_0x1e != is_higher)
                             conn = 1;
                     }
-                    if (conn == 0 && check2 >= 0 && check2 < CITYGRID_CELLS &&
+                    if (conn == 0 && check2 >= 0 &&
                         (s->plane2[check2] & 0x7F) == (uint8_t)d4) {
                         uint8_t c = s->plane0[check2] & 0x3F;
                         bool is_0x1e = (c == 0x1E);
