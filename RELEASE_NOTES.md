@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Pusselposter nollställs nu vid återanvändning av pusselgeneratorns lista,
+  så gamla målkoordinater inte läcker in i nya olänkade pussel som power
+  sockets.
 - Legacy Liberation saves now restore full armor condition when loaded from
   versions that predate the body-part durability field.
 - Liberation bar fights now correctly carry a pending police fine into the

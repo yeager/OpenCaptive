@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Puzzle record reinitialization)
+
+- Nya pusselposter nollställs nu alltid när pusselgeneratorn återanvänder en
+  `PuzzleList`, och olänkade pussel får konsekvent målkoordinaterna `(-1,-1)`.
+- Förhindrar att gamla mål eller tillstånd följer med till exempelvis power
+  sockets efter en ny pusselgenerering.
+- Lade till regressionstest med en förfylld och återanvänd pussellista.
+
 ## 2026-08-06 (Windows VFS cache determinism)
 
 - VFS-cache-signaturen sorterar nu Windows-katalogposter innan metadata hashas.
