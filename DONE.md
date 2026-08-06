@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive hazard game-over)
+
+- Golvfällor och elektriska väggar som slår ut hela droidgruppen sätter nu
+  `STATE_GAMEOVER` direkt, både vid interaktion och när gruppen går på fällan.
+- Lade till regressionsfall för båda vägarna samt för elektrisk vägg-hazard.
+- Lokal Werror-svit: 58/58 tester passerar.
+
 ## 2026-08-06 (Säker återställning av Liberation-position)
 
 - Liberation-save återställer inte längre en spelare på en vägg eller annan

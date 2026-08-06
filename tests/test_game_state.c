@@ -168,6 +168,44 @@ static void test_generated_electric_traps_face_walls(void) {
     assert(found_electric);
 }
 
+static void test_lethal_puzzle_hazards_enter_game_over(void) {
+    GameState gs;
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.selected_droid = 0;
+    gs.droids[0].hp = 1;
+    for (int i = 1; i < 4; i++) gs.droids[i].hp = 0;
+
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_FLOOR_TRAP, .x = 2, .y = 2,
+        .level = gs.current_level, .face = DIR_NORTH, .state = 10
+    };
+    puzzles.num_puzzles = 1;
+    assert(puzzle_interact(&puzzles, &gs, 2, 2, DIR_NORTH));
+    assert(gs.droids[0].hp == 0);
+    assert(gs.mode == STATE_GAMEOVER);
+
+    gs.mode = STATE_GAME;
+    gs.droids[0].hp = 1;
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_FLOOR_TRAP, .x = 3, .y = 3,
+        .level = gs.current_level, .state = 10
+    };
+    puzzle_check_step(&puzzles, &gs, 3, 3);
+    assert(gs.droids[0].hp == 0);
+    assert(gs.mode == STATE_GAMEOVER);
+
+    gs.mode = STATE_GAME;
+    for (int i = 0; i < 4; i++) gs.droids[i].hp = 1;
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_WALL_ELECTRIC, .x = 4, .y = 4,
+        .level = gs.current_level, .face = DIR_NORTH
+    };
+    assert(puzzle_interact(&puzzles, &gs, 4, 4, DIR_NORTH));
+    assert(gs.mode == STATE_GAMEOVER);
+}
+
 static void test_generated_triple_levers_use_all_eight_states(void) {
     bool found_extended_solution = false;
     for (uint32_t seed = 1; seed <= 128 && !found_extended_solution; seed++) {
@@ -711,6 +749,7 @@ int main(void) {
     test_generated_teleporters_target_floor();
     test_generated_power_socket_has_no_stale_target();
     test_generated_electric_traps_face_walls();
+    test_lethal_puzzle_hazards_enter_game_over();
     test_generated_triple_levers_use_all_eight_states();
     test_combat_spawn_never_overlaps_active_creatures();
     test_first_mission_uses_architect_seed_zero();

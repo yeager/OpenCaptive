@@ -7,6 +7,17 @@
 
 static uint32_t puzzle_seed;
 
+static bool all_droids_dead(const GameState *gs) {
+    if (!gs) return false;
+    for (int i = 0; i < (int)(sizeof(gs->droids) / sizeof(gs->droids[0])); i++)
+        if (gs->droids[i].hp > 0) return false;
+    return true;
+}
+
+static void apply_puzzle_game_over(GameState *gs) {
+    if (all_droids_dead(gs)) gs->mode = STATE_GAMEOVER;
+}
+
 static bool valid_teleport_destination(const GameState *gs, int x, int y) {
     if (!gs || gs->current_level < 0 || gs->current_level >= gs->num_levels ||
         gs->current_level >= MAX_LEVELS || x < 0 || x >= MAP_WIDTH ||
@@ -464,6 +475,7 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                     d->hp = 0;
                 else
                     d->hp = (int16_t)(d->hp - p->state);
+                apply_puzzle_game_over(gs);
                 return true;
             }
 
@@ -502,6 +514,7 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                         gs->droids[di].hp = (int16_t)remaining_hp;
                     }
                 }
+                apply_puzzle_game_over(gs);
                 return true;
             }
 
@@ -531,6 +544,7 @@ void puzzle_check_step(PuzzleList *pl, GameState *gs, int x, int y) {
                     d->hp = 0;
                 else
                     d->hp = (int16_t)(d->hp - p->state);
+                apply_puzzle_game_over(gs);
                 break;
             }
             case PUZZLE_TELEPORTER_TRAP:
