@@ -84,7 +84,8 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 int wy = ry + dy[d];
                 if (lvl->cells[wy][wx].type == CELL_WALL) {
                     Puzzle *p = &pl->puzzles[pl->num_puzzles++];
-                    p->type = (captive_prng(&puzzle_seed) % 3 == 0) ? PUZZLE_TRIPLE_LEVER : PUZZLE_LEVER;
+                    p->type = (captive_prng(&puzzle_seed) % 3 == 0) ?
+                        PUZZLE_TRIPLE_LEVER : PUZZLE_LEVER;
                     p->x = rx;
                     p->y = ry;
                     p->level = level_num;
@@ -92,7 +93,9 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                     p->state = 0;
                     /* Binary levers use bit 0; keep the stored solution in
                      * the same 0/1 domain used by interaction and hints. */
-                    p->solution = (uint8_t)(captive_prng(&puzzle_seed) & 1U);
+                    p->solution = p->type == PUZZLE_TRIPLE_LEVER
+                        ? (uint8_t)(captive_prng(&puzzle_seed) & 7U)
+                        : (uint8_t)(captive_prng(&puzzle_seed) & 1U);
                     p->solved = false;
 
                     // Find a locked door to link to

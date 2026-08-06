@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Triple-lever puzzle generation)
+
+- Korrigerade genereringen av trippelspakar så att lösningen använder alla
+  åtta tillstånd som interaktionen faktiskt cyklar genom, i stället för bara
+  `0` och `1`.
+- Lade till regressionstest med en karta som säkerställer att utökade
+  trippellösningar verkligen kan genereras.
+
 ## 2026-08-06 (Save puzzle target validation)
 
 - Säkrade Captive-saveformatets puzzlemål så att ett ogiltigt blandat

@@ -39,6 +39,8 @@
   staying blocked for movement.
 - Captive save validation now rejects puzzle targets with only one coordinate
   set to the no-target sentinel, preventing malformed puzzle state on load.
+- Generated Captive triple-lever puzzles now use the full eight-state solution
+  range supported by their interaction and hint logic.
 - GitHub Actions workflows now use `actions/checkout@v6` and the Node 24
   runtime, removing the checkout action's Node 20 deprecation warning.
 

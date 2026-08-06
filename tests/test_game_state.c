@@ -95,6 +95,32 @@ static void test_generated_teleporters_target_floor(void) {
     }
 }
 
+static void test_generated_triple_levers_use_all_eight_states(void) {
+    bool found_extended_solution = false;
+    for (uint32_t seed = 1; seed <= 128 && !found_extended_solution; seed++) {
+        DungeonLevel level;
+        PuzzleList puzzles;
+        memset(&level, 0, sizeof(level));
+        memset(&puzzles, 0, sizeof(puzzles));
+        for (int y = 1; y < MAP_HEIGHT - 1; y++)
+            for (int x = 1; x < MAP_WIDTH - 1; x++)
+                level.cells[y][x].type = CELL_FLOOR;
+        for (int x = 3; x < MAP_WIDTH - 1; x += 4)
+            for (int y = 1; y < MAP_HEIGHT - 1; y++)
+                level.cells[y][x].type = CELL_WALL;
+
+        puzzle_generate(&puzzles, &level, 0, seed);
+        for (int i = 0; i < puzzles.num_puzzles; i++) {
+            if (puzzles.puzzles[i].type == PUZZLE_TRIPLE_LEVER &&
+                puzzles.puzzles[i].solution > 1U) {
+                found_extended_solution = true;
+                break;
+            }
+        }
+    }
+    assert(found_extended_solution);
+}
+
 static void move_to_stair(GameState *gs, CellType stair) {
     for (int y = 0; y < MAP_HEIGHT; y++)
         for (int x = 0; x < MAP_WIDTH; x++)
@@ -482,6 +508,7 @@ int main(void) {
     test_button_combo_solution_is_reachable();
     test_teleporter_never_enters_blocked_cell();
     test_generated_teleporters_target_floor();
+    test_generated_triple_levers_use_all_eight_states();
     test_first_mission_uses_architect_seed_zero();
     test_extreme_mission_seed_is_defined();
     test_combat_respects_closed_doors();
