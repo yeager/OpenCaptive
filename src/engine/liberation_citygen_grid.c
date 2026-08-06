@@ -536,7 +536,12 @@ static bool place_road_feature_inner(CityGridState *s) {
             /* Mode: find road cell (0x0D) */
             uint8_t cell = s->plane0[offset] & 0x3F;
             if (cell != 0x0D) continue;
-            s->feature_mode = (mode & 0xFFFFU) | ((uint32_t)offset << 16);
+            /* Bit 0x10 is the source routine's "feature found" result.
+             * Callers use it to distinguish a successful search from an
+             * exhausted attempt; returning without setting it made the
+             * difficulty-4 entry-point search impossible to satisfy. */
+            s->feature_mode = (mode & 0xFFFFU) | 0x10U |
+                              ((uint32_t)offset << 16);
             return true;
         }
 
@@ -575,7 +580,6 @@ static bool place_road_feature_inner(CityGridState *s) {
             }
 
             if (found_target) {
-                s->feature_mode = (mode & 0xFFFFU) | ((uint32_t)coff << 16);
                 /* sub_1702: try to place in adjacent free cell */
                 int place_dir = (dir + 1) & 3;
                 int place_x = coff % CITYGRID_WIDTH + directions[place_dir].dx;
@@ -589,6 +593,8 @@ static bool place_road_feature_inner(CityGridState *s) {
                                                (uint8_t)(place_dir << 6);
                         s->plane1[place_off] = s->feature_building_id;
                     }
+                    s->feature_mode = (mode & 0xFFFFU) | 0x10U |
+                                      ((uint32_t)coff << 16);
                     return true;
                 }
 
@@ -604,6 +610,8 @@ static bool place_road_feature_inner(CityGridState *s) {
                                                (uint8_t)(place_dir << 6);
                         s->plane1[place_off] = s->feature_building_id;
                     }
+                    s->feature_mode = (mode & 0xFFFFU) | 0x10U |
+                                      ((uint32_t)coff << 16);
                     return true;
                 }
             }
@@ -733,9 +741,7 @@ static void find_entry_point(CityGridState *s) {
         s->feature_mode = 0x21;
         s->feature_count = 1;
         s->feature_cell_type = 0x2E;
-        place_road_feature_inner(s);
-
-        if (s->feature_mode & 0x10) {
+        if (place_road_feature_inner(s)) {
             /* Found a road cell — verify it's still road after walking */
             uint16_t found_off = (uint16_t)(s->feature_mode >> 16);
             if (found_off < CITYGRID_CELLS) {
