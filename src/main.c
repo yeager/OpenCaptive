@@ -1959,6 +1959,7 @@ int main(int argc, char *argv[]) {
                     return 2;
                 }
             }
+            memcpy(compare_actual_rect, compare_rect, sizeof(compare_rect));
             compare_rect_set = true;
         } else if (strcmp(argv[i], "--compare-frames-regions") == 0 && i + 8 < argc) {
             expected_frame_path = argv[++i];
