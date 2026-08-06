@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Linux-installationer och AppImages hittar nu font, l10n och launcherbilder
+  via `../share/opencaptive` och `/usr/share/opencaptive`, inte bara via
+  utvecklingskatalogen bredvid binären.
 - Linux-RPM och AppImage-paketen innehåller nu font, alla l10n-kataloger och
   menybilder, så installerade releasepaket får samma launcher-resurser som
   tarball, DEB och Windows-installern.

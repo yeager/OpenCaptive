@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Linux installed resource lookup)
+
+- Font-, l10n- och launcherbildsladdning söker nu standardiserade Linux-
+  installationer under `../share/opencaptive` och `/usr/share/opencaptive`.
+- Verifierade `i18n`, `start_menu`, Werror-kompilering och release-workflowens
+  YAML.
+
 ## 2026-08-06 (Release resource packaging)
 
 - RPM-paketet inkluderar nu font, l10n-kataloger och menyresurser i både

@@ -43,6 +43,12 @@ static uint32_t *load_card_image(const char *filename, int *w, int *h) {
         snprintf(path, sizeof(path), "%s../Resources/%s", base, filename);
         rgba = load_png_file(path, w, h);
         if (rgba) return (uint32_t *)rgba;
+
+        /* Linux packages and AppImages keep launcher resources in the
+         * standard share directory beside the executable's bin directory. */
+        snprintf(path, sizeof(path), "%s../share/opencaptive/%s", base, filename);
+        rgba = load_png_file(path, w, h);
+        if (rgba) return (uint32_t *)rgba;
     }
     snprintf(path, sizeof(path), "./%s", filename);
     unsigned char *rgba = load_png_file(path, w, h);
@@ -68,6 +74,7 @@ static TTF_Font *load_font(float pt) {
     const char *names[] = {
         "data/DejaVuSansMono-Bold.ttf",
         "../data/DejaVuSansMono-Bold.ttf",
+        "../share/opencaptive/data/DejaVuSansMono-Bold.ttf",
         NULL
     };
     for (int i = 0; names[i]; i++) {
@@ -83,6 +90,10 @@ static TTF_Font *load_font(float pt) {
     if (home) {
         snprintf(path, sizeof(path), "%s/.local/share/opencaptive/DejaVuSansMono-Bold.ttf", home);
         TTF_Font *f = TTF_OpenFont(path, pt);
+        if (f) return f;
+    }
+    {
+        TTF_Font *f = TTF_OpenFont("/usr/share/opencaptive/data/DejaVuSansMono-Bold.ttf", pt);
         if (f) return f;
     }
     return NULL;

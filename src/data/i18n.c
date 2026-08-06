@@ -156,10 +156,17 @@ void i18n_init(const char *lang_override) {
         snprintf(path, sizeof(path), "%spo/%s.po", base, lang);
         load_po(path);
         if (table.count > 0) return;
+        snprintf(path, sizeof(path), "%s../share/opencaptive/po/%s.po", base, lang);
+        load_po(path);
+        if (table.count > 0) return;
     }
 
     snprintf(path, sizeof(path), "po/%s.po", lang);
     load_po(path);
+    if (table.count == 0) {
+        snprintf(path, sizeof(path), "/usr/share/opencaptive/po/%s.po", lang);
+        load_po(path);
+    }
 }
 
 void i18n_free(void) {
