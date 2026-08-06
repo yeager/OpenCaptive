@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive teleportlandning)
+
+- Rörelseflödet använder nu den faktiska landningsrutan efter en teleporter
+  för item-upptagning och golvhazarder.
+- En dödlig pussel-hazard avbryter resterande rörelsehantering direkt.
+- Lokal Werror/CTest: 58/58 tester passerar.
+
 ## 2026-08-06 (Captive hazard game-over)
 
 - Golvfällor och elektriska väggar som slår ut hela droidgruppen sätter nu

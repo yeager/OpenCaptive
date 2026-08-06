@@ -1952,8 +1952,17 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                     gs->droids[di].energy--;
             }
             puzzle_check_step(&puzzles, gs, nx, ny);
+            if (gs->mode == STATE_GAMEOVER) return;
+            /* A teleporter may move the party while resolving the step.
+             * All post-movement effects must use the actual landing cell,
+             * not the cell that triggered the move. */
+            int landed_x = gs->party_x;
+            int landed_y = gs->party_y;
+            CellType landed_cell =
+                gs->levels[gs->current_level].cells[landed_y][landed_x].type;
             {
-                MapCell *step_cell = &gs->levels[gs->current_level].cells[ny][nx];
+                MapCell *step_cell =
+                    &gs->levels[gs->current_level].cells[landed_y][landed_x];
                 if (step_cell->item_id > 0) {
                     Droid *d = &gs->droids[gs->selected_droid];
                     for (int si = 0; si < 10; si++) {
@@ -1970,7 +1979,7 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                     }
                 }
             }
-            if (cell == CELL_PIT) {
+            if (landed_cell == CELL_PIT) {
                 for (int di = 0; di < 4; di++) {
                     if (gs->droids[di].hp > 0) {
                         int dmg = 5 + (gs->current_level * 2);
@@ -1980,7 +1989,7 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 msg_push(_("Fell into a pit!"), 0xFFFF4444);
                 sfx_play(&sfx, SFX_HIT);
                 if (all_droids_dead(gs)) gs->mode = STATE_GAMEOVER;
-            } else if (cell == CELL_PRESSURE_PLATE) {
+            } else if (landed_cell == CELL_PRESSURE_PLATE) {
                 msg_push(_("Click!"), 0xFFAAAA44);
                 sfx_play(&sfx, SFX_DOOR_OPEN);
             }
