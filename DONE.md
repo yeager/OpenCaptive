@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Start-menyns återinträde)
+
+- Menyn återanvänder nu laddade bilder och fonter när användaren går tillbaka
+  från paus. Den tidigare synkroniseringen nollställde pekarna utan att frigöra
+  resurserna och läckte därför vid upprepade återinträden.
+- Regressionstestet täcker resursbevarande reinit och återställd datasökväg.
+- Uppstartsmenyns droidkonfiguration fick samtidigt tätare radlayout så att
+  den fjärde droidens villkorsrad inte överlappar åtgärdshinten på 320×200.
+- Werror-kompilering och hela testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (Atomic mission metadata)
 
 - `game_state_new_mission()` beräknar nu seed lokalt och låter den seedade
