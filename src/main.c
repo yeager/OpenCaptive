@@ -3342,7 +3342,11 @@ int main(int argc, char *argv[]) {
                     framebuffer[i] = 0xFF000000;
                 draw_centered(framebuffer, cw, ch, 10, _("DROID CONFIGURATION"), 0xFF00FF00, 2);
                 for (int d = 0; d < 4; d++) {
-                    int yy = 45 + d * 35;
+                    /* Keep the fourth droid's condition row clear of the
+                     * bottom action hints. The previous 35-pixel stride put
+                     * that row at y=162, directly under the rename hint at
+                     * y=165 on the native 320x200 canvas. */
+                    int yy = 35 + d * 28;
                     uint32_t col = (d == droid_config_cursor) ? 0xFFFFFF44 : 0xFF888888;
                     char line[80];
                     snprintf(line, sizeof(line), "%s %s  HP:%d  EN:%d",
@@ -3354,7 +3358,7 @@ int main(int argc, char *argv[]) {
                              gs.droids[d].body_part_hp[0], gs.droids[d].body_part_hp[1],
                              gs.droids[d].body_part_hp[2], gs.droids[d].body_part_hp[3],
                              gs.droids[d].body_part_hp[4], gs.droids[d].body_part_hp[5]);
-                    draw_simple_text(framebuffer, cw, ch, 10, yy + 12, parts, 0xFF666666, 1);
+                    draw_simple_text(framebuffer, cw, ch, 10, yy + 10, parts, 0xFF666666, 1);
                 }
                 if (droid_config_renaming) {
                     char ren[48];
