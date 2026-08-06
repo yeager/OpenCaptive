@@ -303,6 +303,11 @@ static void test_cross_save(void) {
 
     GameState gs2;
     memset(&gs2, 0, sizeof(gs2));
+    static const char data_path[] = "/tmp/opencaptive-cross-data";
+    gs2.config.render_mode = CAPTIVE_RENDER_ENHANCED;
+    gs2.config.scanlines = true;
+    gs2.config.brightness = 81;
+    gs2.config.data_path = data_path;
     assert(cross_save_import(&gs2, path));
 
     assert(gs2.game_type == GAME_CAPTIVE);
@@ -320,6 +325,10 @@ static void test_cross_save(void) {
     assert(gs2.droids[0].hp_max == 200);
     assert(gs2.levels[0].seed == 42);
     assert(gs2.levels[0].cells[5][10].type == CELL_DOOR);
+    assert(gs2.config.render_mode == CAPTIVE_RENDER_ENHANCED);
+    assert(gs2.config.scanlines);
+    assert(gs2.config.brightness == 81);
+    assert(gs2.config.data_path == data_path);
 
     gs.game_type = GAME_LIBERATION;
     assert(!cross_save_export(&gs, path));

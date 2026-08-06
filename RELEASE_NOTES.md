@@ -23,6 +23,8 @@
   layouts use the intended offsets for every template orientation.
 - Hardened block-template bounds checking so adjacency offsets cannot be read
   outside a supplied template row.
+- Cross-save imports now preserve active runtime options, including F10
+  graphics settings and the configured data path.
 
 ## v1.1.72 (2026-08-04)
 

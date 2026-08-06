@@ -114,6 +114,9 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
 bool cross_save_import(void *game_state_ptr, const char *path) {
     GameState *destination = (GameState *)game_state_ptr;
     if (!destination || !path) return false;
+    /* Runtime/display options are deliberately not serialized. Preserve the
+     * active session configuration while importing the gameplay snapshot. */
+    OpenCaptiveConfig active_config = destination->config;
     /* Import reconstructs every serialized field.  Do not copy the caller's
      * possibly uninitialised state before validation; failed imports leave
      * the destination untouched and successful imports receive deterministic
@@ -233,6 +236,7 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
         return false;
     }
     gs->mode = STATE_GAME;
+    gs->config = active_config;
     *destination = *gs;
     free(gs);
 #undef IMPORT_FAIL

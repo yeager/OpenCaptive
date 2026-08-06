@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Preserve options in cross-save import)
+
+- Bevarade aktiv grafik-, ljud- och datasökvägskonfiguration även när en
+  Captive cross-save importeras; F10-lägen återställs inte till nollade
+  värden.
+- Regressionstest tillagt för cross-save-konfiguration.
+
 ## 2026-08-06 (Liberation block-template bounds)
 
 - Säkrade valideringen av Liberation-blockmallarnas radsteg så att även de
