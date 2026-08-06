@@ -3,9 +3,26 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 static I18nTable table;
 static bool initialized;
+
+static bool normalize_language(const char *input, char out[sizeof(table.lang)]) {
+    if (!input || !out) return false;
+
+    /* SDL may report a regional tag such as sv-SE.  Only retain the
+     * language part; rejecting everything else keeps it out of the path
+     * constructed below (the value may also come from --lang). */
+    if (!isalpha((unsigned char)input[0]) ||
+        !isalpha((unsigned char)input[1])) return false;
+    if (input[2] != '\0' && input[2] != '-' && input[2] != '_') return false;
+
+    out[0] = (char)tolower((unsigned char)input[0]);
+    out[1] = (char)tolower((unsigned char)input[1]);
+    out[2] = '\0';
+    return true;
+}
 
 static void copy_po_field(char *dst, const char *src) {
     if (!dst || !src) return;
@@ -125,8 +142,10 @@ void i18n_init(const char *lang_override) {
     memset(&table, 0, sizeof(table));
     initialized = true;
 
-    const char *lang = lang_override ? lang_override : detect_language();
-    snprintf(table.lang, sizeof(table.lang), "%s", lang);
+    const char *requested = lang_override ? lang_override : detect_language();
+    if (!normalize_language(requested, table.lang))
+        snprintf(table.lang, sizeof(table.lang), "en");
+    const char *lang = table.lang;
 
     if (strcmp(lang, "en") == 0)
         return;

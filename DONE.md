@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Safe language selection)
+
+- Normaliserar språkval till säkra tvåbokstavskoder innan PO-filer öppnas;
+  `--lang` kan inte längre styra en sökväg utanför programmets språkdata.
+- Regionala SDL-koder som `sv-SE` och `sv_SE` fungerar genom att språkdelen
+  används. Regressionstester tillagda.
+
 ## 2026-08-06 (Creature HP difficulty range)
 
 - Korrigerade `creature_calc_hp()` så att högsta svårighetssteget 8 inte
