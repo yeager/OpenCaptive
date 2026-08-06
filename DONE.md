@@ -3310,3 +3310,6 @@
 - Cross-save-importen räknar nu också om droidernas härledda vapenskada från
   validerad utrustning. Ett manipulerat portabelt save kan därför inte längre
   ge godtycklig combat-skada efter import.
+- Generatorn placerar nu väggmonterade el-fällor endast mot riktiga väggceller.
+  De kan därför inte längre skapas på en ogiltig väggyta utan fungerande
+  interaktion; ett regressionsprov verifierar placeringen.

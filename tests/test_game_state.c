@@ -131,6 +131,43 @@ static void test_generated_power_socket_has_no_stale_target(void) {
     assert(found_socket);
 }
 
+static void test_generated_electric_traps_face_walls(void) {
+    bool found_electric = false;
+    for (uint32_t seed = 1; seed <= 128 && !found_electric; seed++) {
+        DungeonLevel level;
+        PuzzleList puzzles;
+        memset(&level, 0, sizeof(level));
+        memset(&puzzles, 0, sizeof(puzzles));
+        for (int y = 1; y < MAP_HEIGHT - 1; y++)
+            for (int x = 1; x < MAP_WIDTH - 1; x++)
+                level.cells[y][x].type = CELL_FLOOR;
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            level.cells[0][x].type = CELL_WALL;
+            level.cells[MAP_HEIGHT - 1][x].type = CELL_WALL;
+        }
+        for (int y = 0; y < MAP_HEIGHT; y++) {
+            level.cells[y][0].type = CELL_WALL;
+            level.cells[y][MAP_WIDTH - 1].type = CELL_WALL;
+        }
+
+        for (int x = 6; x < MAP_WIDTH - 2; x += 6)
+            for (int y = 2; y < MAP_HEIGHT - 2; y++)
+                level.cells[y][x].type = CELL_WALL;
+
+        puzzle_generate(&puzzles, &level, 0, seed);
+        for (int i = 0; i < puzzles.num_puzzles; i++) {
+            const Puzzle *p = &puzzles.puzzles[i];
+            if (p->type != PUZZLE_WALL_ELECTRIC) continue;
+            assert(p->face >= DIR_NORTH && p->face <= DIR_WEST);
+            static const int dx[] = {0, 1, 0, -1};
+            static const int dy[] = {-1, 0, 1, 0};
+            assert(level.cells[p->y + dy[p->face]][p->x + dx[p->face]].type == CELL_WALL);
+            found_electric = true;
+        }
+    }
+    assert(found_electric);
+}
+
 static void test_generated_triple_levers_use_all_eight_states(void) {
     bool found_extended_solution = false;
     for (uint32_t seed = 1; seed <= 128 && !found_extended_solution; seed++) {
@@ -627,6 +664,7 @@ int main(void) {
     test_teleporter_never_enters_blocked_cell();
     test_generated_teleporters_target_floor();
     test_generated_power_socket_has_no_stale_target();
+    test_generated_electric_traps_face_walls();
     test_generated_triple_levers_use_all_eight_states();
     test_first_mission_uses_architect_seed_zero();
     test_extreme_mission_seed_is_defined();

@@ -349,25 +349,27 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
 
     int elec_count = 1 + captive_prng(&puzzle_seed) % 3;
     for (int e = 0; e < elec_count && pl->num_puzzles < MAX_PUZZLES; e++) {
-        int attempts = 50;
-        while (attempts-- > 0) {
-            int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
-            int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
-            if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
-            int d = captive_prng(&puzzle_seed) % 4;
-            Puzzle *p = puzzle_append(pl);
-            if (!p) break;
-            p->type = PUZZLE_WALL_ELECTRIC;
-            p->x = rx; p->y = ry;
-            p->level = level_num;
-            p->face = d;
-            p->state = 0;
-            p->solved = false;
-            p->target_x = -1; p->target_y = -1;
-            lvl->cells[ry][rx].ornament[d] = ORNAMENT_PANEL;
-            break;
+            int attempts = 50;
+            while (attempts-- > 0) {
+                int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
+                int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
+                if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                int d = captive_prng(&puzzle_seed) % 4;
+                if (lvl->cells[ry + dy[d]][rx + dx[d]].type != CELL_WALL)
+                    continue;
+                Puzzle *p = puzzle_append(pl);
+                if (!p) break;
+                p->type = PUZZLE_WALL_ELECTRIC;
+                p->x = rx; p->y = ry;
+                p->level = level_num;
+                p->face = d;
+                p->state = 0;
+                p->solved = false;
+                p->target_x = -1; p->target_y = -1;
+                lvl->cells[ry][rx].ornament[d] = ORNAMENT_PANEL;
+                break;
+            }
         }
-    }
 }
 
 bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
