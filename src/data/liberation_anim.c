@@ -70,6 +70,7 @@ static int pack_decode(const uint8_t *src, size_t src_size,
         }
         if (segment_size < PACK_DESCRIPTOR_SIZE ||
             segment_size > LIBERATION_PACK_MAX_OUTPUT_SIZE ||
+            out_pos > LIBERATION_PACK_MAX_OUTPUT_SIZE - segment_size ||
             segment_size > SIZE_MAX - out_pos ||
             in_pos + PACK_DESCRIPTOR_SIZE > src_size ||
             !grow_output(&output, &capacity, out_pos + segment_size)) {
