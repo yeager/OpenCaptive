@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Atomic mission metadata)
+
+- `game_state_new_mission()` beräknar nu seed lokalt och låter den seedade
+  kartgeneratorn uppdatera mission och seed först efter lyckad temporär
+  dungeonallokering.
+- Ett allokeringsfel kan därför inte lämna gammal dungeon med ny
+  missionsmetadata.
+- Werror-kompilering och hela testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (VFS loose-file cache invalidation)
 
 - VFS-cacheproben inkluderar nu metadata för lösa filer, inte bara dataroten
