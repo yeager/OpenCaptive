@@ -468,10 +468,11 @@ function(opencaptive_enable_test_assertions target)
     endif()
 endfunction()
 
-foreach(test_target IN ITEMS
-        test_pl5_decoder test_anm_decoder test_map_gen test_captive_view_window test_captive_compositor test_dos_vga_reference test_captive_dos_descriptor test_frame_compare test_data_vfs
-        test_sha256 test_iso9660_reader test_amiga_hunk test_amiga_ofs test_adf_reader test_amiga_planar test_amos_sprite test_liberation_anim test_start_menu test_game_state test_save_load test_ctv_decoder test_holamap test_creature_sprite test_object_sprite test_adlib_data test_opl2_emu test_adlib_sfx)
-    opencaptive_enable_test_assertions(${test_target})
+get_property(opencaptive_directory_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+foreach(test_target IN LISTS opencaptive_directory_targets)
+    if(test_target MATCHES "^test_")
+        opencaptive_enable_test_assertions(${test_target})
+    endif()
 endforeach()
 
 # --- Tools ---
