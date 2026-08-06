@@ -138,6 +138,9 @@ Place your game data files (ZIP archives, loose files, ADF disk images) in the d
 | `--upscale-factor <N>` | xBRZ factor: 2, 3 or 4 (implies `--hd-upscale`) |
 | `--widescreen` | Expand the game presentation horizontally to 16:9 |
 | `--hq-midi` | Enable the enhanced MIDI output filter |
+| `--replay-record` | Record Captive inputs to `opencaptive.ocrp` on exit |
+| `--replay-output <file>` | Select the output file for replay recording |
+| `--replay-play <file>` | Play back a recorded Captive replay |
 | `--version` | Show version and exit |
 | `--help` | Show help and exit |
 

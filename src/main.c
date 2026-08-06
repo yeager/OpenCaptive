@@ -1747,6 +1747,7 @@ int main(int argc, char *argv[]) {
     automap_init(&automap_state);
     ReplaySystem replay;
     replay_init(&replay);
+    const char *replay_output_path = "opencaptive.ocrp";
 
     GameType requested_game = GAME_CAPTIVE;
     bool start_directly = false;
@@ -1808,7 +1809,8 @@ int main(int argc, char *argv[]) {
                 "  --dynamic-lighting    Distance-based lighting\n"
                 "  --speed <n>           Game speed multiplier (default 1.0)\n"
                 "  --fast-travel         Enable fast travel in cities\n"
-                "  --replay-record       Record inputs for replay\n"
+                "  --replay-record       Record inputs to opencaptive.ocrp\n"
+                "  --replay-output <f>  Replay output file for recording\n"
                 "  --replay-play <file>  Play back a recorded replay\n"
                 "  --cross-save-export   Enable portable save export\n"
                 "  --features-config <f> Load features from config file\n\n"
@@ -1936,6 +1938,14 @@ int main(int argc, char *argv[]) {
             custom.fast_travel = true;
             custom.speed_control = true;
         } else if (strcmp(argv[i], "--replay-record") == 0) {
+            custom.replay_record = true;
+            replay.recording = true;
+        } else if (strcmp(argv[i], "--replay-output") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "--replay-output requires a file path\n");
+                return 2;
+            }
+            replay_output_path = argv[++i];
             custom.replay_record = true;
             replay.recording = true;
         } else if (strcmp(argv[i], "--replay-play") == 0 && i + 1 < argc) {
@@ -3433,6 +3443,10 @@ int main(int argc, char *argv[]) {
     }
 
     vfs_free(&vfs);
+    if (custom.replay_record && !replay_save(&replay, replay_output_path)) {
+        fprintf(stderr, "Could not write replay: %s\n", replay_output_path);
+        exit_status = 1;
+    }
     liberation_data_close(&liberation_data);
     free(liberation_mission_menu_pixels);
     music_shutdown(&music_sys);

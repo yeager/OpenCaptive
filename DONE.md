@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Replay recording output)
+
+- `--replay-record` sparar nu den inspelade Captive-replayen när programmet
+  avslutas, i `opencaptive.ocrp` som standard.
+- Lade till `--replay-output <fil>` för explicit sökväg och felmeddelande när
+  sökvägen saknas.
+- Dokumenterade inspelning och uppspelning i README och release notes.
+
 ## 2026-08-06 (Atomic replay and feature configuration)
 
 - Replay- och feature-konfigurationsfiler skrivs till temporära filer och byts
