@@ -46,6 +46,27 @@ static bool valid_droid_items(const ItemDatabase *db, const Droid *droid) {
     return true;
 }
 
+static void recalc_weapon_damage(const ItemDatabase *db, Droid *droid) {
+    if (!db || !droid) return;
+    uint16_t best = 0;
+    int best_damage = 0;
+    for (size_t i = 0; i < sizeof(droid->weapons); ++i) {
+        const Item *item = item_db_get(db, droid->weapons[i]);
+        if (!item || item->damage_min < 0 || item->damage_min > UINT8_MAX ||
+            item->damage_max < 0 || item->damage_max > UINT8_MAX)
+            continue;
+        uint8_t lo = (uint8_t)item->damage_min;
+        uint8_t hi = (uint8_t)item->damage_max;
+        uint16_t encoded = (uint16_t)lo | ((uint16_t)hi << 8);
+        int damage = (int)lo * (int)hi;
+        if (damage > best_damage || (damage == best_damage && encoded > best)) {
+            best_damage = damage;
+            best = encoded;
+        }
+    }
+    droid->weapon_damage = best;
+}
+
 /* Cross-save is explicitly portable. Do not write native integer object
  * representations: the old implementation happened to work on the current
  * little-endian runners but produced unreadable files on big-endian hosts. */
@@ -359,6 +380,9 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
             !valid_droid_items(&item_db, dr)) {
             IMPORT_FAIL();
         }
+        /* weapon_damage is derived from the equipped weapons. Do not trust
+         * the serialized cache when importing a portable save. */
+        recalc_weapon_damage(&item_db, dr);
         dr->name[sizeof(dr->name) - 1] = '\0';
     }
 

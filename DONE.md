@@ -3307,3 +3307,6 @@
 - Captive-savefiler får inte längre styra droidens härledda vapenskada. Vid
   laddning räknas `weapon_damage` om från validerade vapenplatser, med ett
   regressionsprov för manipulerade sparfiler.
+- Cross-save-importen räknar nu också om droidernas härledda vapenskada från
+  validerad utrustning. Ett manipulerat portabelt save kan därför inte längre
+  ge godtycklig combat-skada efter import.

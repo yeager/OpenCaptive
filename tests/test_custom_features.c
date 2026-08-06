@@ -373,6 +373,20 @@ static void test_cross_save(void) {
     assert(gs2.config.brightness == 81);
     assert(gs2.config.data_path == data_path);
 
+    /* A portable save must rebuild derived combat state instead of trusting
+       a mutated weapon_damage field. Header (57) + first droid fields before
+       weapon_damage (62) locates the first droid's cached value. */
+    gs.droids[0].weapons[0] = 13;
+    assert(cross_save_export(&gs, path));
+    FILE *bad_damage = fopen(path, "r+b");
+    assert(bad_damage);
+    assert(fseek(bad_damage, 57L + 62L, SEEK_SET) == 0);
+    assert(fputc(0xFF, bad_damage) != EOF && fputc(0xFF, bad_damage) != EOF);
+    assert(fclose(bad_damage) == 0);
+    assert(cross_save_import(&gs2, path));
+    assert(gs2.droids[0].weapons[0] == 13);
+    assert(gs2.droids[0].weapon_damage != UINT16_MAX);
+
     /* A valid item ID is not enough: armor and weapons must stay in their
        respective droid slots in portable saves. */
     gs.droids[0].body_parts[0] = 18; /* handgun in an armor slot */
