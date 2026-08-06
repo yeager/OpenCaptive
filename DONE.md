@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Intern cache filtreras ur VFS-sökning)
+
+- ZIP-discovery och lösfilssökning hoppar nu över `.cache` på både Windows
+  och POSIX.
+- Cacheartefakter kan därmed inte identifieras som speldata när dataroten är
+  hemkatalogen.
+- Riktat `data_vfs`-test passerar efter ändringen.
+
 ## 2026-08-06 (Säker ZIP-nästling)
 
 - Nästlade ZIP-poster avbryter nu säkert vid misslyckad minnesallokering i

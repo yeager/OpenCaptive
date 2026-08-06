@@ -489,6 +489,7 @@ static void scan_for_zips_recursive(DataVFS *vfs, const char *path, int depth) {
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL && vfs->num_zips < VFS_MAX_ZIPS) {
         if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
+        if (!strcmp(entry->d_name, ".cache")) continue;
         char child[1024];
         if (snprintf(child, sizeof(child), "%s/%s", path, entry->d_name) >=
             (int)sizeof(child)) continue;
@@ -940,6 +941,7 @@ static uint8_t *find_hash_in_directory(const char *path, const char expected_sha
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
         if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
+        if (!strcmp(entry->d_name, ".cache")) continue;
         char child[1024];
         if (snprintf(child, sizeof(child), "%s/%s", path, entry->d_name) >= (int)sizeof(child)) continue;
         struct stat st;
@@ -985,6 +987,7 @@ static uint8_t *find_hash_in_directory(const char *path, const char expected_sha
     if (handle == INVALID_HANDLE_VALUE) return NULL;
     do {
         if (!strcmp(entry.cFileName, ".") || !strcmp(entry.cFileName, "..")) continue;
+        if (!strcmp(entry.cFileName, ".cache")) continue;
         char child[1024];
         if (snprintf(child, sizeof(child), "%s\\%s", path, entry.cFileName) >= (int)sizeof(child)) continue;
         if (entry.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
