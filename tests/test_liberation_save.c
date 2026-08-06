@@ -5,6 +5,8 @@
 #ifdef _WIN32
 #include <io.h>
 #define unlink _unlink
+#define fileno _fileno
+#define ftruncate _chsize
 #else
 #include <unistd.h>
 #endif
