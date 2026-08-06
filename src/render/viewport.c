@@ -235,6 +235,15 @@ void viewport_render(const CaptiveViewWindow *window,
     if (!window || !atlas || !atlas->loaded || !framebuffer ||
         fb_width <= 0 || fb_height <= 0) return;
 
+    /* The original Captive renderer composes pre-projected panels through a
+     * descriptor list in the DOS executable.  The perspective geometry below
+     * was an interim approximation: it scales parts of verified source sheets
+     * into newly invented placements.  It must not occupy the original view
+     * window while parity is under verification.  Leave the original HUD
+     * shell's viewport untouched until the descriptor-driven compositor is
+     * recovered and can be compared to DOS captures. */
+    return;
+
     int vp_x = CAPTIVE_VIEWPORT_X;
     int vp_y = CAPTIVE_VIEWPORT_Y;
     int vp_w = CAPTIVE_VIEWPORT_WIDTH;
@@ -536,6 +545,11 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
                                const TextureAtlas *atlas,
                                uint32_t *framebuffer, int fb_width, int fb_height) {
     if (!gs || !cl || !framebuffer) return;
+
+    /* Creature placement and scale are tied to the same unrecovered original
+     * panel descriptors as the dungeon view.  Do not draw approximations on
+     * top of the verified shell. */
+    return;
     (void)atlas;
 
     int vp_x = CAPTIVE_VIEWPORT_X;
