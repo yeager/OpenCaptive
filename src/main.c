@@ -45,6 +45,10 @@
 #include <SDL3/SDL_main.h>
 
 static int quicksave_slot = 0;
+/* Captive can open the same shop from active gameplay or from the mission
+ * Holomap.  Keep the caller state so Escape never drops the player into the
+ * previous mission after shopping from the Holomap. */
+static GameStateMode shop_return_mode = STATE_GAME;
 #include <errno.h>
 #include <math.h>
 #include <sys/stat.h>
@@ -1796,6 +1800,7 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             const DungeonLevel *cur = &gs->levels[gs->current_level];
             // Check if on shop cell
             if (cur->cells[gs->party_y][gs->party_x].type == CELL_SHOP) {
+                shop_return_mode = STATE_GAME;
                 shop_init(&shop, &item_db, gs->current_level, gs->mission_seed);
                 shop.gold = gs->gold;
                 gs->mode = STATE_SHOP;
@@ -3019,7 +3024,8 @@ int main(int argc, char *argv[]) {
                         switch (event.key.key) {
                             case SDLK_ESCAPE:
                                 gs.gold = shop.gold;
-                                gs.mode = STATE_GAME;
+                                gs.mode = shop_return_mode;
+                                shop_return_mode = STATE_GAME;
                                 music_play(&music_sys, MUSIC_BASE);
                                 break;
                             case SDLK_UP:
@@ -3049,6 +3055,7 @@ int main(int argc, char *argv[]) {
                                 music_play(&music_sys, MUSIC_BASE);
                                 break;
                             case SDLK_S:
+                                shop_return_mode = STATE_HOLAMAP;
                                 gs.mode = STATE_SHOP;
                                 shop_init(&shop, &item_db, gs.mission, gs.mission_seed);
                                 shop.gold = gs.gold;

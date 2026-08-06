@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive Holomap-shop transition)
+
+- Captive-shoppen minns nu om den öppnades från aktivt spel eller Holomap.
+- `ESC` från shoppen återgår därför till rätt skärm; shopping från Holomap
+  återför inte längre spelaren direkt till föregående uppdrag.
+
 ## 2026-08-07 (Captive save-respawn-invariant)
 
 - Save/load avvisar nu döda, inaktiva fiender utan aktiv respawn-timer.
