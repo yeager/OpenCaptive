@@ -11,7 +11,7 @@ runtime paths are still under development.
 
 ## Downloads
 
-Pre-built packages for all platforms are available on the [Releases](https://github.com/yeager/OpenCaptive/releases) page:
+Pre-built packages for all platforms are available on the [Releases](https://github.com/yeager/OpenCaptive/releases) page. Maintainers can also run the **Release** GitHub Actions workflow manually with a version such as `2.7.5`; tag-based releases remain supported.
 
 | Platform | Package |
 |----------|---------|

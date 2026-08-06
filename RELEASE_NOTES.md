@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+
+- The release workflow can now be started manually with an explicit semantic
+  version and creates the matching `vX.Y.Z` GitHub release tag.
 - Linux-installationer och AppImages hittar nu font, l10n och launcherbilder
   via `../share/opencaptive` och `/usr/share/opencaptive`, inte bara via
   utvecklingskatalogen bredvid binären.

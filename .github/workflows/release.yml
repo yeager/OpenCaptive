@@ -3,9 +3,18 @@ name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version without the leading v, for example 2.7.5'
+        required: true
+        type: string
 
 permissions:
   contents: write
+
+env:
+  RELEASE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
 
 jobs:
   build-linux:
@@ -43,7 +52,7 @@ jobs:
         run: ctest --test-dir build -j4 --output-on-failure -E "map_gen|captive_view_window|liberation_text_table|liberation_x3g|liberation_img|custom_features|game_state|save_load"
       - name: Get version
         id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        run: echo "version=${RELEASE_VERSION#v}" >> "$GITHUB_OUTPUT"
       - name: Package tar.gz
         run: |
           mkdir -p opencaptive-linux-x86_64/data opencaptive-linux-x86_64/po opencaptive-linux-x86_64/assets
@@ -211,7 +220,7 @@ jobs:
       - name: Create app bundle
         run: |
           APP=OpenCaptive.app
-          VERSION=${GITHUB_REF_NAME#v}
+          VERSION=${RELEASE_VERSION#v}
           mkdir -p "$APP/Contents/MacOS"
           mkdir -p "$APP/Contents/Frameworks"
           mkdir -p "$APP/Contents/Resources/data"
@@ -306,7 +315,7 @@ jobs:
       - name: Get version
         id: version
         shell: bash
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        run: echo "version=${RELEASE_VERSION#v}" >> "$GITHUB_OUTPUT"
       - name: Create Inno Setup script
         shell: cmd
         run: |
@@ -444,7 +453,7 @@ jobs:
           ninja -C build-ios opencaptive
       - name: Create .app and .ipa
         run: |
-          VERSION=${GITHUB_REF_NAME#v}
+          VERSION=${RELEASE_VERSION#v}
           APP=Payload/OpenCaptive.app
           mkdir -p "$APP/data" "$APP/po"
           mkdir -p "$APP/assets"
@@ -547,7 +556,7 @@ jobs:
           done
       - name: Create Gradle project and build APK
         run: |
-          VERSION=${GITHUB_REF_NAME#v}
+          VERSION=${RELEASE_VERSION#v}
           VERSION_CODE=$(echo "$VERSION" | awk -F. '{printf "%d%03d%03d", $1, $2, $3}')
 
           mkdir -p apk-project/app/src/main/java/se/danielnylander/opencaptive
@@ -681,6 +690,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          PACKAGE_VERSION=${RELEASE_VERSION#v}
+          case "$PACKAGE_VERSION" in
+            ''|*[!0-9.]*) echo "Invalid release version: $RELEASE_VERSION" >&2; exit 1 ;;
+          esac
           test -s artifacts/linux-x86_64/opencaptive-linux-x86_64.tar.gz
           test -s artifacts/linux-x86_64/opencaptive_*.deb
           test -s artifacts/linux-x86_64/opencaptive-*.rpm
@@ -692,6 +705,8 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}
+          name: OpenCaptive ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}
           files: |
             artifacts/linux-x86_64/opencaptive-linux-x86_64.tar.gz
             artifacts/linux-x86_64/opencaptive_*.deb
