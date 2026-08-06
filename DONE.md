@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Säker UTF-8-avkodning i runtime-popup)
+
+- Den lilla pixeltext-renderaren kontrollerar nu att UTF-8-fortsättningsbytes
+  finns innan de läses.
+- Avkortade eller skadade lokaliserade strängar faller tillbaka till `?`
+  utan läsning förbi strängens slut.
+
 ## 2026-08-06 (Renderer-fallback vid ogiltig skala)
 
 - Renderer använder nu originalpixlar om `upscale_factor` är ogiltig, i

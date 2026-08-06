@@ -786,10 +786,12 @@ static uint32_t utf8_decode(const char **p) {
     const uint8_t *s = (const uint8_t *)*p;
     uint32_t cp;
     if (s[0] < 0x80) { cp = s[0]; *p += 1; }
-    else if ((s[0] & 0xE0) == 0xC0 && (s[1] & 0xC0) == 0x80) {
+    else if ((s[0] & 0xE0) == 0xC0 && s[1] != '\0' &&
+             (s[1] & 0xC0) == 0x80) {
         cp = ((uint32_t)(s[0] & 0x1F) << 6) | (s[1] & 0x3F);
         *p += 2;
-    } else if ((s[0] & 0xF0) == 0xE0 && (s[1] & 0xC0) == 0x80 && (s[2] & 0xC0) == 0x80) {
+    } else if ((s[0] & 0xF0) == 0xE0 && s[1] != '\0' && s[2] != '\0' &&
+               (s[1] & 0xC0) == 0x80 && (s[2] & 0xC0) == 0x80) {
         cp = ((uint32_t)(s[0] & 0x0F) << 12) | ((uint32_t)(s[1] & 0x3F) << 6) | (s[2] & 0x3F);
         *p += 3;
     } else { cp = '?'; *p += 1; }
