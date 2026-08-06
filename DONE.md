@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive teleporter-kollision)
+
+- Teleporterfällor kan inte längre lämna party ovanpå en aktiv fiende, vare
+  sig fällan triggas genom rörelse eller interaktion.
+- Lokal Werror/CTest: 58/58 tester passerar.
+
 ## 2026-08-06 (Captive party-fiende-kollision)
 
 - Party kan inte längre gå in i en aktiv fiendes ruta; movement och creature-AI

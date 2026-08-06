@@ -1842,10 +1842,17 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 }
             }
             {
+                int interaction_x = gs->party_x;
+                int interaction_y = gs->party_y;
                 int16_t en_before = gs->droids[gs->selected_droid].energy;
                 bool puzzle_handled =
                     puzzle_interact(&puzzles, gs, gs->party_x, gs->party_y, gs->party_dir) ||
                     puzzle_interact(&puzzles, gs, tx, ty, face);
+                if (combat_cell_occupied(&creatures, gs->current_level,
+                                         gs->party_x, gs->party_y)) {
+                    gs->party_x = interaction_x;
+                    gs->party_y = interaction_y;
+                }
                 if (gs->droids[gs->selected_droid].energy > en_before)
                     recharge_flash_ttl = 6;
                 if (puzzle_handled) sfx_play(&sfx, SFX_BUTTON);
@@ -1962,6 +1969,14 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             }
             puzzle_check_step(&puzzles, gs, nx, ny);
             if (gs->mode == STATE_GAMEOVER) return;
+            if (combat_cell_occupied(&creatures, gs->current_level,
+                                     gs->party_x, gs->party_y)) {
+                /* Teleporters have no creature-list dependency.  Reject a
+                 * destination occupied by an active creature and leave the
+                 * party on the safe tile that triggered the teleport. */
+                gs->party_x = nx;
+                gs->party_y = ny;
+            }
             /* A teleporter may move the party while resolving the step.
              * All post-movement effects must use the actual landing cell,
              * not the cell that triggered the move. */
