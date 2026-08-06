@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (ANM-intro återhämtar tappad tid)
+
+- Captive-introt avancerar nu över alla hela 100 ms-intervall som gått sedan
+  föregående bildruta, i stället för att alltid gå exakt en ruta vid lagg.
+- Frame-indexet kontrolleras mot återstående rutor innan övergången till
+  droidkonfiguration, så långsamma renderingar kan inte läsa utanför introt.
+
 ## 2026-08-06 (Tidsstabil menyanimation)
 
 - Startmenyns markeringspuls och fallback-kortanimation använder nu förfluten

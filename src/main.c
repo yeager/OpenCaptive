@@ -3031,10 +3031,12 @@ int main(int argc, char *argv[]) {
                 }
                 if (intro_loaded && intro_anim.frame_count > 0) {
                     uint32_t now = SDL_GetTicks();
-                    if (now - intro_last_tick > 100) {
-                        intro_frame++;
-                        intro_last_tick = now;
-                        if (intro_frame >= intro_anim.frame_count) {
+                    uint32_t elapsed = now - intro_last_tick;
+                    if (elapsed >= 100U) {
+                        uint32_t advance = elapsed / 100U;
+                        uint32_t remaining = (uint32_t)intro_anim.frame_count -
+                                             (uint32_t)intro_frame;
+                        if (advance >= remaining) {
                             anm_free(&intro_anim);
                             intro_loaded = false;
                             music_play(&music_sys, MUSIC_BASE);
@@ -3042,6 +3044,10 @@ int main(int argc, char *argv[]) {
                             droid_config_cursor = 0;
                             break;
                         }
+                        intro_frame += (int)advance;
+                        /* Preserve the original cadence instead of dropping
+                         * all elapsed time when a render frame was delayed. */
+                        intro_last_tick += advance * 100U;
                     }
                     // Convert indexed frame to ARGB
                     const uint8_t *frame = intro_anim.frames[intro_frame];
