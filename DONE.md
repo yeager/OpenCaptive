@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Icke-blockerande dataskanner)
+
+- Startmenyns D-skanner kör nu en verifierad hashkontroll per menyframe i
+  stället för att blockera hela eventloopen.
+- Progressfältet kan därför uppdateras under skanning, medan den befintliga
+  metadata-/identitetscachen fortfarande återanvänds.
+- Scanner-VFS frigörs både vid färdig skanning och när användaren lämnar
+  scannerfönstret.
+- Regressionstestet täcker stegvis progress och resursfrisläppning.
+- Werror-kompilering och hela testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (F10-popup i Liberation)
 
 - F10-popupen använder nu kompakt radlayout på Liberation-canvasens 320×162

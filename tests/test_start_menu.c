@@ -103,6 +103,19 @@ int main(void) {
     start_menu_handle_event(&menu, &event);
     assert(!menu.in_controls);
 
+    /* Data scanning must advance incrementally so the menu can render its
+       progress bar between hash lookups. */
+    snprintf(menu.data_path, sizeof(menu.data_path), ".");
+    event = key_event(SDLK_D);
+    assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_NONE);
+    assert(menu.in_scanner && !menu.scanner_done);
+    int scan_progress = menu.scanner_progress;
+    start_menu_update(&menu);
+    assert(menu.scanner_progress == scan_progress + 1);
+    event = key_event(SDLK_ESCAPE);
+    start_menu_handle_event(&menu, &event);
+    assert(!menu.in_scanner && !menu.scanner_vfs_ready);
+
     /* item 7 = Quit */
     menu.selected_item = 7;
     event = key_event(SDLK_RETURN);

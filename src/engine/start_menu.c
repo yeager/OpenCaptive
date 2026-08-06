@@ -502,17 +502,27 @@ void start_menu_check_saves(StartMenu *menu) {
     if (f) fclose(f);
 }
 
-static void run_data_scanner(StartMenu *menu, const char *data_path) {
+static void stop_data_scanner(StartMenu *menu) {
+    if (!menu) return;
+    if (menu->scanner_vfs_ready) {
+        vfs_free(&menu->scanner_vfs);
+        menu->scanner_vfs_ready = false;
+    }
+}
+
+static void start_data_scanner(StartMenu *menu, const char *data_path) {
     if (!menu || !data_path || !data_path[0]) {
+        if (menu) menu->scanner_done = true;
+        return;
+    }
+    stop_data_scanner(menu);
+    if (!vfs_init(&menu->scanner_vfs, data_path)) {
         menu->scanner_done = true;
         return;
     }
-    DataVFS vfs;
-    if (!vfs_init(&vfs, data_path)) {
-        menu->scanner_done = true;
-        return;
-    }
-    menu->scanner_zip_count = vfs.num_zips;
+    menu->scanner_vfs_ready = true;
+    menu->scanner_captive_index = 0;
+    menu->scanner_zip_count = menu->scanner_vfs.num_zips;
     menu->scanner_captive_total = (int)CAPTIVE_HASH_COUNT;
     menu->scanner_captive_found = 0;
     menu->scanner_liberation_total = (int)LIBERATION_RESOURCE_COUNT;
@@ -521,27 +531,47 @@ static void run_data_scanner(StartMenu *menu, const char *data_path) {
                           (int)LIBERATION_RESOURCE_COUNT;
     menu->scanner_progress = 0;
     menu->scanner_phase = 0;
-    for (size_t i = 0; i < CAPTIVE_HASH_COUNT; i++) {
-        size_t sz = 0;
-        uint8_t *d = vfs_find_sha256(&vfs, captive_required_hashes[i], &sz);
-        if (d) { free(d); menu->scanner_captive_found++; }
-        menu->scanner_progress = (int)(i + 1);
+    menu->scanner_done = false;
+}
+
+void start_menu_update(StartMenu *menu) {
+    if (!menu || !menu->in_scanner || menu->scanner_done) return;
+    if (!menu->scanner_vfs_ready) {
+        menu->scanner_done = true;
+        return;
     }
-    menu->scanner_phase = 1;
-    {
+    if (menu->scanner_phase == 0) {
+        if (menu->scanner_captive_index < CAPTIVE_HASH_COUNT) {
+            size_t sz = 0;
+            uint8_t *d = vfs_find_sha256(&menu->scanner_vfs,
+                                         captive_required_hashes[menu->scanner_captive_index],
+                                         &sz);
+            if (d) {
+                free(d);
+                menu->scanner_captive_found++;
+            }
+            menu->scanner_captive_index++;
+            menu->scanner_progress = (int)menu->scanner_captive_index;
+            return;
+        }
+        menu->scanner_phase = 1;
+    }
+    if (menu->scanner_phase == 1) {
         LiberationData lib_data = {0};
-        if (liberation_data_open(&lib_data, &vfs)) {
+        if (liberation_data_open(&lib_data, &menu->scanner_vfs)) {
             menu->scanner_liberation_found = (int)LIBERATION_RESOURCE_COUNT;
             liberation_data_close(&lib_data);
         }
+        menu->scanner_progress = menu->scanner_total;
+        menu->scanner_phase = 2;
+        menu->scanner_done = true;
+        stop_data_scanner(menu);
     }
-    menu->scanner_progress = menu->scanner_total;
-    vfs_free(&vfs);
-    menu->scanner_done = true;
 }
 
 void start_menu_free(StartMenu *menu) {
     if (!menu) return;
+    stop_data_scanner(menu);
     if (menu->font_title) { TTF_CloseFont(menu->font_title); menu->font_title = NULL; }
     if (menu->font_body)  { TTF_CloseFont(menu->font_body);  menu->font_body = NULL; }
     if (menu->font_small) { TTF_CloseFont(menu->font_small); menu->font_small = NULL; }
@@ -614,6 +644,7 @@ MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
         return MENU_RESULT_NONE;
     }
     if (menu->in_scanner) {
+        stop_data_scanner(menu);
         menu->in_scanner = false;
         menu->scanner_done = false;
         return MENU_RESULT_NONE;
@@ -754,6 +785,7 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
 
     if (menu->in_scanner) {
         if (event->key.key == SDLK_ESCAPE || event->key.key == SDLK_RETURN) {
+            stop_data_scanner(menu);
             menu->in_scanner = false;
             menu->scanner_done = false;
         }
@@ -902,8 +934,7 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
         case SDLK_F1: menu->in_controls = true; break;
         case SDLK_D:
             menu->in_scanner = true;
-            menu->scanner_done = false;
-            run_data_scanner(menu, menu->data_path);
+            start_data_scanner(menu, menu->data_path);
             break;
         case SDLK_ESCAPE: return MENU_RESULT_QUIT;
     }

@@ -3,6 +3,7 @@
 
 #include "game_state.h"
 #include "renderer.h"
+#include "data_vfs.h"
 #include <SDL3/SDL.h>
 
 #define MENU_WIDTH  960
@@ -71,6 +72,9 @@ typedef struct {
     int scanner_total;
     int scanner_phase;
     bool scanner_done;
+    bool scanner_vfs_ready;
+    size_t scanner_captive_index;
+    DataVFS scanner_vfs;
     bool show_setup_popup;
     bool show_version_popup;
     int version_popup_game;
@@ -97,6 +101,8 @@ void start_menu_reinit(StartMenu *menu);
 void start_menu_free(StartMenu *menu);
 void start_menu_check_data(StartMenu *menu, const char *data_path);
 void start_menu_check_saves(StartMenu *menu);
+/* Advance one bounded scanner operation without blocking menu rendering. */
+void start_menu_update(StartMenu *menu);
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event);
 MenuResult start_menu_handle_click(StartMenu *menu, float x, float y);
 void start_menu_handle_mouse_motion(StartMenu *menu, float x, float y);

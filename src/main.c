@@ -2976,6 +2976,9 @@ int main(int argc, char *argv[]) {
 
         memset(framebuffer, 0, (size_t)frame_width * frame_height * sizeof(uint32_t));
 
+        if (gs.mode == STATE_MENU)
+            start_menu_update(&menu);
+
         switch (gs.mode) {
             case STATE_MENU:
                 start_menu_render(&menu, framebuffer, MENU_WIDTH, MENU_HEIGHT);
