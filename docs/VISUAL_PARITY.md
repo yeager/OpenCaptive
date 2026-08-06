@@ -77,6 +77,20 @@ extraherar VGA-bufferområdet `0xA0000..0xAFA00` som en 320×200 PPM-bild:
 ./build/opencaptive --compare-frames /tmp/captive-original.ppm /tmp/captive.ppm
 ```
 
+`captive_descriptor_match` är en snävare analysgrind för den dokumenterade
+DOS-renderaren. Den godtar endast den kända, hashverifierade 1 MiB-dumpen och
+en bild som är exakt extraherad ur just den dumpen. Den identifierar därmed
+inte speldata med filnamn och kan inte av misstag jämföra mot en bild från ett
+annat ögonblick i spelet:
+
+```sh
+./build/opencaptive --extract-dos-vga /path/to/MEMDUMP.BIN /tmp/captive-original.ppm
+./build/captive_descriptor_match /path/to/MEMDUMP.BIN /tmp/captive-original.ppm
+```
+
+Kontrollen bekräftar hittills två statiska paneler i Captive-vyn. Den bevisar
+inte att den dynamiska dungeonrenderingen är återställd.
+
 För delområden med egen paritetsgrind används samma exakta jämförelse med en
 rektangel. Den returnerar noll endast om samtliga pixlar inom rektangeln är
 identiska och två för en ogiltig rektangel:

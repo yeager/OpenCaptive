@@ -649,6 +649,14 @@ add_executable(captive_panel_match tools/captive_panel_match.c
 target_include_directories(captive_panel_match PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(captive_panel_match PRIVATE ZLIB::ZLIB)
 
+# Correlates fixed Captive DOS renderer descriptors with the hash-verified
+# renderer memory fixture and its exact VGA frame.  It is an analysis tool;
+# it neither accepts nor identifies game data by filename.
+add_executable(captive_descriptor_match tools/captive_descriptor_match.c
+    src/data/captive_dos_descriptor.c src/data/dos_vga_reference.c
+    src/data/pl5_decoder.c src/data/sha256.c)
+target_include_directories(captive_descriptor_match PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
 add_executable(dump_pge tools/dump_pge.c
     src/data/liberation_data.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c src/data/rnc_decoder.c
