@@ -259,15 +259,24 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
             if (pixel_count <= SIZE_MAX / sizeof(*upscaled))
                 upscaled = (uint32_t *)SDL_malloc(pixel_count * sizeof(*upscaled));
             if (upscaled) {
+                bool upscale_complete = true;
                 switch (r->upscale_factor) {
                     case 2: upscale_xbrz_2x(pixels, r->canvas_width, r->canvas_height, upscaled); break;
                     case 3: upscale_xbrz_3x(pixels, r->canvas_width, r->canvas_height, upscaled); break;
                     case 4: upscale_xbrz_4x(pixels, r->canvas_width, r->canvas_height, upscaled); break;
-                    default: break;
+                    default: upscale_complete = false; break;
                 }
-                source = upscaled;
-                render_width = upscale_width;
-                render_height = upscale_height;
+                if (upscale_complete) {
+                    source = upscaled;
+                    render_width = upscale_width;
+                    render_height = upscale_height;
+                } else {
+                    /* The public renderer state can be restored from an
+                     * older or malformed config.  Never upload an
+                     * uninitialized temporary buffer in that case. */
+                    SDL_free(upscaled);
+                    upscaled = NULL;
+                }
             }
         }
         if (r->widescreen && render_width != r->texture_width) {

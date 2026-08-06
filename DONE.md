@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Renderer-fallback vid ogiltig skala)
+
+- Renderer använder nu originalpixlar om `upscale_factor` är ogiltig, i
+  stället för att presentera en oinitierad temporär buffer.
+- Detta täpper till den statiska analysens odefinierade-data-varning utan att
+  ändra giltiga 2x/3x/4x-lägen.
+- Werror-build och riktade renderer-/meny-/VFS-tester passerar.
+
 ## 2026-08-06 (Intern cache filtreras ur VFS-sökning)
 
 - ZIP-discovery och lösfilssökning hoppar nu över `.cache` på både Windows
