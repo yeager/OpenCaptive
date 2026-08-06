@@ -648,30 +648,6 @@ static bool liberation_intro_active;
 static bool liberation_mission_menu_active;
 static bool skip_liberation_intro_requested;
 
-/* Liberation saves keep their shared item type wide enough for the original
- * format, while the active OpenCaptive droid inventory uses the Captive
- * database's 8-bit IDs.  Never truncate a shared/save item into a different
- * runtime item. */
-static bool liberation_runtime_item_id(uint16_t item_type, uint8_t *out_id) {
-    if (!out_id || item_type == 0 || item_type > UINT8_MAX) return false;
-    uint8_t id = (uint8_t)item_type;
-    if (!item_db_get(&item_db, id)) return false;
-    *out_id = id;
-    return true;
-}
-
-static bool liberation_is_armor_id(uint8_t item_id) {
-    const Item *item = item_db_get(&item_db, item_id);
-    return item && item->category >= ITEM_ARMOR_HEAD &&
-           item->category <= ITEM_ARMOR_HAND;
-}
-
-static bool liberation_is_weapon_id(uint8_t item_id) {
-    const Item *item = item_db_get(&item_db, item_id);
-    return item && item->category >= ITEM_WEAPON_MELEE &&
-           item->category <= ITEM_WEAPON_SPRAY;
-}
-
 static int menu_audio_sample_rate(const StartMenu *menu) {
     static const int sample_rates[] = {22050, 44100, 48000};
     int choice = menu ? menu->audio_sample_rate : 1;
@@ -758,6 +734,53 @@ static bool lib_in_dungeon;
 static int lib_dungeon_entry_x;
 static int lib_dungeon_entry_y;
 static int lib_inv_cursor;
+
+/* Liberation saves keep their shared item type wide enough for the original
+ * format, while the active OpenCaptive droid inventory uses the Captive
+ * database's 8-bit IDs.  Never truncate a shared/save item into a different
+ * runtime item. */
+static bool liberation_runtime_item_id(uint16_t item_type, uint8_t *out_id) {
+    if (!out_id || item_type == 0 || item_type > UINT8_MAX) return false;
+    uint8_t id = (uint8_t)item_type;
+    if (!item_db_get(&item_db, id)) return false;
+    *out_id = id;
+    return true;
+}
+
+static bool liberation_is_armor_id(uint8_t item_id) {
+    const Item *item = item_db_get(&item_db, item_id);
+    return item && item->category >= ITEM_ARMOR_HEAD &&
+           item->category <= ITEM_ARMOR_HAND;
+}
+
+static bool liberation_is_weapon_id(uint8_t item_id) {
+    const Item *item = item_db_get(&item_db, item_id);
+    return item && item->category >= ITEM_WEAPON_MELEE &&
+           item->category <= ITEM_WEAPON_SPRAY;
+}
+
+static void liberation_restore_nav_position(int saved_x, int saved_y,
+                                            CityDirection facing) {
+    int x = saved_x;
+    int y = saved_y;
+    if (liberation_prototype_gameplay_enabled && lib_city_generated &&
+        !city_nav_is_road(&lib_grid, x, y)) {
+        int best_dist = INT_MAX;
+        for (int cy = 0; cy < CITYGRID_HEIGHT; cy++) {
+            for (int cx = 0; cx < CITYGRID_WIDTH; cx++) {
+                if (!city_nav_is_road(&lib_grid, cx, cy)) continue;
+                int dist = abs(cx - saved_x) + abs(cy - saved_y);
+                if (dist < best_dist) {
+                    best_dist = dist;
+                    x = cx;
+                    y = cy;
+                }
+            }
+        }
+    }
+    city_nav_init(&lib_nav, x, y, facing);
+}
+
 static int pause_cursor;
 static int droid_config_cursor;
 static bool droid_config_renaming;
@@ -1182,8 +1205,8 @@ static void restore_liberation_save_state(GameState *gs_ptr,
                    sizeof(gs_ptr->droids[i].body_part_hp));
         droid_recalc_weapon_damage(&gs_ptr->droids[i], &item_db);
     }
-    city_nav_init(&lib_nav, save->city_x, save->city_y,
-                  (CityDirection)save->facing);
+    liberation_restore_nav_position(save->city_x, save->city_y,
+                                    (CityDirection)save->facing);
 }
 
 static void start_liberation_session(GameState *gs_ptr) {

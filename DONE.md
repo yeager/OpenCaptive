@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Säker återställning av Liberation-position)
+
+- Liberation-save återställer inte längre en spelare på en vägg eller annan
+  icke-körbar city-cell när den verifierade staden är aktiv.
+- När sparad position är ogiltig väljs närmaste körbara vägcell och spelarens
+  sparade riktning behålls.
+
 ## 2026-08-06 (Säker Liberation-itemkonvertering)
 
 - 16-bitars Liberation-itemtyper trunceras inte längre tyst till 8-bitars
