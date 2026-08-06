@@ -43,6 +43,18 @@ static Puzzle *puzzle_append(PuzzleList *pl) {
     return p;
 }
 
+static bool puzzle_cell_occupied(const PuzzleList *pl, int level,
+                                 int x, int y) {
+    if (!pl || pl->num_puzzles < 0 || pl->num_puzzles > MAX_PUZZLES)
+        return true;
+    for (int i = 0; i < pl->num_puzzles; i++) {
+        const Puzzle *p = &pl->puzzles[i];
+        if (p->level == level && p->x == x && p->y == y)
+            return true;
+    }
+    return false;
+}
+
 void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t seed) {
     if (!pl || !lvl || pl->num_puzzles < 0 || pl->num_puzzles > MAX_PUZZLES ||
         level_num < 0 || level_num >= MAX_LEVELS) return;
@@ -65,6 +77,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 int ny = y + dy[d];
                 if (nx < 1 || nx >= MAP_WIDTH-1 || ny < 1 || ny >= MAP_HEIGHT-1) continue;
                 if (lvl->cells[ny][nx].type != CELL_FLOOR) continue;
+                if (puzzle_cell_occupied(pl, level_num, nx, ny)) continue;
 
                 // Check that the opposite direction from this floor cell has a wall
                 int opp = (d + 2) % 4;
@@ -101,6 +114,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
             int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
             int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
             if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+            if (puzzle_cell_occupied(pl, level_num, rx, ry)) continue;
 
             // Check adjacent wall
             bool placed = false;
@@ -157,6 +171,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
                 int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
                 if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                if (puzzle_cell_occupied(pl, level_num, rx, ry)) continue;
                 bool placed = false;
                 for (int d = 0; d < 4; d++) {
                     if (lvl->cells[ry + dy[d]][rx + dx[d]].type == CELL_WALL) {
@@ -197,6 +212,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
                 int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
                 if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                if (puzzle_cell_occupied(pl, level_num, rx, ry)) continue;
                 bool placed = false;
                 for (int d = 0; d < 4; d++) {
                     if (lvl->cells[ry + dy[d]][rx + dx[d]].type == CELL_WALL) {
@@ -242,6 +258,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
                 int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
                 if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                if (puzzle_cell_occupied(pl, level_num, rx, ry)) continue;
                 bool placed = false;
                 for (int d = 0; d < 4; d++) {
                     if (lvl->cells[ry + dy[d]][rx + dx[d]].type == CELL_WALL) {
@@ -281,6 +298,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
                 int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
                 if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                if (puzzle_cell_occupied(pl, level_num, rx, ry)) continue;
                 Puzzle *p = puzzle_append(pl);
                 if (!p) break;
                 p->type = PUZZLE_FLOOR_TRAP;
@@ -306,6 +324,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
                 int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
                 if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                if (puzzle_cell_occupied(pl, level_num, rx, ry)) continue;
                 Puzzle *p = puzzle_append(pl);
                 if (!p) break;
                 p->type = PUZZLE_TELEPORTER_TRAP;
@@ -338,6 +357,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
             int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
             int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
             if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+            if (puzzle_cell_occupied(pl, level_num, rx, ry)) continue;
 
             for (int d = 0; d < 4; d++) {
                 if (lvl->cells[ry + dy[d]][rx + dx[d]].type == CELL_WALL) {
@@ -365,6 +385,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
                 int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
                 if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+                if (puzzle_cell_occupied(pl, level_num, rx, ry)) continue;
                 int d = captive_prng(&puzzle_seed) % 4;
                 if (lvl->cells[ry + dy[d]][rx + dx[d]].type != CELL_WALL)
                     continue;

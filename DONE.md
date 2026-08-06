@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive puzzle placement collisions)
+
+- Puzzle-generatorn placerar inte längre två interaktioner på samma cell.
+- Det förhindrar att fällor, spakar och knappar överlappar och gör varandra
+  omöjliga eller tvetydiga att använda.
+- Regressionstest kör 64 deterministiska frön och kontrollerar alla placeringar.
+
 ## 2026-08-07 (Captive door occlusion)
 
 - Stängda och låsta dörrar räknas nu som ogenomskinliga i 19-cellsvyn, i linje
