@@ -3233,3 +3233,6 @@
 - Liberation-sessionens data och missionsmenybild frigörs nu när startmenyn
   öppnas igen. Upprepade växlingar mellan startmenyn och Liberation behåller
   därför inte gamla sessionsresurser.
+- Startmenyn ignorerar nu musklick precis utanför inställningsraderna. Ett
+  klick strax ovanför första raden kan därför inte längre feltolkas som ett
+  klick på rendererinställningen på grund av negativ heltalsdivision.

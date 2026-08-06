@@ -75,6 +75,14 @@ int main(void) {
     assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_NONE);
     assert(!menu.in_settings);
 
+    /* A click just above the first settings row must not be truncated toward
+       row zero by C integer division. */
+    menu.in_settings = true;
+    menu.settings_cursor = 7;
+    assert(start_menu_handle_click(&menu, 20.0f, 89.0f) == MENU_RESULT_NONE);
+    assert(menu.settings_cursor == 7);
+    menu.in_settings = false;
+
     /* Keyboard navigation: item 0 = Captive card */
     menu.selected_item = 0;
     event = key_event(SDLK_RETURN);

@@ -764,6 +764,8 @@ MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
             return MENU_RESULT_NONE;
         }
         int col = (x >= half) ? 1 : 0;
+        if (y < menu_y || y >= menu_y + col_items * item_h)
+            return MENU_RESULT_NONE;
         int row = (int)(y - menu_y) / item_h;
         if (row >= 0 && row < col_items) {
             int i = col * col_items + row;
