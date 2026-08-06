@@ -179,7 +179,7 @@ bool x3g_open(X3gFile *x3g, const uint8_t *data, size_t size) {
     uint32_t offs_size = be32(data + pos + 4);
     if (offs_size < 6 || (size_t)offs_size > size - pos - 8U) return false;
     unsigned obj_count = be16(data + pos + 8);
-    if (obj_count > X3G_MAX_OBJECTS) obj_count = X3G_MAX_OBJECTS;
+    if (obj_count > X3G_MAX_OBJECTS) return false;
     pos += 8 + offs_size;
     if (offs_size & 1) {
         if (pos >= size) {
@@ -189,11 +189,17 @@ bool x3g_open(X3gFile *x3g, const uint8_t *data, size_t size) {
         pos++;
     }
 
-    for (unsigned i = 0; i < obj_count && size - pos >= 12; i++) {
-        if (!tag_eq(data + pos, "FORM")) break;
+    for (unsigned i = 0; i < obj_count; i++) {
+        if (size - pos < 12 || !tag_eq(data + pos, "FORM")) {
+            x3g_close(x3g);
+            return false;
+        }
         uint32_t vcdo_size = be32(data + pos + 4);
         if (vcdo_size < 4U || (size_t)vcdo_size > size - pos - 8U ||
-            !tag_eq(data + pos + 8, "VCDO")) break;
+            !tag_eq(data + pos + 8, "VCDO")) {
+            x3g_close(x3g);
+            return false;
+        }
 
         X3gObject *obj = &x3g->objects[x3g->object_count];
         if (parse_vcdo(obj, data + pos + 12, vcdo_size - 4))

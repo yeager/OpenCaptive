@@ -87,6 +87,22 @@ static void test_invalid(void) {
     };
     assert(!x3g_open(&x3g, empty_exvl, sizeof(empty_exvl)));
 
+    /* The declared object count must not allow a truncated object list to
+     * be accepted just because an earlier object was valid. */
+    uint8_t truncated_objects[sizeof(test_x3g)];
+    memcpy(truncated_objects, test_x3g, sizeof(truncated_objects));
+    truncated_objects[21] = 0;
+    truncated_objects[22] = 2;
+    assert(!x3g_open(&x3g, truncated_objects, sizeof(truncated_objects)));
+
+    /* A file declaring more objects than the parser can represent is
+     * malformed, rather than a valid file with silently ignored objects. */
+    uint8_t too_many_objects[sizeof(test_x3g)];
+    memcpy(too_many_objects, test_x3g, sizeof(too_many_objects));
+    too_many_objects[20] = 1;
+    too_many_objects[21] = 1;
+    assert(!x3g_open(&x3g, too_many_objects, sizeof(too_many_objects)));
+
     uint8_t bad[20] = {'F','O','R','M', 0,0,0,8, 'B','A','D','!', 0,0,0,0, 0,0,0,0};
     assert(!x3g_open(&x3g, bad, sizeof(bad)));
 
