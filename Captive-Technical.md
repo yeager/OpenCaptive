@@ -63,8 +63,9 @@ table or a synthetic scene.
 The original one-megabyte DOS memory fixture has SHA-256
 `9003c4a8818cb97f8299ac90cfe51e90e535ab9a725545526fe75f14ddb8dd7e`.
 It captures a running DOS renderer, not an archive extraction. In that state
-the executable code is loaded at segment `0x0824`; MZ relocation changes the
-unexpanded table selector in the code to segment `0x2942`. The descriptor
+the source-bank selector table is present at segment `0x0824`; this is a
+relocated data-area selector, not the CPU's active code segment. MZ relocation
+changes the unexpanded table selector in the code to segment `0x2942`. The descriptor
 array begins at `0x2942:0x00c0` and has eight bytes per graphic ID. The common
 draw entry reads, in order, a little-endian source offset, a little-endian
 destination offset, width, height, flags and source-bank index.
