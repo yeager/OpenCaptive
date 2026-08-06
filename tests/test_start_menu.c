@@ -36,6 +36,12 @@ int main(void) {
     menu.show_version_popup = true;
     start_menu_render(&menu, tiny_pixels, 16, 16);
     menu.show_version_popup = false;
+    /* A stale image pointer with invalid dimensions must fall back safely. */
+    menu.logo_img = (uint32_t *)(uintptr_t)1;
+    menu.logo_img_w = 0;
+    menu.logo_img_h = 0;
+    start_menu_render(&menu, tiny_pixels, 16, 16);
+    menu.logo_img = NULL;
     menu.in_scanner = true;
     menu.scanner_done = false;
     menu.scanner_total = 1;

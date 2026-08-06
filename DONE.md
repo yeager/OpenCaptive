@@ -3239,3 +3239,6 @@
 - Pausmenyn öppnar nu faktiskt startmenyns inställningsvy när `SETTINGS`
   väljs. Alternativet kan därför inte längre bete sig som `QUIT` och kasta
   bort användarens menyval.
+- Startmenyn validerar nu bilddimensioner innan den skalar launcherbilder.
+  Ett kvarlämnat eller korrupt bildpekare-state kan därför inte längre orsaka
+  division med noll under första renderingen.
