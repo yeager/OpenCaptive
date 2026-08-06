@@ -442,7 +442,10 @@ void liberation_anim_blit(const LiberationAnimFrame *frame, uint32_t *dst,
     if (!frame || !frame->bitplanes || !dst || dst_width <= 0 || dst_height <= 0 ||
         frame->depth == 0U || frame->depth > 8U || frame->width == 0U ||
         frame->height == 0U) return;
-    size_t row_bytes = frame->width / 8U;
+    /* Public callers may construct a frame whose width is not a multiple of
+     * eight.  Planar rows still need one partial byte for the final pixels;
+     * truncating here makes byte_index reach past every row at the tail. */
+    size_t row_bytes = ((size_t)frame->width + 7U) / 8U;
     if (row_bytes == 0U ||
         (size_t)frame->depth * frame->height > SIZE_MAX / row_bytes ||
         frame->bitplane_size < (size_t)frame->depth * frame->height * row_bytes)

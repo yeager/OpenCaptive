@@ -88,6 +88,27 @@ int main(void) {
     assert(pixels[0] == 0xffff0000U && pixels[1] == 0xff000000U);
     assert(pixels[2] == 0xffff0000U && pixels[3] == 0xff000000U);
     liberation_anim_frame_free(&frame);
+
+    /* A non-byte-aligned public frame must use a partial final byte per row,
+       rather than reading the next row or past the allocation. */
+    uint8_t partial_plane[4] = {0x80, 0x00, 0x00, 0x80};
+    memset(&frame, 0, sizeof(frame));
+    frame.width = 9;
+    frame.height = 2;
+    frame.depth = 1;
+    frame.palette[0] = 0xff000000U;
+    frame.palette[1] = 0xffffffffU;
+    frame.bitplanes = partial_plane;
+    frame.bitplane_size = sizeof(partial_plane);
+    uint32_t partial_pixels[18] = {0};
+    liberation_anim_blit(&frame, partial_pixels, 9, 2, 0, 0);
+    assert(partial_pixels[0] == 0xffffffffU);
+    assert(partial_pixels[8] == 0xff000000U);
+    assert(partial_pixels[9 + 8] == 0xffffffffU);
+
+    /* The manually constructed frame owns stack storage; clear it before
+       passing the object to an API that frees owned decoder output. */
+    memset(&frame, 0, sizeof(frame));
     uint8_t *all_pack = NULL;
     size_t all_pack_size = 0;
     assert(liberation_anim_decode_pack(form, sizeof(form), &all_pack,
