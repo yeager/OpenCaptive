@@ -48,14 +48,18 @@ bool amiga_hunk_parse(const uint8_t *data, size_t size, AmigaHunkInfo *info) {
 
     size_t end_count = 0;
     size_t payload_hunks = 0;
+    bool hunk_open = false;
     while (offset < size) {
         if (!read_be32(data, size, &offset, &value)) return false;
         value &= HUNK_TYPE_MASK;
         if (value == HUNK_END) {
+            if (!hunk_open) return false;
+            hunk_open = false;
             if (++end_count > info->hunk_count) return false;
             continue;
         }
         if (value == HUNK_CODE || value == HUNK_DATA) {
+            if (hunk_open) return false;
             uint32_t longs;
             if (!read_be32(data, size, &offset, &longs)) return false;
             size_t payload_offset = offset;
@@ -69,11 +73,15 @@ bool amiga_hunk_parse(const uint8_t *data, size_t size, AmigaHunkInfo *info) {
             } else {
                 info->data_count++;
             }
+            hunk_open = true;
         } else if (value == HUNK_BSS) {
+            if (hunk_open) return false;
             if (!read_be32(data, size, &offset, &value)) return false;
             if (++payload_hunks > info->hunk_count) return false;
             info->bss_count++;
+            hunk_open = true;
         } else if (value == HUNK_RELOC32) {
+            if (!hunk_open) return false;
             uint32_t count;
             do {
                 if (!read_be32(data, size, &offset, &count)) return false;
@@ -83,6 +91,7 @@ bool amiga_hunk_parse(const uint8_t *data, size_t size, AmigaHunkInfo *info) {
                 info->reloc32_count += count;
             } while (count != 0);
         } else if (value == HUNK_SYMBOL) {
+            if (!hunk_open) return false;
             do {
                 if (!read_be32(data, size, &offset, &value) || !skip_longs(size, &offset, value))
                     return false;
@@ -92,6 +101,7 @@ bool amiga_hunk_parse(const uint8_t *data, size_t size, AmigaHunkInfo *info) {
             return false;
         }
     }
-    return end_count == info->hunk_count && payload_hunks == info->hunk_count &&
+    return !hunk_open && end_count == info->hunk_count &&
+        payload_hunks == info->hunk_count &&
         info->hunk_count > 0;
 }

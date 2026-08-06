@@ -57,6 +57,22 @@ int main(void) {
     put_be32(flagged_bss, &pos, 0x3F2);       /* end */
     assert(amiga_hunk_parse(flagged_bss, pos, &info));
     assert(info.bss_count == 1);
+
+    uint8_t out_of_order[96] = {0};
+    pos = 0;
+    put_be32(out_of_order, &pos, 0x3F3);      /* header */
+    put_be32(out_of_order, &pos, 0);          /* resident names */
+    put_be32(out_of_order, &pos, 2);          /* two hunks */
+    put_be32(out_of_order, &pos, 0);
+    put_be32(out_of_order, &pos, 1);
+    put_be32(out_of_order, &pos, 0);
+    put_be32(out_of_order, &pos, 0x3F2);      /* closes no hunk */
+    put_be32(out_of_order, &pos, 0x3E9);      /* code hunk */
+    put_be32(out_of_order, &pos, 0);
+    put_be32(out_of_order, &pos, 0x3EA);      /* data hunk */
+    put_be32(out_of_order, &pos, 0);
+    put_be32(out_of_order, &pos, 0x3F2);
+    assert(!amiga_hunk_parse(out_of_order, pos, &info));
     puts("All Amiga HUNK tests passed");
     return 0;
 }
