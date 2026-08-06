@@ -594,8 +594,51 @@ static bool liberation_intro_active;
 static bool liberation_mission_menu_active;
 static bool skip_liberation_intro_requested;
 
+static int menu_audio_sample_rate(const StartMenu *menu) {
+    static const int sample_rates[] = {22050, 44100, 48000};
+    int choice = menu ? menu->audio_sample_rate : 1;
+    if (choice < 0 || choice >= (int)(sizeof(sample_rates) / sizeof(sample_rates[0])))
+        choice = 1;
+    return sample_rates[choice];
+}
+
 static void apply_menu_audio(const StartMenu *menu) {
     if (!menu) return;
+
+    /* The menu owns this setting, but SDL's audio stream and the MIDI
+     * renderer are created before the menu loop.  Rebuild both when the
+     * selected rate changes so the choice is effective for the next session
+     * without requiring a process restart. */
+    int sample_rate = menu_audio_sample_rate(menu);
+    if ((int)sound_sys.sample_rate != sample_rate) {
+        const DataVFS *vfs = music_sys.vfs;
+        int old_rate = sound_sys.sample_rate ? (int)sound_sys.sample_rate
+                                             : SOUND_SAMPLE_RATE;
+        bool sound_enabled = sound_sys.enabled;
+        bool reverb_enabled = sound_sys.reverb_enabled;
+        float reverb_amount = sound_sys.reverb_amount;
+        float sound_volume = sound_sys.master_volume;
+        bool music_enabled = music_sys.enabled;
+        float music_volume = music_sys.master_volume;
+        bool high_quality = music_sys.high_quality;
+
+        music_shutdown(&music_sys);
+        sound_shutdown(&sound_sys);
+        if (!sound_init(&sound_sys, (uint32_t)sample_rate)) {
+            /* Keep a usable audio path if the requested device format is not
+             * accepted by the host.  The menu selection remains persisted
+             * and will be retried on the next session. */
+            sound_init(&sound_sys, (uint32_t)old_rate);
+        }
+        sound_set_reverb(&sound_sys, reverb_enabled, reverb_amount);
+        sound_set_volume(&sound_sys, sound_volume);
+        sound_set_enabled(&sound_sys, sound_enabled);
+        music_init(&music_sys, &sound_sys, vfs, (int)sound_sys.sample_rate,
+                   high_quality);
+        music_set_volume(&music_sys, music_volume);
+        music_set_enabled(&music_sys, music_enabled);
+    }
+
     float volume = (float)menu->master_volume / 100.0f;
     sound_set_volume(&sound_sys, volume);
     music_set_volume(&music_sys, volume);
@@ -2932,12 +2975,27 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_INTRO:
+                if (!intro_loaded || intro_anim.frame_count <= 0) {
+                    /* A corrupt or empty ANM must not leave the launcher on
+                     * a permanent black intro screen.  Treat it like a
+                     * missing intro and continue to droid configuration. */
+                    if (intro_loaded) {
+                        anm_free(&intro_anim);
+                        intro_loaded = false;
+                    }
+                    music_play(&music_sys, MUSIC_BASE);
+                    gs.mode = STATE_DROID_CONFIG;
+                    droid_config_cursor = 0;
+                    break;
+                }
                 if (intro_loaded && intro_anim.frame_count > 0) {
                     uint32_t now = SDL_GetTicks();
                     if (now - intro_last_tick > 100) {
                         intro_frame++;
                         intro_last_tick = now;
                         if (intro_frame >= intro_anim.frame_count) {
+                            anm_free(&intro_anim);
+                            intro_loaded = false;
                             music_play(&music_sys, MUSIC_BASE);
                             gs.mode = STATE_DROID_CONFIG;
                             droid_config_cursor = 0;

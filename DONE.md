@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Uppstartsljud och intro)
+
+- Startmenyns samplingsfrekvens bygger nu om SDL-ljudströmmen och MIDI-
+  renderaren när värdet ändras, så nästa spelstart använder 22050, 44100
+  eller 48000 Hz utan omstart av programmet.
+- Om värdet inte accepteras av ljudenheten återanvänds den tidigare frekvensen
+  och ljudet förblir användbart.
+- Tomma eller skadade Captive-intros lämnar nu uppstarten säkert i stället
+  för att visa en permanent svart bild; färdigspelade ANM-resurser frigörs.
+- Werror-kompilering och hela testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (CLI-skala)
 
 - `--scale` fortsätter nu att styra fönsterstorleken även efter att startmenyn
