@@ -90,6 +90,7 @@ static void test_nonroad_building_cell_is_blocked(void) {
     /* Building plane cells carry type/ID bits and are nonzero, but are not
      * traversable city roads. */
     grid.plane0[5 * CITYGRID_WIDTH + 7] = 0x41;
+    assert(city_nav_is_wall(&grid, 7, 5));
     assert(!city_nav_can_move_forward(&nav, &grid));
     city_nav_move_forward(&nav, &grid);
     assert(!nav.moving);

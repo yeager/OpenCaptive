@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation building rendering)
+
+- Korrigerade Liberation-stadens väggklassning så att byggnadsceller med
+  typbitar i `plane0` renderas som solida väggar i stället för genomskinlig
+  mark.
+- Lade till regressionstest som säkerställer att en sådan cell både är
+  blockerad för navigation och klassad som vägg.
+
 ## 2026-08-06 (Teleporter trap destinations)
 
 - Säkrade teleporterfällor så att genererade mål alltid är golv och att

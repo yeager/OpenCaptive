@@ -33,6 +33,8 @@
   reputation field, matching the versions advertised by the loader.
 - Teleporter traps now select walkable floor destinations and reject blocked
   targets when interacting with generated or loaded puzzle data.
+- Liberation city building cells with encoded type bits are now rendered as
+  solid walls, matching their blocked navigation state.
 - GitHub Actions workflows now use `actions/checkout@v6` and the Node 24
   runtime, removing the checkout action's Node 20 deprecation warning.
 

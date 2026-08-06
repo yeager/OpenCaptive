@@ -52,8 +52,11 @@ bool city_nav_is_road(const CityGridState *grid, int x, int y) {
 }
 
 bool city_nav_is_wall(const CityGridState *grid, int x, int y) {
-    uint8_t cell = city_nav_get_cell(grid, x, y);
-    return cell == CITYGRID_CELL_WALL;
+    /* Building cells carry type/ID bits in plane0 and are not encoded as
+     * CITYGRID_CELL_WALL.  They are nevertheless solid city geometry.
+     * Keep the walkability predicate as the single source of truth so the
+     * renderer cannot draw a blocked building cell as ground. */
+    return !city_nav_is_road(grid, x, y);
 }
 
 bool city_nav_is_building_entrance(const CityGridState *grid, int x, int y) {
