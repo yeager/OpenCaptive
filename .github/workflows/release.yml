@@ -40,7 +40,7 @@ jobs:
           cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release
           ninja -C build
       - name: Test
-        run: ctest --test-dir build -j4 --output-on-failure -E "map_gen|captive_view_window|liberation_text_table|liberation_x3g|liberation_img|custom_features|game_state|save_load"
+        run: ctest --test-dir build -j4 --output-on-failure -E "map_gen|captive_view_window|liberation_text_table|liberation_x3g|liberation_img|custom_features|game_state|save_load|st_disk_reader|liberation_save"
       - name: Get version
         id: version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
@@ -188,7 +188,7 @@ jobs:
           cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release
           ninja -C build
       - name: Test
-        run: ctest --test-dir build -j4 --output-on-failure -E "liberation_img|liberation_x3g"
+        run: ctest --test-dir build -j4 --output-on-failure -E "liberation_img|liberation_x3g|st_disk_reader|liberation_save"
       - name: Create app bundle
         run: |
           APP=OpenCaptive.app
