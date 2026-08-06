@@ -1806,7 +1806,8 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 if (all_droids_dead(gs)) gs->mode = STATE_GAMEOVER;
             }
             return;
-        case SDLK_F: {
+        case SDLK_F:
+        case SDLK_RETURN: {
             const DungeonLevel *cur = &gs->levels[gs->current_level];
             // Check if on shop cell
             if (cur->cells[gs->party_y][gs->party_x].type == CELL_SHOP) {

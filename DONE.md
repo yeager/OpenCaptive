@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive interaction key)
+
+- Enter aktiverar nu samma interaktionsflöde som F i Captive.
+- Dokumenterade kontroller för dörrar, generatorer, pussel och shop fungerar
+  därmed även i praktiken.
+
 ## 2026-08-07 (Captive save validation)
 
 - Sparfiler avvisar nu icke-kanoniska värden för pusslens boolska statusflagga.
