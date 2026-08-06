@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Tidsstabil menyanimation)
+
+- Startmenyns markeringspuls och fallback-kortanimation använder nu förfluten
+  tid med nominell 60 Hz-takt i stället för ett steg per renderingsanrop.
+- Animationerna behåller därmed samma hastighet vid olika FPS-gränser och
+  hoppar inte fram oproportionerligt efter ett långt fönsterstopp.
+
 ## 2026-08-06 (Deterministisk headless frame-capture)
 
 - `--capture-frame` avslutar nu frame-loopen direkt efter att PPM-filen

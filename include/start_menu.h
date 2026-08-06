@@ -28,6 +28,9 @@ typedef struct {
     bool sfx_enabled;
     int scale_factor;     // 1-5
     bool scale_custom;    // true when SCALE was explicitly selected
+    bool anim_clock_initialized;
+    uint32_t anim_last_ms;
+    uint32_t anim_accumulator_ms;
     bool fullscreen;
     bool vsync;
     bool scanlines;

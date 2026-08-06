@@ -1346,7 +1346,21 @@ static void render_version_popup(StartMenu *menu, uint32_t *pixels, int width, i
 
 void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height) {
     if (!menu || !pixels || width <= 0 || height <= 0) return;
-    menu->anim_tick++;
+    uint32_t now = SDL_GetTicks();
+    if (!menu->anim_clock_initialized) {
+        menu->anim_clock_initialized = true;
+        menu->anim_last_ms = now;
+    } else {
+        uint32_t elapsed = now - menu->anim_last_ms;
+        menu->anim_last_ms = now;
+        /* Keep a stalled/debugged window from fast-forwarding the menu
+         * animation after a long pause.  One tick represents 1/60 second. */
+        if (elapsed > 250U) elapsed = 250U;
+        menu->anim_accumulator_ms += elapsed;
+        uint32_t steps = menu->anim_accumulator_ms / 16U;
+        menu->anim_accumulator_ms %= 16U;
+        menu->anim_tick += steps;
+    }
     memset(pixels, 0, (size_t)width * (size_t)height * sizeof(uint32_t));
 
     if (menu->show_setup_popup) { render_setup_popup(menu, pixels, width, height); return; }
