@@ -65,6 +65,10 @@ static void test_borders(void) {
         assert(s.plane0[y * 64] != 0);
         assert(s.plane0[y * 64 + 63] != 0);
     }
+
+    /* Column zero has no west neighbour.  Finalization must not wrap to the
+     * previous row's last cell when deriving border metadata. */
+    assert(s.plane1[0] == 0x03);
 }
 
 static void test_has_road_cells(void) {

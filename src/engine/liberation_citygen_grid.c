@@ -16,6 +16,14 @@ static const uint8_t road_corners[4][2] = {
 static const int16_t road_dir_dx[4] = {0, 1, 0, -1};
 static const int16_t road_dir_dy[4] = {-1, 0, 1, 0};
 
+/* Return the west/previous cell only when it is in the same row.  A plain
+ * i - 1 wraps from column 0 to the previous row's last column, which is not
+ * a neighbouring city cell. */
+static int previous_grid_cell(int index) {
+    if (index <= 0 || index % CITYGRID_WIDTH == 0) return -1;
+    return index - 1;
+}
+
 static const int8_t road_avail[36] = {
     -1, 1, 8, 7,  -1,-1, 2, 0,   1,-1, 3, 8,   2,-1,-1, 4,
      8, 3,-1, 5,   6, 4,-1,-1,   7, 8, 5,-1,  -1, 0, 6,-1,
@@ -773,8 +781,8 @@ static void finalize_cells(CityGridState *s) {
             out_type = 0x10;
         } else if (raw == 0xFF) {
             /* Border wall */
-            uint8_t below = (i + 0xFFF < CITYGRID_CELLS * 2) ?
-                            s->plane0[(i + 0xFFF) % CITYGRID_CELLS] : 0;
+            int previous = previous_grid_cell(i);
+            uint8_t below = previous >= 0 ? s->plane0[previous] : 0;
             out_type = 6;
             out_p1 = 0;
             out_p2 = 0;
@@ -802,8 +810,8 @@ static void finalize_cells(CityGridState *s) {
             if (cell == 0x13) out_p1 = 1;
             else out_p1 = 0;
 
-            uint8_t p1_below = (i + 0xFFF < CITYGRID_CELLS * 2) ?
-                               s->plane1[(i + 0xFFF) % CITYGRID_CELLS] : 0;
+            int previous = previous_grid_cell(i);
+            uint8_t p1_below = previous >= 0 ? s->plane1[previous] : 0;
             uint8_t door_extra = p1_below & 0x0F;
             out_p1 |= (uint8_t)(door_extra << 2);
         } else if (cell >= 0x16 && cell <= 0x1B) {
@@ -822,8 +830,8 @@ static void finalize_cells(CityGridState *s) {
             if (cell == 0x1E) out_p1 = 1;
             else out_p1 = 0;
 
-            uint8_t p1_below = (i + 0xFFF < CITYGRID_CELLS * 2) ?
-                               s->plane1[(i + 0xFFF) % CITYGRID_CELLS] : 0;
+            int previous = previous_grid_cell(i);
+            uint8_t p1_below = previous >= 0 ? s->plane1[previous] : 0;
             uint8_t ent_extra = p1_below & 0x0F;
             out_p1 |= (uint8_t)(ent_extra << 2);
         } else if (cell == 0x21) {
@@ -839,10 +847,10 @@ static void finalize_cells(CityGridState *s) {
         } else if (cell == 0x23) {
             /* Road feature: phone box */
             out_type = 0x0B;
-            uint8_t prev_byte = (i > 0) ? s->plane0[i - 1] : 0;
+            int previous = previous_grid_cell(i);
+            uint8_t prev_byte = previous >= 0 ? s->plane0[previous] : 0;
             out_p1 = prev_byte;
-            uint8_t p1_below = (i + 0xFFF < CITYGRID_CELLS * 2) ?
-                               s->plane1[(i + 0xFFF) % CITYGRID_CELLS] : 0;
+            uint8_t p1_below = previous >= 0 ? s->plane1[previous] : 0;
             out_p2 = (p1_below & 0x0F) << 2;
         } else if (cell == 0x24) {
             /* Shop entrance */
