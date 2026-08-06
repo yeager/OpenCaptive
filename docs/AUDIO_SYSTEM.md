@@ -51,6 +51,10 @@ Software synthesizer (at the selected output sample rate):
 - Tempo tracking (microseconds per quarter note)
 - Looping support for continuous playback
 
+`--hq-midi` enables a short causal low-pass filter after OPL2 synthesis. It
+reduces high-frequency quantization stair steps while preserving MIDI timing;
+the default path remains the unfiltered compatibility output.
+
 ### Music Tracks
 
 Music is identified solely by the complete SHA-256 digest of its bytes. The

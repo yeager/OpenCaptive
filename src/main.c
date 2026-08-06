@@ -1803,6 +1803,7 @@ int main(int argc, char *argv[]) {
                 "  --mouse-look          FPS-style mouse control\n"
                 "  --debug-hud           Debug overlay (F7 toggle)\n"
                 "  --reverb              Audio reverb effect\n"
+                "  --hq-midi             Apply the enhanced MIDI output filter\n"
                 "  --automap             Remember visited cells\n"
                 "  --dynamic-lighting    Distance-based lighting\n"
                 "  --speed <n>           Game speed multiplier (default 1.0)\n"
@@ -1919,6 +1920,8 @@ int main(int argc, char *argv[]) {
             custom.debug_hud = true;
         } else if (strcmp(argv[i], "--reverb") == 0) {
             custom.audio_reverb = true;
+        } else if (strcmp(argv[i], "--hq-midi") == 0) {
+            custom.hq_midi = true;
         } else if (strcmp(argv[i], "--automap") == 0) {
             custom.automap = true;
         } else if (strcmp(argv[i], "--dynamic-lighting") == 0) {
@@ -1952,6 +1955,7 @@ int main(int argc, char *argv[]) {
             custom.minimap = true;
             custom.debug_hud = true;
             custom.audio_reverb = true;
+            custom.hq_midi = true;
             custom.automap = true;
             custom.dynamic_lighting = true;
             custom.speed_control = true;
@@ -2129,7 +2133,8 @@ int main(int argc, char *argv[]) {
     // Audio
     sound_init(&sound_sys, (uint32_t)custom.audio_sample_rate);
     sound_set_reverb(&sound_sys, custom.audio_reverb, custom.reverb_amount);
-    music_init(&music_sys, &sound_sys, &vfs, custom.audio_sample_rate);
+    music_init(&music_sys, &sound_sys, &vfs, custom.audio_sample_rate,
+               custom.hq_midi);
 
     // Items and SFX
     item_db_init(&item_db);

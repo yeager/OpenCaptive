@@ -394,6 +394,8 @@ Categories with multiple variants are selected randomly using the game PRNG.
 All 63 files are identified by SHA-256 content hash. The MIDI player renders
 through a software synthesizer at the start menu's selected output rate
 (22,050, 44,100 or 48,000 Hz; 22,050 Hz remains the compatibility fallback).
+The optional `--hq-midi` path applies a short output filter after synthesis;
+it does not replace the verified Captive instrument patches.
 
 ### AdLib sound effects
 

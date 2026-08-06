@@ -90,6 +90,7 @@ opencaptive --data /path/to/your/media --lang sv
 | `--hd-upscale` | Apply xBRZ upscaling to native game frames |
 | `--upscale-factor <N>` | xBRZ factor: 2, 3 or 4 (implies `--hd-upscale`) |
 | `--widescreen` | Expand the game presentation horizontally to 16:9 |
+| `--hq-midi` | Enable the enhanced MIDI output filter |
 | `--renderer <mode>` | Render mode: `original` or `enhanced` |
 | `--platform <name>` | Platform variant: `dos`, `amiga`, or `atarist` |
 

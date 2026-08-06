@@ -44,6 +44,7 @@ The sequel expands into a cyberpunk city setting with hundreds of interactive bu
 - Hash-verified original data discovery and format decoding
 - Original-resolution presentation paths; full gameplay parity remains under verification
 - OPL2 FM synthesis (AdLib emulation) for music and sound effects
+- Optional HQ MIDI output filter (`--hq-midi`)
 - 19 languages (English, Svenska, Deutsch, Francais, Espanol, Italiano, and 13 more)
 - Save/load with multiple slots
 - Optional display enhancements: scanlines, CRT curvature, bilinear filtering, integer scaling
@@ -136,6 +137,7 @@ Place your game data files (ZIP archives, loose files, ADF disk images) in the d
 | `--hd-upscale` | Apply xBRZ upscaling to native game frames |
 | `--upscale-factor <N>` | xBRZ factor: 2, 3 or 4 (implies `--hd-upscale`) |
 | `--widescreen` | Expand the game presentation horizontally to 16:9 |
+| `--hq-midi` | Enable the enhanced MIDI output filter |
 | `--version` | Show version and exit |
 | `--help` | Show help and exit |
 

@@ -28,7 +28,7 @@ typedef struct {
 
     bool audio_reverb;
     float reverb_amount;        // 0.0 - 1.0
-    bool hq_midi;               // enhanced MIDI instruments
+    bool hq_midi;               // filtered high-quality MIDI output
     int  audio_sample_rate;     // 22050, 44100, 48000
 
     bool automap;               // reveal visited cells permanently

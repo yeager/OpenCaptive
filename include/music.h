@@ -35,11 +35,12 @@ typedef struct {
     uint8_t     *owned_data;
     uint32_t    prng_state;
     int         sample_rate;
+    bool        high_quality;
     bool        enabled;
 } MusicSystem;
 
 bool music_init(MusicSystem *mus, SoundSystem *snd, const DataVFS *vfs,
-                int sample_rate);
+                int sample_rate, bool high_quality);
 void music_set_enabled(MusicSystem *mus, bool enabled);
 void music_play(MusicSystem *mus, MusicTrack track);
 void music_stop(MusicSystem *mus);

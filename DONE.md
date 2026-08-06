@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (HQ MIDI output)
+
+- Kopplade `hq_midi` och `--hq-midi` till MIDI-spelaren med ett kort
+  lågpassfilter efter OPL2-renderingen.
+- Lade till regressionstest som säkerställer att HQ-läget faktiskt ger en
+  annan ljudbuffer än standardläget utan att ändra MIDI-timing.
+- Dokumenterade att läget förbättrar utgångsfiltrering, inte instrumentbankens
+  verifierade patchar.
+
 ## 2026-08-06 (Widescreen presentation)
 
 - Kopplade `--widescreen` till SDL-presenteringen med automatisk 16:9-bredd

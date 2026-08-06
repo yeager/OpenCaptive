@@ -136,7 +136,7 @@ static const TrackCategory categories[] = {
 };
 
 bool music_init(MusicSystem *mus, SoundSystem *snd, const DataVFS *vfs,
-                int sample_rate) {
+                int sample_rate, bool high_quality) {
     if (!mus) return false;
     if (sample_rate <= 0) sample_rate = SOUND_SAMPLE_RATE;
     memset(mus, 0, sizeof(*mus));
@@ -145,6 +145,7 @@ bool music_init(MusicSystem *mus, SoundSystem *snd, const DataVFS *vfs,
     mus->vfs = vfs;
     mus->prng_state = 0x12345678;
     mus->sample_rate = sample_rate;
+    mus->high_quality = high_quality;
     return true;
 }
 
@@ -187,6 +188,7 @@ void music_play(MusicSystem *mus, MusicTrack track) {
     if (midi_load(&mus->player, data, size)) {
         mus->owned_data = data;
         midi_set_sample_rate(&mus->player, mus->sample_rate);
+        midi_set_high_quality(&mus->player, mus->high_quality);
         midi_set_volume(&mus->player, 0.3f);
         midi_play(&mus->player, true);
     } else {

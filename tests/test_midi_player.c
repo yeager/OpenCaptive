@@ -110,6 +110,30 @@ static void test_sample_rate(void) {
     ASSERT(mp.sample_rate == 44100, "invalid MIDI sample rate is ignored");
 }
 
+static void test_high_quality_filter(void) {
+    MIDIPlayer normal;
+    MIDIPlayer high_quality;
+    assert(midi_load(&normal, test_midi, sizeof(test_midi)));
+    assert(midi_load(&high_quality, test_midi, sizeof(test_midi)));
+    midi_set_high_quality(&high_quality, true);
+    midi_play(&normal, false);
+    midi_play(&high_quality, false);
+
+    int16_t normal_buf[512];
+    int16_t high_quality_buf[512];
+    midi_render(&normal, normal_buf, 512);
+    midi_render(&high_quality, high_quality_buf, 512);
+    bool differs = false;
+    for (size_t i = 0; i < sizeof(normal_buf) / sizeof(normal_buf[0]); ++i) {
+        if (normal_buf[i] != high_quality_buf[i]) {
+            differs = true;
+            break;
+        }
+    }
+    ASSERT(differs, "HQ MIDI output filter changes rendered samples");
+    ASSERT(high_quality.high_quality, "HQ MIDI mode remains enabled");
+}
+
 static void test_loop(void) {
     MIDIPlayer mp;
     midi_load(&mp, test_midi, sizeof(test_midi));
@@ -130,6 +154,7 @@ int main(void) {
     test_stop();
     test_master_volume();
     test_sample_rate();
+    test_high_quality_filter();
     test_loop();
     if (failures) {
         printf("%d test(s) FAILED\n", failures);

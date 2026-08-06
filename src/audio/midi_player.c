@@ -303,6 +303,7 @@ void midi_play(MIDIPlayer *player, bool loop) {
     player->looping = loop;
     player->current_tick = 0;
     player->tick_frac = 0;
+    player->hq_previous_sample = 0;
 
     for (int i = 0; i < player->num_tracks; i++) {
         player->tracks[i].pos = 0;
@@ -328,6 +329,7 @@ void midi_play(MIDIPlayer *player, bool loop) {
 void midi_stop(MIDIPlayer *player) {
     if (!player) return;
     player->playing = false;
+    player->hq_previous_sample = 0;
     for (int i = 0; i < OPL2_VOICE_COUNT; i++) {
         opl2_note_off(&player->opl, i);
         player->voices[i].active = false;
@@ -352,6 +354,12 @@ void midi_set_sample_rate(MIDIPlayer *player, int sample_rate) {
     recalc_tick_rate(player);
 }
 
+void midi_set_high_quality(MIDIPlayer *player, bool enabled) {
+    if (!player) return;
+    player->high_quality = enabled;
+    player->hq_previous_sample = 0;
+}
+
 void midi_render(MIDIPlayer *player, int16_t *buffer, int num_samples) {
     if (!player || !buffer || num_samples <= 0) return;
     if (player->samples_per_tick <= 0) {
@@ -369,14 +377,31 @@ void midi_render(MIDIPlayer *player, int16_t *buffer, int num_samples) {
     }
 
     int pos = 0;
+    int16_t raw[256];
     while (pos < num_samples) {
         int remaining = player->samples_per_tick - player->tick_frac;
         int to_render = num_samples - pos;
         if (to_render > remaining) to_render = remaining;
 
-        opl2_render(&player->opl, buffer + pos, to_render);
-        pos += to_render;
-        player->tick_frac += to_render;
+        int chunk = to_render > (int)(sizeof(raw) / sizeof(raw[0]))
+            ? (int)(sizeof(raw) / sizeof(raw[0])) : to_render;
+        opl2_render(&player->opl, raw, chunk);
+        if (player->high_quality) {
+            for (int i = 0; i < chunk; ++i) {
+                /* A short causal low-pass removes quantization stair steps
+                 * from the software OPL2 output without changing its timing. */
+                int32_t filtered = ((int32_t)player->hq_previous_sample +
+                                    (int32_t)raw[i] * 3) / 4;
+                if (filtered > INT16_MAX) filtered = INT16_MAX;
+                if (filtered < INT16_MIN) filtered = INT16_MIN;
+                buffer[pos + i] = (int16_t)filtered;
+                player->hq_previous_sample = raw[i];
+            }
+        } else {
+            memcpy(buffer + pos, raw, (size_t)chunk * sizeof(raw[0]));
+        }
+        pos += chunk;
+        player->tick_frac += chunk;
 
         if (player->tick_frac >= player->samples_per_tick) {
             player->tick_frac = 0;

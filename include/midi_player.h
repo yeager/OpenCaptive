@@ -57,7 +57,9 @@ typedef struct {
     int           tick_remainder;
     int           tick_frac;
     int           sample_rate;
+    int16_t       hq_previous_sample;
     float         master_volume;
+    bool          high_quality;
     bool          playing;
     bool          looping;
     const uint8_t *file_data;
@@ -70,5 +72,6 @@ void midi_stop(MIDIPlayer *player);
 void midi_render(MIDIPlayer *player, int16_t *buffer, int num_samples);
 void midi_set_volume(MIDIPlayer *player, float vol);
 void midi_set_sample_rate(MIDIPlayer *player, int sample_rate);
+void midi_set_high_quality(MIDIPlayer *player, bool enabled);
 
 #endif

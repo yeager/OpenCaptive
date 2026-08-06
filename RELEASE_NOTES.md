@@ -3,6 +3,8 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- `hq_midi` är nu aktivt: `--hq-midi` använder ett kort utgångsfilter efter
+  OPL2-syntesen. Standardläget och timing förblir oförändrade.
 - `--widescreen` är nu kopplat till presentationen och expanderar nativebilden
   till 16:9 (eller vald `widescreen_width`) utan att ändra verifierad native-
   framebuffer.
