@@ -1,5 +1,10 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (GitHub Actions checkout runtime)
+
+- Uppdaterade alla build- och releasejobb från `actions/checkout@v4` till v6,
+  så CI använder Node 24 och slipper Node 20-varningen.
+
 ## 2026-08-06 (Preserve options in cross-save import)
 
 - Bevarade aktiv grafik-, ljud- och datasökvägskonfiguration även när en

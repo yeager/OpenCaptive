@@ -25,6 +25,8 @@
   outside a supplied template row.
 - Cross-save imports now preserve active runtime options, including F10
   graphics settings and the configured data path.
+- GitHub Actions workflows now use `actions/checkout@v6` and the Node 24
+  runtime, removing the checkout action's Node 20 deprecation warning.
 
 ## v1.1.72 (2026-08-04)
 
