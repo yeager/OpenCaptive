@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Deterministisk headless frame-capture)
+
+- `--capture-frame` avslutar nu frame-loopen direkt efter att PPM-filen
+  skrivits.
+- Ljudmixning och SDL-presentering körs inte efter en one-shot capture, vilket
+  gör dummy-driver- och CI-körningar tillförlitliga.
+- Capture med riktig `.opencaptive`-data producerade en 320×200-bild och
+  avslutade med status 0.
+
 ## 2026-08-06 (Bakgrundsskanning vid första uppstart)
 
 - Startmenyn startar nu den inkrementella, cachebaserade dataskanningen i

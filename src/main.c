@@ -3603,6 +3603,12 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        /* A capture is a headless one-frame operation.  Do not enter the
+         * audio mixer or SDL presentation path after the file is complete:
+         * dummy drivers and renderer backends are not required to support a
+         * second frame, and the caller expects the process to exit now. */
+        if (!running && capture_frame_path) break;
+
         music_update(&music_sys);
         sfx_update(&sfx);
         sound_mix(&sound_sys);
