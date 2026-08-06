@@ -3242,3 +3242,5 @@
 - Startmenyn validerar nu bilddimensioner innan den skalar launcherbilder.
   Ett kvarlämnat eller korrupt bildpekare-state kan därför inte längre orsaka
   division med noll under första renderingen.
+- Pausmenyns pixel-font innehåller nu också markören `>`. Den valda raden
+  visas därför korrekt även när TTF-fonten inte används.
