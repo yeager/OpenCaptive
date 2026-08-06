@@ -148,6 +148,13 @@ void sound_set_enabled(SoundSystem *snd, bool enabled) {
     if (!enabled) sound_stop_all(snd);
 }
 
+void sound_set_volume(SoundSystem *snd, float volume) {
+    if (!snd || !isfinite(volume)) return;
+    if (volume < 0.0f) volume = 0.0f;
+    if (volume > 1.0f) volume = 1.0f;
+    snd->master_volume = volume;
+}
+
 void sound_set_reverb(SoundSystem *snd, bool enabled, float amount) {
     if (!snd || !isfinite(amount)) return;
     if (amount < 0.0f) amount = 0.0f;

@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Mastervolym)
+
+- Startmenyns `VOLUME` påverkar nu både SFX-mixern och MIDI-musiken.
+- Volymen behålls när musikspår byts; tidigare återställdes varje nytt spår
+  till en fast nivå på 30 %.
+- Standardkonfigurationen anger nu explicit gamma 50 och mastervolym 80,
+  så första uppstarten visar och använder avsedda neutrala värden.
+- Ljudtestet täcker volymens gränsklippning och hela testsuiten med 56 tester
+  passerar.
+
 ## 2026-08-06 (Gamma i renderaren)
 
 - Inställningen `GAMMA` i startmenyn används nu av rendererens aktiva

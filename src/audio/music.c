@@ -1,5 +1,6 @@
 #include "music.h"
 #include "captive_data.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -145,6 +146,7 @@ bool music_init(MusicSystem *mus, SoundSystem *snd, const DataVFS *vfs,
     mus->vfs = vfs;
     mus->prng_state = 0x12345678;
     mus->sample_rate = sample_rate;
+    mus->master_volume = 1.0f;
     mus->high_quality = high_quality;
     return true;
 }
@@ -189,11 +191,19 @@ void music_play(MusicSystem *mus, MusicTrack track) {
         mus->owned_data = data;
         midi_set_sample_rate(&mus->player, mus->sample_rate);
         midi_set_high_quality(&mus->player, mus->high_quality);
-        midi_set_volume(&mus->player, 0.3f);
+        midi_set_volume(&mus->player, 0.3f * mus->master_volume);
         midi_play(&mus->player, true);
     } else {
         free(data);
     }
+}
+
+void music_set_volume(MusicSystem *mus, float volume) {
+    if (!mus || !isfinite(volume)) return;
+    if (volume < 0.0f) volume = 0.0f;
+    if (volume > 1.0f) volume = 1.0f;
+    mus->master_volume = volume;
+    midi_set_volume(&mus->player, 0.3f * volume);
 }
 
 void music_stop(MusicSystem *mus) {

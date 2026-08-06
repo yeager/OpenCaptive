@@ -46,6 +46,7 @@ void sound_play(SoundSystem *snd, int sample_id, float volume, float pitch);
 void sound_play_loop(SoundSystem *snd, int sample_id, float volume, float pitch);
 void sound_stop_all(SoundSystem *snd);
 void sound_set_enabled(SoundSystem *snd, bool enabled);
+void sound_set_volume(SoundSystem *snd, float volume);
 void sound_set_reverb(SoundSystem *snd, bool enabled, float amount);
 void sound_mix(SoundSystem *snd);
 

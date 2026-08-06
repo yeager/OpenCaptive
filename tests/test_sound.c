@@ -24,6 +24,17 @@ static void test_shutdown_without_audio_device(void) {
     assert(sound.samples[0].data == NULL);
 }
 
+static void test_master_volume_is_clamped(void) {
+    SoundSystem sound = {0};
+    sound.master_volume = 0.8f;
+    sound_set_volume(&sound, 0.25f);
+    assert(sound.master_volume == 0.25f);
+    sound_set_volume(&sound, -1.0f);
+    assert(sound.master_volume == 0.0f);
+    sound_set_volume(&sound, 2.0f);
+    assert(sound.master_volume == 1.0f);
+}
+
 static void test_8svx_respects_form_extent(void) {
     uint8_t form[12 + 8 + 20 + 8 + 2 + 1] = {0};
     memcpy(form, "FORM", 4);
@@ -40,6 +51,7 @@ static void test_8svx_respects_form_extent(void) {
 
 int main(void) {
     test_shutdown_without_audio_device();
+    test_master_volume_is_clamped();
     test_8svx_respects_form_extent();
     puts("All sound tests passed");
     return 0;

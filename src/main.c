@@ -571,6 +571,15 @@ static LiberationData liberation_data;
 static bool liberation_intro_active;
 static bool liberation_mission_menu_active;
 static bool skip_liberation_intro_requested;
+
+static void apply_menu_audio(const StartMenu *menu) {
+    if (!menu) return;
+    float volume = (float)menu->master_volume / 100.0f;
+    sound_set_volume(&sound_sys, volume);
+    music_set_volume(&music_sys, volume);
+    music_set_enabled(&music_sys, menu->music_enabled);
+    sound_set_enabled(&sound_sys, menu->sfx_enabled);
+}
 /* The CD32 media currently verifies presentation only.  Keep the recovered
  * menu and ANIM frames live, but do not enter the older generated city and
  * 3D-projection prototype from the default game path. */
@@ -1776,6 +1785,8 @@ int main(int argc, char *argv[]) {
         .integer_scaling = true,
         .brightness = 50,
         .contrast = 50,
+        .gamma = 50,
+        .master_volume = 80,
         .fps_limit = 60,
     };
     CustomFeatures custom;
@@ -2182,6 +2193,7 @@ int main(int argc, char *argv[]) {
     sound_set_reverb(&sound_sys, custom.audio_reverb, custom.reverb_amount);
     music_init(&music_sys, &sound_sys, &vfs, custom.audio_sample_rate,
                custom.hq_midi);
+    apply_menu_audio(&menu);
 
     // Items and SFX
     item_db_init(&item_db);
@@ -2305,8 +2317,7 @@ int main(int argc, char *argv[]) {
                                                  config.brightness,
                                                  config.contrast, config.gamma);
                             renderer_apply_display(&renderer, &config);
-                            music_set_enabled(&music_sys, menu.music_enabled);
-                            sound_set_enabled(&sound_sys, menu.sfx_enabled);
+                            apply_menu_audio(&menu);
                             vfs_free(&vfs);
                             vfs_init(&vfs, config.data_path);
                             if (!validate_data_path(&vfs)) {
@@ -2345,8 +2356,7 @@ int main(int argc, char *argv[]) {
                                                  config.brightness,
                                                  config.contrast, config.gamma);
                             renderer_apply_display(&renderer, &config);
-                            music_set_enabled(&music_sys, menu.music_enabled);
-                            sound_set_enabled(&sound_sys, menu.sfx_enabled);
+                            apply_menu_audio(&menu);
                             vfs_free(&vfs);
                             vfs_init(&vfs, config.data_path);
                             liberation_data_close(&liberation_data);
@@ -2369,8 +2379,7 @@ int main(int argc, char *argv[]) {
                                                  config.brightness,
                                                  config.contrast, config.gamma);
                             renderer_apply_display(&renderer, &config);
-                            music_set_enabled(&music_sys, menu.music_enabled);
-                            sound_set_enabled(&sound_sys, menu.sfx_enabled);
+                            apply_menu_audio(&menu);
                             vfs_free(&vfs);
                             vfs_init(&vfs, config.data_path);
                             if (!validate_data_path(&vfs)) {
@@ -2411,8 +2420,7 @@ int main(int argc, char *argv[]) {
                                                  config.brightness,
                                                  config.contrast, config.gamma);
                             renderer_apply_display(&renderer, &config);
-                            music_set_enabled(&music_sys, menu.music_enabled);
-                            sound_set_enabled(&sound_sys, menu.sfx_enabled);
+                            apply_menu_audio(&menu);
                             vfs_free(&vfs);
                             vfs_init(&vfs, config.data_path);
                             liberation_data_close(&liberation_data);
