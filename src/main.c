@@ -2927,7 +2927,9 @@ int main(int argc, char *argv[]) {
                     if (event.type == SDL_EVENT_KEY_DOWN &&
                         event.key.key == SDLK_ESCAPE) {
                         gs.mode = STATE_MENU;
-                        start_menu_reinit(&menu);
+                        sync_menu_from_config(&menu, &config, &custom,
+                                              music_sys.enabled,
+                                              sound_sys.enabled);
                         music_stop(&music_sys);
                     }
                     break;
@@ -3007,7 +3009,9 @@ int main(int argc, char *argv[]) {
                                     gs.paused = false;
                                 } else if (pause_cursor == 2) {
                                     gs.mode = STATE_MENU;
-                                    start_menu_reinit(&menu);
+                                    sync_menu_from_config(&menu, &config, &custom,
+                                                          music_sys.enabled,
+                                                          sound_sys.enabled);
                                     music_stop(&music_sys);
                                     gs.paused = false;
                                 }

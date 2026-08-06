@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Menyåtergång återställer scan och runtime-konfiguration)
+
+- Återgång från pausens QUIT samt Game Over/Victory använder nu samma
+  konfigurationssynkronisering som övriga menyvägar.
+- Bakgrundsskanningen startas därför igen och datakortens status blir inte
+  kvar i ett falskt “saknas”-läge.
+- F10-ändringar pågående i spelet speglas samtidigt tillbaka i menyn.
+
 ## 2026-08-06 (Enhetliga Liberation-canvasar för alla vyer)
 
 - Huvudloopen väljer nu Liberation-canvas även för hjälp, inventory och
