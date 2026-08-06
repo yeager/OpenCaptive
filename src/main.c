@@ -993,6 +993,15 @@ static void start_liberation_session(GameState *gs_ptr) {
     if (gs_ptr->mission < 1) gs_ptr->mission = 1;
     gs_ptr->game_type = GAME_LIBERATION;
     gs_ptr->mode = STATE_GAME;
+    /* These belong to the live session, not to the previous game or to a
+     * save file.  Reset them before the prototype-only setup below so the
+     * verified presentation path cannot inherit a stale dungeon/building/
+     * combat state when starting another Liberation session. */
+    lib_in_building = false;
+    lib_in_combat = false;
+    lib_in_dungeon = false;
+    lib_bar_fight_pending = false;
+    lib_inv_cursor = 0;
     liberation_intro_active = !skip_liberation_intro_requested &&
                               liberation_data.intro_frame.bitplanes != NULL;
     liberation_mission_menu_active = false;
@@ -2363,6 +2372,14 @@ int main(int argc, char *argv[]) {
                                     start_liberation_session(&gs);
                                     restore_liberation_save_state(&gs, &save);
                                 } else {
+                                    /* Do not continue with a stale session if
+                                     * the advertised save disappeared or is
+                                     * corrupt between menu scan and load. */
+                                    OpenCaptiveConfig preserved_config = gs.config;
+                                    game_state_init(&gs, GAME_LIBERATION, 1);
+                                    gs.config = preserved_config;
+                                    combat_init(&creatures);
+                                    puzzle_init(&puzzles);
                                     lib_city_generated = false;
                                     start_liberation_session(&gs);
                                 }

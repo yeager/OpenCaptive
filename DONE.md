@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation session reset)
+
+- Varje ny Liberation-session nollställer nu transient lägesdata för dungeon,
+  byggnad, strid, böter och inventariecursor innan presentationen startar.
+- Om `Continue Liberation` hittar ett borttaget eller korrupt save skapas en
+  ren session i stället för att gamla GameState-data återanvänds.
+- Verifierade relevanta save-, startmeny- och GameState-tester samt Werror-build.
+
 ## 2026-08-06 (Puzzle hint localization)
 
 - Pusselens clipboard-hintar använder nu l10n för lösning, matchning, kod och

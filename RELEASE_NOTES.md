@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Liberation-sessioner återställer nu transient dungeon-, byggnads-, strids-
+  och inventarietillstånd. Ett ogiltigt Continue-save startar en ren session
+  i stället för att ärva tillstånd från föregående spel.
 - Pusselens lösningshintar går nu genom l10n, inklusive etiketter för lösning,
   matchning, kod och lösenord.
 - VFS:en läser nu giltiga tomma deflaterade ZIP-poster korrekt. Det förhindrar
