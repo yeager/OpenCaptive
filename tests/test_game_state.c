@@ -605,6 +605,33 @@ static void test_combat_skips_destroyed_droids(void) {
     assert(one_living_droid_was_hit);
 }
 
+static void test_combat_tick_enters_game_over_on_last_droid(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    for (int y = 0; y < MAP_HEIGHT; ++y)
+        for (int x = 0; x < MAP_WIDTH; ++x)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+    for (int i = 0; i < 4; ++i) gs.droids[i].hp = 1;
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 20, .hp_max = 20,
+        .damage_min = 10, .damage_max = 10, .range = 4,
+        .speed = 0, .x = 2, .y = 1, .level = 0, .active = true,
+        .alerted = true,
+    };
+
+    for (int i = 0; i < 4; ++i) {
+        creatures.creatures[0].cooldown = 0;
+        combat_tick(&creatures, &gs);
+    }
+    assert(gs.mode == STATE_GAMEOVER);
+}
+
 static void test_combat_ignores_invalid_creature_health(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -907,6 +934,7 @@ int main(void) {
     test_combat_does_not_treat_non_weapon_as_ranged();
     test_combat_requires_equipped_weapon();
     test_combat_skips_destroyed_droids();
+    test_combat_tick_enters_game_over_on_last_droid();
     test_combat_ignores_invalid_creature_health();
     test_combat_extreme_damage_does_not_wrap_hp();
     test_combat_does_not_heal_from_invalid_damage();

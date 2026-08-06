@@ -15,6 +15,13 @@ static uint32_t combat_rand(void) {
     return captive_combat_prng(&combat_seed);
 }
 
+static bool combat_all_droids_dead(const GameState *gs) {
+    if (!gs) return false;
+    for (int i = 0; i < 4; ++i)
+        if (gs->droids[i].hp > 0) return false;
+    return true;
+}
+
 bool combat_cell_occupied(const CreatureList *cl, int level, int x, int y) {
     if (!cl || cl->num_creatures <= 0) return false;
     int count = cl->num_creatures > MAX_CREATURES ? MAX_CREATURES :
@@ -299,6 +306,7 @@ void combat_tick(CreatureList *cl, GameState *gs) {
                 d->hp = 0;
             else
                 d->hp = (int16_t)(d->hp - damage);
+            if (combat_all_droids_dead(gs)) gs->mode = STATE_GAMEOVER;
             c->cooldown = c->speed;
             cl->last_attack_damage = damage;
             cl->last_attack_target = target;

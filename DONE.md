@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive combat game-over invariant)
+
+- `combat_tick()` sätter nu `STATE_GAMEOVER` direkt när den sista levande
+  droiden faller, oberoende av vilken anropare som kör combat-lagret.
+- Huvudloopen behåller sina meddelanden och ljudeffekter, men game-over är
+  inte längre beroende av just den presentationens efterkontroll.
+- Werror, UBSAN och hela testsviten (58/58) passerar.
+
 ## 2026-08-07 (Captive respawn-timers)
 
 - Fiendersnas respawn-timer tickar nu även när fienden befinner sig på en
