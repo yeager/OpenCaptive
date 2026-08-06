@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Creature HP difficulty range)
+
+- Korrigerade `creature_calc_hp()` så att högsta svårighetssteget 8 inte
+  klipps bort; hjälpfunktionen följer nu samma 0–8-skala som den återvunna
+  formeln och `spawn_compute_hp()`.
+- Lade till regressionstest för HP på svårighetsgrad 8. Werror-testerna för
+  creature stats och spawn passerar.
+
 ## 2026-08-06 (Release version consistency)
 
 - Synkade den körbara versionssträngen med v1.1.79; den rapporterade tidigare
