@@ -6,6 +6,7 @@
   rustning inte återställs till full kondition efter import.
 - Importen behåller bakåtkompatibilitet med v1 och ger äldre sparfiler full
   kondition som tidigare format saknade skadefältet.
+- Lade till ett explicit v1-fixturetest för importens bakåtkompatibilitet.
 
 ## 2026-08-06 (Whitespace-tolerant custom config)
 

@@ -369,6 +369,53 @@ static void test_cross_save(void) {
     assert(gs2.config.brightness == 81);
     assert(gs2.config.data_path == data_path);
 
+    /* Build a v1 fixture from the v2 export by removing the six-byte armor
+       condition field that the old format did not contain. */
+    const char *legacy_path = "/tmp/test_opencaptive_cross_v1.ocsv";
+    FILE *v2_file = fopen(path, "rb");
+    assert(v2_file);
+    assert(fseek(v2_file, 0, SEEK_END) == 0);
+    long v2_size = ftell(v2_file);
+    assert(v2_size > 0 && fseek(v2_file, 0, SEEK_SET) == 0);
+    uint8_t *v2_bytes = malloc((size_t)v2_size);
+    assert(v2_bytes);
+    assert(fread(v2_bytes, 1, (size_t)v2_size, v2_file) == (size_t)v2_size);
+    assert(fclose(v2_file) == 0);
+    const size_t cross_header_size = 57U;
+    const size_t v2_droid_size = 64U;
+    const size_t v1_droid_size = 58U;
+    const size_t droid_count = 4U;
+    const size_t removed_size = (v2_droid_size - v1_droid_size) * droid_count;
+    assert((size_t)v2_size > cross_header_size + removed_size);
+    size_t v1_size = (size_t)v2_size - removed_size;
+    uint8_t *v1_bytes = malloc(v1_size);
+    assert(v1_bytes);
+    memcpy(v1_bytes, v2_bytes, cross_header_size);
+    for (size_t droid = 0; droid < droid_count; ++droid) {
+        size_t v2_offset = cross_header_size + droid * v2_droid_size;
+        size_t v1_offset = cross_header_size + droid * v1_droid_size;
+        memcpy(v1_bytes + v1_offset, v2_bytes + v2_offset, 30U);
+        memcpy(v1_bytes + v1_offset + 30U, v2_bytes + v2_offset + 36U, 28U);
+    }
+    size_t v2_level_offset = cross_header_size + droid_count * v2_droid_size;
+    size_t v1_level_offset = cross_header_size + droid_count * v1_droid_size;
+    memcpy(v1_bytes + v1_level_offset, v2_bytes + v2_level_offset,
+           (size_t)v2_size - v2_level_offset);
+    v1_bytes[4] = 1;
+    FILE *v1_file = fopen(legacy_path, "wb");
+    assert(v1_file);
+    assert(fwrite(v1_bytes, 1, v1_size, v1_file) == v1_size);
+    assert(fclose(v1_file) == 0);
+    free(v1_bytes);
+    free(v2_bytes);
+
+    GameState legacy;
+    memset(&legacy, 0, sizeof(legacy));
+    assert(cross_save_import(&legacy, legacy_path));
+    assert(legacy.droids[0].hp == 100);
+    assert(legacy.droids[0].body_part_hp[0] == UINT8_MAX);
+    remove(legacy_path);
+
     gs.game_type = GAME_LIBERATION;
     assert(!cross_save_export(&gs, path));
     gs.game_type = GAME_CAPTIVE;
