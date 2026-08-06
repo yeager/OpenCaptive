@@ -683,6 +683,7 @@ jobs:
     needs: [build-linux, build-linux-appimage, build-macos, build-windows, build-ios, build-android]
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -702,6 +703,23 @@ jobs:
           test -s artifacts/windows-x64/OpenCaptive-*.exe
           test -s artifacts/ios-arm64/OpenCaptive-ios-arm64.ipa
           test -s artifacts/android/OpenCaptive-android.apk
+      - name: Extract version-specific release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=${RELEASE_VERSION#v}
+          awk -v version="$VERSION" '
+            index($0, "## v" version " ") == 1 { found = 1 }
+            found && /^## v[0-9]/ && index($0, "## v" version " ") != 1 { exit }
+            found { print }
+            END {
+              if (!found) {
+                print "Missing human-written release notes for v" version > "/dev/stderr"
+                exit 1
+              }
+            }
+          ' RELEASE_NOTES.md > release-notes.md
+          test -s release-notes.md
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
@@ -716,4 +734,5 @@ jobs:
             artifacts/windows-x64/OpenCaptive-*.exe
             artifacts/ios-arm64/OpenCaptive-ios-arm64.ipa
             artifacts/android/OpenCaptive-android.apk
-          generate_release_notes: true
+          body_path: release-notes.md
+          generate_release_notes: false

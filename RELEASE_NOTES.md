@@ -4,6 +4,9 @@
 
 ### Release and CI hardening
 
+- Architect-mapgeneratorn använder nu en inkrementell frontier och undviker
+  upprepade fullständiga kartskanningar. Den breda seed-regressionen är nu
+  snabb nog att köras i CI.
 - The release workflow can now be started manually with an explicit semantic
   version and creates the matching `vX.Y.Z` GitHub release tag.
 - Linux-installationer och AppImages hittar nu font, l10n och launcherbilder

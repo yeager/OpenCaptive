@@ -14,6 +14,12 @@ floor assignment, digging and feature placement remain a research prototype.
 It currently supplies runtime navigation state, but it is not a visual or
 logical parity implementation of the original game.
 
+The prototype's Architect walk keeps an incremental frontier of candidate
+cells. This avoids rescanning the complete 64×32 map after every blocked step
+and keeps broad seed validation practical. The row-0 entrance remains the only
+permitted cell on the outer border; normal carving rejects the border because
+the runtime cell-carver cannot write there.
+
 Any parity implementation must be validated against a map emitted by the
 original MapGen executable or an independently reproducible original fixture;
 matching the prose below is not sufficient.

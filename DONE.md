@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Map generator frontier performance)
+
+- MapGen använder nu en inkrementell frontier i Architect-vandringen i stället
+  för fullständig kartskanning efter varje blockerat steg.
+- Kantceller som `carve()` inte kan skriva till avvisas innan de räknas som
+  kandidater; den särskilda rad-0-ingången lämnas oförändrad.
+- Hela Werror-sviten med 55 tester passerar; `test_map_gen` validerar 10 000
+  seedvärden på cirka 5 sekunder.
+
 ## 2026-08-06 (Linux installed resource lookup)
 
 - Font-, l10n- och launcherbildsladdning söker nu standardiserade Linux-

@@ -269,30 +269,30 @@ static int architect_open_neighbors(const DungeonLevel *level, int x, int y) {
 
 static bool architect_can_carve(const DungeonLevel *level, const int section_floor[16],
                                 int floor, int x, int y) {
-    if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return false;
+    /* Keep the special row-0 entrance cell immutable.  carve() deliberately
+     * rejects the outer border, so allowing it here would consume PRNG steps
+     * without changing the map and could make Architect's walk needlessly
+     * expensive (and produce a false carved-cell count). */
+    if (x < 1 || x >= MAP_WIDTH - 1 || y < 1 || y >= MAP_HEIGHT - 1)
+        return false;
     if (section_floor[architect_section_at(x, y)] != floor) return false;
     if (level->cells[y][x].type != CELL_WALL) return false;
     return architect_open_neighbors(level, x, y) == 1;
 }
 
-static bool architect_find_frontier(const DungeonLevel *level, const int section_floor[16],
-                                    int floor, int *x, int *y) {
-    int start = (int)(prng_next() % (MAP_WIDTH * MAP_HEIGHT));
-    for (int attempt = 0; attempt < MAP_WIDTH * MAP_HEIGHT; attempt++) {
-        int pos = (start + attempt) % (MAP_WIDTH * MAP_HEIGHT);
-        int px = pos % MAP_WIDTH, py = pos / MAP_WIDTH;
-        if (section_floor[architect_section_at(px, py)] != floor ||
-            level->cells[py][px].type == CELL_WALL) continue;
-        for (int d = 0; d < 4; d++) {
-            if (architect_can_carve(level, section_floor, floor,
-                                    px + dx[d], py + dy[d])) {
-                *x = px;
-                *y = py;
-                return true;
-            }
-        }
-    }
-    return false;
+static void architect_add_frontier(const DungeonLevel *level,
+                                   const int section_floor[16], int floor,
+                                   int x, int y,
+                                   bool queued[MAP_HEIGHT][MAP_WIDTH],
+                                   int frontier[MAP_WIDTH * MAP_HEIGHT],
+                                   int *frontier_count) {
+    if (!frontier_count || *frontier_count >= MAP_WIDTH * MAP_HEIGHT ||
+        x < 1 || x >= MAP_WIDTH - 1 || y < 1 || y >= MAP_HEIGHT - 1 ||
+        queued[y][x] ||
+        !architect_can_carve(level, section_floor, floor, x, y))
+        return;
+    queued[y][x] = true;
+    frontier[(*frontier_count)++] = y * MAP_WIDTH + x;
 }
 
 static void architect_try_room(DungeonLevel *level, const int section_floor[16],
@@ -363,18 +363,43 @@ static void architect_carve_floor(DungeonLevel *level, const int section_floor[1
     level->cells[start_y][start_x].type = CELL_FLOOR;
     int x = start_x, y = start_y;
     int carved = 1;
-    for (int move = 0; move < 12289 && carved < 720; move++) {
-        int direction = (int)(prng_next() % 4);
-        int nx = x + dx[direction], ny = y + dy[direction];
-        if (architect_can_carve(level, section_floor, floor, nx, ny)) {
-            carve(level, nx, ny);
-            x = nx; y = ny;
-            carved++;
-            if ((prng_next() % 31) == 0)
-                architect_try_room(level, section_floor, floor, x, y);
-            continue;
+    int frontier[MAP_WIDTH * MAP_HEIGHT];
+    int frontier_count = 0;
+    bool queued[MAP_HEIGHT][MAP_WIDTH] = {{false}};
+
+    for (int d = 0; d < 4; d++)
+        architect_add_frontier(level, section_floor, floor,
+                               x + dx[d], y + dy[d], queued,
+                               frontier, &frontier_count);
+
+    /* Maintain the candidate frontier incrementally.  The previous
+     * implementation rescanned the complete map after every blocked random
+     * walk step, which made broad seed validation effectively quadratic. */
+    while (frontier_count > 0 && carved < 720) {
+        int index = (int)(prng_next() % (uint32_t)frontier_count);
+        int pos = frontier[index];
+        frontier[index] = frontier[--frontier_count];
+        int nx = pos % MAP_WIDTH, ny = pos / MAP_WIDTH;
+        queued[ny][nx] = false;
+        if (!architect_can_carve(level, section_floor, floor, nx, ny)) continue;
+
+        carve(level, nx, ny);
+        x = nx; y = ny;
+        carved++;
+        for (int d = 0; d < 4; d++)
+            architect_add_frontier(level, section_floor, floor,
+                                   x + dx[d], y + dy[d], queued,
+                                   frontier, &frontier_count);
+        if ((prng_next() % 31) == 0) {
+            architect_try_room(level, section_floor, floor, x, y);
+            /* Rooms can add several new boundary cells.  The maximum room is
+             * 6x5, so a small deterministic neighbourhood covers its rim. */
+            for (int ry = y - 4; ry <= y + 4; ry++)
+                for (int rx = x - 4; rx <= x + 4; rx++)
+                    architect_add_frontier(level, section_floor, floor,
+                                           rx, ry, queued,
+                                           frontier, &frontier_count);
         }
-        if (!architect_find_frontier(level, section_floor, floor, &x, &y)) break;
     }
     architect_ensure_minimum_floor(level, section_floor, floor, 21);
 }
