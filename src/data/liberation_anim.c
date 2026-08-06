@@ -324,7 +324,8 @@ static int decode_first_pack_frame(const uint8_t *pack, size_t pack_size,
         uint8_t depth = all_records[4U];
         uint32_t raw_size = read_be32(all_records + 6U);
         uint64_t expected_size = (uint64_t)width_bytes * height * depth;
-        if (width_bytes != 0U && height != 0U && depth != 0U && depth <= 8U &&
+        if (width_bytes != 0U && width_bytes <= UINT16_MAX / 8U &&
+            height != 0U && depth != 0U && depth <= 8U &&
             expected_size <= UINT32_MAX && raw_size == expected_size &&
             raw_size <= all_records_size - PACK_DESCRIPTOR_SIZE) {
             uint8_t *raw = malloc(raw_size);
@@ -358,7 +359,8 @@ static int decode_first_pack_frame(const uint8_t *pack, size_t pack_size,
     uint8_t depth = pack[pos + 4U];
     uint32_t raw_size = read_be32(pack + pos + 6U);
     uint64_t expected_size = (uint64_t)width_bytes * height * depth;
-    if (width_bytes == 0U || height == 0U || depth == 0U || depth > 8U ||
+    if (width_bytes == 0U || width_bytes > UINT16_MAX / 8U || height == 0U ||
+        depth == 0U || depth > 8U ||
         expected_size > UINT32_MAX || raw_size != expected_size ||
         raw_size > pack_size - pos ||
         (uint64_t)record_size != (uint64_t)raw_size + PACK_DESCRIPTOR_SIZE) return 0;

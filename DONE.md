@@ -3223,3 +3223,6 @@
   exempelvis `COMPLETE OBJECTIVE` inte lämnar en osynlig modal som blockerar
   holomapens input. Liberation-missionspriten kontrollerar dessutom sina
   dimensioner mot 320×256-canvasen innan den kopieras.
+- Liberation-animationsdekodern avvisar nu planarbilders radbredder som inte
+  ryms i den publika `uint16_t`-bredden. Korrupta `width_bytes` kan därför inte
+  längre trunkeras till en annan bildbredd vid första bildrutan.
