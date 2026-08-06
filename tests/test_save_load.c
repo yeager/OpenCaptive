@@ -22,6 +22,7 @@ static void test_round_trip(void) {
     saved.gold = 777;
     saved.droids[2].hp = 37;
     memset(saved.droids[0].name, 'D', sizeof(saved.droids[0].name));
+    saved.levels[0].cells[7][11].type = CELL_FLOOR;
     saved.levels[0].cells[7][12].type = CELL_FLOOR;
     saved.levels[0].cells[7][12].item_id = 57;
     saved.generators_destroyed = 1;
@@ -287,6 +288,27 @@ static void test_save_rejects_invalid_creature_runtime_fields(void) {
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
 }
 
+static void test_save_rejects_blocked_runtime_positions(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+
+    gs.levels[gs.current_level].cells[gs.party_y][gs.party_x].type = CELL_WALL;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+
+    game_state_new_mission(&gs, 1);
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 10, .hp_max = 10,
+        .x = gs.party_x, .y = gs.party_y, .level = gs.current_level,
+        .active = true,
+    };
+    gs.levels[gs.current_level].cells[gs.party_y][gs.party_x].type = CELL_DOOR;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+}
+
 static void test_load_rejects_noncanonical_creature_flag(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -298,6 +320,7 @@ static void test_load_rejects_noncanonical_creature_flag(void) {
         .type = CREATURE_ALIEN1, .hp = 10, .hp_max = 10,
         .x = 1, .y = 1, .level = 0, .active = true
     };
+    gs.levels[0].cells[1][1].type = CELL_FLOOR;
     assert(save_game(&gs, &creatures, &puzzles, save_path));
 
     /* Header (72) + four 64-byte droids + all serialized dungeon levels. */
@@ -400,6 +423,7 @@ int main(void) {
     test_save_rejects_invalid_creature_damage();
     test_save_rejects_negative_creature_defense();
     test_save_rejects_invalid_creature_runtime_fields();
+    test_save_rejects_blocked_runtime_positions();
     test_load_rejects_noncanonical_creature_flag();
     test_puzzle_interact_rejects_invalid_state();
     test_power_socket_recharges_420_energy();

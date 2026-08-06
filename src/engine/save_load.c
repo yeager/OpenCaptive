@@ -211,6 +211,16 @@ static bool valid_puzzle_target(const Puzzle *p) {
             p->target_y >= 0 && p->target_y < MAP_HEIGHT);
 }
 
+static bool valid_runtime_position(const GameState *gs, int level,
+                                   int x, int y) {
+    if (!gs || level < 0 || level >= gs->num_levels || level >= MAX_LEVELS ||
+        x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT)
+        return false;
+    CellType type = gs->levels[level].cells[y][x].type;
+    return type != CELL_WALL && type != CELL_DOOR &&
+           type != CELL_DOOR_LOCKED;
+}
+
 static bool valid_creature_runtime_state(const Creature *c) {
     return c && c->speed <= 60 && c->range <= 7 && c->cooldown <= 60 &&
            c->respawn_timer <= 600 &&
@@ -290,6 +300,8 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
         gs->generators_total < 0 ||
         gs->generators_destroyed < 0 ||
         gs->generators_destroyed > gs->generators_total || gs->gold < 0) return false;
+    if (!valid_runtime_position(gs, gs->current_level, gs->party_x,
+                                gs->party_y)) return false;
     if (creatures->num_creatures < 0 || creatures->num_creatures > MAX_CREATURES ||
         puzzles->num_puzzles < 0 || puzzles->num_puzzles > MAX_PUZZLES) return false;
     for (int i = 0; i < creatures->num_creatures; i++) {
@@ -299,6 +311,7 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
             c->level < 0 || c->level >= gs->num_levels || c->hp < 0 ||
             c->hp_max < 0 || c->hp > c->hp_max || c->damage_min < 0 ||
             c->damage_max < c->damage_min || c->defense < 0 ||
+            !valid_runtime_position(gs, c->level, c->x, c->y) ||
             !valid_creature_runtime_state(c))
             return false;
     }
@@ -502,6 +515,10 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
         }
     }
 
+    if (!valid_runtime_position(restored, restored->current_level,
+                                restored->party_x, restored->party_y))
+        LOAD_FAIL();
+
     restored_creatures.num_creatures = hdr.num_creatures;
     restored_puzzles.num_puzzles = hdr.num_puzzles;
     if (hdr.version == SAVE_VERSION) {
@@ -524,7 +541,10 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
             creature->hp < 0 || creature->hp_max < 0 ||
             creature->hp > creature->hp_max || creature->damage_min < 0 ||
             creature->damage_max < creature->damage_min ||
-            creature->defense < 0 || !valid_creature_runtime_state(creature)) {
+            creature->defense < 0 ||
+            !valid_runtime_position(restored, creature->level,
+                                    creature->x, creature->y) ||
+            !valid_creature_runtime_state(creature)) {
             LOAD_FAIL();
         }
     }
