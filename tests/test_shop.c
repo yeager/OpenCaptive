@@ -105,7 +105,8 @@ static void test_shop_repair_preserves_equipment(void) {
 static void test_inactive_shop_cannot_sell(void) {
     ItemDatabase db;
     ShopState shop = {0};
-    GameState gs = {0};
+    static GameState gs;
+    gs = (GameState){0};
     item_db_init(&db);
     gs.selected_droid = 0;
     shop.item_ids[0] = 8;
@@ -120,7 +121,8 @@ static void test_inactive_shop_cannot_sell(void) {
 static void test_shop_rejects_corrupt_item_count(void) {
     ItemDatabase db;
     ShopState shop = {0};
-    GameState gs = {0};
+    static GameState gs;
+    gs = (GameState){0};
     item_db_init(&db);
     shop.active = true;
     shop.num_items = SHOP_MAX_ITEMS + 1;
