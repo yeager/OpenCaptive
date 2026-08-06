@@ -54,6 +54,25 @@ static void test_rules_modify(void) {
     }
 }
 
+static void test_second_wall_word_is_written(void) {
+    const uint8_t input_bits[] = {1, 2, 1, 1};
+    const uint8_t opening_bits[] = {0x10, 0x10, 0x18, 0x18};
+
+    for (int type = 0; type < 4; type++) {
+        CAMap map;
+        ca_init(&map);
+        map.cells[0][0][3] = input_bits[type];
+        ca_apply_rules(&map, (CAMapType)type);
+
+        /* The second CA word is stored in c[3]/c[4].  Its low byte must
+         * receive the rule output; previously the computed value was dead
+         * and c[3] retained only the unprocessed input bit. */
+        ASSERT(map.cells[0][0][3] == (uint8_t)(input_bits[type] |
+                                               opening_bits[type]),
+               "second CA wall word receives rule output");
+    }
+}
+
 static void test_wall_flags_boundary(void) {
     CAMap map;
     ca_init(&map);
@@ -94,6 +113,7 @@ int main(void) {
     test_pattern_generation();
     test_deterministic();
     test_rules_modify();
+    test_second_wall_word_is_written();
     test_wall_flags_boundary();
     test_level_number_is_bounded();
     test_different_types_produce_different_maps();

@@ -58,6 +58,7 @@ static void ca_apply_maze(CAMap *map) {
             ah = (uint8_t)((ax >> 8) & 0xFF) | (uint8_t)((bx >> 8) & 0xFF);
             if (al) al |= 0x10;
             if (ah) ah |= 0x10;
+            c[3] = al;
             c[4] = (c[4] & 0xE0) | (ah & 0x1F);
 
             dl = c[2] & 0x40;
@@ -98,6 +99,7 @@ static void ca_apply_rooms(CAMap *map) {
             ah = (uint8_t)((ax >> 8) & 0xFF) | (uint8_t)((bx >> 8) & 0xFF);
             if (al) al |= 0x10;
             if (ah) ah |= 0x10;
+            c[3] = al;
             c[4] = (c[4] & 0xE0) | (ah & 0x1F);
 
             uint16_t d34 = c[2] | (c[3] << 8);
@@ -140,6 +142,7 @@ static void ca_apply_open(CAMap *map) {
             ah = (uint8_t)((ax >> 8) & 0xFF) | (uint8_t)((bx >> 8) & 0xFF);
             if (al) al |= 0x18;
             if (ah) ah |= 0x18;
+            c[3] = al;
             c[4] = (c[4] & 0xE0) | (ah & 0x1F);
 
             uint16_t d23 = c[2] | (c[3] << 8);
@@ -192,6 +195,7 @@ static void ca_apply_mixed(CAMap *map) {
             ah = (uint8_t)((ax >> 8) & 0xFF) | (uint8_t)((bx >> 8) & 0xFF);
             if (al) al |= 0x18;
             if (ah) ah |= 0x18;
+            c[3] = al;
             c[4] = (c[4] & 0xE0) | (ah & 0x1F);
 
             uint16_t d23 = c[2] | (c[3] << 8);
