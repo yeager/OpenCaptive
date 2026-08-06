@@ -48,6 +48,17 @@ int main(void) {
     assert(!menu.captive_data_ok && !menu.liberation_data_ok);
     assert(menu.captive_source_mask == 0U && menu.liberation_source_mask == 0U);
 
+    /* A new background scan must not leave stale availability indicators when
+       the edited path is empty and therefore cannot be scanned. */
+    menu.captive_data_ok = true;
+    menu.liberation_data_ok = true;
+    menu.captive_source_mask = 7U;
+    menu.liberation_source_mask = 7U;
+    start_menu_start_scan(&menu, "", false);
+    assert(!menu.scanner_background && menu.scanner_done);
+    assert(!menu.captive_data_ok && !menu.liberation_data_ok);
+    assert(menu.captive_source_mask == 0U && menu.liberation_source_mask == 0U);
+
     menu.in_settings = true;
     menu.settings_cursor = 15; /* SFX */
     SDL_Event event = key_event(SDLK_RETURN);

@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Ingen kvarhängande datastatus efter ny skanning)
+
+- En ny bakgrundsskanning nollställer nu omedelbart tidigare spel- och
+  versionsstatus.
+- Tomma eller ogiltiga sökvägar kan därför inte lämna kvar gröna
+  tillgänglighetsmarkeringar från en föregående datakatalog.
+- Regressionstest täcker tom sökväg och att bakgrundsskanningen avslutas
+  korrekt.
+
 ## 2026-08-06 (Letterbox-säkra muszoner och Liberation-paus)
 
 - Meny-, Liberation- och pausens muskoordinater räknas nu om från den

@@ -591,12 +591,23 @@ void start_menu_start_scan(StartMenu *menu, const char *data_path,
     stop_data_scanner(menu);
     menu->in_scanner = show_progress;
     menu->scanner_background = !show_progress;
+    menu->captive_data_ok = false;
+    menu->liberation_data_ok = false;
+    menu->captive_source_mask = 0U;
+    menu->liberation_source_mask = 0U;
+    menu->captive_source_choice = CAPTIVE_PLATFORM_DOS;
+    menu->liberation_source_choice = LIBERATION_SOURCE_NONE;
+    menu->scanner_captive_found = 0;
+    menu->scanner_liberation_found = 0;
+    menu->scanner_progress = 0;
     menu->scanner_done = false;
     if (!data_path || !data_path[0]) {
+        menu->scanner_background = false;
         menu->scanner_done = true;
         return;
     }
     if (!vfs_init(&menu->scanner_vfs, data_path)) {
+        menu->scanner_background = false;
         menu->scanner_done = true;
         return;
     }
@@ -661,6 +672,7 @@ void start_menu_update(StartMenu *menu) {
                 (1U << LIBERATION_SOURCE_CD32))
                    ? LIBERATION_SOURCE_CD32 : LIBERATION_SOURCE_AMIGA_ADF)
             : LIBERATION_SOURCE_NONE;
+        menu->scanner_background = false;
         stop_data_scanner(menu);
     }
 }
