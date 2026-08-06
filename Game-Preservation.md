@@ -1,5 +1,7 @@
 # Game Preservation
 
+> Documentation baseline: v1.1.79. OpenCaptive uses player-supplied original media and content hashes rather than bundling game data.
+
 This page documents the original Captive and Liberation releases, their platform variants, and preservation considerations.
 
 ## Captive (1990)

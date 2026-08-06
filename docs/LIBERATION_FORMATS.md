@@ -1,5 +1,7 @@
 # Liberation: Captive 2 Data Formats
 
+> Updated for v1.1.79. Data remains player-supplied and hash-verified.
+
 ## Amiga floppy version
 
 - 5 ADF disks (901,120 bytes each = standard 880KB Amiga floppy)

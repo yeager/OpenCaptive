@@ -1,5 +1,7 @@
 # Combat System
 
+> Updated for v1.1.79. Combat documentation reflects the current tested prototype boundary.
+
 ## Overview
 
 OpenCaptive's combat system implements Captive's real-time creature encounters with AI behavior, damage calculation, and experience progression.

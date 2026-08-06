@@ -1,5 +1,7 @@
 # Liberation: implementation status
 
+> Updated for v1.1.79. This status page deliberately separates verified presentation from prototype gameplay systems.
+
 ## What runs today
 
 Liberation currently opens only after the CD32 presentation track has been

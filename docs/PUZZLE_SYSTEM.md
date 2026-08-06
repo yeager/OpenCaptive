@@ -1,5 +1,7 @@
 # Puzzle System
 
+> Updated for v1.1.79. Puzzle behavior is documented as implemented prototype functionality unless explicitly marked source-verified.
+
 ## Overview
 
 Puzzles are wall-mounted interactive elements that control doors and provide resources. They are procedurally generated during map creation.

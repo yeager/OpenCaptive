@@ -1,5 +1,7 @@
 # Captive Game Data
 
+> Documentation baseline: v1.1.79. Data is discovered by SHA-256 identity and may be reused from the scanner cache when unchanged.
+
 Data extracted from the verified DOS executable CAPPO.EXE (v1.06, Oct 7 1992). The executable is LZEXE v0.91 compressed (73,056 bytes packed, 144,556 bytes unpacked).
 
 ## Version information

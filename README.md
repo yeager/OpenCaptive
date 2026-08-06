@@ -1,5 +1,7 @@
 # OpenCaptive
 
+**Current release: v1.1.79**
+
 A modern C/SDL3 reimplementation of **Captive** (1990) and **Liberation: Captive 2** (1993) by Antony Crowther, published by Mindscape.
 
 OpenCaptive is an actively verified reimplementation. Data formats, creature
@@ -16,6 +18,8 @@ Pre-built packages for all platforms are available on the [Releases](https://git
 | Linux x86_64 | `.deb`, `.rpm`, `.AppImage`, `.tar.gz` |
 | macOS arm64 | `.dmg` (app bundle) |
 | Windows x64 | Inno Setup installer (`.exe`) |
+| Android | APK (`.apk`) |
+| iOS arm64 | Sideloadable IPA (`.ipa`) |
 
 ## About the games
 
@@ -74,6 +78,8 @@ reverse-engineered; Captive gameplay parity is likewise still under review.
 - About/Credits screen
 - Controls reference (F1)
 - Data Scanner (D key) — reports verified game files per game
+- Scanner results are cached by file identity and metadata, so unchanged files are not hashed again
+- If multiple verified versions of a game are available, launch opens a localized version-selection popup
 
 ## Building
 
@@ -90,7 +96,7 @@ ninja -C build
 ctest --test-dir build -j4 --output-on-failure
 ```
 
-54 tests covering format decoders, game logic, combat, save/load, map generation, and UI.
+54 tests covering format decoders, game logic, combat, save/load, map generation, audio, rendering, and UI.
 
 ## Running
 
@@ -105,7 +111,7 @@ ctest --test-dir build -j4 --output-on-failure
 | Linux / macOS | `~/.opencaptive` |
 | Windows | `<install dir>\data` |
 
-Place your game data files (ZIP archives, loose files, ADF disk images) in the data directory. Files are identified by SHA-256 content hash — filenames don't matter. Nested ZIPs, ADF disk images, and ISO tracks are scanned automatically.
+Place your game data files (ZIP archives, loose files, ADF disk images) in the data directory. Files are identified by SHA-256 content hash — filenames don't matter. Nested ZIPs, ADF disk images, and ISO tracks are scanned automatically. The scanner reuses cached results for unchanged files and rescans only files whose size, timestamp, or identity changed.
 
 ### Command-line options
 
@@ -219,6 +225,8 @@ Full documentation is available on the [wiki](https://github.com/yeager/OpenCapt
 - [Liberation Technical](https://github.com/yeager/OpenCaptive/wiki/Liberation-Technical) — CD32 engine, CityGen, 3D rendering
 - [File Formats](https://github.com/yeager/OpenCaptive/wiki/File-Formats) — PL5, ANM, RNC, ArcD, VGM, x3g, and more
 - [Data Identity](https://github.com/yeager/OpenCaptive/wiki/Data-Identity-and-Verification) — SHA-256 verification system
+- [Start Menu](https://github.com/yeager/OpenCaptive/wiki/Start-Menu) — localized version selection and launcher behavior
+- [Internationalization](https://github.com/yeager/OpenCaptive/wiki/Internationalization) — 19-language translation workflow
 
 ## References
 

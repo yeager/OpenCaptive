@@ -1,5 +1,7 @@
 # Captive Weapons and Items
 
+> Updated for v1.1.79. Weapon and item behavior remains documented against the verified source references.
+
 Reference: captive.atari.org Tools/Weapons and Tools/Items
 
 ## Weapon categories

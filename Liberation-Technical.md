@@ -1,5 +1,7 @@
 # Liberation: Captive II technical notes
 
+> Documentation baseline: v1.1.79. The verified runtime boundary and remaining parity work are kept explicit in this document.
+
 ## Current boundary
 
 OpenCaptive verifies and opens the known CD32 data track, reads its

@@ -1,5 +1,7 @@
 # Data identity and verification
 
+> Updated for v1.1.79. The scanner persists reusable results for unchanged files and invalidates them when file metadata or content identity changes.
+
 ## Principle
 
 OpenCaptive identifies original game data by **SHA-256 of content**, never by

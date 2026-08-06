@@ -1,5 +1,7 @@
 # Captive technical notes
 
+> Documentation baseline: v1.1.79. Runtime parity claims remain scoped to the verified boundaries described below.
+
 ## Runtime model
 
 Captive's recovered presentation currently consists of the original 320×200

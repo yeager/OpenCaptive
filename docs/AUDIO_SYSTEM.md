@@ -1,5 +1,7 @@
 # Audio System
 
+> Updated for v1.1.79. The release includes the SDL mixer, OPL2/MIDI paths, and optional reverb configuration covered by the audio tests.
+
 ## Overview
 
 OpenCaptive has three audio subsystems: sound effects (SFX), 8SVX sample playback, and MIDI music synthesis.

@@ -1,5 +1,7 @@
 # Developer Guide
 
+> Updated for v1.1.79. Release tags build and verify Linux, macOS, Windows, Android, and iOS artifacts in GitHub Actions.
+
 ## Build
 
 ```bash

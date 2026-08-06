@@ -1,10 +1,10 @@
 # OpenCaptive Wiki
 
-**Current version: v1.1.64**
+**Current version: v1.1.79**
 
 OpenCaptive is a C/SDL3 reimplementation of **Captive** (1990) and **Liberation: Captive 2** (1993) by Tony Crowther, originally published by Mindscape.
 
-The project has achieved 100% parity with the original engines. All game formulas are disassembly-verified, and zero synthetic data is used -- every asset is loaded from the player's own original media, verified by SHA-256 content identity.
+OpenCaptive is an actively verified reimplementation. Disassembly-verified data formats, formulas, audio mappings, rendering paths, and gameplay systems are documented, while full end-to-end parity remains under development. No original game data is distributed: assets are loaded from the player's own media and verified by SHA-256 content identity.
 
 ## For players
 

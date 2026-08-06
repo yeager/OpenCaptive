@@ -1,5 +1,7 @@
 # User Guide
 
+> Updated for v1.1.79. The launcher now caches unchanged data-scan results and asks which verified version to launch when several versions are present.
+
 ## System requirements
 
 - **OS**: Linux (x86_64), macOS 14+ (Apple Silicon), Windows 10+
