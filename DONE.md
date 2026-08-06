@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Holomap-återgång synkroniserar menyn)
+
+- ESC från Captives holomap går nu genom samma menyåtergång som övriga
+  avslutade speltillstånd.
+- Runtime-/F10-inställningar följer därmed med tillbaka till startmenyn även
+  efter uppdragsavslut utan att starta nästa uppdrag.
+
 ## 2026-08-06 (Menyåtergång återställer scan och runtime-konfiguration)
 
 - Återgång från pausens QUIT samt Game Over/Victory använder nu samma

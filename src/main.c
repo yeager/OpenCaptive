@@ -2917,6 +2917,10 @@ int main(int argc, char *argv[]) {
                                 break;
                             case SDLK_ESCAPE:
                                 gs.mode = STATE_MENU;
+                                sync_menu_from_config(&menu, &config, &custom,
+                                                      music_sys.enabled,
+                                                      sound_sys.enabled);
+                                music_stop(&music_sys);
                                 break;
                             default: break;
                         }
