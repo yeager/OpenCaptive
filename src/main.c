@@ -61,6 +61,32 @@ static int quicksave_slot = 0;
 
 static uint32_t framebuffer[MENU_WIDTH * MENU_HEIGHT];
 
+/* renderer_present() preserves the canvas aspect ratio and centers it inside
+ * the window.  SDL mouse coordinates are window-relative, so direct
+ * width/height scaling is wrong whenever the window has letterbox bars. */
+static bool window_to_canvas(SDL_Window *window, float window_x, float window_y,
+                             int canvas_width, int canvas_height,
+                             float *canvas_x, float *canvas_y) {
+    if (!window || !canvas_x || !canvas_y || canvas_width <= 0 || canvas_height <= 0)
+        return false;
+    int window_width, window_height;
+    SDL_GetWindowSize(window, &window_width, &window_height);
+    if (window_width <= 0 || window_height <= 0) return false;
+    float scale_x = (float)window_width / canvas_width;
+    float scale_y = (float)window_height / canvas_height;
+    float scale = scale_x < scale_y ? scale_x : scale_y;
+    if (!(scale > 0.0f)) return false;
+    float offset_x = (window_width - canvas_width * scale) / 2.0f;
+    float offset_y = (window_height - canvas_height * scale) / 2.0f;
+    float x = (window_x - offset_x) / scale;
+    float y = (window_y - offset_y) / scale;
+    if (x < 0.0f || x >= canvas_width || y < 0.0f || y >= canvas_height)
+        return false;
+    *canvas_x = x;
+    *canvas_y = y;
+    return true;
+}
+
 static bool write_frame_ppm(const char *path, const uint32_t *pixels,
                             int width, int height) {
     FILE *file = fopen(path, "wb");
@@ -2395,21 +2421,20 @@ int main(int argc, char *argv[]) {
                 case STATE_MENU: {
                     MenuResult result;
                     if (event.type == SDL_EVENT_MOUSE_MOTION) {
-                        int width = MENU_WIDTH, height = MENU_HEIGHT;
-                        SDL_GetWindowSize(renderer.window, &width, &height);
-                        if (width <= 0 || height <= 0) break;
-                        float mx = event.motion.x * MENU_WIDTH / width;
-                        float my = event.motion.y * MENU_HEIGHT / height;
-                        start_menu_handle_mouse_motion(&menu, mx, my);
+                        float mx, my;
+                        if (window_to_canvas(renderer.window, event.motion.x,
+                                             event.motion.y, MENU_WIDTH,
+                                             MENU_HEIGHT, &mx, &my))
+                            start_menu_handle_mouse_motion(&menu, mx, my);
                         result = MENU_RESULT_NONE;
                     } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                         event.button.button == SDL_BUTTON_LEFT) {
-                        int width = MENU_WIDTH, height = MENU_HEIGHT;
-                        SDL_GetWindowSize(renderer.window, &width, &height);
-                        if (width <= 0 || height <= 0) break;
-                        float x = event.button.x * MENU_WIDTH / width;
-                        float y = event.button.y * MENU_HEIGHT / height;
-                        result = start_menu_handle_click(&menu, x, y);
+                        float x, y;
+                        result = window_to_canvas(renderer.window, event.button.x,
+                                                  event.button.y, MENU_WIDTH,
+                                                  MENU_HEIGHT, &x, &y)
+                            ? start_menu_handle_click(&menu, x, y)
+                            : MENU_RESULT_NONE;
                     } else {
                         result = start_menu_handle_event(&menu, &event);
                     }
@@ -2661,11 +2686,15 @@ int main(int argc, char *argv[]) {
                         } else if (liberation_mission_menu_active &&
                                    event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                                    event.button.button == SDL_BUTTON_LEFT) {
-                            int ww = LIBERATION_SCREEN_WIDTH, wh = LIBERATION_SCREEN_HEIGHT;
-                            SDL_GetWindowSize(renderer.window, &ww, &wh);
-                            if (ww <= 0 || wh <= 0) break;
-                            int x = (int)(event.button.x * LIBERATION_SCREEN_WIDTH / ww);
-                            int y = (int)(event.button.y * LIBERATION_SCREEN_HEIGHT / wh);
+                            float canvas_x, canvas_y;
+                            if (!window_to_canvas(renderer.window, event.button.x,
+                                                  event.button.y,
+                                                  LIBERATION_SCREEN_WIDTH,
+                                                  LIBERATION_SCREEN_HEIGHT,
+                                                  &canvas_x, &canvas_y))
+                                break;
+                            int x = (int)canvas_x;
+                            int y = (int)canvas_y;
                             int local_y = y - LIBERATION_MISSION_MENU_Y;
                             if (x >= 89 && x < 233 &&
                                 local_y >= 89 && local_y < liberation_mission_menu_height)
@@ -2909,12 +2938,14 @@ int main(int argc, char *argv[]) {
                     break;
                 case STATE_PAUSE:
                     if (event.type == SDL_EVENT_MOUSE_MOTION) {
-                        int ph = (gs.game_type == GAME_LIBERATION)
+                        int canvas_height = (gs.game_type == GAME_LIBERATION && !lib_in_dungeon)
                             ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
-                        int ww, wh;
-                        SDL_GetWindowSize(renderer.window, &ww, &wh);
-                        if (wh <= 0) break;
-                        float my = event.motion.y * ph / wh;
+                        float canvas_x, my;
+                        if (!window_to_canvas(renderer.window, event.motion.x,
+                                              event.motion.y,
+                                              CAPTIVE_ORIGINAL_WIDTH,
+                                              canvas_height, &canvas_x, &my))
+                            break;
                         for (int i = 0; i < 3; i++) {
                             int iy = 90 + i * 20;
                             if (my >= iy - 4 && my < iy + 14) {
@@ -2924,12 +2955,14 @@ int main(int argc, char *argv[]) {
                         }
                     } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                                event.button.button == SDL_BUTTON_LEFT) {
-                        int ph = (gs.game_type == GAME_LIBERATION)
+                        int canvas_height = (gs.game_type == GAME_LIBERATION && !lib_in_dungeon)
                             ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
-                        int ww, wh;
-                        SDL_GetWindowSize(renderer.window, &ww, &wh);
-                        if (wh <= 0) break;
-                        float my = event.button.y * ph / wh;
+                        float canvas_x, my;
+                        if (!window_to_canvas(renderer.window, event.button.x,
+                                              event.button.y,
+                                              CAPTIVE_ORIGINAL_WIDTH,
+                                              canvas_height, &canvas_x, &my))
+                            break;
                         int clicked = -1;
                         for (int i = 0; i < 3; i++) {
                             int iy = 90 + i * 20;
@@ -2989,7 +3022,8 @@ int main(int argc, char *argv[]) {
         if (gs.mode == STATE_MENU) {
             frame_width = MENU_WIDTH;
             frame_height = MENU_HEIGHT;
-        } else if (gs.mode == STATE_GAME && gs.game_type == GAME_LIBERATION && !lib_in_dungeon) {
+        } else if ((gs.mode == STATE_GAME || gs.mode == STATE_PAUSE) &&
+                   gs.game_type == GAME_LIBERATION && !lib_in_dungeon) {
             frame_width = LIBERATION_SCREEN_WIDTH;
             frame_height = LIBERATION_SCREEN_HEIGHT;
         } else {
@@ -3454,9 +3488,9 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_HELP: {
-                int pw = (gs.game_type == GAME_LIBERATION)
+                int pw = (gs.game_type == GAME_LIBERATION && !lib_in_dungeon)
                     ? LIBERATION_SCREEN_WIDTH : CAPTIVE_ORIGINAL_WIDTH;
-                int ph = (gs.game_type == GAME_LIBERATION)
+                int ph = (gs.game_type == GAME_LIBERATION && !lib_in_dungeon)
                     ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
                 memset(framebuffer, 0, (size_t)pw * ph * sizeof(uint32_t));
                 draw_centered(framebuffer, pw, ph, 5, _("CONTROLS"), 0xFFFFFF44, 2);

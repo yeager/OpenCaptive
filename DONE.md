@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Letterbox-säkra muszoner och Liberation-paus)
+
+- Meny-, Liberation- och pausens muskoordinater räknas nu om från den
+  centrerade canvasen i stället för att skala hela fönstret direkt.
+- Hover och klick hamnar därför rätt även när fönstret har annan aspekt än
+  canvasen och svarta letterbox-kanter visas.
+- Liberation-pausen använder nu samma 320×162- respektive 320×200-canvas som
+  huvudloopen beroende på om spelet är ute eller inne i en byggnad.
+- Headless frame-capture och hela testsuiten passerar efter ändringen.
+
 ## 2026-08-06 (Säkra canvasbyten i rendereraren)
 
 - Rendererens canvas-, upscale- och widescreenbyten returnerar nu felstatus
