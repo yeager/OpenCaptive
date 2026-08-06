@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive atlas-uppstart)
+
+- Captive startar inte längre med verifierade men ofullständigt avkodade
+  PL5-resurser. Om renderarens kompletta atlas inte kan laddas stannar
+  uppstarten säkert i menyn.
+- Samma kontroll gäller direktstart och Continue.
+
 ## 2026-08-06 (Captive save-positioner)
 
 - Save/load avvisar nu aktiva fiender som överlappar party eller andra aktiva

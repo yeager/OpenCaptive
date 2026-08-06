@@ -2481,6 +2481,11 @@ int main(int argc, char *argv[]) {
     if (start_directly && requested_game == GAME_CAPTIVE) {
         if (!validate_data_path(&vfs)) {
             show_missing_data_dialog(config.data_path);
+        } else if (!textures_loaded) {
+            /* The startup hash set is a fast identity gate.  The renderer
+             * still needs every decoded PL5 surface; do not enter the game
+             * with a verified but unusable partial atlas. */
+            show_missing_data_dialog(config.data_path);
         } else {
             gs.game_type = GAME_CAPTIVE;
             music_play(&music_sys, MUSIC_BASE);
@@ -2594,6 +2599,10 @@ int main(int argc, char *argv[]) {
                                 break;
                             }
                             textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg);
+                            if (!textures_loaded) {
+                                show_missing_data_dialog(config.data_path);
+                                break;
+                            }
                             if (intro_loaded) {
                                 anm_free(&intro_anim);
                                 intro_loaded = false;
@@ -2656,6 +2665,10 @@ int main(int argc, char *argv[]) {
                                 break;
                             }
                             textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg);
+                            if (!textures_loaded) {
+                                show_missing_data_dialog(config.data_path);
+                                break;
+                            }
                             {
                                 char spath[64];
                                 bool loaded = false;
