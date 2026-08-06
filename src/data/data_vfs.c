@@ -8,6 +8,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <sys/stat.h>
+#define stat _stat64
 #else
 #include <dirent.h>
 #include <sys/stat.h>

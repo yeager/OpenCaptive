@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Windows CI release fix)
+
+- Gjorde scan-cachens filmetadata portabel över Windows genom att använda
+  `_stat64`; Windows-byggningen får nu samma cacheimplementation som Unix.
+- GitHub Actions-felet reproducerades från körningsloggarna och verifierades
+  därefter lokalt med 54/54 godkända tester.
+
 ## 2026-08-06 (Fast travel flag)
 
 - Liberation-taxi kräver nu `--fast-travel` eller motsvarande konfiguration,
