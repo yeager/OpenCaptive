@@ -3,6 +3,8 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- GitHub Actions build jobs now have a 20-minute timeout, preventing a
+  stalled platform runner from blocking CI indefinitely.
 - Liberation 3D rasterization now clips extreme projected spans before scanline iteration, avoiding overflow and pathological frame times from oversized coordinates.
 - Captive save files now preserve floor items, preventing collected items from reappearing after reload; legacy v3 saves remain readable.
 - Release jobs now fail when iOS or Android packaging fails instead of publishing a partial release.

@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (CI job timeouts)
+
+- Lade till 20 minuters tidsgräns för Linux-, macOS- och Windows-jobben i
+  GitHub Actions så att ett hängande buildsteg avslutas tydligt i stället för
+  att lämnas som `in_progress` tills nästa push.
+
 ## 2026-08-06 (Triple-lever puzzle generation)
 
 - Korrigerade genereringen av trippelspakar så att lösningen använder alla
