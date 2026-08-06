@@ -3027,13 +3027,30 @@ int main(int argc, char *argv[]) {
         if (gs.mode == STATE_MENU) {
             frame_width = MENU_WIDTH;
             frame_height = MENU_HEIGHT;
-        } else if ((gs.mode == STATE_GAME || gs.mode == STATE_PAUSE) &&
-                   gs.game_type == GAME_LIBERATION && !lib_in_dungeon) {
-            frame_width = LIBERATION_SCREEN_WIDTH;
-            frame_height = LIBERATION_SCREEN_HEIGHT;
         } else {
-            frame_width = CAPTIVE_ORIGINAL_WIDTH;
-            frame_height = CAPTIVE_ORIGINAL_HEIGHT;
+            bool liberation_canvas = false;
+            if (gs.game_type == GAME_LIBERATION) {
+                switch (gs.mode) {
+                    case STATE_GAME:
+                    case STATE_PAUSE:
+                    case STATE_HELP:
+                        liberation_canvas = !lib_in_dungeon;
+                        break;
+                    case STATE_INVENTORY:
+                    case STATE_CITY_MAP:
+                        liberation_canvas = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (liberation_canvas) {
+                frame_width = LIBERATION_SCREEN_WIDTH;
+                frame_height = LIBERATION_SCREEN_HEIGHT;
+            } else {
+                frame_width = CAPTIVE_ORIGINAL_WIDTH;
+                frame_height = CAPTIVE_ORIGINAL_HEIGHT;
+            }
         }
         bool renderer_ready = true;
         if (renderer.canvas_width != frame_width || renderer.canvas_height != frame_height)

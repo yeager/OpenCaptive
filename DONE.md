@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Enhetliga Liberation-canvasar för alla vyer)
+
+- Huvudloopen väljer nu Liberation-canvas även för hjälp, inventory och
+  stadskarta, inte bara aktivt spel och paus.
+- Rendererens texturemått följer därmed vyernas faktiska 320×162- eller
+  320×200-layout och lämnar inte felaktiga letterbox-/stale-rader efter
+  state-byten.
+
 ## 2026-08-06 (ANM-introt frigörs vid skip)
 
 - Captive-introt frigör nu sin ANM-buffer direkt när användaren hoppar vidare
