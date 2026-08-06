@@ -31,7 +31,6 @@ bool sound_init(SoundSystem *snd, uint32_t sample_rate) {
 
 void sound_shutdown(SoundSystem *snd) {
     if (!snd) return;
-    if (!snd->initialized) return;
     if (snd->stream) {
         SDL_DestroyAudioStream(snd->stream);
     }
@@ -68,16 +67,19 @@ int sound_load_8svx(SoundSystem *snd, const uint8_t *data, uint32_t size) {
     if (!snd || !data || size < 12) return -1;
     if (memcmp(data, "FORM", 4) != 0) return -1;
     if (memcmp(data + 8, "8SVX", 4) != 0) return -1;
+    uint32_t form_size = read_be32(data + 4);
+    if (form_size < 4U || form_size > size - 8U) return -1;
+    uint32_t form_end = 8U + form_size;
 
     uint32_t sample_rate = 8000;
     const uint8_t *body = NULL;
     uint32_t body_len = 0;
 
     uint32_t pos = 12;
-    while (pos + 8 <= size) {
+    while (pos + 8 <= form_end) {
         uint32_t chunk_size = read_be32(data + pos + 4);
         uint64_t next = (uint64_t)pos + 8U + chunk_size + (chunk_size & 1U);
-        if (next > size) return -1;
+        if (next > form_end) return -1;
         if (memcmp(data + pos, "VHDR", 4) == 0 && chunk_size >= 20) {
             // Voice header: samplesPerSec at offset 12 (2 bytes)
             sample_rate = read_be16(data + pos + 8 + 12);
@@ -89,7 +91,7 @@ int sound_load_8svx(SoundSystem *snd, const uint8_t *data, uint32_t size) {
         pos = (uint32_t)next;
     }
 
-    if (!body || body_len == 0) return -1;
+    if (pos != form_end || !body || body_len == 0) return -1;
     return sound_load_raw(snd, (const int8_t *)body, body_len, sample_rate);
 }
 

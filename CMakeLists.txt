@@ -422,6 +422,12 @@ if(UNIX)
 endif()
 add_test(NAME midi_player COMMAND test_midi_player)
 
+add_executable(test_sound tests/test_sound.c src/audio/sound.c
+    src/custom/audio_reverb.c)
+target_include_directories(test_sound PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_sound PRIVATE SDL3::SDL3 ${MATH_LIBRARY})
+add_test(NAME sound COMMAND test_sound)
+
 add_executable(test_creature_stats tests/test_creature_stats.c
     src/engine/creature_stats.c)
 target_include_directories(test_creature_stats PRIVATE ${CMAKE_SOURCE_DIR}/include)
