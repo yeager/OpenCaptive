@@ -19,9 +19,10 @@
 
 - Huvudloopen väljer nu Liberation-canvas även för hjälp, inventory och
   stadskarta, inte bara aktivt spel och paus.
-- Rendererens texturemått följer därmed vyernas faktiska 320×162- eller
+- Rendererens texturemått följer därmed vyernas faktiska 320×256 PAL- eller
   320×200-layout och lämnar inte felaktiga letterbox-/stale-rader efter
-  state-byten.
+  state-byten. Intro- och stadsbildernas verifierade 162/167-pixelregioner
+  ligger inuti Liberation-canvasen.
 
 ## 2026-08-06 (ANM-introt frigörs vid skip)
 
