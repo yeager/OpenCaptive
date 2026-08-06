@@ -83,10 +83,11 @@ substitute.
 The static entry also proves a missing operand in a table-only reconstruction.
 It loads the descriptor destination word, then adds the caller-provided `DI`
 base before entering the blitter. Thus the destination word is a relative
-panel position, not a complete screen coordinate. The view dispatcher chooses
-that base from the cell, range and orientation. A single completed VGA frame
-can confirm source coverage, but cannot reveal this per-call base or the draw
-order.
+panel position, not a complete screen coordinate. One view-dispatch path at
+`0x1e7f` sets `DI` to `0x5000` before jumping to the entry; another recovered
+path uses `0x53a0`. The selected base depends on the cell, range and
+orientation. A single completed VGA frame can confirm source coverage, but
+cannot reveal every per-call base or the draw order.
 
 ### Panel matches against the captured frame
 
@@ -690,8 +691,8 @@ viewport fills exactly 144×112 pixels.
 Captive accepts movement, rotation, interaction, inventory, terminal, save and
 F10 runtime controls. These currently operate on OpenCaptive's provisional map
 state and must not be mistaken for an original-state recovery. The runtime
-displays verified intro/HUD data and renders the viewport using real PL5 panel
-sheets with approximate projection geometry.
+displays verified intro/HUD data but deliberately leaves the viewport untouched;
+the earlier approximation based on scaled PL5 fragments has been disabled.
 
 The F10 menu provides God Mode, Infinite Energy and Complete Objective for the
 active local Captive state. They are runtime conveniences, not original-game
