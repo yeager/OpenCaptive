@@ -91,6 +91,20 @@ static int poly_compare(const void *a, const void *b) {
     return 0;
 }
 
+static bool clip_horizontal_span(double left, double right,
+                                 int *out_left, int *out_right) {
+    if (!out_left || !out_right || !isfinite(left) || !isfinite(right) ||
+        (left < 0.0 && right < 0.0) ||
+        (left >= LIB3D_VP_WIDTH && right >= LIB3D_VP_WIDTH)) return false;
+    if (left < 0.0) left = 0.0;
+    if (right < 0.0) right = 0.0;
+    if (left >= LIB3D_VP_WIDTH) left = LIB3D_VP_WIDTH - 1;
+    if (right >= LIB3D_VP_WIDTH) right = LIB3D_VP_WIDTH - 1;
+    *out_left = (int)left;
+    *out_right = (int)right;
+    return true;
+}
+
 static void fill_triangle(Lib3dState *state, int x0, int y0, float z0,
                            int x1, int y1, float z1,
                            int x2, int y2, float z2,
@@ -99,32 +113,34 @@ static void fill_triangle(Lib3dState *state, int x0, int y0, float z0,
     if (y0 > y2) { int t; t=x0;x0=x2;x2=t; t=y0;y0=y2;y2=t; float f=z0;z0=z2;z2=f; }
     if (y1 > y2) { int t; t=x1;x1=x2;x2=t; t=y1;y1=y2;y2=t; float f=z1;z1=z2;z2=f; }
 
-    int dy_total = y2 - y0;
-    if (dy_total == 0) return;
+    double dy_total = (double)y2 - (double)y0;
+    if (dy_total == 0.0 || y2 < 0 || y0 >= LIB3D_VP_HEIGHT) return;
+    int first_y = y0 < 0 ? 0 : y0;
+    int last_y = y2 >= LIB3D_VP_HEIGHT ? LIB3D_VP_HEIGHT - 1 : y2;
 
-    for (int y = y0; y <= y2; y++) {
-        if (y < 0 || y >= LIB3D_VP_HEIGHT) continue;
-
+    for (int y = first_y; y <= last_y; y++) {
         bool second_half = (y > y1) || (y1 == y0);
-        int seg_height = second_half ? (y2 - y1) : (y1 - y0);
-        if (seg_height == 0) seg_height = 1;
+        double seg_height = second_half ? (double)y2 - y1 : (double)y1 - y0;
+        if (seg_height == 0.0) seg_height = 1.0;
 
-        float alpha = (float)(y - y0) / dy_total;
-        float beta = second_half
-            ? (float)(y - y1) / seg_height
-            : (float)(y - y0) / seg_height;
+        double alpha = ((double)y - y0) / dy_total;
+        double beta = second_half
+            ? ((double)y - y1) / seg_height
+            : ((double)y - y0) / seg_height;
 
-        int xa = x0 + (int)((x2 - x0) * alpha);
-        int xb = second_half
-            ? x1 + (int)((x2 - x1) * beta)
-            : x0 + (int)((x1 - x0) * beta);
-        float za = z0 + (z2 - z0) * alpha;
-        float zb = second_half ? z1 + (z2 - z1) * beta : z0 + (z1 - z0) * beta;
+        double xa_d = (double)x0 + ((double)x2 - x0) * alpha;
+        double xb_d = second_half
+            ? (double)x1 + ((double)x2 - x1) * beta
+            : (double)x0 + ((double)x1 - x0) * beta;
+        int xa, xb;
+        if (!clip_horizontal_span(xa_d, xb_d, &xa, &xb)) continue;
+        float za = z0 + (float)((z2 - z0) * alpha);
+        float zb = second_half ? z1 + (float)((z2 - z1) * beta) :
+                                z0 + (float)((z1 - z0) * beta);
 
-        if (xa > xb) { int t = xa; xa = xb; xb = t; float f = za; za = zb; zb = f; }
+        if (xa > xb) { float f = za; za = zb; zb = f; }
 
         for (int x = xa; x <= xb; x++) {
-            if (x < 0 || x >= LIB3D_VP_WIDTH) continue;
             float t = (xb != xa) ? (float)(x - xa) / (xb - xa) : 0;
             float z = za + (zb - za) * t;
             int idx = y * LIB3D_VP_WIDTH + x;
@@ -219,6 +235,19 @@ static void textured_scanline(Lib3dState *state, int y,
         tex->width > LIB3D_MAX_TEX_SIZE || tex->height > LIB3D_MAX_TEX_SIZE ||
         !isfinite(za) || !isfinite(zb) ||
         !isfinite(ua) || !isfinite(va) || !isfinite(ub) || !isfinite(vb)) return;
+    if (xa > xb) {
+        int ti = xa; xa = xb; xb = ti;
+        float tf;
+        tf = za; za = zb; zb = tf;
+        tf = ua; ua = ub; ub = tf;
+        tf = va; va = vb; vb = tf;
+    }
+    if ((xa < 0 && xb < 0) ||
+        (xa >= LIB3D_VP_WIDTH && xb >= LIB3D_VP_WIDTH)) return;
+    if (xa < 0) xa = 0;
+    if (xb < 0) xb = 0;
+    if (xa >= LIB3D_VP_WIDTH) xa = LIB3D_VP_WIDTH - 1;
+    if (xb >= LIB3D_VP_WIDTH) xb = LIB3D_VP_WIDTH - 1;
     if (xa > xb) {
         int ti = xa; xa = xb; xb = ti;
         float tf;
@@ -373,26 +402,34 @@ void lib3d_render_textured_quad(Lib3dState *state,
         if (sy1 > sy2) { int tt; tt=sx1;sx1=sx2;sx2=tt; tt=sy1;sy1=sy2;sy2=tt;
                           float ff; ff=sz1;sz1=sz2;sz2=ff; ff=u1;u1=u2;u2=ff; ff=v1;v1=v2;v2=ff; }
 
-        int dy_total = sy2 - sy0;
-        if (dy_total == 0) continue;
+        double dy_total = (double)sy2 - (double)sy0;
+        if (dy_total == 0.0 || sy2 < 0 || sy0 >= LIB3D_VP_HEIGHT) continue;
+        int first_y = sy0 < 0 ? 0 : sy0;
+        int last_y = sy2 >= LIB3D_VP_HEIGHT ? LIB3D_VP_HEIGHT - 1 : sy2;
 
-        for (int y = sy0; y <= sy2; y++) {
+        for (int y = first_y; y <= last_y; y++) {
             bool second = (y > sy1) || (sy1 == sy0);
-            int seg = second ? (sy2 - sy1) : (sy1 - sy0);
-            if (seg == 0) seg = 1;
+            double seg = second ? (double)sy2 - sy1 : (double)sy1 - sy0;
+            if (seg == 0.0) seg = 1.0;
 
-            float alpha = (float)(y - sy0) / dy_total;
-            float beta = second ? (float)(y - sy1) / seg : (float)(y - sy0) / seg;
+            double alpha = ((double)y - sy0) / dy_total;
+            double beta = second ? ((double)y - sy1) / seg :
+                                   ((double)y - sy0) / seg;
 
-            int xa = sx0 + (int)((sx2 - sx0) * alpha);
-            int xb = second ? sx1 + (int)((sx2 - sx1) * beta)
-                            : sx0 + (int)((sx1 - sx0) * beta);
-            float za = sz0 + (sz2 - sz0) * alpha;
-            float zb = second ? sz1 + (sz2 - sz1) * beta : sz0 + (sz1 - sz0) * beta;
-            float ua_l = u0 + (u2 - u0) * alpha;
-            float va_l = v0 + (v2 - v0) * alpha;
-            float ub_l = second ? u1 + (u2 - u1) * beta : u0 + (u1 - u0) * beta;
-            float vb_l = second ? v1 + (v2 - v1) * beta : v0 + (v1 - v0) * beta;
+            double xa_d = (double)sx0 + ((double)sx2 - sx0) * alpha;
+            double xb_d = second ? (double)sx1 + ((double)sx2 - sx1) * beta :
+                                   (double)sx0 + ((double)sx1 - sx0) * beta;
+            int xa, xb;
+            if (!clip_horizontal_span(xa_d, xb_d, &xa, &xb)) continue;
+            float za = sz0 + (float)((sz2 - sz0) * alpha);
+            float zb = second ? sz1 + (float)((sz2 - sz1) * beta) :
+                                sz0 + (float)((sz1 - sz0) * beta);
+            float ua_l = u0 + (float)((u2 - u0) * alpha);
+            float va_l = v0 + (float)((v2 - v0) * alpha);
+            float ub_l = second ? u1 + (float)((u2 - u1) * beta) :
+                                  u0 + (float)((u1 - u0) * beta);
+            float vb_l = second ? v1 + (float)((v2 - v1) * beta) :
+                                  v0 + (float)((v1 - v0) * beta);
 
             textured_scanline(state, y, xa, za, ua_l, va_l, xb, zb, ub_l, vb_l, tex);
         }

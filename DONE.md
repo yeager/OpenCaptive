@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation renderer clipping)
+
+- Klippade extrema projekterade X3G-koordinater till viewporten innan
+  scanline-rasterisering, så heltalsöverflöde och orimligt långa loopar undviks.
+- Regressionstest tillagt för extrema vertices i både färg- och texturerade
+  polygoner.
+
 ## 2026-08-06 (Captive floor-item saves)
 
 - Utökade save-format v4 med föremåls-ID för varje Captive-cell så uppplockade

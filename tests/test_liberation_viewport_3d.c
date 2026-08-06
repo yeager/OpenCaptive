@@ -387,6 +387,47 @@ static void test_projected_indices_above_255(void) {
     assert(dest[100 * 320 + 128] != 0xFF000000);
 }
 
+static void test_extreme_screen_coordinates_are_clipped(void) {
+    Lib3dState state;
+    lib3d_init(&state);
+    lib3d_set_camera(&state, 0, 0, 0, 0);
+    lib3d_clear(&state, 0xFF000000, 0xFF000000);
+
+    X3gVertex vertices[3] = {
+        { -32767, -32767, 10, 0, {0, 0, 0, 0} },
+        {  32767, -32767, 10, 0, {0, 0, 0, 0} },
+        {       0,  32767, 10, 0, {0, 0, 0, 0} },
+    };
+    X3gPolygon polygon = {0};
+    polygon.vertex_count = 3;
+    polygon.vertex_indices[0] = 0;
+    polygon.vertex_indices[1] = 1;
+    polygon.vertex_indices[2] = 2;
+    polygon.color = 0x1F;
+    X3gObject object = {0};
+    object.vertices = vertices;
+    object.vertex_count = 3;
+    object.parsed_polys = &polygon;
+    object.polygon_count = 1;
+
+    lib3d_render_object(&state, &object, 0, 0, 0, NULL, 0);
+    uint32_t dest[320 * 200];
+    memset(dest, 0, sizeof(dest));
+    lib3d_present(&state, dest, 320, 200, 0, 0);
+    assert(state.vis_count == 1);
+
+    Lib3dTexture texture = {0};
+    texture.width = 1;
+    texture.height = 1;
+    texture.pixels[0] = 0xFFFFFFFF;
+    lib3d_clear(&state, 0xFF000000, 0xFF000000);
+    lib3d_render_textured_quad(&state,
+        -32767, -32767, 10, 32767, -32767, 10,
+         32767,  32767, 10, -32767,  32767, 10, &texture);
+    for (size_t i = 0; i < sizeof(state.zbuffer) / sizeof(state.zbuffer[0]); i++)
+        assert(isfinite(state.zbuffer[i]));
+}
+
 int main(void) {
     test_init();
     test_clear();
@@ -402,6 +443,7 @@ int main(void) {
     test_textured_quad();
     test_textured_quad_behind();
     test_projected_indices_above_255();
+    test_extreme_screen_coordinates_are_clipped();
     printf("All liberation_viewport_3d tests passed\n");
     return 0;
 }
