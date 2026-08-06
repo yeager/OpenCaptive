@@ -100,6 +100,19 @@ identiska och två för en ogiltig rektangel:
   /tmp/captive-original.ppm /tmp/captive.ppm 32 55 144 112
 ```
 
+När originalreferensen är en fristående FORM-bild medan spelfångsten har en
+större intern bildyta används olika startkoordinater utan att skapa en
+paddingbild. Stadsformen ovan kontrolleras exempelvis så här:
+
+```sh
+./build/opencaptive --compare-frames-regions \
+  /tmp/liberation-city-form.ppm /tmp/liberation-city.ppm \
+  0 0 0 44 320 167
+```
+
+Kommandot kräver exakt lika stora regioner och returnerar noll endast när
+samtliga RGB-pixlar är identiska.
+
 Det gör att HUD, viewport och senare Liberation-lager kan mätas var för sig
 utan att ett känt oåterställt område döljer en förbättring i ett annat.
 

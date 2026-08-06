@@ -201,22 +201,35 @@ static uint32_t *read_ppm_frame(const char *path, int *out_width, int *out_heigh
 }
 
 static int compare_ppm_frames(const char *expected_path, const char *actual_path,
-                              const int *rect) {
+                              const int *expected_rect, const int *actual_rect) {
     int expected_width = 0, expected_height = 0, actual_width = 0, actual_height = 0;
     uint32_t *expected = read_ppm_frame(expected_path, &expected_width, &expected_height);
     uint32_t *actual = read_ppm_frame(actual_path, &actual_width, &actual_height);
-    if (!expected || !actual || expected_width != actual_width ||
-        expected_height != actual_height) {
-        fprintf(stderr, "PPM frames must be complete P6 images with equal dimensions\n");
+    if (!expected || !actual ||
+        (!expected_rect && !actual_rect &&
+         (expected_width != actual_width || expected_height != actual_height))) {
+        fprintf(stderr, "PPM frames must be complete P6 images; full-frame comparisons require equal dimensions\n");
         free(expected); free(actual);
         return 2;
     }
-    int x = 0, y = 0, width = expected_width, height = expected_height;
-    if (rect) {
-        x = rect[0]; y = rect[1]; width = rect[2]; height = rect[3];
-        if (x < 0 || y < 0 || width <= 0 || height <= 0 ||
-            width > expected_width - x || height > expected_height - y) {
-            fprintf(stderr, "Comparison rectangle is outside the frame\n");
+    int expected_x = 0, expected_y = 0;
+    int actual_x = 0, actual_y = 0;
+    int width = expected_width, height = expected_height;
+    if (expected_rect || actual_rect) {
+        if (!expected_rect || !actual_rect) {
+            fprintf(stderr, "Both comparison regions are required\n");
+            free(expected); free(actual);
+            return 2;
+        }
+        expected_x = expected_rect[0]; expected_y = expected_rect[1];
+        actual_x = actual_rect[0]; actual_y = actual_rect[1];
+        width = expected_rect[2]; height = expected_rect[3];
+        if (width != actual_rect[2] || height != actual_rect[3] ||
+            expected_x < 0 || expected_y < 0 || actual_x < 0 || actual_y < 0 ||
+            width <= 0 || height <= 0 ||
+            width > expected_width - expected_x || height > expected_height - expected_y ||
+            width > actual_width - actual_x || height > actual_height - actual_y) {
+            fprintf(stderr, "Comparison region is outside a frame or has mismatched dimensions\n");
             free(expected); free(actual);
             return 2;
         }
@@ -224,8 +237,9 @@ static int compare_ppm_frames(const char *expected_path, const char *actual_path
     FrameComparison result = {0};
     for (int row = 0; row < height; ++row) {
         FrameComparison line = frame_compare_argb(
-            expected + (size_t)(y + row) * expected_width + x,
-            actual + (size_t)(y + row) * actual_width + x, (size_t)width);
+            expected + (size_t)(expected_y + row) * expected_width + expected_x,
+            actual + (size_t)(actual_y + row) * actual_width + actual_x,
+            (size_t)width);
         result.pixel_count += line.pixel_count;
         result.different_pixels += line.different_pixels;
         result.total_channel_difference += line.total_channel_difference;
@@ -233,7 +247,7 @@ static int compare_ppm_frames(const char *expected_path, const char *actual_path
             result.maximum_channel_difference = line.maximum_channel_difference;
     }
     printf("Frame comparison%s: %zu/%zu pixels differ; channel difference=%llu; max=%u\n",
-           rect ? " (rectangle)" : "",
+           expected_rect ? " (region)" : "",
            result.different_pixels, result.pixel_count,
            (unsigned long long)result.total_channel_difference,
            result.maximum_channel_difference);
@@ -1657,6 +1671,7 @@ int main(int argc, char *argv[]) {
     const char *expected_frame_path = NULL;
     const char *actual_frame_path = NULL;
     int compare_rect[4] = {0};
+    int compare_actual_rect[4] = {0};
     bool compare_rect_set = false;
     int exit_status = 0;
 
@@ -1714,6 +1729,8 @@ int main(int argc, char *argv[]) {
                 "  --compare-frames <expected> <actual>  Compare two native PPM frames\n"
                 "  --compare-frames-rect <expected> <actual> <x> <y> <w> <h>\n"
                 "                         Compare one native frame rectangle exactly\n\n"
+                "  --compare-frames-regions <expected> <actual> <ex> <ey> <ax> <ay> <w> <h>\n"
+                "                         Compare same-sized regions at independent offsets\n\n"
                 "  --skip-intro          Skip Liberation's original intro (automation only)\n\n"
                 "  --show-liberation-mission-menu\n"
                 "                         Show the verified original Liberation menu (automation only)\n\n"
@@ -1894,6 +1911,22 @@ int main(int argc, char *argv[]) {
                 }
             }
             compare_rect_set = true;
+        } else if (strcmp(argv[i], "--compare-frames-regions") == 0 && i + 8 < argc) {
+            expected_frame_path = argv[++i];
+            actual_frame_path = argv[++i];
+            int values[6] = {0};
+            for (int field = 0; field < 6; ++field) {
+                if (!parse_int_option(argv[++i], field < 4 ? 0 : 1, INT_MAX,
+                                      &values[field])) {
+                    fprintf(stderr, "Comparison regions must use integer x y x y width height\n");
+                    return 2;
+                }
+            }
+            compare_rect[0] = values[0]; compare_rect[1] = values[1];
+            compare_actual_rect[0] = values[2]; compare_actual_rect[1] = values[3];
+            compare_rect[2] = compare_actual_rect[2] = values[4];
+            compare_rect[3] = compare_actual_rect[3] = values[5];
+            compare_rect_set = true;
         } else if (strcmp(argv[i], "--lang") == 0 && i + 1 < argc) {
             lang_override = argv[++i];
         } else if (strcmp(argv[i], "--skip-intro") == 0) {
@@ -1912,7 +1945,8 @@ int main(int argc, char *argv[]) {
         return write_dos_vga_reference(dos_vga_dump_path, dos_vga_output_path) ? 0 : 1;
     if (expected_frame_path)
         return compare_ppm_frames(expected_frame_path, actual_frame_path,
-                                  compare_rect_set ? compare_rect : NULL);
+                                  compare_rect_set ? compare_rect : NULL,
+                                  compare_rect_set ? compare_actual_rect : NULL);
 
     if (verify_data) {
         DataVFS verify_vfs;
