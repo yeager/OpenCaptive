@@ -717,6 +717,11 @@ static int hit_test_main_menu(const StartMenu *menu, float x, float y) {
 MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
     if (!menu) return MENU_RESULT_NONE;
 
+    if (menu->show_setup_popup) {
+        menu->show_setup_popup = false;
+        return MENU_RESULT_NONE;
+    }
+
     if (menu->show_version_popup) {
         int pw = 700, ph = 300;
         int px = (MENU_WIDTH - pw) / 2, py = (MENU_HEIGHT - ph) / 2;

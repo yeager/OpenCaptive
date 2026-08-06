@@ -29,6 +29,9 @@ int main(void) {
     /* Small targets must not make the fixed-size popups write out of bounds. */
     menu.show_setup_popup = true;
     start_menu_render(&menu, tiny_pixels, 16, 16);
+    assert(start_menu_handle_click(&menu, 480.0f, 300.0f) == MENU_RESULT_NONE);
+    assert(!menu.show_setup_popup);
+    menu.show_setup_popup = true;
     menu.show_setup_popup = false;
     menu.show_version_popup = true;
     start_menu_render(&menu, tiny_pixels, 16, 16);

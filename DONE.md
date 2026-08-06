@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Startup-popup blockerar menyval bakom)
+
+- Musknapp på startup-popupen stänger nu popupen utan att samtidigt aktivera
+  ett menyval bakom den.
+- Både tangentbords- och musvägen har därmed samma blockerande beteende.
+- Regressionstest täcker musstängning av popupen.
+
 ## 2026-08-06 (Ingen kvarhängande datastatus efter ny skanning)
 
 - En ny bakgrundsskanning nollställer nu omedelbart tidigare spel- och
