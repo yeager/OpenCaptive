@@ -79,11 +79,14 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 if (lvl->cells[ny][nx].type != CELL_FLOOR) continue;
                 if (puzzle_cell_occupied(pl, level_num, nx, ny)) continue;
 
-                // Check that the opposite direction from this floor cell has a wall
-                int opp = (d + 2) % 4;
-                int wx = nx + dx[opp];
-                int wy = ny + dy[opp];
+                /* d points from the door to the button cell.  Continuing in
+                 * that direction from the button must reach its backing wall;
+                 * the old code checked the door itself and oriented the
+                 * ornament toward the doorway. */
+                int wx = nx + dx[d];
+                int wy = ny + dy[d];
                 if (wx < 0 || wx >= MAP_WIDTH || wy < 0 || wy >= MAP_HEIGHT) continue;
+                if (lvl->cells[wy][wx].type != CELL_WALL) continue;
 
                 Puzzle *p = puzzle_append(pl);
                 if (!p) return;
@@ -91,14 +94,14 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                 p->x = nx;
                 p->y = ny;
                 p->level = level_num;
-                p->face = opp;
+                p->face = d;
                 p->target_x = x;
                 p->target_y = y;
                 p->state = 0;
                 p->solved = false;
 
                 // Set ornament on wall face
-                lvl->cells[ny][nx].ornament[opp] = ORNAMENT_BUTTON;
+                lvl->cells[ny][nx].ornament[d] = ORNAMENT_BUTTON;
                 break;
             }
         }

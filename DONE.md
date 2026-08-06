@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive button placement)
+
+- Knappgeneratorn placerar nu bara knappar med en faktisk vägg bakom sig.
+- Regressionstest verifierar väggorienteringen för genererade knappar över 128
+  deterministiska frön.
+
 ## 2026-08-07 (Captive puzzle placement collisions)
 
 - Puzzle-generatorn placerar inte längre två interaktioner på samma cell.

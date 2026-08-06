@@ -173,6 +173,43 @@ static void test_generated_electric_traps_face_walls(void) {
     assert(found_electric);
 }
 
+static void test_generated_buttons_face_walls(void) {
+    static const int dx[] = {0, 1, 0, -1};
+    static const int dy[] = {-1, 0, 1, 0};
+    bool found_button = false;
+    for (uint32_t seed = 1; seed <= 128; seed++) {
+        DungeonLevel level;
+        PuzzleList puzzles;
+        memset(&level, 0, sizeof(level));
+        memset(&puzzles, 0, sizeof(puzzles));
+        for (int y = 1; y < MAP_HEIGHT - 1; y++)
+            for (int x = 1; x < MAP_WIDTH - 1; x++)
+                level.cells[y][x].type = CELL_FLOOR;
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            level.cells[0][x].type = CELL_WALL;
+            level.cells[MAP_HEIGHT - 1][x].type = CELL_WALL;
+        }
+        for (int y = 0; y < MAP_HEIGHT; y++) {
+            level.cells[y][0].type = CELL_WALL;
+            level.cells[y][MAP_WIDTH - 1].type = CELL_WALL;
+        }
+        for (int y = 3; y < MAP_HEIGHT - 3; y += 4) {
+            level.cells[y][8].type = CELL_WALL;
+            level.cells[y][10].type = CELL_DOOR_LOCKED;
+        }
+
+        puzzle_generate(&puzzles, &level, 0, seed);
+        for (int i = 0; i < puzzles.num_puzzles; i++) {
+            const Puzzle *p = &puzzles.puzzles[i];
+            if (p->type != PUZZLE_BUTTON) continue;
+            assert(p->face >= DIR_NORTH && p->face <= DIR_WEST);
+            assert(level.cells[p->y + dy[p->face]][p->x + dx[p->face]].type == CELL_WALL);
+            found_button = true;
+        }
+    }
+    assert(found_button);
+}
+
 static void test_generated_puzzles_do_not_overlap(void) {
     for (uint32_t seed = 1; seed <= 64; seed++) {
         DungeonLevel level;
@@ -975,6 +1012,7 @@ int main(void) {
     test_generated_teleporters_target_floor();
     test_generated_power_socket_has_no_stale_target();
     test_generated_electric_traps_face_walls();
+    test_generated_buttons_face_walls();
     test_generated_puzzles_do_not_overlap();
     test_lethal_puzzle_hazards_enter_game_over();
     test_generated_triple_levers_use_all_eight_states();
