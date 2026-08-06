@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive respawn-timers)
+
+- Fiendersnas respawn-timer tickar nu även när fienden befinner sig på en
+  annan våning än party.
+- Respawn är därmed knuten till världens tick-loop i stället för den aktuella
+  viewporten; en dödad fiende blir inte permanent inaktiv efter en
+  våningsväxling.
+- Werror, UBSAN och hela testsviten (58/58) passerar.
+
 ## 2026-08-07 (Captive spawn-positioner)
 
 - Nya Captive-encounters och byggnadsinteriörer undviker nu alltid partiets

@@ -222,7 +222,13 @@ void combat_tick(CreatureList *cl, GameState *gs) {
     cl->attack_occurred = false;
     for (int i = 0; i < creature_count; i++) {
         Creature *c = &cl->creatures[i];
-        if (c->level != gs->current_level) continue;
+        /* Respawn timers are world timers, not viewport timers.  Process
+         * inactive creatures on every level before limiting combat AI to the
+         * currently visible level; otherwise a killed creature on another
+         * floor never respawns while the party is away. */
+        if (c->level < 0 || c->level >= gs->num_levels ||
+            c->level >= MAX_LEVELS)
+            continue;
         if (c->x < 0 || c->x >= MAP_WIDTH || c->y < 0 || c->y >= MAP_HEIGHT)
             continue;
         if (c->active && c->hp <= 0) {
@@ -233,14 +239,17 @@ void combat_tick(CreatureList *cl, GameState *gs) {
             if (c->respawn_timer > 0) {
                 c->respawn_timer--;
                 if (c->respawn_timer == 0) {
-                    c->hp = c->hp_max;
-                    c->active = true;
-                    c->alerted = false;
-                    c->cooldown = 0;
+                    if (c->hp_max > 0) {
+                        c->hp = c->hp_max;
+                        c->active = true;
+                        c->alerted = false;
+                        c->cooldown = 0;
+                    }
                 }
             }
             continue;
         }
+        if (c->level != gs->current_level) continue;
 
         int dist = distance(c->x, c->y, gs->party_x, gs->party_y);
 
