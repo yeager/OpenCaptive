@@ -3226,3 +3226,10 @@
 - Liberation-animationsdekodern avvisar nu planarbilders radbredder som inte
   ryms i den publika `uint16_t`-bredden. Korrupta `width_bytes` kan därför inte
   längre trunkeras till en annan bildbredd vid första bildrutan.
+- Liberation-animationsdekodern avvisar nu också planarbilders djup över fem
+  bitplan, eftersom Liberation-paletterna bara rymmer 32 färger. Korrupta
+  animationsdata kan därför inte längre läsa färgindex som aliaserar eller
+  överskrider den avsedda paletten.
+- Liberation-sessionens data och missionsmenybild frigörs nu när startmenyn
+  öppnas igen. Upprepade växlingar mellan startmenyn och Liberation behåller
+  därför inte gamla sessionsresurser.

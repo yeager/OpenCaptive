@@ -517,6 +517,8 @@ static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu,
     }
 }
 
+static void release_liberation_session_assets(void);
+
 static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *config,
                                   const CustomFeatures *feat,
                                   bool music_enabled, bool sfx_enabled) {
@@ -524,6 +526,7 @@ static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *conf
      * start_menu_init() clears those pointers without freeing them; the
      * resource-preserving reinit also remains safe for the zeroed menu used
      * during the first startup. */
+    release_liberation_session_assets();
     start_menu_reinit(menu);
     strncpy(menu->data_path, config->data_path, sizeof(menu->data_path) - 1);
     menu->data_path[sizeof(menu->data_path) - 1] = '\0';
@@ -736,6 +739,16 @@ static int droid_config_cursor;
 static bool droid_config_renaming;
 static int droid_config_name_pos;
 static int taxi_flash_ttl;
+
+static void release_liberation_session_assets(void) {
+    liberation_data_close(&liberation_data);
+    free(liberation_mission_menu_pixels);
+    liberation_mission_menu_pixels = NULL;
+    liberation_mission_menu_width = 0;
+    liberation_mission_menu_height = 0;
+    liberation_intro_active = false;
+    liberation_mission_menu_active = false;
+}
 
 
 typedef struct {
