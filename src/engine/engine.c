@@ -45,9 +45,6 @@ void game_state_new_mission(GameState *gs, int mission) {
 void game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed) {
     if (!gs) return;
     if (mission < 1) mission = 1;
-    gs->mission = mission;
-    gs->mission_seed = seed;
-    gs->current_level = 0;
 
     // Architect creates one flattened 64x32 base whose 16x8 sections are
     // connected by stairs and elevators.  map_generate_base exposes those
@@ -60,7 +57,15 @@ void game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed) {
        even though the caller only needs the copied levels below. */
     DungeonLevel *base_buf = calloc(MAX_LEVELS, sizeof(*base_buf));
     if (!base_buf) return;
-    map_generate_base(base_buf, &base_levels, gs->mission_seed);
+    map_generate_base(base_buf, &base_levels, seed);
+
+    /* Do not partially replace the active mission before the temporary map
+       storage exists.  If allocation fails, callers must retain a coherent
+       old game state rather than seeing the new mission header over its old
+       dungeon. */
+    gs->mission = mission;
+    gs->mission_seed = seed;
+    gs->current_level = 0;
 
     /* Find base entrance x on floor 0 row 0 */
     int entrance_x = MAP_WIDTH / 2;

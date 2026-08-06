@@ -513,6 +513,7 @@ static void test_generated_floor_connections(void) {
         GameState gs;
         game_state_init(&gs, GAME_CAPTIVE, 1);
         game_state_new_mission_seeded(&gs, 1, seed);
+        assert(gs.mission_seed == seed);
         for (int level = 0; level + 1 < gs.num_levels; level++) {
             int down_x = -1, down_y = -1;
             for (int y = 0; y < MAP_HEIGHT; y++) {
