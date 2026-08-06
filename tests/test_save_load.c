@@ -155,6 +155,14 @@ static void test_save_rejects_invalid_puzzle(void) {
     puzzles.puzzles[0].x = 1;
     puzzles.puzzles[0].target_y = MAP_HEIGHT;
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
+
+    puzzles.puzzles[0].target_y = 1;
+    puzzles.puzzles[0].target_x = -1;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+
+    puzzles.puzzles[0].target_x = 1;
+    puzzles.puzzles[0].target_y = -1;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
 }
 
 static void test_save_rejects_invalid_creature_damage(void) {

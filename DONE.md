@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Save puzzle target validation)
+
+- Säkrade Captive-saveformatets puzzlemål så att ett ogiltigt blandat
+  sentinelpar, exempelvis `(-1, 5)`, inte kan sparas eller laddas.
+- Lade till regressionstest för båda riktningarna av den korrupta
+  koordinatkombinationen.
+
 ## 2026-08-06 (Liberation building rendering)
 
 - Korrigerade Liberation-stadens väggklassning så att byggnadsceller med

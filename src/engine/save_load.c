@@ -29,6 +29,14 @@ typedef struct {
     int32_t  selected_droid;
 } SaveHeader;
 
+static bool valid_puzzle_target(const Puzzle *p) {
+    if (!p) return false;
+    if ((p->target_x == -1) != (p->target_y == -1)) return false;
+    return (p->target_x == -1 && p->target_y == -1) ||
+           (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
+            p->target_y >= 0 && p->target_y < MAP_HEIGHT);
+}
+
 bool save_game(const GameState *gs, const CreatureList *creatures,
                const PuzzleList *puzzles, const char *path) {
     if (!gs || !creatures || !puzzles || !path || gs->game_type != GAME_CAPTIVE ||
@@ -59,8 +67,7 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
             p->x < 0 || p->x >= MAP_WIDTH || p->y < 0 || p->y >= MAP_HEIGHT ||
             p->level < 0 || p->level >= gs->num_levels ||
             p->face < 0 || p->face > DIR_WEST ||
-            p->target_x < -1 || p->target_x >= MAP_WIDTH ||
-            p->target_y < -1 || p->target_y >= MAP_HEIGHT)
+            !valid_puzzle_target(p))
             return false;
     }
     for (int i = 0; i < 4; i++) {
@@ -242,8 +249,7 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
             puzzle->y < 0 || puzzle->y >= MAP_HEIGHT ||
             puzzle->level < 0 || puzzle->level >= restored->num_levels ||
             puzzle->face < 0 || puzzle->face > DIR_WEST ||
-            puzzle->target_x < -1 || puzzle->target_x >= MAP_WIDTH ||
-            puzzle->target_y < -1 || puzzle->target_y >= MAP_HEIGHT) {
+            !valid_puzzle_target(puzzle)) {
             LOAD_FAIL();
         }
     }
