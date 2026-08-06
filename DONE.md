@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (ANM-introt frigörs vid skip)
+
+- Captive-introt frigör nu sin ANM-buffer direkt när användaren hoppar vidare
+  med en tangent.
+- Upprepade start-, skip- och menycykler behåller därmed inte gamla introdata
+  i minnet.
+
 ## 2026-08-06 (Startup-popup blockerar menyval bakom)
 
 - Musknapp på startup-popupen stänger nu popupen utan att samtidigt aktivera

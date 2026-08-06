@@ -2601,6 +2601,11 @@ int main(int argc, char *argv[]) {
                 }
                 case STATE_INTRO:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
+                        if (intro_loaded) {
+                            anm_free(&intro_anim);
+                            intro_loaded = false;
+                        }
+                        intro_frame = 0;
                         music_play(&music_sys, MUSIC_BASE);
                         gs.mode = STATE_DROID_CONFIG;
                         droid_config_cursor = 0;
