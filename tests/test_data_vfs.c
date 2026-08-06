@@ -6,6 +6,17 @@
 #include <string.h>
 #include <zlib.h>
 
+#ifdef _WIN32
+#include <direct.h>
+#define TEST_MKDIR(path) _mkdir(path)
+#define TEST_RMDIR(path) _rmdir(path)
+#else
+#include <sys/stat.h>
+#include <unistd.h>
+#define TEST_MKDIR(path) mkdir(path, 0755)
+#define TEST_RMDIR(path) rmdir(path)
+#endif
+
 static void put16(FILE *f, unsigned value) {
     fputc(value & 0xff, f);
     fputc((value >> 8) & 0xff, f);
@@ -77,6 +88,24 @@ static void test_reads_prefixed_case_insensitive_zip_entry(void) {
     free(result);
     vfs_free(&second);
     assert(remove("test-vfs-assets.zip") == 0);
+}
+
+static void test_reads_zip_in_nested_data_directory(void) {
+    const unsigned char payload[] = { 0x31, 0x41, 0x59, 0x26 };
+    assert(TEST_MKDIR("test-vfs-nested") == 0);
+    write_stored_zip("test-vfs-nested/nested-assets.zip", "nested.bin",
+                     payload, sizeof(payload));
+
+    DataVFS vfs;
+    assert(vfs_init(&vfs, "."));
+    size_t size = 0;
+    uint8_t *result = vfs_read_file(&vfs, "nested.bin", &size);
+    assert(result && size == sizeof(payload) &&
+           memcmp(result, payload, sizeof(payload)) == 0);
+    free(result);
+    vfs_free(&vfs);
+    assert(remove("test-vfs-nested/nested-assets.zip") == 0);
+    assert(TEST_RMDIR("test-vfs-nested") == 0);
 }
 
 static void test_rejects_overlong_archive_names(void) {
@@ -198,6 +227,7 @@ static void test_finds_hash_in_nested_zip(void) {
 int main(void) {
     vfs_free(NULL);
     test_reads_prefixed_case_insensitive_zip_entry();
+    test_reads_zip_in_nested_data_directory();
     test_rejects_overlong_archive_names();
     test_rejects_invalid_hash_text();
     test_rejects_overlong_data_path();

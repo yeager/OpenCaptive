@@ -431,38 +431,71 @@ static uint8_t *zip_find_sha256(const char *zip_path, const char expected_sha256
     return NULL;
 }
 
-static void scan_for_zips(DataVFS *vfs) {
-    vfs->num_zips = 0;
+static bool has_zip_extension(const char *path) {
+    if (!path) return false;
+    size_t len = strlen(path);
+    if (len < 4) return false;
+    const char *ext = path + len - 4;
+    return (ext[0] == '.' &&
+            (ext[1] == 'z' || ext[1] == 'Z') &&
+            (ext[2] == 'i' || ext[2] == 'I') &&
+            (ext[3] == 'p' || ext[3] == 'P'));
+}
+
+static void append_zip_path(DataVFS *vfs, const char *path) {
+    if (!vfs || !path || vfs->num_zips >= VFS_MAX_ZIPS) return;
+    if (snprintf(vfs->zip_paths[vfs->num_zips],
+                 sizeof(vfs->zip_paths[vfs->num_zips]), "%s", path) >=
+        (int)sizeof(vfs->zip_paths[vfs->num_zips])) return;
+    vfs->num_zips++;
+}
 
 #ifdef _WIN32
-    char pattern[600];
-    snprintf(pattern, sizeof(pattern), "%s\\*.zip", vfs->data_path);
-    WIN32_FIND_DATAA fd;
-    HANDLE h = FindFirstFileA(pattern, &fd);
-    if (h == INVALID_HANDLE_VALUE) return;
+static void scan_for_zips_recursive(DataVFS *vfs, const char *path, int depth) {
+    if (!vfs || !path || depth > 32 || vfs->num_zips >= VFS_MAX_ZIPS) return;
+    char pattern[1024];
+    if (snprintf(pattern, sizeof(pattern), "%s\\*", path) >= (int)sizeof(pattern)) return;
+    WIN32_FIND_DATAA entry;
+    HANDLE handle = FindFirstFileA(pattern, &entry);
+    if (handle == INVALID_HANDLE_VALUE) return;
     do {
-        if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
-            vfs->num_zips < VFS_MAX_ZIPS) {
-            snprintf(vfs->zip_paths[vfs->num_zips], 512,
-                     "%s\\%s", vfs->data_path, fd.cFileName);
-            vfs->num_zips++;
-        }
-    } while (FindNextFileA(h, &fd));
-    FindClose(h);
+        if (!strcmp(entry.cFileName, ".") || !strcmp(entry.cFileName, "..")) continue;
+        char child[1024];
+        if (snprintf(child, sizeof(child), "%s\\%s", path, entry.cFileName) >=
+            (int)sizeof(child)) continue;
+        if (entry.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            scan_for_zips_recursive(vfs, child, depth + 1);
+        else if (has_zip_extension(child))
+            append_zip_path(vfs, child);
+    } while (FindNextFileA(handle, &entry) && vfs->num_zips < VFS_MAX_ZIPS);
+    FindClose(handle);
+}
 #else
-    DIR *d = opendir(vfs->data_path);
-    if (!d) return;
-    struct dirent *ent;
-    while ((ent = readdir(d)) != NULL && vfs->num_zips < VFS_MAX_ZIPS) {
-        int len = (int)strlen(ent->d_name);
-        if (len > 4 && strcasecmp(ent->d_name + len - 4, ".zip") == 0) {
-            snprintf(vfs->zip_paths[vfs->num_zips], 512,
-                     "%s/%s", vfs->data_path, ent->d_name);
-            vfs->num_zips++;
-        }
+static void scan_for_zips_recursive(DataVFS *vfs, const char *path, int depth) {
+    if (!vfs || !path || depth > 32 || vfs->num_zips >= VFS_MAX_ZIPS) return;
+    DIR *dir = opendir(path);
+    if (!dir) return;
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL && vfs->num_zips < VFS_MAX_ZIPS) {
+        if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
+        char child[1024];
+        if (snprintf(child, sizeof(child), "%s/%s", path, entry->d_name) >=
+            (int)sizeof(child)) continue;
+        struct stat st;
+        if (stat(child, &st) != 0) continue;
+        if (S_ISDIR(st.st_mode))
+            scan_for_zips_recursive(vfs, child, depth + 1);
+        else if (S_ISREG(st.st_mode) && has_zip_extension(child))
+            append_zip_path(vfs, child);
     }
-    closedir(d);
+    closedir(dir);
+}
 #endif
+
+static void scan_for_zips(DataVFS *vfs) {
+    if (!vfs) return;
+    vfs->num_zips = 0;
+    scan_for_zips_recursive(vfs, vfs->data_path, 0);
 }
 
 bool vfs_init(DataVFS *vfs, const char *data_path) {

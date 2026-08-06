@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Recursive ZIP data discovery)
+
+- VFS:en hittar nu ZIP-arkiv rekursivt under den valda datakatalogen på alla
+  plattformar, inte bara direkt i rotkatalogen.
+- Lade till regressionstest för speldata i en underkatalog.
+
 ## 2026-08-06 (Puzzle record reinitialization)
 
 - Nya pusselposter nollställs nu alltid när pusselgeneratorn återanvänder en

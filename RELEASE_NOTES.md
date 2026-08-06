@@ -3,6 +3,8 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- ZIP-baserad speldata upptäcks nu även i underkataloger under vald datarot,
+  vilket gör den rekursiva dataskanningen konsekvent för lösa filer och arkiv.
 - Pusselposter nollställs nu vid återanvändning av pusselgeneratorns lista,
   så gamla målkoordinater inte läcker in i nya olänkade pussel som power
   sockets.
