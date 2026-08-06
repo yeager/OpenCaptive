@@ -248,10 +248,15 @@ void combat_tick(CreatureList *cl, GameState *gs) {
             cl->attack_occurred = true;
         } else {
             int move_dx = 0, move_dy = 0;
-            if (c->x < gs->party_x) move_dx = 1;
-            else if (c->x > gs->party_x) move_dx = -1;
-            if (c->y < gs->party_y) move_dy = 1;
-            else if (c->y > gs->party_y) move_dy = -1;
+            int dx_to_party = gs->party_x - c->x;
+            int dy_to_party = gs->party_y - c->y;
+            /* Captive movement is cardinal.  Choosing one axis also keeps a
+             * pursuer from cutting diagonally through a blocked corner. */
+            if (dx_to_party != 0 &&
+                (dy_to_party == 0 || abs(dx_to_party) >= abs(dy_to_party)))
+                move_dx = dx_to_party > 0 ? 1 : -1;
+            else if (dy_to_party != 0)
+                move_dy = dy_to_party > 0 ? 1 : -1;
 
             int nx = c->x + move_dx;
             int ny = c->y + move_dy;

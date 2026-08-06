@@ -3319,3 +3319,6 @@
 - Captive-saveparsern validerar nu fienders runtimefält innan de aktiveras.
   Orimlig hastighet, räckvidd, cooldown eller respawn-timer avvisas, och v5:s
   booleska flaggor dekoderas som kanoniska bytevärden med regressionsprov.
+- Captive-fienders jakt använder nu ett kardinalt steg per tick i stället för
+  diagonal rörelse. De kan därför inte längre skära genom dungeonhörn; ett
+  regressionsprov verifierar rörelsen.

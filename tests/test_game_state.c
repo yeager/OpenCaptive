@@ -287,6 +287,28 @@ static void test_combat_creatures_cannot_enter_party_tile(void) {
     assert(creatures.creatures[0].x == 2 && creatures.creatures[0].y == 1);
 }
 
+static void test_combat_creatures_move_cardinally(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 20, .hp_max = 20,
+        .range = 0, .x = 3, .y = 3, .level = 0,
+        .active = true, .alerted = true,
+    };
+    combat_tick(&creatures, &gs);
+    assert(creatures.creatures[0].x == 2 && creatures.creatures[0].y == 3);
+}
+
 static void test_combat_gold_reward_saturates(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -695,6 +717,7 @@ int main(void) {
     test_extreme_mission_seed_is_defined();
     test_combat_respects_closed_doors();
     test_combat_creatures_cannot_enter_party_tile();
+    test_combat_creatures_move_cardinally();
     test_combat_gold_reward_saturates();
     test_combat_level_up_uses_pre_attack_xp();
     test_combat_uses_ranged_hand_when_melee_is_first();
