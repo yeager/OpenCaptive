@@ -77,7 +77,7 @@ reverse-engineered; Captive gameplay parity is likewise still under review.
 - Settings panel (16 options: display, audio, language, data path)
 - About/Credits screen
 - Controls reference (F1)
-- In-game F10 runtime popup: change display effects and toggle cheats in real time
+- In-game F10 runtime popup: change display effects and toggle cheats in real time (God Mode and Infinite Energy work in both games)
 - Data Scanner (D key) — reports verified game files per game
 - Scanner results are cached by file identity and metadata, so unchanged files are not hashed again
 - If multiple verified versions of a game are available, launch opens a localized version-selection popup

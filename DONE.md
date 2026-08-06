@@ -1,5 +1,10 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation F10 cheats)
+
+- God Mode och Infinite Energy från F10 gäller nu även Liberation; tidigare
+  ignorerades de tyst utanför Captive.
+
 ## 2026-08-06 (F10 runtime options)
 
 - Lade till F10-popup i spelvyn med realtidsreglage för grafik, minimap,

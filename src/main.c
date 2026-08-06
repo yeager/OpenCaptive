@@ -775,7 +775,7 @@ static const char *popup_brightness(int value) {
 }
 
 static void popup_apply_cheats(GameState *gs) {
-    if (!gs || gs->game_type != GAME_CAPTIVE) return;
+    if (!gs) return;
     if (runtime_popup.invulnerable) {
         for (int i = 0; i < 4; ++i) gs->droids[i].hp = gs->droids[i].hp_max;
     }

@@ -13,6 +13,8 @@
 - Added an in-game F10 runtime popup with live display controls (including
   scanlines, CRT, filtering and lighting) plus optional gameplay cheats and
   overlays; the control is documented in the start menu and controls reference.
+- God Mode and Infinite Energy from the F10 popup now also apply during
+  Liberation sessions instead of silently doing nothing.
 - Corrected generated Liberation button-combination puzzles so their solution
   is reachable through the currently implemented single-panel interaction.
 
