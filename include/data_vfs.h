@@ -5,6 +5,17 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef _WIN32
+/* MSVC exposes the file-mode predicates under underscored names. Keep the
+ * POSIX spelling used by the portable scanner and launcher code. */
+#ifndef S_ISREG
+#define S_ISREG(mode) (((mode) & _S_IFMT) == _S_IFREG)
+#endif
+#ifndef S_ISDIR
+#define S_ISDIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
+#endif
+#endif
+
 #define VFS_MAX_ZIPS 64
 
 typedef struct {
