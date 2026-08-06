@@ -714,6 +714,23 @@ static const char *vfs_cache_home(void) {
     return home && home[0] ? home : NULL;
 }
 
+static bool replace_cache_file(const char *temporary_path, const char *path) {
+#ifdef _WIN32
+    return MoveFileExA(temporary_path, path,
+                       MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+#else
+    return rename(temporary_path, path) == 0;
+#endif
+}
+
+static unsigned long cache_process_id(void) {
+#ifdef _WIN32
+    return (unsigned long)GetCurrentProcessId();
+#else
+    return (unsigned long)getpid();
+#endif
+}
+
 static uint8_t *vfs_cache_read(const DataVFS *vfs, const char hash[65], size_t *out_size) {
     const char *home = vfs_cache_home();
     if (!home || !valid_sha256_text(hash)) return NULL;
@@ -759,15 +776,38 @@ static void vfs_cache_write(const DataVFS *vfs, const char hash[65],
         memcpy(signature, vfs->cache_signature, sizeof(vfs->cache_signature));
     else
         vfs_cache_signature(vfs, signature);
-    FILE *df = fopen(data_path, "wb");
+    char data_tmp[1250], meta_tmp[1250];
+    unsigned long process_id = cache_process_id();
+    if (snprintf(data_tmp, sizeof(data_tmp), "%s.tmp.%lu", data_path,
+                 process_id) >=
+            (int)sizeof(data_tmp) ||
+        snprintf(meta_tmp, sizeof(meta_tmp), "%s.tmp.%lu", meta,
+                 process_id) >=
+            (int)sizeof(meta_tmp)) return;
+
+    FILE *df = fopen(data_tmp, "wb");
     if (!df) return;
     bool data_write_ok = fwrite(data, 1, size, df) == size;
     int data_close_result = fclose(df);
-    if (!data_write_ok || data_close_result != 0) return;
-    FILE *mf = fopen(meta, "wb");
+    if (!data_write_ok || data_close_result != 0) {
+        remove(data_tmp);
+        return;
+    }
+    if (!replace_cache_file(data_tmp, data_path)) {
+        remove(data_tmp);
+        return;
+    }
+
+    FILE *mf = fopen(meta_tmp, "wb");
     if (!mf) return;
-    (void)fwrite(signature, 1, strlen(signature), mf);
-    fclose(mf);
+    bool meta_write_ok = fwrite(signature, 1, strlen(signature), mf) ==
+                         strlen(signature);
+    int meta_close_result = fclose(mf);
+    if (!meta_write_ok || meta_close_result != 0) {
+        remove(meta_tmp);
+        return;
+    }
+    if (!replace_cache_file(meta_tmp, meta)) remove(meta_tmp);
 }
 
 #ifndef _WIN32

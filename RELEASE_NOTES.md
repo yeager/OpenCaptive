@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- VFS-cachedata och cachemetadata skrivs nu till processunika temporära filer
+  och byts atomiskt. En parallell start eller ett avbrott kan inte längre lämna
+  cacheparet halvskrivet.
 - Save/load- och cross-save-fel rapporteras nu tydligt på stderr i stället för
   att tyst ignoreras av inputflödet.
 - `--replay-record` skriver nu faktiskt replay-filen vid avslutning, med

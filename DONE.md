@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Atomic VFS cache writes)
+
+- Verifierade payloads och cachemetadata skrivs nu till processunika temporära
+  filer och ersätts atomiskt.
+- En parallell scanner kan därför bara se det gamla kompletta cacheparet eller
+  det nya kompletta paret, aldrig en halvskriven fil.
+- `test_data_vfs` passerar efter ändringen.
+
 ## 2026-08-06 (Save/load failure diagnostics)
 
 - Captive-, Liberation- och cross-save-returvärden kontrolleras nu i
