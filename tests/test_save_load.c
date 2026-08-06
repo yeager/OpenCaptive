@@ -194,6 +194,26 @@ static void test_save_rejects_state_load_would_reject(void) {
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
 }
 
+static void test_save_rejects_creature_overlap(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    creatures.num_creatures = 2;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 10, .hp_max = 10,
+        .x = gs.party_x, .y = gs.party_y, .level = gs.current_level,
+        .active = true
+    };
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+
+    creatures.creatures[0].x = 2;
+    creatures.creatures[0].y = 1;
+    creatures.creatures[1] = creatures.creatures[0];
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+}
+
 static void test_save_rejects_invalid_identifiers(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -309,6 +329,7 @@ static void test_save_rejects_blocked_runtime_positions(void) {
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
 
     game_state_new_mission(&gs, 1);
+    creatures.num_creatures = 0;
     assert(save_game(&gs, &creatures, &puzzles, save_path));
     FILE *file = fopen(save_path, "r+b");
     assert(file != NULL);
@@ -433,6 +454,7 @@ int main(void) {
     test_unknown_item_id_rejected();
     test_droid_slots_use_matching_item_categories();
     test_save_rejects_state_load_would_reject();
+    test_save_rejects_creature_overlap();
     test_save_rejects_invalid_identifiers();
     test_save_rejects_invalid_puzzle();
     test_save_rejects_invalid_creature_damage();

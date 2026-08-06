@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive save-positioner)
+
+- Save/load avvisar nu aktiva fiender som överlappar party eller andra aktiva
+  fiender på samma våning.
+- Regressionstest täcker både party-overlap och dubbel fiende-position.
+- Lokal Werror/CTest: 58/58 tester passerar.
+
 ## 2026-08-06 (Captive trappövergångar)
 
 - Trappor kan inte längre lämna party ovanpå en aktiv fiende på

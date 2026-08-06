@@ -227,6 +227,24 @@ static bool valid_creature_runtime_state(const Creature *c) {
            ((!c->active && c->hp == 0) || (c->active && c->hp > 0));
 }
 
+static bool valid_creature_placement(const CreatureList *creatures, int index,
+                                     int party_level, int party_x, int party_y) {
+    if (!creatures || index < 0 || index >= creatures->num_creatures)
+        return false;
+    const Creature *current = &creatures->creatures[index];
+    if (!current->active) return true;
+    if (current->level == party_level && current->x == party_x &&
+        current->y == party_y)
+        return false;
+    for (int other_index = 0; other_index < index; other_index++) {
+        const Creature *other = &creatures->creatures[other_index];
+        if (other->active && other->level == current->level &&
+            other->x == current->x && other->y == current->y)
+            return false;
+    }
+    return true;
+}
+
 static bool valid_item_id(const ItemDatabase *db, uint8_t item_id) {
     return item_id == 0 || (db && item_db_get(db, item_id) != NULL);
 }
@@ -312,7 +330,9 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
             c->hp_max < 0 || c->hp > c->hp_max || c->damage_min < 0 ||
             c->damage_max < c->damage_min || c->defense < 0 ||
             !valid_runtime_position(gs, c->level, c->x, c->y) ||
-            !valid_creature_runtime_state(c))
+            !valid_creature_runtime_state(c) ||
+            !valid_creature_placement(creatures, i, gs->current_level,
+                                       gs->party_x, gs->party_y))
             return false;
     }
     for (int i = 0; i < puzzles->num_puzzles; i++) {
@@ -544,7 +564,10 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
             creature->defense < 0 ||
             !valid_runtime_position(restored, creature->level,
                                     creature->x, creature->y) ||
-            !valid_creature_runtime_state(creature)) {
+            !valid_creature_runtime_state(creature) ||
+            !valid_creature_placement(&restored_creatures, i,
+                                       restored->current_level,
+                                       restored->party_x, restored->party_y)) {
             LOAD_FAIL();
         }
     }
