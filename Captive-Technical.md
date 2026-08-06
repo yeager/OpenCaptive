@@ -45,12 +45,14 @@ Offsets in this subsection are relative to that expanded load module, not a
 DOS segment address. The view path dispatches a sampled cell at `0x1fd1`.
 Its handlers select a graphic ID, then enter the range-aware helpers at
 `0x1ee4` and `0x1ef3`; those apply the original cell-depth adjustment before
-calling the common draw entry at `0x2bd7`.
+calling the projection helper at `0x2bd7`. That helper is distinct from the
+static graphic-descriptor entry.
 
-`0x2bd7` computes `0x00c0 + graphic_id × 8` in the original runtime's
-descriptor table. The descriptor supplies a source pointer, destination
-position, dimensions and blitter flags. The common path selects one of the
-planar copy routines at `0x37dd`, `0x393f`, `0x3c5f`, `0x3c62` or `0x3c65`.
+The static entry at `0x2f55` computes `0x00c0 + graphic_id × 8` in the
+original runtime's descriptor table. The descriptor supplies a source pointer,
+destination position, dimensions and blitter flags. The common path selects
+one of the planar copy routines at `0x37dd`, `0x393f`, `0x3c5f`, `0x3c62` or
+`0x3c65`.
 This is direct evidence that the projection is a table-driven sequence of
 masked panel copies, rather than texture mapping. It also gives concrete
 acceptance criteria for the native port: recover descriptor records and their
@@ -77,6 +79,14 @@ the planar copy routine. This fixture makes the record layout, runtime
 relocation and source-bank indirection reproducible. It is an analysis oracle
 only: no dump bytes are embedded in OpenCaptive or used as a game-data
 substitute.
+
+The static entry also proves a missing operand in a table-only reconstruction.
+It loads the descriptor destination word, then adds the caller-provided `DI`
+base before entering the blitter. Thus the destination word is a relative
+panel position, not a complete screen coordinate. The view dispatcher chooses
+that base from the cell, range and orientation. A single completed VGA frame
+can confirm source coverage, but cannot reveal this per-call base or the draw
+order.
 
 ### Panel matches against the captured frame
 
@@ -118,17 +128,18 @@ asset-set selection.
 ### Destination-buffer correction
 
 The descriptor's destination word is **not** an offset into a 200-byte-wide
-PL5 source sheet. In the native `0x3bc1` copy path, one five-byte source group
-is expanded to eight indexed output bytes and the destination row advance is
-`0x140` (320 bytes). The alternative path at `0x3d23` applies the original
-transparent-write rule. The low flag bit selects the mirrored variant.
+PL5 source sheet, nor a complete displayed coordinate. The static entry at
+`0x2f55` first adds the caller's `DI` base. In the native `0x3d42` copy path,
+one five-byte source group is expanded to eight indexed output bytes and the
+destination row advance is `0x140` (320 bytes). The alternative paths preserve
+destination pixels for transparent source values. The low flag bit selects the
+mirrored variant.
 
 Consequently, a descriptor cannot be reproduced by decoding a source crop and
 placing it at `destination / 200`. That tempting shortcut yields plausible
-wall fragments but at incorrect positions and is not used by OpenCaptive.
-The remaining conversion from the intermediate buffer to the displayed VGA
-frame, plus the per-cell descriptor order, must be recovered before native
-view rendering can claim visual parity.
+wall fragments but at incorrect positions and is not used by OpenCaptive. The
+caller base and per-cell descriptor order must be recovered before native view
+rendering can claim visual parity.
 
 The renderer samples a 19-cell trapezoid rather than a full 5×5 view: five
 cells at ranges four and three, three cells at ranges two and one, then the
