@@ -5,6 +5,23 @@
 #define REPLAY_MAGIC 0x4F435250 /* "OCRP" */
 #define REPLAY_VERSION 1
 
+static bool write_u32_le(FILE *fp, uint32_t value) {
+    uint8_t bytes[4] = {
+        (uint8_t)value, (uint8_t)(value >> 8),
+        (uint8_t)(value >> 16), (uint8_t)(value >> 24)
+    };
+    return fp && fwrite(bytes, 1, sizeof(bytes), fp) == sizeof(bytes);
+}
+
+static bool read_u32_le(FILE *fp, uint32_t *value) {
+    uint8_t bytes[4];
+    if (!fp || !value || fread(bytes, 1, sizeof(bytes), fp) != sizeof(bytes))
+        return false;
+    *value = (uint32_t)bytes[0] | ((uint32_t)bytes[1] << 8) |
+             ((uint32_t)bytes[2] << 16) | ((uint32_t)bytes[3] << 24);
+    return true;
+}
+
 void replay_init(ReplaySystem *rs) {
     if (!rs) return;
     memset(rs, 0, sizeof(*rs));
@@ -27,20 +44,18 @@ bool replay_save(const ReplaySystem *rs, const char *path) {
     FILE *fp = fopen(path, "wb");
     if (!fp) return false;
 
-    uint32_t magic = REPLAY_MAGIC;
-    uint32_t version = REPLAY_VERSION;
     uint32_t count = (uint32_t)rs->count;
 
-    if (fwrite(&magic, 4, 1, fp) != 1 ||
-        fwrite(&version, 4, 1, fp) != 1 ||
-        fwrite(&rs->seed, 4, 1, fp) != 1 ||
-        fwrite(&count, 4, 1, fp) != 1) {
+    if (!write_u32_le(fp, REPLAY_MAGIC) ||
+        !write_u32_le(fp, REPLAY_VERSION) ||
+        !write_u32_le(fp, rs->seed) ||
+        !write_u32_le(fp, count)) {
         fclose(fp);
         return false;
     }
 
     for (int i = 0; i < rs->count; i++) {
-        if (fwrite(&rs->inputs[i].tick, 4, 1, fp) != 1 ||
+        if (!write_u32_le(fp, rs->inputs[i].tick) ||
             fwrite(&rs->inputs[i].action, 1, 1, fp) != 1 ||
             fwrite(&rs->inputs[i].param, 1, 1, fp) != 1) {
             fclose(fp);
@@ -62,16 +77,16 @@ bool replay_load(ReplaySystem *rs, const char *path) {
     if (!fp) return false;
 
     uint32_t magic, version, count;
-    if (fread(&magic, 4, 1, fp) != 1 || magic != REPLAY_MAGIC) {
+    if (!read_u32_le(fp, &magic) || magic != REPLAY_MAGIC) {
         fclose(fp);
         return false;
     }
-    if (fread(&version, 4, 1, fp) != 1 || version != REPLAY_VERSION) {
+    if (!read_u32_le(fp, &version) || version != REPLAY_VERSION) {
         fclose(fp);
         return false;
     }
     uint32_t seed;
-    if (fread(&seed, 4, 1, fp) != 1 || fread(&count, 4, 1, fp) != 1) {
+    if (!read_u32_le(fp, &seed) || !read_u32_le(fp, &count)) {
         fclose(fp);
         return false;
     }
@@ -100,7 +115,7 @@ bool replay_load(ReplaySystem *rs, const char *path) {
 
     uint32_t previous_tick = 0;
     for (int i = 0; i < rs->count; i++) {
-        if (fread(&rs->inputs[i].tick, 4, 1, fp) != 1 ||
+        if (!read_u32_le(fp, &rs->inputs[i].tick) ||
             fread(&rs->inputs[i].action, 1, 1, fp) != 1 ||
             fread(&rs->inputs[i].param, 1, 1, fp) != 1) {
             rs->count = 0;

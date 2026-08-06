@@ -189,6 +189,14 @@ static void test_lighting(void) {
     assert(extreme >= 0.1f && extreme <= 1.0f);
 }
 
+static void write_test_u32_le(FILE *fp, uint32_t value) {
+    uint8_t bytes[4] = {
+        (uint8_t)value, (uint8_t)(value >> 8),
+        (uint8_t)(value >> 16), (uint8_t)(value >> 24)
+    };
+    assert(fwrite(bytes, 1, sizeof(bytes), fp) == sizeof(bytes));
+}
+
 static void test_replay(void) {
     ReplaySystem rs;
     replay_init(&rs);
@@ -203,6 +211,16 @@ static void test_replay(void) {
 
     const char *path = "/tmp/test_opencaptive_replay.ocrp";
     assert(replay_save(&rs, path));
+
+    FILE *header = fopen(path, "rb");
+    assert(header);
+    uint8_t header_bytes[16];
+    assert(fread(header_bytes, 1, sizeof(header_bytes), header) == sizeof(header_bytes));
+    assert(fclose(header) == 0);
+    assert(header_bytes[0] == 0x50 && header_bytes[1] == 0x52 &&
+           header_bytes[2] == 0x43 && header_bytes[3] == 0x4F);
+    assert(header_bytes[4] == 1 && header_bytes[5] == 0 &&
+           header_bytes[6] == 0 && header_bytes[7] == 0);
 
     ReplaySystem rs2;
     replay_init(&rs2);
@@ -224,14 +242,12 @@ static void test_replay(void) {
 
     FILE *truncated = fopen(path, "wb");
     assert(truncated);
-    uint32_t replay_magic = 0x4F435250;
-    uint32_t replay_version = 1;
     uint32_t replay_seed = 0xCAFED00D;
     uint32_t replay_count = 3;
-    assert(fwrite(&replay_magic, 4, 1, truncated) == 1);
-    assert(fwrite(&replay_version, 4, 1, truncated) == 1);
-    assert(fwrite(&replay_seed, 4, 1, truncated) == 1);
-    assert(fwrite(&replay_count, 4, 1, truncated) == 1);
+    write_test_u32_le(truncated, 0x4F435250);
+    write_test_u32_le(truncated, 1);
+    write_test_u32_le(truncated, replay_seed);
+    write_test_u32_le(truncated, replay_count);
     assert(fclose(truncated) == 0);
 
     ReplaySystem preserved;
@@ -244,16 +260,16 @@ static void test_replay(void) {
     FILE *unordered = fopen(path, "wb");
     assert(unordered);
     replay_count = 2;
-    assert(fwrite(&replay_magic, 4, 1, unordered) == 1);
-    assert(fwrite(&replay_version, 4, 1, unordered) == 1);
-    assert(fwrite(&replay_seed, 4, 1, unordered) == 1);
-    assert(fwrite(&replay_count, 4, 1, unordered) == 1);
+    write_test_u32_le(unordered, 0x4F435250);
+    write_test_u32_le(unordered, 1);
+    write_test_u32_le(unordered, replay_seed);
+    write_test_u32_le(unordered, replay_count);
     uint32_t late_tick = 10, early_tick = 5;
     uint8_t action = 1, param = 0;
-    assert(fwrite(&late_tick, 4, 1, unordered) == 1);
+    write_test_u32_le(unordered, late_tick);
     assert(fwrite(&action, 1, 1, unordered) == 1);
     assert(fwrite(&param, 1, 1, unordered) == 1);
-    assert(fwrite(&early_tick, 4, 1, unordered) == 1);
+    write_test_u32_le(unordered, early_tick);
     assert(fwrite(&action, 1, 1, unordered) == 1);
     assert(fwrite(&param, 1, 1, unordered) == 1);
     assert(fclose(unordered) == 0);

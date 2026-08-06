@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Portable replay encoding)
+
+- Skrev replay-header, seed, antal och tickfält med explicit little-endian-
+  kodning i stället för native heltalsrepresentation.
+- Lade till regressionstest för filhuvudets byteordning och plattformsoberoende
+  testdata vid felhantering.
+
 ## 2026-08-06 (Portable cross-save encoding)
 
 - Skrev cross-save-header, heltalsfält och droid-/nivåmetadata med explicit
