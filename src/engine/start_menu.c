@@ -450,10 +450,8 @@ void start_menu_check_data(StartMenu *menu, const char *data_path) {
     menu->captive_source_mask = dos_valid ? (1U << CAPTIVE_PLATFORM_DOS) : 0U;
     menu->captive_data_ok = menu->captive_source_mask != 0U;
     menu->captive_source_choice = CAPTIVE_PLATFORM_DOS;
-    LiberationData lib_data = {0};
-    menu->liberation_data_ok = liberation_data_open(&lib_data, &vfs);
-    liberation_data_close(&lib_data);
     menu->liberation_source_mask = liberation_data_available_sources(&vfs);
+    menu->liberation_data_ok = menu->liberation_source_mask != 0U;
     vfs_free(&vfs);
 }
 
@@ -617,10 +615,14 @@ void start_menu_update(StartMenu *menu) {
         menu->scanner_phase = 1;
     }
     if (menu->scanner_phase == 1) {
-        LiberationData lib_data = {0};
-        if (liberation_data_open(&lib_data, &menu->scanner_vfs)) {
+        /* Availability verification checks the required source hashes but
+         * does not decode the optional RNC/ANIM presentation bundle.  The
+         * latter belongs to game startup and could otherwise block the menu
+         * for an entire frame despite the incremental scanner. */
+        menu->liberation_source_mask =
+            liberation_data_available_sources(&menu->scanner_vfs);
+        if (menu->liberation_source_mask != 0U) {
             menu->scanner_liberation_found = (int)LIBERATION_RESOURCE_COUNT;
-            liberation_data_close(&lib_data);
         }
         menu->scanner_progress = menu->scanner_total;
         menu->scanner_phase = 2;

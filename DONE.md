@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Icke-blockerande Liberation-skanning)
+
+- Startmenyns Liberation-skanning verifierar nu bara nödvändiga källfiler
+  under progress-steget.
+- Den valfria RNC/ANIM-presentationen dekoderas först när Liberation faktiskt
+  startas, i stället för att blockera ett helt menyframe.
+- Full Werror-build och hela testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (Versionspopup med verifierade källor)
 
 - Versionspopupen visar och startar nu endast spelversioner som faktiskt
