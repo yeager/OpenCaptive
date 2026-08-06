@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Atomic Captive saves)
+
+- Captive-sparningar byggs färdigt i en temporär fil innan den ersätter den
+  aktiva save-filen.
+- Ett skriv- eller diskfel kan därför inte längre lämna den tidigare fungerande
+  sparningen trunkerad.
+- Verifierade `test_save_load`, Werror-kompilering och diff-format.
+
 ## 2026-08-06 (HQ MIDI output)
 
 - Kopplade `hq_midi` och `--hq-midi` till MIDI-spelaren med ett kort

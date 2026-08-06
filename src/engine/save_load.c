@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #define SAVE_MAGIC 0x4F435356  // "OCSV" - OpenCaptive Save
 #define SAVE_VERSION 4
 #define SAVE_VERSION_LEGACY 3
@@ -35,6 +39,16 @@ static bool valid_puzzle_target(const Puzzle *p) {
     return (p->target_x == -1 && p->target_y == -1) ||
            (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
             p->target_y >= 0 && p->target_y < MAP_HEIGHT);
+}
+
+static bool replace_save_file(const char *temporary_path, const char *path) {
+#ifdef _WIN32
+    /* The CRT rename() refuses to replace an existing file on Windows. */
+    return MoveFileExA(temporary_path, path,
+                       MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+#else
+    return rename(temporary_path, path) == 0;
+#endif
 }
 
 bool save_game(const GameState *gs, const CreatureList *creatures,
@@ -84,8 +98,20 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
             }
         }
     }
-    FILE *f = fopen(path, "wb");
-    if (!f) return false;
+    size_t path_length = strlen(path);
+    if (path_length > SIZE_MAX - 5) return false;
+    char *temporary_path = malloc(path_length + 5);
+    if (!temporary_path) return false;
+    snprintf(temporary_path, path_length + 5, "%s.tmp", path);
+
+    /* Write beside the destination and replace it only after every byte has
+     * been written.  This keeps the previous save usable after a disk-full,
+     * permission, or interrupted-write failure. */
+    FILE *f = fopen(temporary_path, "wb");
+    if (!f) {
+        free(temporary_path);
+        return false;
+    }
 
     SaveHeader hdr = {
         .magic = SAVE_MAGIC,
@@ -132,6 +158,14 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
         ok = false;
 
     if (fclose(f) != 0) ok = false;
+    if (!ok) {
+        remove(temporary_path);
+        free(temporary_path);
+        return false;
+    }
+    ok = replace_save_file(temporary_path, path);
+    if (!ok) remove(temporary_path);
+    free(temporary_path);
     return ok;
 }
 

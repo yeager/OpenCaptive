@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Captive-sparningar skrivs nu till en temporär fil och byts atomiskt på plats.
+  Ett avbrutet eller misslyckat skrivförsök lämnar den senast fungerande
+  sparningen intakt.
 - `hq_midi` är nu aktivt: `--hq-midi` använder ett kort utgångsfilter efter
   OPL2-syntesen. Standardläget och timing förblir oförändrade.
 - `--widescreen` är nu kopplat till presentationen och expanderar nativebilden
