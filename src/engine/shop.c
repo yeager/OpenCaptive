@@ -46,6 +46,17 @@ void shop_init(ShopState *shop, const ItemDatabase *db, int level, uint32_t seed
     }
 }
 
+int shop_next_selection(const ShopState *shop) {
+    if (!shop || shop->num_items <= 0) return 0;
+    int visible_items = shop->num_items;
+    if (visible_items > SHOP_VISIBLE_ITEMS) visible_items = SHOP_VISIBLE_ITEMS;
+    int selected = shop->selected;
+    if (selected < 0) selected = 0;
+    if (selected >= visible_items) selected = visible_items - 1;
+    if (selected + 1 < visible_items) selected++;
+    return selected;
+}
+
 static void put_pixel_s(uint32_t *pixels, int w, int h, int x, int y, uint32_t c) {
     if (x >= 0 && x < w && y >= 0 && y < h)
         pixels[y * w + x] = c;
@@ -120,7 +131,7 @@ void shop_render(const ShopState *shop, const ItemDatabase *db,
     int item_count = shop->num_items;
     if (item_count < 0) item_count = 0;
     if (item_count > SHOP_MAX_ITEMS) item_count = SHOP_MAX_ITEMS;
-    for (int i = 0; i < item_count && i < 12; i++) {
+    for (int i = 0; i < item_count && i < SHOP_VISIBLE_ITEMS; i++) {
         const Item *item = item_db_get(db, shop->item_ids[i]);
         if (!item) continue;
 

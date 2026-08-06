@@ -1,5 +1,10 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive shop navigation bounds)
+
+- Shopnavigeringen begränsas nu till samma 12 synliga varor som renderaren.
+- Osynliga lagerposter kan därför inte längre väljas och köpas via tangentbord.
+
 ## 2026-08-07 (Captive adjacent-shop entry)
 
 - Shoppen öppnas nu korrekt även när spelaren står framför en shop-cell.

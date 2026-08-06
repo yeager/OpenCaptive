@@ -133,6 +133,14 @@ static void test_shop_rejects_corrupt_item_count(void) {
     assert(!shop_buy(&shop, &db, &gs));
 }
 
+static void test_shop_navigation_stops_at_visible_item_limit(void) {
+    ShopState shop = {.num_items = SHOP_MAX_ITEMS, .selected = SHOP_VISIBLE_ITEMS - 2};
+    assert(shop_next_selection(&shop) == SHOP_VISIBLE_ITEMS - 1);
+    assert(shop_next_selection(&shop) == SHOP_VISIBLE_ITEMS - 1);
+    shop.num_items = 0;
+    assert(shop_next_selection(&shop) == 0);
+}
+
 int main(void) {
     test_shop_clamps_corrupt_definition_count();
     test_shop_rejects_negative_definition_count();
@@ -143,5 +151,6 @@ int main(void) {
     test_shop_repair_preserves_equipment();
     test_inactive_shop_cannot_sell();
     test_shop_rejects_corrupt_item_count();
+    test_shop_navigation_stops_at_visible_item_limit();
     return 0;
 }

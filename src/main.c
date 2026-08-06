@@ -3048,7 +3048,7 @@ int main(int argc, char *argv[]) {
                                 if (shop.selected > 0) shop.selected--;
                                 break;
                             case SDLK_DOWN:
-                                if (shop.selected < shop.num_items - 1) shop.selected++;
+                                shop.selected = shop_next_selection(&shop);
                                 break;
                             case SDLK_RETURN:
                                 shop_buy(&shop, &item_db, &gs);
