@@ -2871,7 +2871,7 @@ int main(int argc, char *argv[]) {
                                       LIBERATION_SCREEN_HEIGHT, 140, line, 0xFFAAAAAA, 1);
                         draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
                                       LIBERATION_SCREEN_HEIGHT, 180,
-                                      "PRESS ENTER TO BEGIN", 0xFF888888, 1);
+                                      _("PRESS ENTER TO BEGIN"), 0xFF888888, 1);
                     } else if (liberation_prototype_gameplay_enabled && lib_city_generated) {
                         uint32_t now = SDL_GetTicks();
                         float dt = (now - gs.last_frame_ms) / 1000.0f;
@@ -2921,7 +2921,7 @@ int main(int argc, char *argv[]) {
                                 framebuffer[i] = flash;
                             draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
                                           LIBERATION_SCREEN_HEIGHT, 80,
-                                          "TAXI", 0xFFFFFF00, 3);
+                                          _("TAXI"), 0xFFFFFF00, 3);
                         }
                         char pos_str[64];
                         snprintf(pos_str, sizeof(pos_str), "%s (%d,%d) %s",
@@ -2938,7 +2938,7 @@ int main(int argc, char *argv[]) {
                                     framebuffer[y * LIBERATION_SCREEN_WIDTH + x] =
                                         (framebuffer[y * LIBERATION_SCREEN_WIDTH + x] >> 1) & 0x7F7F7F;
                             draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
-                                LIBERATION_SCREEN_HEIGHT, 8, 8, "COMBAT", 0xFFFF0000, 1);
+                                LIBERATION_SCREEN_HEIGHT, 8, 8, _("COMBAT"), 0xFFFF0000, 1);
                             int combat_enemy_count = lib_combat.enemy_count;
                             if (combat_enemy_count < 0) combat_enemy_count = 0;
                             if (combat_enemy_count > LIB_COMBAT_MAX_ENEMIES)
@@ -2959,7 +2959,7 @@ int main(int argc, char *argv[]) {
                             if (lib_combat_is_over(&lib_combat, &gs)) {
                                 draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                     LIBERATION_SCREEN_HEIGHT, 8, LIBERATION_SCREEN_HEIGHT / 2,
-                                    lib_combat_player_won(&lib_combat) ? "VICTORY!" : "DEFEATED",
+                                    lib_combat_player_won(&lib_combat) ? _("VICTORY!") : _("DEFEATED"),
                                     0xFFFFFF00, 1);
                             }
                         } else if (lib_in_building) {
@@ -3100,7 +3100,7 @@ int main(int argc, char *argv[]) {
                     memset(framebuffer, 0, sizeof(framebuffer));
                     draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
                                   LIBERATION_SCREEN_HEIGHT, 4,
-                                  "INVENTORY", 0xFF44AAFF, 2);
+                                  _("INVENTORY"), 0xFF44AAFF, 2);
                     {
                         int sel_x = 10 + gs.selected_droid * 78;
                         const Droid *sd = &gs.droids[gs.selected_droid];
@@ -3139,7 +3139,7 @@ int main(int argc, char *argv[]) {
                     }
                     draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                   LIBERATION_SCREEN_HEIGHT, 10, 160,
-                                  "SHARED ITEMS", 0xFFAAAA44, 1);
+                                  _("SHARED ITEMS"), 0xFFAAAA44, 1);
                     for (int i = 0; i < gs.lib_inventory_count && i < 20; i++) {
                         int ix = 10 + (i % 2) * 155;
                         int iy = 172 + (i / 2) * 10;
@@ -3171,11 +3171,11 @@ int main(int argc, char *argv[]) {
             case STATE_GAMEOVER:
                 memset(framebuffer, 0, sizeof(framebuffer));
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              60, "GAME OVER", 0xFFFF2222, 3);
+                              60, _("GAME OVER"), 0xFFFF2222, 3);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              100, "ALL DROIDS DESTROYED", 0xFFAAAAAA, 1);
+                              100, _("ALL DROIDS DESTROYED"), 0xFFAAAAAA, 1);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              130, "PRESS ESCAPE", 0xFF888888, 1);
+                              130, _("PRESS ESCAPE"), 0xFF888888, 1);
                 break;
 
             case STATE_HOLAMAP: {
@@ -3203,13 +3203,13 @@ int main(int argc, char *argv[]) {
             case STATE_VICTORY:
                 memset(framebuffer, 0, sizeof(framebuffer));
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              40, "VICTORY!", 0xFF44FF44, 3);
+                              40, _("VICTORY!"), 0xFF44FF44, 3);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              80, "ALL MISSIONS COMPLETE", 0xFFFFFF44, 2);
+                              80, _("ALL MISSIONS COMPLETE"), 0xFFFFFF44, 2);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              120, "YOU HAVE ESCAPED!", 0xFFAAAAFF, 1);
+                              120, _("YOU HAVE ESCAPED!"), 0xFFAAAAFF, 1);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              150, "PRESS ESCAPE", 0xFF888888, 1);
+                              150, _("PRESS ESCAPE"), 0xFF888888, 1);
                 break;
 
             case STATE_HELP: {
@@ -3218,7 +3218,7 @@ int main(int argc, char *argv[]) {
                 int ph = (gs.game_type == GAME_LIBERATION)
                     ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
                 memset(framebuffer, 0, (size_t)pw * ph * sizeof(uint32_t));
-                draw_centered(framebuffer, pw, ph, 5, "CONTROLS", 0xFFFFFF44, 2);
+                draw_centered(framebuffer, pw, ph, 5, _("CONTROLS"), 0xFFFFFF44, 2);
                 const char *help[] = {
                     "W/UP: Move forward",
                     "S/DOWN: Move backward",
@@ -3251,8 +3251,8 @@ int main(int argc, char *argv[]) {
                 for (int i = 0; i < pw * ph; i++)
                     framebuffer[i] = (framebuffer[i] & 0xFF000000)
                         | ((framebuffer[i] & 0xFEFEFE) >> 1);
-                draw_centered(framebuffer, pw, ph, 40, "PAUSED", 0xFFFFFFFF, 3);
-                const char *opts[] = {"RESUME", "SETTINGS", "QUIT"};
+                draw_centered(framebuffer, pw, ph, 40, _("PAUSED"), 0xFFFFFFFF, 3);
+                const char *opts[] = {_("RESUME"), _("SETTINGS"), _("QUIT")};
                 for (int i = 0; i < 3; i++) {
                     uint32_t c = (i == pause_cursor) ? 0xFFFFFF44 : 0xFF888888;
                     char buf[32];
@@ -3261,7 +3261,7 @@ int main(int argc, char *argv[]) {
                     draw_centered(framebuffer, pw, ph, 90 + i * 20, buf, c, 1);
                 }
                 draw_centered(framebuffer, pw, ph, ph - 20,
-                              "ESC: RESUME", 0xFF666666, 1);
+                              _("ESC: RESUME"), 0xFF666666, 1);
                 break;
             }
 
@@ -3270,7 +3270,7 @@ int main(int argc, char *argv[]) {
                 int ch = CAPTIVE_ORIGINAL_HEIGHT;
                 for (int i = 0; i < cw * ch; i++)
                     framebuffer[i] = 0xFF000000;
-                draw_centered(framebuffer, cw, ch, 10, "DROID CONFIGURATION", 0xFF00FF00, 2);
+                draw_centered(framebuffer, cw, ch, 10, _("DROID CONFIGURATION"), 0xFF00FF00, 2);
                 for (int d = 0; d < 4; d++) {
                     int yy = 45 + d * 35;
                     uint32_t col = (d == droid_config_cursor) ? 0xFFFFFF44 : 0xFF888888;
@@ -3294,7 +3294,7 @@ int main(int argc, char *argv[]) {
                     draw_simple_text(framebuffer, cw, ch, 10, ch - 35,
                                      "R:RENAME  S:SWAP WEAPONS", 0xFF666666, 1);
                 }
-                draw_centered(framebuffer, cw, ch, ch - 20, "ENTER: START MISSION", 0xFF00CC00, 1);
+                draw_centered(framebuffer, cw, ch, ch - 20, _("ENTER: START MISSION"), 0xFF00CC00, 1);
                 break;
             }
 
@@ -3303,7 +3303,7 @@ int main(int argc, char *argv[]) {
                 int mh = LIBERATION_SCREEN_HEIGHT;
                 for (int i = 0; i < mw * mh; i++)
                     framebuffer[i] = 0xFF000000;
-                draw_centered(framebuffer, mw, mh, 5, "CITY MAP", 0xFF00FF00, 2);
+                draw_centered(framebuffer, mw, mh, 5, _("CITY MAP"), 0xFF00FF00, 2);
                 int scale = 3;
                 int ox = (mw - 64 * scale) / 2;
                 int oy = 30;

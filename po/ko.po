@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-06 11:21+0200\n"
+"POT-Creation-Date: 2026-08-06 14:27+0200\n"
 "PO-Revision-Date: 2026-08-03\n"
 "Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
 "Language-Team: Korean\n"
@@ -31,351 +31,351 @@ msgstr ""
 msgid "City Records Office"
 msgstr ""
 
-#: src/engine/start_menu.c:905 src/engine/start_menu.c:1011
-#: src/engine/start_menu.c:1245
+#: src/engine/start_menu.c:907 src/engine/start_menu.c:1013
+#: src/engine/start_menu.c:1247
 msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
-#: src/engine/start_menu.c:906 src/engine/start_menu.c:1337
+#: src/engine/start_menu.c:908 src/engine/start_menu.c:1339 src/main.c:3255
 msgid "SETTINGS"
 msgstr "설정"
 
-#: src/engine/start_menu.c:915
+#: src/engine/start_menu.c:917
 msgid "RENDERER:"
 msgstr "렌더러:"
 
-#: src/engine/start_menu.c:915
+#: src/engine/start_menu.c:917
 msgid "WINDOW SIZE:"
 msgstr "창 크기:"
 
-#: src/engine/start_menu.c:915
+#: src/engine/start_menu.c:917
 msgid "SCALE:"
 msgstr "배율:"
 
-#: src/engine/start_menu.c:915
+#: src/engine/start_menu.c:917
 msgid "FULLSCREEN:"
 msgstr "전체화면:"
 
-#: src/engine/start_menu.c:916
+#: src/engine/start_menu.c:918
 msgid "INT SCALE:"
 msgstr "정수 확대:"
 
-#: src/engine/start_menu.c:916
+#: src/engine/start_menu.c:918
 msgid "VSYNC:"
 msgstr "VSYNC:"
 
-#: src/engine/start_menu.c:916
+#: src/engine/start_menu.c:918
 msgid "FPS LIMIT:"
 msgstr "FPS 제한:"
 
-#: src/engine/start_menu.c:916
+#: src/engine/start_menu.c:918
 msgid "FILTERING:"
 msgstr "필터링:"
 
-#: src/engine/start_menu.c:917
+#: src/engine/start_menu.c:919
 msgid "SCANLINES:"
 msgstr "주사선:"
 
-#: src/engine/start_menu.c:917
+#: src/engine/start_menu.c:919
 msgid "CRT CURVE:"
 msgstr "CRT 곡률:"
 
-#: src/engine/start_menu.c:917
+#: src/engine/start_menu.c:919
 msgid "BRIGHTNESS:"
 msgstr "밝기:"
 
-#: src/engine/start_menu.c:917
+#: src/engine/start_menu.c:919
 msgid "CONTRAST:"
 msgstr "명암:"
 
-#: src/engine/start_menu.c:918
+#: src/engine/start_menu.c:920
 msgid "GAMMA:"
 msgstr "감마:"
 
-#: src/engine/start_menu.c:918
+#: src/engine/start_menu.c:920
 msgid "VOLUME:"
 msgstr "음량:"
 
-#: src/engine/start_menu.c:918
+#: src/engine/start_menu.c:920
 msgid "MUSIC:"
 msgstr "음악:"
 
-#: src/engine/start_menu.c:918
+#: src/engine/start_menu.c:920
 msgid "SFX:"
 msgstr "효과음:"
 
-#: src/engine/start_menu.c:919
+#: src/engine/start_menu.c:921
 msgid "REVERB:"
 msgstr "리버브:"
 
-#: src/engine/start_menu.c:919
+#: src/engine/start_menu.c:921
 msgid "SAMPLE RATE:"
 msgstr "샘플링 레이트:"
 
-#: src/engine/start_menu.c:919
+#: src/engine/start_menu.c:921
 msgid "GAME SPEED:"
 msgstr "게임 속도:"
 
-#: src/engine/start_menu.c:919
+#: src/engine/start_menu.c:921
 msgid "MOUSE SENS:"
 msgstr "마우스 감도:"
 
-#: src/engine/start_menu.c:920 src/engine/start_menu.c:1090
+#: src/engine/start_menu.c:922 src/engine/start_menu.c:1092
 msgid "DATA PATH:"
 msgstr "데이터 경로:"
 
-#: src/engine/start_menu.c:920
+#: src/engine/start_menu.c:922
 msgid "LANGUAGE:"
 msgstr "언어:"
 
-#: src/engine/start_menu.c:920
+#: src/engine/start_menu.c:922
 msgid "ENHANCED:"
 msgstr "향상:"
 
-#: src/engine/start_menu.c:920
+#: src/engine/start_menu.c:922
 msgid "BACK"
 msgstr "뒤로"
 
-#: src/engine/start_menu.c:926 src/engine/start_menu.c:927
-#: src/engine/start_menu.c:928 src/engine/start_menu.c:932
-#: src/engine/start_menu.c:933 src/engine/start_menu.c:938
-#: src/engine/start_menu.c:939 src/engine/start_menu.c:940
-#: src/engine/start_menu.c:946 src/main.c:770
+#: src/engine/start_menu.c:928 src/engine/start_menu.c:929
+#: src/engine/start_menu.c:930 src/engine/start_menu.c:934
+#: src/engine/start_menu.c:935 src/engine/start_menu.c:940
+#: src/engine/start_menu.c:941 src/engine/start_menu.c:942
+#: src/engine/start_menu.c:948 src/main.c:774
 msgid "ON"
 msgstr "켬"
 
-#: src/engine/start_menu.c:926 src/engine/start_menu.c:927
-#: src/engine/start_menu.c:928 src/engine/start_menu.c:932
-#: src/engine/start_menu.c:933 src/engine/start_menu.c:938
-#: src/engine/start_menu.c:939 src/engine/start_menu.c:940
-#: src/engine/start_menu.c:946 src/main.c:770
+#: src/engine/start_menu.c:928 src/engine/start_menu.c:929
+#: src/engine/start_menu.c:930 src/engine/start_menu.c:934
+#: src/engine/start_menu.c:935 src/engine/start_menu.c:940
+#: src/engine/start_menu.c:941 src/engine/start_menu.c:942
+#: src/engine/start_menu.c:948 src/main.c:774
 msgid "OFF"
 msgstr "끔"
 
-#: src/engine/start_menu.c:929
+#: src/engine/start_menu.c:931
 msgid "UNLIMITED"
 msgstr "무제한"
 
-#: src/engine/start_menu.c:931 src/main.c:865
+#: src/engine/start_menu.c:933 src/main.c:873
 msgid "BILINEAR"
 msgstr "바이리니어"
 
-#: src/engine/start_menu.c:931
+#: src/engine/start_menu.c:933
 msgid "NEAREST"
 msgstr "최근접"
 
-#: src/engine/start_menu.c:997
+#: src/engine/start_menu.c:999
 msgid "TYPE PATH  ENTER: CONFIRM  ESC: CANCEL"
 msgstr "경로 입력  ENTER: 확인  ESC: 취소"
 
-#: src/engine/start_menu.c:998
+#: src/engine/start_menu.c:1000
 msgid "UP-DOWN: SELECT  LEFT-RIGHT: ADJUST  ESC: BACK"
 msgstr "위-아래: 선택  좌우: 조절  ESC: 뒤로"
 
-#: src/engine/start_menu.c:1015 src/engine/start_menu.c:1337
+#: src/engine/start_menu.c:1017 src/engine/start_menu.c:1339
 msgid "ABOUT"
 msgstr "정보"
 
-#: src/engine/start_menu.c:1016
+#: src/engine/start_menu.c:1018
 msgid "A reimplementation of:"
 msgstr "재구현:"
 
-#: src/engine/start_menu.c:1019
+#: src/engine/start_menu.c:1021
 msgid "CREDITS"
 msgstr "크레딧"
 
-#: src/engine/start_menu.c:1022
+#: src/engine/start_menu.c:1024
 msgid "TECHNOLOGY"
 msgstr "기술"
 
-#: src/engine/start_menu.c:1029 src/engine/start_menu.c:1077
+#: src/engine/start_menu.c:1031 src/engine/start_menu.c:1079
 msgid "PRESS ANY KEY TO RETURN"
 msgstr "아무 키나 눌러 돌아가기"
 
-#: src/engine/start_menu.c:1038 src/engine/start_menu.c:1353
+#: src/engine/start_menu.c:1040 src/engine/start_menu.c:1355 src/main.c:3221
 msgid "CONTROLS"
 msgstr "조작법"
 
-#: src/engine/start_menu.c:1042
+#: src/engine/start_menu.c:1044
 msgid "MOVEMENT"
 msgstr "이동"
 
-#: src/engine/start_menu.c:1044
+#: src/engine/start_menu.c:1046
 msgid "Move forward"
 msgstr "앞으로 이동"
 
-#: src/engine/start_menu.c:1046
+#: src/engine/start_menu.c:1048
 msgid "Move backward"
 msgstr "뒤로 이동"
 
-#: src/engine/start_menu.c:1048
+#: src/engine/start_menu.c:1050
 msgid "Turn left"
 msgstr "왼쪽 회전"
 
-#: src/engine/start_menu.c:1050
+#: src/engine/start_menu.c:1052
 msgid "Turn right"
 msgstr "오른쪽 회전"
 
-#: src/engine/start_menu.c:1052
+#: src/engine/start_menu.c:1054
 msgid "COMBAT & ITEMS"
 msgstr "전투 및 아이템"
 
-#: src/engine/start_menu.c:1054
+#: src/engine/start_menu.c:1056
 msgid "Fire weapon"
 msgstr "무기 발사"
 
-#: src/engine/start_menu.c:1056
+#: src/engine/start_menu.c:1058
 msgid "Use item / Interact"
 msgstr "아이템 사용 / 상호작용"
 
-#: src/engine/start_menu.c:1058
+#: src/engine/start_menu.c:1060
 msgid "Cycle droids"
 msgstr "드로이드 전환"
 
-#: src/engine/start_menu.c:1060
+#: src/engine/start_menu.c:1062
 msgid "Inventory"
 msgstr "인벤토리"
 
-#: src/engine/start_menu.c:1062
+#: src/engine/start_menu.c:1064
 msgid "SYSTEM"
 msgstr "시스템"
 
-#: src/engine/start_menu.c:1064
+#: src/engine/start_menu.c:1066
 msgid "Save / Load game"
 msgstr "저장 / 불러오기"
 
-#: src/engine/start_menu.c:1066
+#: src/engine/start_menu.c:1068
 msgid "Cycle save slots"
 msgstr "저장 슬롯 전환"
 
-#: src/engine/start_menu.c:1068
+#: src/engine/start_menu.c:1070
 msgid "Minimap / City map"
 msgstr "미니맵 / 도시 맵"
 
-#: src/engine/start_menu.c:1070
+#: src/engine/start_menu.c:1072
 msgid "Help screen"
 msgstr "도움말 화면"
 
-#: src/engine/start_menu.c:1072
+#: src/engine/start_menu.c:1074
 msgid "Pause menu"
 msgstr "일시정지 메뉴"
 
-#: src/engine/start_menu.c:1075
+#: src/engine/start_menu.c:1077
 msgid "Runtime options: graphics and cheats"
 msgstr "실시간 옵션: 그래픽 및 치트"
 
-#: src/engine/start_menu.c:1086
+#: src/engine/start_menu.c:1088
 msgid "DATA SCANNER"
 msgstr "데이터 스캐너"
 
-#: src/engine/start_menu.c:1095
+#: src/engine/start_menu.c:1097
 msgid "Scanning Captive hashes..."
 msgstr "Captive 해시 스캔 중..."
 
-#: src/engine/start_menu.c:1096
+#: src/engine/start_menu.c:1098
 msgid "Scanning Liberation data..."
 msgstr "Liberation 데이터 스캔 중..."
 
-#: src/engine/start_menu.c:1116
+#: src/engine/start_menu.c:1118
 #, c-format
 msgid "ZIP archives found: %d"
 msgstr "ZIP 아카이브 발견: %d"
 
-#: src/engine/start_menu.c:1119
+#: src/engine/start_menu.c:1121
 #, c-format
 msgid "Captive: %d / %d %s"
 msgstr ""
 
-#: src/engine/start_menu.c:1126
+#: src/engine/start_menu.c:1128
 #, c-format
 msgid "Liberation: %d / %d %s"
 msgstr ""
 
-#: src/engine/start_menu.c:1133
+#: src/engine/start_menu.c:1135
 msgid "VERIFICATION"
 msgstr "검증"
 
-#: src/engine/start_menu.c:1135
+#: src/engine/start_menu.c:1137
 msgid "Files identified by SHA-256 content hash, not filename."
 msgstr "파일은 SHA-256 콘텐츠 해시로 식별됩니다 (파일 이름이 아님)."
 
-#: src/engine/start_menu.c:1138
+#: src/engine/start_menu.c:1140
 msgid "Nested ZIPs, ADF disk images, and ISO tracks are scanned."
 msgstr "중첩된 ZIP, ADF 디스크 이미지 및 ISO 트랙이 스캔됩니다."
 
-#: src/engine/start_menu.c:1141
+#: src/engine/start_menu.c:1143
 msgid "No filenames are trusted; only content determines identity."
 msgstr "파일 이름은 신뢰하지 않습니다. 콘텐츠만이 동일성을 결정합니다."
 
-#: src/engine/start_menu.c:1145
+#: src/engine/start_menu.c:1147
 msgid "ESC: BACK"
 msgstr "ESC: 뒤로"
 
-#: src/engine/start_menu.c:1164
+#: src/engine/start_menu.c:1166
 msgid "GAME DATA NOT FOUND"
 msgstr "게임 데이터를 찾을 수 없음"
 
-#: src/engine/start_menu.c:1167
+#: src/engine/start_menu.c:1169
 msgid "OpenCaptive needs original game data files to run."
 msgstr "OpenCaptive를 실행하려면 원본 게임 데이터 파일이 필요합니다."
 
-#: src/engine/start_menu.c:1170
+#: src/engine/start_menu.c:1172
 msgid "Place your game data in the following folder:"
 msgstr "게임 데이터를 다음 폴더에 넣어 주세요:"
 
-#: src/engine/start_menu.c:1175
+#: src/engine/start_menu.c:1177
 msgid "Supported formats: ZIP archives, ADF, ISO, raw files."
 msgstr "지원 형식: ZIP 아카이브, ADF, ISO, 원시 파일."
 
-#: src/engine/start_menu.c:1178
+#: src/engine/start_menu.c:1180
 msgid "Files are identified by SHA-256 hash, not filename."
 msgstr "파일은 SHA-256 해시로 식별됩니다 (파일 이름이 아님)."
 
-#: src/engine/start_menu.c:1181
+#: src/engine/start_menu.c:1183
 msgid "You can change the data path in Settings (S)."
 msgstr "데이터 경로는 설정 (S)에서 변경할 수 있습니다."
 
-#: src/engine/start_menu.c:1184
+#: src/engine/start_menu.c:1186
 msgid "PRESS ANY KEY TO CONTINUE"
 msgstr "아무 키나 눌러 계속하기"
 
-#: src/engine/start_menu.c:1198
+#: src/engine/start_menu.c:1200
 msgid "SELECT GAME"
 msgstr "게임 선택"
 
-#: src/engine/start_menu.c:1200 src/engine/start_menu.c:1214
+#: src/engine/start_menu.c:1202 src/engine/start_menu.c:1216
 msgid "UP-DOWN: SELECT  ENTER: START  ESC: QUIT"
 msgstr "위-아래: 선택  ENTER: 시작  ESC: 종료"
 
-#: src/engine/start_menu.c:1204
+#: src/engine/start_menu.c:1206
 msgid "CAPTIVE DOS"
 msgstr "CAPTIVE DOS"
 
-#: src/engine/start_menu.c:1204
+#: src/engine/start_menu.c:1206
 msgid "CAPTIVE AMIGA"
 msgstr "CAPTIVE AMIGA"
 
-#: src/engine/start_menu.c:1205
+#: src/engine/start_menu.c:1207
 msgid "LIBERATION CD32"
 msgstr ""
 
-#: src/engine/start_menu.c:1205
+#: src/engine/start_menu.c:1207
 msgid "LIBERATION AMIGA"
 msgstr ""
 
-#: src/engine/start_menu.c:1248
+#: src/engine/start_menu.c:1250
 msgid "BY DANIEL NYLANDER"
 msgstr "제작자 DANIEL NYLANDER"
 
-#: src/engine/start_menu.c:1316 src/engine/start_menu.c:1317
+#: src/engine/start_menu.c:1318 src/engine/start_menu.c:1319
 msgid "CONTINUE"
 msgstr "계속"
 
-#: src/engine/start_menu.c:1353
+#: src/engine/start_menu.c:1355 src/main.c:3255
 msgid "QUIT"
 msgstr "종료"
 
-#: src/engine/start_menu.c:1367
+#: src/engine/start_menu.c:1369
 msgid ""
 "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS  F10: IN-GAME "
 "OPTIONS"
@@ -427,176 +427,6 @@ msgstr ""
 
 #: src/engine/terminal.c:196
 msgid "ESC:BACK"
-msgstr ""
-
-#: src/main.c:774
-msgid "LOW"
-msgstr "낮음"
-
-#: src/main.c:774
-msgid "HIGH"
-msgstr "높음"
-
-#: src/main.c:774
-msgid "NORMAL"
-msgstr "보통"
-
-#: src/main.c:862
-msgid "ENHANCED DISPLAY"
-msgstr "향상된 화면"
-
-#: src/main.c:863
-msgid "SCANLINES"
-msgstr "스캔라인"
-
-#: src/main.c:864
-msgid "CRT CURVE"
-msgstr "CRT 곡선"
-
-#: src/main.c:866
-msgid "TEXTURE FILTER"
-msgstr "텍스처 필터"
-
-#: src/main.c:867
-msgid "DYNAMIC LIGHTING"
-msgstr "동적 조명"
-
-#: src/main.c:868
-msgid "BRIGHTNESS"
-msgstr "밝기"
-
-#: src/main.c:869
-msgid "MUSIC"
-msgstr "음악"
-
-#: src/main.c:870
-msgid "SFX"
-msgstr "효과음"
-
-#: src/main.c:871
-msgid "GOD MODE"
-msgstr "신 모드"
-
-#: src/main.c:872
-msgid "INFINITE ENERGY"
-msgstr "무한 에너지"
-
-#: src/main.c:873
-msgid "MINIMAP"
-msgstr "미니맵"
-
-#: src/main.c:874
-msgid "REVEAL MAP"
-msgstr "지도 전체 표시"
-
-#: src/main.c:875
-msgid "DEBUG HUD"
-msgstr "디버그 HUD"
-
-#: src/main.c:876
-msgid "COMPLETE OBJECTIVE"
-msgstr "목표 완료"
-
-#: src/main.c:877
-msgid "CLOSE"
-msgstr "닫기"
-
-#: src/main.c:888
-msgid "RUNTIME OPTIONS"
-msgstr "실행 옵션"
-
-#: src/main.c:889
-msgid "F10 OR ESC CLOSE"
-msgstr "F10 또는 ESC로 닫기"
-
-#: src/main.c:914
-msgid "ACTIVATE"
-msgstr "활성화"
-
-#: src/main.c:919
-msgid "UP DOWN ENTER TOGGLE"
-msgstr "위 아래 Enter 전환"
-
-#: src/main.c:1107 src/main.c:1184
-msgid "Fine paid. Rep +15"
-msgstr ""
-
-#: src/main.c:1117 src/main.c:1194
-#, c-format
-msgid "Industrial hazard! %d damage!"
-msgstr ""
-
-#: src/main.c:1132 src/main.c:1209
-msgid "Bar fight! Rep -10"
-msgstr ""
-
-#: src/main.c:1161
-msgid "Shared inventory is full."
-msgstr ""
-
-#: src/main.c:1165
-#, c-format
-msgid "Purchased: %s"
-msgstr ""
-
-#: src/main.c:1169
-msgid "Cannot buy that item."
-msgstr ""
-
-#: src/main.c:1238
-msgid "Entered building interior"
-msgstr ""
-
-#: src/main.c:1353
-msgid "Taxi: 50 gold"
-msgstr ""
-
-#: src/main.c:1501
-msgid "Creature destroyed!"
-msgstr ""
-
-#: src/main.c:1506
-msgid "LEVEL UP!"
-msgstr ""
-
-#: src/main.c:1511
-#, c-format
-msgid "Droid %d fires!"
-msgstr ""
-
-#: src/main.c:1660
-#, c-format
-msgid "Droid %d picked up item"
-msgstr ""
-
-#: src/main.c:1676
-msgid "Fell into a pit!"
-msgstr ""
-
-#: src/main.c:1680
-msgid "Click!"
-msgstr ""
-
-#: src/main.c:2463
-msgid "Left building"
-msgstr ""
-
-#: src/main.c:2474
-msgid "Mission complete. Rep +20"
-msgstr "임무 완료. 평판 +20"
-
-#: src/main.c:3028
-#, c-format
-msgid "Droid %d hit for %d!"
-msgstr ""
-
-#: src/main.c:3036
-#, c-format
-msgid "Droid %d destroyed!"
-msgstr ""
-
-#: src/main.c:3043
-msgid "All droids destroyed! Mission failed."
 msgstr ""
 
 #: src/game/liberation_npc_dialogue.c:64
@@ -809,6 +639,248 @@ msgstr ""
 #, c-format
 msgid "This is %s. We're not taking visitors right now."
 msgstr "여기는 %s입니다. 지금은 방문객을 받지 않습니다."
+
+#: src/main.c:778
+msgid "LOW"
+msgstr "낮음"
+
+#: src/main.c:778
+msgid "HIGH"
+msgstr "높음"
+
+#: src/main.c:778
+msgid "NORMAL"
+msgstr "보통"
+
+#: src/main.c:870
+msgid "ENHANCED DISPLAY"
+msgstr "향상된 화면"
+
+#: src/main.c:871
+msgid "SCANLINES"
+msgstr "스캔라인"
+
+#: src/main.c:872
+msgid "CRT CURVE"
+msgstr "CRT 곡선"
+
+#: src/main.c:874
+msgid "TEXTURE FILTER"
+msgstr "텍스처 필터"
+
+#: src/main.c:875
+msgid "DYNAMIC LIGHTING"
+msgstr "동적 조명"
+
+#: src/main.c:876
+msgid "BRIGHTNESS"
+msgstr "밝기"
+
+#: src/main.c:877
+msgid "MUSIC"
+msgstr "음악"
+
+#: src/main.c:878
+msgid "SFX"
+msgstr "효과음"
+
+#: src/main.c:879
+msgid "GOD MODE"
+msgstr "신 모드"
+
+#: src/main.c:880
+msgid "INFINITE ENERGY"
+msgstr "무한 에너지"
+
+#: src/main.c:881
+msgid "MINIMAP"
+msgstr "미니맵"
+
+#: src/main.c:882
+msgid "REVEAL MAP"
+msgstr "지도 전체 표시"
+
+#: src/main.c:883
+msgid "DEBUG HUD"
+msgstr "디버그 HUD"
+
+#: src/main.c:884
+msgid "COMPLETE OBJECTIVE"
+msgstr "목표 완료"
+
+#: src/main.c:885
+msgid "CLOSE"
+msgstr "닫기"
+
+#: src/main.c:896
+msgid "RUNTIME OPTIONS"
+msgstr "실행 옵션"
+
+#: src/main.c:897
+msgid "F10 OR ESC CLOSE"
+msgstr "F10 또는 ESC로 닫기"
+
+#: src/main.c:922
+msgid "ACTIVATE"
+msgstr "활성화"
+
+#: src/main.c:927
+msgid "UP DOWN ENTER TOGGLE"
+msgstr "위 아래 Enter 전환"
+
+#: src/main.c:1121 src/main.c:1201
+msgid "Fine paid. Rep +15"
+msgstr ""
+
+#: src/main.c:1131 src/main.c:1211
+#, c-format
+msgid "Industrial hazard! %d damage!"
+msgstr ""
+
+#: src/main.c:1148 src/main.c:1228
+msgid "Bar fight! Rep -10"
+msgstr ""
+
+#: src/main.c:1177
+msgid "Shared inventory is full."
+msgstr ""
+
+#: src/main.c:1181
+#, c-format
+msgid "Purchased: %s"
+msgstr ""
+
+#: src/main.c:1185
+msgid "Cannot buy that item."
+msgstr ""
+
+#: src/main.c:1257
+msgid "Entered building interior"
+msgstr ""
+
+#: src/main.c:1372
+msgid "Taxi: 50 gold"
+msgstr ""
+
+#: src/main.c:1523
+msgid "Creature destroyed!"
+msgstr ""
+
+#: src/main.c:1528
+msgid "LEVEL UP!"
+msgstr ""
+
+#: src/main.c:1533
+#, c-format
+msgid "Droid %d fires!"
+msgstr ""
+
+#: src/main.c:1682
+#, c-format
+msgid "Droid %d picked up item"
+msgstr ""
+
+#: src/main.c:1698
+msgid "Fell into a pit!"
+msgstr ""
+
+#: src/main.c:1702
+msgid "Click!"
+msgstr ""
+
+#: src/main.c:2485
+msgid "Left building"
+msgstr ""
+
+#: src/main.c:2496
+msgid "Mission complete. Rep +20"
+msgstr "임무 완료. 평판 +20"
+
+#: src/main.c:2874
+msgid "PRESS ENTER TO BEGIN"
+msgstr ""
+
+#: src/main.c:2924
+msgid "TAXI"
+msgstr ""
+
+#: src/main.c:2941
+msgid "COMBAT"
+msgstr ""
+
+#: src/main.c:2962 src/main.c:3206
+msgid "VICTORY!"
+msgstr ""
+
+#: src/main.c:2962
+msgid "DEFEATED"
+msgstr ""
+
+#: src/main.c:3050
+#, c-format
+msgid "Droid %d hit for %d!"
+msgstr ""
+
+#: src/main.c:3058
+#, c-format
+msgid "Droid %d destroyed!"
+msgstr ""
+
+#: src/main.c:3065
+msgid "All droids destroyed! Mission failed."
+msgstr ""
+
+#: src/main.c:3103
+msgid "INVENTORY"
+msgstr ""
+
+#: src/main.c:3142
+msgid "SHARED ITEMS"
+msgstr ""
+
+#: src/main.c:3174
+msgid "GAME OVER"
+msgstr ""
+
+#: src/main.c:3176
+msgid "ALL DROIDS DESTROYED"
+msgstr ""
+
+#: src/main.c:3178 src/main.c:3212
+msgid "PRESS ESCAPE"
+msgstr ""
+
+#: src/main.c:3208
+msgid "ALL MISSIONS COMPLETE"
+msgstr ""
+
+#: src/main.c:3210
+msgid "YOU HAVE ESCAPED!"
+msgstr ""
+
+#: src/main.c:3254
+msgid "PAUSED"
+msgstr ""
+
+#: src/main.c:3255
+msgid "RESUME"
+msgstr ""
+
+#: src/main.c:3264
+msgid "ESC: RESUME"
+msgstr ""
+
+#: src/main.c:3273
+msgid "DROID CONFIGURATION"
+msgstr ""
+
+#: src/main.c:3297
+msgid "ENTER: START MISSION"
+msgstr ""
+
+#: src/main.c:3306
+msgid "CITY MAP"
+msgstr ""
 
 #~ msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
 #~ msgstr "화살표: 선택  ENTER: 시작  D: 데이터 스캔  F1: 조작법"

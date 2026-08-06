@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Synliga skärmrubriker och statusmeddelanden i spelvyn går nu genom l10n,
+  och POT samt samtliga 18 översatta kataloger är uppdaterade. Engelska är
+  fallback för strängar som ännu saknar en lokal översättning.
 - Architect-baskartor får nu en minsta spelbar täthet per logisk våning.
   Detta förhindrar att vissa seedvärden, bland annat 161, skapar en
   underdimensionerad rotvåning.

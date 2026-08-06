@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Runtime screen localization)
+
+- Synliga rubriker och statusmeddelanden i spelvyn använder nu samma l10n-väg
+  som startmenyn, inklusive paus, spel över, seger, droidkonfiguration,
+  stadsöversikt och Liberation-strid.
+- POT-filen och alla 18 översatta kataloger uppdaterades; engelska är den
+  nittonde fallbacken när en katalog saknar en översättning.
+- PO-filerna validerades med `msgfmt` och i18n-regressionstestet passerar.
+
 ## 2026-08-06 (Architect base density)
 
 - Kampanjans Architect-generator garanterar nu minst 21 spelbara celler per
