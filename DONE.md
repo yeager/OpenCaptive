@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (VFS scan performance)
+
+- Lade till en billig probe-signatur för datarot och upptäckta ZIP-filer.
+- Full metadata-signatur räknas nu bara om när probe-signaturen för datarot
+  eller arkiv ändras, så arkivbaserade hashuppslag skannar inte hela
+  dataträdet upprepade gånger.
+- `test_data_vfs` passerar på 1,87 sekunder i Werror-byggningen.
+
 ## 2026-08-06 (Liberation F9 world restore)
 
 - F9 regenererar nu Liberation-staden från sparfilens mission och seed innan

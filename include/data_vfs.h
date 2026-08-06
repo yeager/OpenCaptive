@@ -25,6 +25,8 @@ typedef struct {
     bool initialized;
     char cache_signature[65];
     bool cache_signature_valid;
+    char cache_probe_signature[65];
+    bool cache_probe_signature_valid;
 } DataVFS;
 
 bool vfs_init(DataVFS *vfs, const char *data_path);

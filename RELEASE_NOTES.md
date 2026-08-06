@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- VFS-cachevalideringen använder nu en billig metadata-probe per hashuppslag
+  och räknar bara om hela dataträdets signatur när datarot eller arkiv har
+  ändrats. Det undviker upprepade metadata-pass genom samma arkivscan.
 - Liberation F9 bygger nu om den seedade staden innan sparat tillstånd
   återställs, så ett uppdrag från en annan session inte blandas med gamla
   byggnader och navigeringsceller.
