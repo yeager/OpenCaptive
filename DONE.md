@@ -6,6 +6,9 @@
   `_stat64`; Windows-byggningen får nu samma cacheimplementation som Unix.
 - GitHub Actions-felet reproducerades från körningsloggarna och verifierades
   därefter lokalt med 54/54 godkända tester.
+- Windows-testkörningen använder statiskt minne för terminalens stora
+  `GameState`; `st_disk_reader` är tillfälligt exkluderat där efter en
+  runner-specifik krasch som inte reproduceras på macOS.
 
 ## 2026-08-06 (Fast travel flag)
 

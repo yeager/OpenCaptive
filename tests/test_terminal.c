@@ -17,7 +17,7 @@ static void test_inactive_terminal_ignores_input(void) {
 
 static void test_terminal_render_clips_small_framebuffer(void) {
     TerminalState ts;
-    GameState gs;
+    static GameState gs;
     uint32_t pixels[16 * 16];
     memset(&gs, 0, sizeof(gs));
     gs.current_level = 0;
