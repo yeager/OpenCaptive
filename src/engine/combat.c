@@ -266,11 +266,19 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     int fwd_x = (int[]){0,1,0,-1}[gs->party_dir];
     int fwd_y = (int[]){-1,0,1,0}[gs->party_dir];
 
-    bool is_melee = (d->weapons[0] == 0 && d->weapons[1] == 0);
-    if (!is_melee) {
-        uint8_t wid = d->weapons[0] ? d->weapons[0] : d->weapons[1];
-        if (wid >= 13 && wid <= 17) is_melee = true;
+    /* A droid may carry one weapon in each hand.  The damage field stores
+     * the strongest equipped weapon, while the old range check only looked
+     * at the first non-empty hand.  That made a melee weapon in hand 0 hide
+     * a ranged weapon in hand 1 and prevented attacks beyond one tile. */
+    bool has_ranged_weapon = false;
+    for (int w = 0; w < 2; w++) {
+        uint8_t wid = d->weapons[w];
+        if (wid != 0 && (wid < 13 || wid > 17)) {
+            has_ranged_weapon = true;
+            break;
+        }
     }
+    bool is_melee = !has_ranged_weapon;
     int attack_range = is_melee ? 1 : 6;
 
     Creature *target = NULL;

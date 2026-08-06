@@ -5,6 +5,8 @@
 ### Release and CI hardening
 - Legacy Liberation saves now restore full armor condition when loaded from
   versions that predate the body-part durability field.
+- Droids carrying a melee weapon in one hand and a ranged weapon in the other
+  now retain ranged attack distance instead of being limited to one tile.
 - Captive's launcher no longer presents verified Amiga ADF data as a playable
   version before a native Amiga graphics adapter exists; `--verify-data` still
   validates that media for development.

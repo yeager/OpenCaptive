@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Mixed droid weapons)
+
+- Droidar med närstridsvapen i ena handen och skjutvapen i den andra kan nu
+  använda skjutvapnets räckvidd i stället för att felaktigt begränsas till en
+  ruta.
+- Lade till regressionstest för kombinationen närstridsvapen/skjutvapen.
+
 ## 2026-08-06 (Legacy Liberation armor state)
 
 - Äldre Liberation-saves utan body-part-fält återställer nu droidarnas
