@@ -977,13 +977,18 @@ static const char *popup_label(int item) {
 static void popup_render(const GameState *gs, const CustomFeatures *features,
                          uint32_t *fb, int pw, int ph) {
     int x = 6, y = 6, w = pw - 12, h = ph - 12;
+    bool compact = ph < 190;
+    int row_start = y + (compact ? 20 : 29);
+    int row_step = compact ? 7 : 9;
     draw_rect(fb, pw, ph, x, y, w, h, 0xFF101420);
     draw_rect(fb, pw, ph, x, y, w, 2, 0xFF55CCFF);
     draw_rect(fb, pw, ph, x, y + h - 2, w, 2, 0xFF55CCFF);
-    draw_centered(fb, pw, ph, y + 7, _("RUNTIME OPTIONS"), 0xFFFFFFFF, 1);
-    draw_centered(fb, pw, ph, y + 17, _("F10 OR ESC CLOSE"), 0xFF99AACC, 1);
+    draw_centered(fb, pw, ph, y + (compact ? 2 : 7),
+                  _("RUNTIME OPTIONS"), 0xFFFFFFFF, 1);
+    if (!compact)
+        draw_centered(fb, pw, ph, y + 17, _("F10 OR ESC CLOSE"), 0xFF99AACC, 1);
     for (int i = 0; i < POPUP_ITEMS; i++) {
-        int row_y = y + 29 + i * 9;
+        int row_y = row_start + i * row_step;
         uint32_t color = i == runtime_popup.selected ? 0xFFFFFF44 : 0xFFCCDDEE;
         draw_simple_text(fb, pw, ph, x + 12, row_y, popup_label(i), color, 1);
         const char *value = "";
@@ -1011,7 +1016,9 @@ static void popup_render(const GameState *gs, const CustomFeatures *features,
         }
         draw_simple_text(fb, pw, ph, x + w - 80, row_y, value, color, 1);
     }
-    draw_centered(fb, pw, ph, y + h - 10, _("UP DOWN ENTER TOGGLE"), 0xFF99AACC, 1);
+    if (!compact)
+        draw_centered(fb, pw, ph, y + h - 10,
+                      _("UP DOWN ENTER TOGGLE"), 0xFF99AACC, 1);
 }
 
 static void restore_liberation_save_state(GameState *gs_ptr,

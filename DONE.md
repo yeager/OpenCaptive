@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (F10-popup i Liberation)
+
+- F10-popupen använder nu kompakt radlayout på Liberation-canvasens 320×162
+  pixlar, så alla grafik- och fuskalternativ förblir synliga och valbara.
+- Den onödiga skrivningen i startmenyns setup-popup är borttagen; riktad
+  Clang Static Analyzer-körning för startmeny och data-VFS är nu tyst.
+- Riktig `.opencaptive`-data verifierar Captive, Liberation och båda
+  Liberation-första bildrutorna.
+- Werror-kompilering och hela testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (Uppstartsljud och intro)
 
 - Startmenyns samplingsfrekvens bygger nu om SDL-ljudströmmen och MIDI-

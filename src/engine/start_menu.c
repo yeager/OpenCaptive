@@ -1147,12 +1147,12 @@ static void render_scanner(StartMenu *menu, uint32_t *pixels, int width, int hei
         ttf_text(pixels, width, height, 100, y,
                  _("Files identified by SHA-256 content hash, not filename."),
                  small, 0xFF88AACC); y += 20;
-        ttf_text(pixels, width, height, 100, y,
-                 _("Nested ZIPs, ADF disk images, and ISO tracks are scanned."),
-                 small, 0xFF88AACC); y += 20;
-        ttf_text(pixels, width, height, 100, y,
-                 _("No filenames are trusted; only content determines identity."),
-                 small, 0xFF88AACC);
+    ttf_text(pixels, width, height, 100, y,
+             _("Nested ZIPs, ADF disk images, and ISO tracks are scanned."),
+             small, 0xFF88AACC); y += 20;
+    ttf_text(pixels, width, height, 100, y,
+             _("No filenames are trusted; only content determines identity."),
+             small, 0xFF88AACC);
     }
 
     ttf_text_centered(pixels, width, height, height - 30, _("ESC: BACK"), small, 0xFF555555);
@@ -1192,7 +1192,6 @@ static void render_setup_popup(StartMenu *menu, uint32_t *pixels, int width, int
     y += 35;
     ttf_text(pixels, width, height, px + 30, y,
              _("You can change the data path in Settings (S)."), body, 0xFFFFCC44);
-    y += 40;
     ttf_text_centered(pixels, width, height, py + ph - 35,
                       _("PRESS ANY KEY TO CONTINUE"), small, 0xFF555555);
 }
