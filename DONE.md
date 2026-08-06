@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Portable Captive save format)
+
+- Captive-sparningar använder nu explicit little-endian-serialisering för
+  header, droids, varelser och pussel i formatversion 5.
+- Äldre native-format v3/v4 kan fortfarande läsas.
+- Lade till test som kontrollerar den fasta version 5-headern och verifierade
+  `test_save_load` samt Werror-kompilering.
+
 ## 2026-08-06 (Live VFS cache invalidation)
 
 - VFS:en räknar om källmetadata före varje cacheuppslag, så ett utbytt ZIP-

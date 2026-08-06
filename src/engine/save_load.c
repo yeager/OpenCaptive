@@ -9,7 +9,8 @@
 #endif
 
 #define SAVE_MAGIC 0x4F435356  // "OCSV" - OpenCaptive Save
-#define SAVE_VERSION 4
+#define SAVE_VERSION 5
+#define SAVE_VERSION_RAW 4
 #define SAVE_VERSION_LEGACY 3
 
 typedef struct {
@@ -32,6 +33,168 @@ typedef struct {
     uint32_t tick;
     int32_t  selected_droid;
 } SaveHeader;
+
+static bool write_u16_le(FILE *f, uint16_t value) {
+    uint8_t bytes[2] = {(uint8_t)value, (uint8_t)(value >> 8)};
+    return f && fwrite(bytes, 1, sizeof(bytes), f) == sizeof(bytes);
+}
+
+static bool write_u32_le(FILE *f, uint32_t value) {
+    uint8_t bytes[4] = {(uint8_t)value, (uint8_t)(value >> 8),
+                        (uint8_t)(value >> 16), (uint8_t)(value >> 24)};
+    return f && fwrite(bytes, 1, sizeof(bytes), f) == sizeof(bytes);
+}
+
+static bool write_i16_le(FILE *f, int16_t value) {
+    return write_u16_le(f, (uint16_t)value);
+}
+
+static bool write_i32_le(FILE *f, int32_t value) {
+    return write_u32_le(f, (uint32_t)value);
+}
+
+static bool read_u16_le(FILE *f, uint16_t *value) {
+    uint8_t bytes[2];
+    if (!f || !value || fread(bytes, 1, sizeof(bytes), f) != sizeof(bytes)) return false;
+    *value = (uint16_t)bytes[0] | ((uint16_t)bytes[1] << 8);
+    return true;
+}
+
+static bool read_u32_le(FILE *f, uint32_t *value) {
+    uint8_t bytes[4];
+    if (!f || !value || fread(bytes, 1, sizeof(bytes), f) != sizeof(bytes)) return false;
+    *value = (uint32_t)bytes[0] | ((uint32_t)bytes[1] << 8) |
+             ((uint32_t)bytes[2] << 16) | ((uint32_t)bytes[3] << 24);
+    return true;
+}
+
+static bool read_i16_le(FILE *f, int16_t *value) {
+    uint16_t raw;
+    if (!read_u16_le(f, &raw)) return false;
+    *value = (int16_t)raw;
+    return true;
+}
+
+static bool read_i32_le(FILE *f, int32_t *value) {
+    uint32_t raw;
+    if (!read_u32_le(f, &raw)) return false;
+    *value = (int32_t)raw;
+    return true;
+}
+
+static bool write_header_v5(FILE *f, const SaveHeader *hdr) {
+    const uint32_t fields[] = {
+        hdr->magic, hdr->version, hdr->game_type, hdr->mission,
+        hdr->mission_seed, hdr->base_id, (uint32_t)hdr->party_x,
+        (uint32_t)hdr->party_y, hdr->party_dir, (uint32_t)hdr->current_level,
+        (uint32_t)hdr->num_levels, (uint32_t)hdr->generators_total,
+        (uint32_t)hdr->generators_destroyed, (uint32_t)hdr->gold,
+        (uint32_t)hdr->num_creatures, (uint32_t)hdr->num_puzzles,
+        hdr->tick, (uint32_t)hdr->selected_droid,
+    };
+    for (size_t i = 0; i < sizeof(fields) / sizeof(fields[0]); ++i)
+        if (!write_u32_le(f, fields[i])) return false;
+    return true;
+}
+
+static bool read_header(FILE *f, SaveHeader *hdr) {
+    uint32_t first[2];
+    if (!read_u32_le(f, &first[0]) || !read_u32_le(f, &first[1])) return false;
+    hdr->magic = first[0];
+    hdr->version = first[1];
+    if (hdr->version == SAVE_VERSION) {
+        uint32_t fields[16];
+        for (size_t i = 0; i < sizeof(fields) / sizeof(fields[0]); ++i)
+            if (!read_u32_le(f, &fields[i])) return false;
+        hdr->game_type = fields[0];
+        hdr->mission = fields[1];
+        hdr->mission_seed = fields[2];
+        hdr->base_id = fields[3];
+        hdr->party_x = (int32_t)fields[4];
+        hdr->party_y = (int32_t)fields[5];
+        hdr->party_dir = fields[6];
+        hdr->current_level = (int32_t)fields[7];
+        hdr->num_levels = (int32_t)fields[8];
+        hdr->generators_total = (int32_t)fields[9];
+        hdr->generators_destroyed = (int32_t)fields[10];
+        hdr->gold = (int32_t)fields[11];
+        hdr->num_creatures = (int32_t)fields[12];
+        hdr->num_puzzles = (int32_t)fields[13];
+        hdr->tick = fields[14];
+        hdr->selected_droid = (int32_t)fields[15];
+        return true;
+    }
+    /* Version 3/4 used the native SaveHeader layout.  Keep this compatibility
+     * path for existing saves; new files never use it. */
+    return fread((uint8_t *)hdr + sizeof(uint32_t) * 2,
+                 1, sizeof(*hdr) - sizeof(uint32_t) * 2, f) ==
+           sizeof(*hdr) - sizeof(uint32_t) * 2;
+}
+
+static bool write_droid_v5(FILE *f, const Droid *d) {
+    return fwrite(d->name, 1, sizeof(d->name), f) == sizeof(d->name) &&
+           write_i16_le(f, d->hp) && write_i16_le(f, d->hp_max) &&
+           write_i16_le(f, d->energy) && write_i16_le(f, d->energy_max) &&
+           fwrite(d->body_parts, 1, sizeof(d->body_parts), f) == sizeof(d->body_parts) &&
+           fwrite(d->body_part_hp, 1, sizeof(d->body_part_hp), f) == sizeof(d->body_part_hp) &&
+           fwrite(d->weapons, 1, sizeof(d->weapons), f) == sizeof(d->weapons) &&
+           fwrite(d->items, 1, sizeof(d->items), f) == sizeof(d->items) &&
+           fwrite(d->skill_levels, 1, sizeof(d->skill_levels), f) == sizeof(d->skill_levels) &&
+           write_u32_le(f, d->xp) && write_u16_le(f, d->weapon_damage);
+}
+
+static bool read_droid_v5(FILE *f, Droid *d) {
+    return fread(d->name, 1, sizeof(d->name), f) == sizeof(d->name) &&
+           read_i16_le(f, &d->hp) && read_i16_le(f, &d->hp_max) &&
+           read_i16_le(f, &d->energy) && read_i16_le(f, &d->energy_max) &&
+           fread(d->body_parts, 1, sizeof(d->body_parts), f) == sizeof(d->body_parts) &&
+           fread(d->body_part_hp, 1, sizeof(d->body_part_hp), f) == sizeof(d->body_part_hp) &&
+           fread(d->weapons, 1, sizeof(d->weapons), f) == sizeof(d->weapons) &&
+           fread(d->items, 1, sizeof(d->items), f) == sizeof(d->items) &&
+           fread(d->skill_levels, 1, sizeof(d->skill_levels), f) == sizeof(d->skill_levels) &&
+           read_u32_le(f, &d->xp) && read_u16_le(f, &d->weapon_damage);
+}
+
+static bool write_creature_v5(FILE *f, const Creature *c) {
+    return write_u32_le(f, (uint32_t)c->type) &&
+           write_i16_le(f, c->hp) && write_i16_le(f, c->hp_max) &&
+           write_i16_le(f, c->damage_min) && write_i16_le(f, c->damage_max) &&
+           write_i16_le(f, c->defense) && fwrite(&c->speed, 1, 1, f) == 1 &&
+           fwrite(&c->range, 1, 1, f) == 1 && write_i32_le(f, c->x) &&
+           write_i32_le(f, c->y) && write_i32_le(f, c->level) &&
+           fwrite(&c->cooldown, 1, 1, f) == 1 && fwrite(&c->active, 1, 1, f) == 1 &&
+           fwrite(&c->alerted, 1, 1, f) == 1 && write_u16_le(f, c->respawn_timer);
+}
+
+static bool read_creature_v5(FILE *f, Creature *c) {
+    uint32_t type;
+    return read_u32_le(f, &type) && (c->type = (CreatureType)type, true) &&
+           read_i16_le(f, &c->hp) && read_i16_le(f, &c->hp_max) &&
+           read_i16_le(f, &c->damage_min) && read_i16_le(f, &c->damage_max) &&
+           read_i16_le(f, &c->defense) && fread(&c->speed, 1, 1, f) == 1 &&
+           fread(&c->range, 1, 1, f) == 1 && read_i32_le(f, &c->x) &&
+           read_i32_le(f, &c->y) && read_i32_le(f, &c->level) &&
+           fread(&c->cooldown, 1, 1, f) == 1 && fread(&c->active, 1, 1, f) == 1 &&
+           fread(&c->alerted, 1, 1, f) == 1 && read_u16_le(f, &c->respawn_timer);
+}
+
+static bool write_puzzle_v5(FILE *f, const Puzzle *p) {
+    return write_u32_le(f, (uint32_t)p->type) && write_i32_le(f, p->x) &&
+           write_i32_le(f, p->y) && write_i32_le(f, p->level) &&
+           write_i32_le(f, p->face) && fwrite(&p->state, 1, 1, f) == 1 &&
+           fwrite(&p->solution, 1, 1, f) == 1 && write_i32_le(f, p->target_x) &&
+           write_i32_le(f, p->target_y) && fwrite(&p->solved, 1, 1, f) == 1;
+}
+
+static bool read_puzzle_v5(FILE *f, Puzzle *p) {
+    uint32_t type;
+    return read_u32_le(f, &type) && (p->type = (PuzzleType)type, true) &&
+           read_i32_le(f, &p->x) && read_i32_le(f, &p->y) &&
+           read_i32_le(f, &p->level) && read_i32_le(f, &p->face) &&
+           fread(&p->state, 1, 1, f) == 1 && fread(&p->solution, 1, 1, f) == 1 &&
+           read_i32_le(f, &p->target_x) && read_i32_le(f, &p->target_y) &&
+           fread(&p->solved, 1, 1, f) == 1;
+}
 
 static bool valid_puzzle_target(const Puzzle *p) {
     if (!p) return false;
@@ -134,8 +297,9 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
         .selected_droid = gs->selected_droid,
     };
 
-    bool ok = fwrite(&hdr, sizeof(hdr), 1, f) == 1 &&
-              fwrite(gs->droids, sizeof(gs->droids), 1, f) == 1;
+    bool ok = write_header_v5(f, &hdr);
+    for (size_t i = 0; ok && i < sizeof(gs->droids) / sizeof(gs->droids[0]); ++i)
+        ok = write_droid_v5(f, &gs->droids[i]);
 
     // Save dungeon state (doors opened, generators destroyed, etc.)
     for (int i = 0; i < gs->num_levels; i++) {
@@ -151,11 +315,10 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
         }
     }
 
-    if (fwrite(creatures->creatures, sizeof(Creature),
-               (size_t)creatures->num_creatures, f) != (size_t)creatures->num_creatures ||
-        fwrite(puzzles->puzzles, sizeof(Puzzle),
-               (size_t)puzzles->num_puzzles, f) != (size_t)puzzles->num_puzzles)
-        ok = false;
+    for (int i = 0; ok && i < creatures->num_creatures; ++i)
+        ok = write_creature_v5(f, &creatures->creatures[i]);
+    for (int i = 0; ok && i < puzzles->num_puzzles; ++i)
+        ok = write_puzzle_v5(f, &puzzles->puzzles[i]);
 
     if (fclose(f) != 0) ok = false;
     if (!ok) {
@@ -180,9 +343,10 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
     if (!f) return false;
 
     SaveHeader hdr;
-    if (fread(&hdr, sizeof(hdr), 1, f) != 1) { fclose(f); return false; }
+    if (!read_header(f, &hdr)) { fclose(f); return false; }
     if (hdr.magic != SAVE_MAGIC ||
-        (hdr.version != SAVE_VERSION && hdr.version != SAVE_VERSION_LEGACY) ||
+        (hdr.version != SAVE_VERSION && hdr.version != SAVE_VERSION_RAW &&
+         hdr.version != SAVE_VERSION_LEGACY) ||
         hdr.game_type != GAME_CAPTIVE || hdr.mission == 0 ||
         hdr.mission > INT_MAX || hdr.base_id > INT_MAX ||
         hdr.party_x < 0 || hdr.party_x >= MAP_WIDTH ||
@@ -228,8 +392,12 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
     restored->tick = hdr.tick;
     restored->selected_droid = hdr.selected_droid;
 
-    if (fread(restored->droids, sizeof(restored->droids), 1, f) != 1)
+    if (hdr.version == SAVE_VERSION) {
+        for (size_t i = 0; i < sizeof(restored->droids) / sizeof(restored->droids[0]); ++i)
+            if (!read_droid_v5(f, &restored->droids[i])) LOAD_FAIL();
+    } else if (fread(restored->droids, sizeof(restored->droids), 1, f) != 1) {
         LOAD_FAIL();
+    }
     for (size_t i = 0; i < sizeof(restored->droids) / sizeof(restored->droids[0]); ++i) {
         restored->droids[i].name[sizeof(restored->droids[i].name) - 1] = '\0';
         const Droid *droid = &restored->droids[i];
@@ -247,7 +415,7 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
                 if (fread(&type, 1, 1, f) != 1 || type > CELL_PIT)
                     LOAD_FAIL();
                 restored->levels[i].cells[y][x].type = (CellType)type;
-                if (hdr.version >= SAVE_VERSION) {
+                if (hdr.version >= SAVE_VERSION_RAW) {
                     if (fread(&restored->levels[i].cells[y][x].item_id, 1, 1, f) != 1)
                         LOAD_FAIL();
                 }
@@ -257,10 +425,15 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
 
     restored_creatures.num_creatures = hdr.num_creatures;
     restored_puzzles.num_puzzles = hdr.num_puzzles;
-    if (fread(restored_creatures.creatures, sizeof(Creature),
-              (size_t)hdr.num_creatures, f) != (size_t)hdr.num_creatures ||
-        fread(restored_puzzles.puzzles, sizeof(Puzzle),
-              (size_t)hdr.num_puzzles, f) != (size_t)hdr.num_puzzles) {
+    if (hdr.version == SAVE_VERSION) {
+        for (int i = 0; i < restored_creatures.num_creatures; ++i)
+            if (!read_creature_v5(f, &restored_creatures.creatures[i])) LOAD_FAIL();
+        for (int i = 0; i < restored_puzzles.num_puzzles; ++i)
+            if (!read_puzzle_v5(f, &restored_puzzles.puzzles[i])) LOAD_FAIL();
+    } else if (fread(restored_creatures.creatures, sizeof(Creature),
+                     (size_t)hdr.num_creatures, f) != (size_t)hdr.num_creatures ||
+               fread(restored_puzzles.puzzles, sizeof(Puzzle),
+                     (size_t)hdr.num_puzzles, f) != (size_t)hdr.num_puzzles) {
         LOAD_FAIL();
     }
     for (int i = 0; i < restored_creatures.num_creatures; i++) {

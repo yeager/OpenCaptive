@@ -38,6 +38,20 @@ static void test_round_trip(void) {
     };
 
     assert(save_game(&saved, &saved_creatures, &saved_puzzles, save_path));
+    /* Version 5 is a fixed little-endian stream, not a dump of C structs.
+     * Check the public header bytes so a future refactor cannot silently
+     * reintroduce architecture-dependent saves. */
+    FILE *encoded = fopen(save_path, "rb");
+    assert(encoded != NULL);
+    unsigned char header_prefix[16] = {0};
+    assert(fread(header_prefix, 1, sizeof(header_prefix), encoded) == sizeof(header_prefix));
+    assert(header_prefix[0] == 'V' && header_prefix[1] == 'S' &&
+           header_prefix[2] == 'C' && header_prefix[3] == 'O');
+    assert(header_prefix[4] == 5 && header_prefix[5] == 0 &&
+           header_prefix[6] == 0 && header_prefix[7] == 0);
+    assert(header_prefix[12] == 17 && header_prefix[13] == 0 &&
+           header_prefix[14] == 0 && header_prefix[15] == 0);
+    assert(fclose(encoded) == 0);
     memset(&loaded, 0, sizeof(loaded));
     static const char data_path[] = "/tmp/opencaptive-data";
     loaded.config.render_mode = CAPTIVE_RENDER_ENHANCED;

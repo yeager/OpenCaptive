@@ -3,6 +3,10 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Captive-sparningar använder nu ett explicit little-endian-format i version 5.
+  Nya filer är oberoende av C-strukturernas padding och enumstorlek och kan
+  flyttas mellan macOS, Windows och Linux; äldre v3/v4-filer kan fortfarande
+  läsas.
 - En cache-signatur omräknas nu vid varje hashuppslag. Om ett ZIP-arkiv byts
   ut medan samma VFS-instans lever kan gamla cacheposter inte återanvändas.
 - VFS-cachedata och cachemetadata skrivs nu till processunika temporära filer

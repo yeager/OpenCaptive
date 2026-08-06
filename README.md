@@ -78,7 +78,7 @@ reverse-engineered; Captive gameplay parity is likewise still under review.
 ### Start menu
 - Game cards with SHA-256 data verification status (checkmark/cross)
 - Continue game from existing saves
-- Settings panel (16 options: display, audio, language, data path)
+- Settings panel (24 options: display, audio, language, data path and gameplay)
 - Audio output can be set to 22,050, 44,100 or 48,000 Hz; the choice applies
   when the next game session starts and is shared by SFX and MIDI playback
 - About/Credits screen
