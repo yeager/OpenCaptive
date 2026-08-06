@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (VFS-cache utan upprepad katalogskanning)
+
+- Dataskannern beräknar nu rotens cache-signatur en gång när VFS:en öppnas.
+- Varje cachepost verifierar dessutom sin ursprungliga lösa fil eller ZIP-fil
+  med en egen metadatafingeravtryckning, så ändrade källor invalideras även
+  medan samma VFS-instans används.
+- Ett flerfilsuppslag går därför inte längre igenom hela dataträdet för varje
+  hash, samtidigt som ersatta ZIP- och lösfiler fortsatt nekas gammal data.
+
 ## 2026-08-06 (Isolerat VFS-test)
 
 - `test_data_vfs` kör nu i en unik temporär arbetskatalog i stället för i

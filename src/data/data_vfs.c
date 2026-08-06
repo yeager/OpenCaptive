@@ -32,7 +32,6 @@
 
 static int compare_zip_paths(const void *left, const void *right);
 static void vfs_cache_signature(const DataVFS *vfs, char out[65]);
-static void vfs_cache_probe_signature(const DataVFS *vfs, char out[65]);
 static bool cache_source_signature(const char *path, char out[65]);
 
 static uint16_t read_u16(const uint8_t *p) {
@@ -522,8 +521,6 @@ bool vfs_init(DataVFS *vfs, const char *data_path) {
           compare_zip_paths);
     vfs_cache_signature(vfs, vfs->cache_signature);
     vfs->cache_signature_valid = true;
-    vfs_cache_probe_signature(vfs, vfs->cache_probe_signature);
-    vfs->cache_probe_signature_valid = true;
     vfs->initialized = true;
     printf("VFS: data path = %s, found %d ZIP archive(s)\n",
            vfs->data_path, vfs->num_zips);
@@ -775,28 +772,6 @@ static void vfs_cache_signature(const DataVFS *vfs, char out[65]) {
     out[64] = '\0';
 }
 
-/* Probe the complete metadata tree.  A directory timestamp is not guaranteed
- * to change when a file is replaced on Windows, so probing only the data root
- * can leave a live VFS using a stale global cache signature.  This still
- * avoids reading or hashing file contents; the per-source fingerprint in the
- * cache entry remains the final validation for loose files. */
-static void vfs_cache_probe_signature(const DataVFS *vfs, char out[65]) {
-    SHA256Context ctx;
-    uint8_t digest[32];
-    sha256_init(&ctx);
-    sha256_update(&ctx, (const uint8_t *)vfs->data_path,
-                  strlen(vfs->data_path) + 1);
-    cache_tree_metadata(&ctx, vfs->data_path, 0);
-    for (int i = 0; i < vfs->num_zips; ++i) {
-        struct stat st;
-        if (stat(vfs->zip_paths[i], &st) == 0)
-            cache_meta_update(&ctx, vfs->zip_paths[i], &st);
-    }
-    sha256_final(&ctx, digest);
-    for (int i = 0; i < 32; ++i) snprintf(out + i * 2, 3, "%02x", digest[i]);
-    out[64] = '\0';
-}
-
 static const char *vfs_cache_home(void) {
     const char *home = getenv("HOME");
     /* Windows normally exposes the user directory as USERPROFILE rather
@@ -849,12 +824,15 @@ static uint8_t *vfs_cache_read(const char hash[65], const char signature[65],
     *source_signature++ = '\0';
     char *end = strchr(source_signature, '\n');
     if (end) *end = '\0';
-    if (source_path[0]) {
-        char current_source_signature[65];
-        if (!cache_source_signature(source_path, current_source_signature) ||
-            strcmp(source_signature, current_source_signature) != 0)
-            return NULL;
-    }
+    /* Every v2 entry must identify the exact loose file or archive that
+     * supplied it.  Older entries for archive data had an empty source path;
+     * reject those instead of returning a payload without a source-level
+     * freshness check. */
+    if (!source_path[0]) return NULL;
+    char current_source_signature[65];
+    if (!cache_source_signature(source_path, current_source_signature) ||
+        strcmp(source_signature, current_source_signature) != 0)
+        return NULL;
     size_t cached_size = 0;
     uint8_t *cached = read_regular_file(data_path, &cached_size);
     if (!cached) return NULL;
@@ -1025,11 +1003,12 @@ static uint8_t *find_hash_in_directory(const char *path, const char expected_sha
 
 uint8_t *vfs_find_sha256(const DataVFS *vfs, const char expected_sha256[65], size_t *out_size) {
     if (!vfs || !vfs->initialized || !valid_sha256_text(expected_sha256)) return NULL;
-    char probe[65], signature[65];
-    vfs_cache_probe_signature(vfs, probe);
-    bool probe_changed = !vfs->cache_probe_signature_valid ||
-                         strcmp(probe, vfs->cache_probe_signature) != 0;
-    if (probe_changed || !vfs->cache_signature_valid) {
+    char signature[65];
+    /* The VFS signature is fixed when the instance is opened.  Cache entries
+     * carry their own source fingerprint, so probing the complete metadata
+     * tree for every hash would only make a multi-file startup scan walk the
+     * entire data root repeatedly. */
+    if (!vfs->cache_signature_valid) {
         vfs_cache_signature(vfs, signature);
     } else {
         memcpy(signature, vfs->cache_signature, sizeof(signature));
@@ -1052,7 +1031,8 @@ uint8_t *vfs_find_sha256(const DataVFS *vfs, const char expected_sha256[65], siz
         uint8_t *data = zip_find_sha256(vfs->zip_paths[i], expected_sha256, &found_size);
         if (data) {
             if (out_size) *out_size = found_size;
-            vfs_cache_write(expected_sha256, data, found_size, signature, NULL);
+            vfs_cache_write(expected_sha256, data, found_size, signature,
+                            vfs->zip_paths[i]);
             return data;
         }
     }
