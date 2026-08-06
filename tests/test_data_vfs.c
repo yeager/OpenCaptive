@@ -8,14 +8,35 @@
 
 #ifdef _WIN32
 #include <direct.h>
+#include <process.h>
 #define TEST_MKDIR(path) _mkdir(path)
 #define TEST_RMDIR(path) _rmdir(path)
+#define TEST_CHDIR(path) _chdir(path)
+#define TEST_GETCWD(buf, size) _getcwd((buf), (int)(size))
 #else
 #include <sys/stat.h>
 #include <unistd.h>
 #define TEST_MKDIR(path) mkdir(path, 0755)
 #define TEST_RMDIR(path) rmdir(path)
+#define TEST_CHDIR(path) chdir(path)
+#define TEST_GETCWD(buf, size) getcwd((buf), (size))
 #endif
+
+static bool create_test_root(char *path, size_t path_size) {
+#ifdef _WIN32
+    for (unsigned attempt = 0; attempt < 100U; ++attempt) {
+        if (snprintf(path, path_size, "test-vfs-root-%lu-%u",
+                     (unsigned long)_getpid(), attempt) >= (int)path_size)
+            return false;
+        if (TEST_MKDIR(path) == 0) return true;
+    }
+    return false;
+#else
+    if (snprintf(path, path_size, "test-vfs-root-XXXXXX") >= (int)path_size)
+        return false;
+    return mkdtemp(path) != NULL;
+#endif
+}
 
 static void put16(FILE *f, unsigned value) {
     fputc(value & 0xff, f);
@@ -312,6 +333,12 @@ static void test_finds_hash_in_nested_zip(void) {
 }
 
 int main(void) {
+    char original_cwd[1024];
+    char test_root[1024];
+    assert(TEST_GETCWD(original_cwd, sizeof(original_cwd)) != NULL);
+    assert(create_test_root(test_root, sizeof(test_root)));
+    assert(TEST_CHDIR(test_root) == 0);
+
     vfs_free(NULL);
     test_reads_prefixed_case_insensitive_zip_entry();
     test_replacing_zip_invalidates_live_cache();
@@ -324,6 +351,9 @@ int main(void) {
     test_reads_empty_stored_zip_entry();
     test_reads_empty_deflated_zip_entry();
     test_finds_hash_in_nested_zip();
+
+    assert(TEST_CHDIR(original_cwd) == 0);
+    assert(TEST_RMDIR(test_root) == 0);
     puts("All data VFS tests passed");
     return 0;
 }

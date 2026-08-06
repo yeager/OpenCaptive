@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Isolerat VFS-test)
+
+- `test_data_vfs` kör nu i en unik temporär arbetskatalog i stället för i
+  hela bygg- eller repoträdet.
+- Testet lämnar inga fixturefiler i projektroten och blir därmed snabbare och
+  mer förutsägbart i sanitizers och CI.
+
 ## 2026-08-06 (Säker UTF-8-avkodning i runtime-popup)
 
 - Den lilla pixeltext-renderaren kontrollerar nu att UTF-8-fortsättningsbytes
