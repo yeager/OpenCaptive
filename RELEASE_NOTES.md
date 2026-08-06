@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- `--widescreen` är nu kopplat till presentationen och expanderar nativebilden
+  till 16:9 (eller vald `widescreen_width`) utan att ändra verifierad native-
+  framebuffer.
 - `--hd-upscale` och `--upscale-factor` använder nu xBRZ i den faktiska
   framebuffer-presenteringen för Captive och Liberation; tidigare var flaggorna
   bara konfigurerade utan synlig effekt.
@@ -584,7 +587,8 @@
 All features behind flags, parity mode stays pristine. Enable individually or `--all-features`.
 
 - **HD upscaling**: xBRZ 2x/3x/4x edge-aware pixel art upscaler (`--hd-upscale`, `--upscale-factor`)
-- **Widescreen viewport**: extended viewport width beyond original bounds (`--widescreen`)
+- **Widescreen presentation**: output canvas expansion beyond original aspect
+  ratio (`--widescreen`); the verified native framebuffer remains unchanged
 - **Multi-slot quicksave**: 10 save slots, F5 save, F6 cycle slot, F9 load (`--quicksave`)
 - **Minimap overlay**: real-time minimap with configurable size/opacity, F8 toggle (`--minimap`)
 - **Mouse-look**: FPS-style mouse turning with configurable sensitivity (`--mouse-look`)

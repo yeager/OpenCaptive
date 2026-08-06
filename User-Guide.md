@@ -89,6 +89,7 @@ opencaptive --data /path/to/your/media --lang sv
 | `--contrast <N>` | Contrast level 0-100 (default: 50) |
 | `--hd-upscale` | Apply xBRZ upscaling to native game frames |
 | `--upscale-factor <N>` | xBRZ factor: 2, 3 or 4 (implies `--hd-upscale`) |
+| `--widescreen` | Expand the game presentation horizontally to 16:9 |
 | `--renderer <mode>` | Render mode: `original` or `enhanced` |
 | `--platform <name>` | Platform variant: `dos`, `amiga`, or `atarist` |
 
@@ -197,6 +198,10 @@ The settings panel contains 16 configurable items:
 The F10 popup applies display changes immediately while playing. God Mode and
 Infinite Energy affect both Captive and Liberation; Escape or F10 closes the
 popup.
+
+`--widescreen` changes only the presentation canvas; it does not invent extra
+world geometry outside the verified native frame. Set `widescreen_width` in a
+features configuration file to request a specific output width.
 
 ### Speed
 

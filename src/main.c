@@ -2827,6 +2827,9 @@ int main(int argc, char *argv[]) {
         renderer_set_upscale(&renderer,
                              custom.hd_upscale && frame_width <= 640 && frame_height <= 400,
                              custom.upscale_factor);
+        renderer_set_widescreen(&renderer,
+                                custom.widescreen && frame_width <= 640 && frame_height <= 400,
+                                custom.widescreen_width);
 
         memset(framebuffer, 0, (size_t)frame_width * frame_height * sizeof(uint32_t));
 

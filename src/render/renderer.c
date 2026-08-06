@@ -22,13 +22,25 @@ static bool renderer_create_framebuffer(OpenCaptiveRenderer *r, int width, int h
     return true;
 }
 
-static bool renderer_texture_size(int width, int height, bool enabled, int factor,
+static bool renderer_texture_size(int width, int height, bool widescreen,
+                                  int widescreen_width, bool enabled, int factor,
                                   int *out_width, int *out_height) {
     if (!out_width || !out_height || width <= 0 || height <= 0) return false;
     if (!enabled) factor = 1;
-    if (factor < 1 || factor > 4 || width > INT_MAX / factor || height > INT_MAX / factor)
+    if (factor < 1 || factor > 4) return false;
+    int base_width = width;
+    if (widescreen) {
+        if (widescreen_width > 0) {
+            base_width = widescreen_width;
+        } else {
+            if (height > (INT_MAX - 8) / 16) return false;
+            base_width = (height * 16 + 8) / 9;
+        }
+        if (base_width < width) base_width = width;
+    }
+    if (base_width > INT_MAX / factor || height > INT_MAX / factor)
         return false;
-    *out_width = width * factor;
+    *out_width = base_width * factor;
     *out_height = height * factor;
     return true;
 }
@@ -69,6 +81,8 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
     r->canvas_height = CAPTIVE_ORIGINAL_HEIGHT;
     r->hd_upscale = false;
     r->upscale_factor = 1;
+    r->widescreen = false;
+    r->widescreen_width = 0;
     if (!renderer_create_framebuffer(r, r->canvas_width, r->canvas_height)) {
         fprintf(stderr, "SDL_CreateTexture: %s\n", SDL_GetError());
         SDL_DestroyRenderer(r->renderer);
@@ -91,7 +105,8 @@ bool renderer_set_canvas(OpenCaptiveRenderer *r, int width, int height,
                          const OpenCaptiveConfig *config) {
     if (!r || !r->renderer || !config || width <= 0 || height <= 0) return false;
     int texture_width, texture_height;
-    if (!renderer_texture_size(width, height, r->hd_upscale, r->upscale_factor,
+    if (!renderer_texture_size(width, height, r->widescreen, r->widescreen_width,
+                               r->hd_upscale, r->upscale_factor,
                                &texture_width, &texture_height)) return false;
     if (r->canvas_width != width || r->canvas_height != height ||
         r->texture_width != texture_width || r->texture_height != texture_height) {
@@ -128,7 +143,9 @@ void renderer_set_upscale(OpenCaptiveRenderer *r, bool enabled, int factor) {
     if (!enabled) factor = 1;
     if (factor < 1 || factor > 4) return;
     int texture_width, texture_height;
-    if (!renderer_texture_size(r->canvas_width, r->canvas_height, enabled, factor,
+    if (!renderer_texture_size(r->canvas_width, r->canvas_height,
+                               r->widescreen, r->widescreen_width,
+                               enabled, factor,
                                &texture_width, &texture_height)) return;
     if (r->hd_upscale == enabled && r->upscale_factor == factor &&
         r->texture_width == texture_width && r->texture_height == texture_height)
@@ -140,16 +157,36 @@ void renderer_set_upscale(OpenCaptiveRenderer *r, bool enabled, int factor) {
         renderer_bilinear ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
 }
 
+void renderer_set_widescreen(OpenCaptiveRenderer *r, bool enabled, int width) {
+    if (!r || !r->renderer) return;
+    if (width < 0) width = 0;
+    int texture_width, texture_height;
+    if (!renderer_texture_size(r->canvas_width, r->canvas_height, enabled, width,
+                               r->hd_upscale, r->upscale_factor,
+                               &texture_width, &texture_height)) return;
+    if (r->widescreen == enabled && r->widescreen_width == width &&
+        r->texture_width == texture_width && r->texture_height == texture_height)
+        return;
+    if (!renderer_create_framebuffer(r, texture_width, texture_height)) return;
+    r->widescreen = enabled;
+    r->widescreen_width = width;
+    SDL_SetTextureScaleMode(r->framebuffer,
+        renderer_bilinear ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
+}
+
 void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
     if (!r || !r->renderer || !r->framebuffer) return;
     if (pixels) {
         uint32_t *upscaled = NULL;
+        uint32_t *widened = NULL;
         uint32_t *processed = NULL;
         const uint32_t *source = pixels;
         int render_width = r->canvas_width;
         int render_height = r->canvas_height;
         if (r->hd_upscale && r->upscale_factor > 1) {
-            size_t pixel_count = (size_t)r->texture_width * (size_t)r->texture_height;
+            int upscale_width = r->canvas_width * r->upscale_factor;
+            int upscale_height = r->canvas_height * r->upscale_factor;
+            size_t pixel_count = (size_t)upscale_width * (size_t)upscale_height;
             if (pixel_count <= SIZE_MAX / sizeof(*upscaled))
                 upscaled = (uint32_t *)SDL_malloc(pixel_count * sizeof(*upscaled));
             if (upscaled) {
@@ -160,8 +197,26 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
                     default: break;
                 }
                 source = upscaled;
+                render_width = upscale_width;
+                render_height = upscale_height;
+            }
+        }
+        if (r->widescreen && render_width != r->texture_width) {
+            size_t pixel_count = (size_t)r->texture_width * (size_t)render_height;
+            if (pixel_count <= SIZE_MAX / sizeof(*widened))
+                widened = (uint32_t *)SDL_malloc(pixel_count * sizeof(*widened));
+            if (widened) {
+                for (int y = 0; y < render_height; ++y) {
+                    for (int x = 0; x < r->texture_width; ++x) {
+                        int source_x = (int)((int64_t)x * render_width /
+                                             r->texture_width);
+                        if (source_x >= render_width) source_x = render_width - 1;
+                        widened[y * r->texture_width + x] =
+                            source[y * render_width + source_x];
+                    }
+                }
+                source = widened;
                 render_width = r->texture_width;
-                render_height = r->texture_height;
             }
         }
         bool apply_curvature = renderer_crt_curvature &&
@@ -202,6 +257,7 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
         SDL_UpdateTexture(r->framebuffer, NULL, source,
                           render_width * sizeof(uint32_t));
         if (processed && source == processed) SDL_free(processed);
+        if (widened) SDL_free(widened);
         if (upscaled) SDL_free(upscaled);
     }
 

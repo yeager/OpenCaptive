@@ -93,6 +93,8 @@ bool custom_features_load(CustomFeatures *f, const char *path) {
             restored.upscale_factor = 2;
         if (restored.widescreen_width < 0)
             restored.widescreen_width = 0;
+        if (restored.widescreen_width > 4096)
+            restored.widescreen_width = 0;
         if (restored.minimap_opacity < 0.0f || restored.minimap_opacity > 1.0f)
             restored.minimap_opacity = 0.6f;
         if (restored.minimap_size < 32 || restored.minimap_size > 192)

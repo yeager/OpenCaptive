@@ -83,6 +83,7 @@ static void test_save_load(void) {
     fputs("game_speed=nan\n", malformed);
     fputs("minimap_opacity=2\n", malformed);
     fputs("minimap_size=-1\n", malformed);
+    fputs("widescreen_width=999999\n", malformed);
     fputs("audio_sample_rate=12345\n", malformed);
     assert(fclose(malformed) == 0);
     custom_features_defaults(&f2);
@@ -91,6 +92,7 @@ static void test_save_load(void) {
     assert(f2.game_speed > 0.9f && f2.game_speed < 1.1f);
     assert(f2.minimap_opacity > 0.5f && f2.minimap_opacity < 0.7f);
     assert(f2.minimap_size == 96);
+    assert(f2.widescreen_width == 0);
     assert(f2.audio_sample_rate == 44100);
     remove(path);
 }

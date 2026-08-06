@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Widescreen presentation)
+
+- Kopplade `--widescreen` till SDL-presenteringen med automatisk 16:9-bredd
+  och stöd för begränsad `widescreen_width` i feature-konfigurationen.
+- Native-framebuffer och capture-formatet förblir oförändrade.
+- Lade till validering så orimliga konfigurationsbredder faller tillbaka till
+  automatisk bredd.
+
 ## 2026-08-06 (HD framebuffer upscaling)
 
 - Kopplade `--hd-upscale` och `--upscale-factor` till den gemensamma SDL-

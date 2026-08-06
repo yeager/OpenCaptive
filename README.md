@@ -48,6 +48,8 @@ The sequel expands into a cyberpunk city setting with hundreds of interactive bu
 - Save/load with multiple slots
 - Optional display enhancements: scanlines, CRT curvature, bilinear filtering, integer scaling
 - Optional xBRZ framebuffer upscaling at 2x, 3x or 4x (`--hd-upscale`)
+- Optional widescreen presentation (`--widescreen`), using a 16:9 output or
+  the configured `widescreen_width`; native game frames remain unchanged
 - Gamepad and keyboard controls
 
 ### Captive
@@ -133,6 +135,7 @@ Place your game data files (ZIP archives, loose files, ADF disk images) in the d
 | `--verify-data captive\|liberation` | Verify game data and exit |
 | `--hd-upscale` | Apply xBRZ upscaling to native game frames |
 | `--upscale-factor <N>` | xBRZ factor: 2, 3 or 4 (implies `--hd-upscale`) |
+| `--widescreen` | Expand the game presentation horizontally to 16:9 |
 | `--version` | Show version and exit |
 | `--help` | Show help and exit |
 

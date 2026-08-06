@@ -18,6 +18,8 @@ typedef struct {
     bool integer_scaling;
     bool hd_upscale;
     int upscale_factor;
+    bool widescreen;
+    int widescreen_width;
 } OpenCaptiveRenderer;
 
 bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config);
@@ -27,6 +29,7 @@ bool renderer_set_canvas(OpenCaptiveRenderer *r, int width, int height,
 void renderer_set_effects(OpenCaptiveRenderer *r, bool bilinear, bool scanlines,
                           bool crt_curvature, int brightness, int contrast);
 void renderer_set_upscale(OpenCaptiveRenderer *r, bool enabled, int factor);
+void renderer_set_widescreen(OpenCaptiveRenderer *r, bool enabled, int width);
 void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels);
 void renderer_shutdown(OpenCaptiveRenderer *r);
 
