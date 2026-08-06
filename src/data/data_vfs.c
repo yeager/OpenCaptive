@@ -465,6 +465,11 @@ static void scan_for_zips_recursive(DataVFS *vfs, const char *path, int depth) {
     if (handle == INVALID_HANDLE_VALUE) return;
     do {
         if (!strcmp(entry.cFileName, ".") || !strcmp(entry.cFileName, "..")) continue;
+        /* The persistent verification cache may live below the selected data
+         * root (for example when the user chooses HOME).  It is an
+         * implementation detail, not game data, and must not make the source
+         * signature change after every cache write. */
+        if (!strcmp(entry.cFileName, ".cache")) continue;
         char child[1024];
         if (snprintf(child, sizeof(child), "%s\\%s", path, entry.cFileName) >=
             (int)sizeof(child)) continue;
@@ -719,6 +724,12 @@ static void cache_tree_metadata(SHA256Context *ctx, const char *path, int depth)
     for (int i = 0; i < entry_count; ++i) {
         struct dirent *entry = entries[i];
         if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
+            free(entry);
+            continue;
+        }
+        /* Keep the internal persistent cache out of source metadata when the
+         * selected data root contains the user's cache directory. */
+        if (!strcmp(entry->d_name, ".cache")) {
             free(entry);
             continue;
         }

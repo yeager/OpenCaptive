@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Intern cache undantas från metadata)
+
+- VFS-cachekatalogen `.cache` räknas inte längre som speldata när vald
+  datarot omfattar användarens hemkatalog.
+- Cache-skrivningar kan därför inte själva orsaka nya signaturer och onödiga
+  omläsningar.
+- `data_vfs`-testet passerar efter ändringen.
+
 ## 2026-08-06 (Manuell CI-körning)
 
 - Build-workflowen stöder nu `workflow_dispatch`, så aktuell `main` kan
