@@ -985,12 +985,19 @@ static const char *popup_brightness(int value) {
 
 static void popup_apply_cheats(GameState *gs) {
     if (!gs) return;
+    bool restored_health = false;
     if (runtime_popup.invulnerable) {
         for (int i = 0; i < 4; ++i) gs->droids[i].hp = gs->droids[i].hp_max;
+        restored_health = true;
     }
     if (runtime_popup.infinite_energy) {
         for (int i = 0; i < 4; ++i) gs->droids[i].energy = gs->droids[i].energy_max;
     }
+    /* A lethal hazard may set game-over during the same input event that was
+     * processed after the popup's previous frame.  Invulnerability must undo
+     * that transient transition as well as restore the droid HP. */
+    if (restored_health && gs->mode == STATE_GAMEOVER)
+        gs->mode = STATE_GAME;
 }
 
 static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
@@ -1068,6 +1075,7 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
     renderer_set_effects(renderer, config->bilinear, config->scanlines,
                          config->crt_curvature,
                          config->brightness, config->contrast, config->gamma);
+    popup_apply_cheats(gs);
 }
 
 static const char *popup_label(int item) {
@@ -2824,6 +2832,7 @@ int main(int argc, char *argv[]) {
                                     msg_push(_("Left building"), 0xFF44AAFF);
                                 } else {
                                     game_handle_input(&gs, &event);
+                                    popup_apply_cheats(&gs);
                                     if (gs.generators_destroyed >= gs.generators_total &&
                                         gs.generators_total > 0) {
                                         lib_in_dungeon = false;
@@ -2845,6 +2854,7 @@ int main(int argc, char *argv[]) {
                                 }
                             } else {
                                 liberation_handle_input(&gs, &event);
+                                popup_apply_cheats(&gs);
                             }
                         }
                     } else {
@@ -2855,6 +2865,7 @@ int main(int argc, char *argv[]) {
                          * Captive appear frozen even where its original-data
                          * shell and verified map path were loaded. */
                         game_handle_input(&gs, &event);
+                        popup_apply_cheats(&gs);
                     }
                     break;
                 case STATE_TERMINAL:
@@ -3451,6 +3462,7 @@ int main(int argc, char *argv[]) {
                             replay_event.key.key = replay_decode_key(input->action);
                             if (replay_event.key.key != SDLK_UNKNOWN)
                                 game_handle_input(&gs, &replay_event);
+                            popup_apply_cheats(&gs);
                         }
                     }
                     gs.tick++;

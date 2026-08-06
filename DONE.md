@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive F10-realtidsfusk)
+
+- `Invulnerable` och `Infinite energy` appliceras nu direkt när F10-popupens
+  val ändras och efter gameplay-input, även om samma event annars skulle ha
+  utlöst game-over.
+- Lokal Werror/CTest: 58/58 tester passerar.
+
 ## 2026-08-06 (Captive save-positioner)
 
 - Save/load avvisar nu party- och creature-positioner på väggar eller
