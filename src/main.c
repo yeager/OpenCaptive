@@ -1933,6 +1933,14 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "--scale must be an integer from 1 to 5\n");
                 return 2;
             }
+            /* Keep the command-line scale meaningful even though the
+             * settings menu now supplies an explicit default window size.
+             * A later --resolution still overrides this, as expected for
+             * command-line options processed from left to right. */
+            config.window_width = CAPTIVE_ORIGINAL_WIDTH * config.scale_factor;
+            config.window_height = CAPTIVE_ORIGINAL_HEIGHT * config.scale_factor;
+            if (config.window_width < 640) config.window_width = 640;
+            if (config.window_height < 400) config.window_height = 400;
         } else if (strcmp(argv[i], "--resolution") == 0 && i + 1 < argc) {
             int rw = 0, rh = 0;
             if (parse_resolution_option(argv[++i], &rw, &rh)) {

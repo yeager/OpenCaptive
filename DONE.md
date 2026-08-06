@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (CLI-skala)
+
+- `--scale` fortsätter nu att styra fönsterstorleken även efter att startmenyn
+  fått ett explicit `WINDOW SIZE`-värde.
+- En senare `--resolution` kan fortfarande skriva över skalan enligt
+  kommandoradens ordning; headless-capture med `--scale 2` passerar.
+- Hela testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (Renderer-byte i realtid)
 
 - Renderer-valet från startmenyn kan nu byta SDL3-backend när spelet startas
