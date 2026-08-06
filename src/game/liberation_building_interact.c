@@ -164,7 +164,7 @@ bool building_interact_enter(BuildingInteraction *bi,
     int offset = cell_y * CITYGRID_WIDTH + cell_x;
     if (offset < 0 || offset >= CITYGRID_CELLS) return false;
 
-    uint8_t raw_bid = grid->plane2[offset];
+    uint8_t raw_bid = grid->building_ids[offset];
     if (raw_bid == 0 || raw_bid == 0xFF) return false;
     uint8_t bid = raw_bid & 0x7F;
     if (bid == 0) return false;

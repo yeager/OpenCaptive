@@ -304,7 +304,7 @@ static void test_building_interact_shop(void) {
 
     CityGridState grid;
     memset(&grid, 0, sizeof(grid));
-    grid.plane2[10 * CITYGRID_WIDTH + 5] = 1;
+    grid.building_ids[10 * CITYGRID_WIDTH + 5] = 1;
 
     BuildingInteraction bi;
     building_interact_init(&bi);
@@ -341,7 +341,7 @@ static void test_building_interact_bar(void) {
 
     CityGridState grid;
     memset(&grid, 0, sizeof(grid));
-    grid.plane2[5 * CITYGRID_WIDTH + 3] = 1;
+    grid.building_ids[5 * CITYGRID_WIDTH + 3] = 1;
 
     BuildingInteraction bi;
     building_interact_init(&bi);
@@ -360,7 +360,7 @@ static void test_building_interact_generic(void) {
 
     CityGridState grid;
     memset(&grid, 0, sizeof(grid));
-    grid.plane2[2 * CITYGRID_WIDTH + 2] = 1;
+    grid.building_ids[2 * CITYGRID_WIDTH + 2] = 1;
 
     BuildingInteraction bi;
     building_interact_init(&bi);
@@ -385,7 +385,7 @@ static void test_police_fine_refusal_is_recorded(void) {
     strcpy(bg.buildings[0].name, "Station");
     CityGridState grid;
     memset(&grid, 0, sizeof(grid));
-    grid.plane2[0] = 1;
+    grid.building_ids[0] = 1;
 
     BuildingInteraction bi;
     building_interact_init(&bi);
@@ -406,7 +406,7 @@ static void test_police_fine_payment_is_recorded(void) {
     strcpy(bg.buildings[0].name, "Station");
     CityGridState grid;
     memset(&grid, 0, sizeof(grid));
-    grid.plane2[0] = 1;
+    grid.building_ids[0] = 1;
 
     BuildingInteraction bi;
     building_interact_init(&bi);
@@ -431,7 +431,7 @@ static void test_special_building_requires_investigate(void) {
 
     CityGridState grid;
     memset(&grid, 0, sizeof(grid));
-    grid.plane2[2 * CITYGRID_WIDTH + 2] = 1;
+    grid.building_ids[2 * CITYGRID_WIDTH + 2] = 1;
 
     BuildingInteraction bi;
     building_interact_init(&bi);
@@ -461,7 +461,7 @@ static void test_building_interact_buy(void) {
 
     CityGridState grid;
     memset(&grid, 0, sizeof(grid));
-    grid.plane2[1 * CITYGRID_WIDTH + 1] = 1;
+    grid.building_ids[1 * CITYGRID_WIDTH + 1] = 1;
 
     BuildingInteraction bi;
     building_interact_init(&bi);
@@ -499,7 +499,7 @@ static void test_bar_fight_uses_seeded_quarter_chance(void) {
         strcpy(bg.buildings[0].name, "Test Bar");
         CityGridState grid;
         memset(&grid, 0, sizeof(grid));
-        grid.plane2[0] = 1;
+        grid.building_ids[0] = 1;
 
         BuildingInteraction bi;
         building_interact_init(&bi);
@@ -521,7 +521,7 @@ static void test_reputation_shop_rules(void) {
     strcpy(bg.buildings[0].name, "Reputation Shop");
     CityGridState grid;
     memset(&grid, 0, sizeof(grid));
-    grid.plane2[1] = 1;
+    grid.building_ids[1] = 1;
     int gold = 10000;
     BuildingInteraction bi;
     building_interact_init(&bi);
@@ -540,7 +540,7 @@ static void test_reputation_shop_rules(void) {
     second_buildings.total_buildings = 1;
     second_buildings.buildings[0].type = BUILDING_SHOP;
     strcpy(second_buildings.buildings[0].name, "Second Shop");
-    second_grid.plane2[0] = 1;
+    second_grid.building_ids[0] = 1;
     assert(building_interact_enter(&bi, &second_grid, &second_buildings,
                                    0, 0, &gold));
     uint16_t second_normal = bi.shop.items[0].price;
@@ -568,7 +568,7 @@ static void test_building_interact_empty_catalog(void) {
     memset(&bg, 0, sizeof(bg));
     CityGridState grid;
     memset(&grid, 0, sizeof(grid));
-    grid.plane2[0] = 1;
+    grid.building_ids[0] = 1;
 
     BuildingInteraction bi;
     building_interact_init(&bi);
@@ -585,7 +585,7 @@ static void test_building_interact_rejects_empty_building_sentinel(void) {
     building_interact_init(&bi);
     bg.total_buildings = 1;
     bg.buildings[0].type = BUILDING_SHOP;
-    grid.plane2[0] = 0xFF;
+    grid.building_ids[0] = 0xFF;
     int gold = 100;
     assert(!building_interact_enter(&bi, &grid, &bg, 0, 0, &gold));
     assert(!bi.active);
@@ -598,7 +598,7 @@ static void test_building_interact_rejects_invalid_catalog_size(void) {
     memset(&bg, 0, sizeof(bg));
     memset(&grid, 0, sizeof(grid));
     building_interact_init(&bi);
-    grid.plane2[0] = 1;
+    grid.building_ids[0] = 1;
     bg.total_buildings = -1;
     assert(!building_interact_enter(&bi, &grid, &bg, 0, 0, NULL));
     bg.total_buildings = CITYGEN_MAX_BUILDINGS + 1;

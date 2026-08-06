@@ -1355,7 +1355,7 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                     for (int tx = 0; tx < 64; tx++) {
                         if (city_nav_get_cell(&lib_grid, tx, ty) != 0x0A) continue;
                         int off = ty * 64 + tx;
-                        uint8_t raw_bid = lib_grid.plane2[off];
+                        uint8_t raw_bid = lib_grid.building_ids[off];
                         if (raw_bid == 0 || raw_bid == 0xFF) continue;
                         uint8_t bid = raw_bid & 0x7F;
                         if (bid == 0 || lib_buildings.total_buildings == 0 ||
@@ -3310,7 +3310,7 @@ int main(int argc, char *argv[]) {
                 for (int gy = 0; gy < 64; gy++) {
                     for (int gx = 0; gx < 64; gx++) {
                         uint8_t cell = lib_grid.plane0[gy * 64 + gx];
-                        uint8_t raw_bid = lib_grid.plane2[gy * 64 + gx];
+                        uint8_t raw_bid = lib_grid.building_ids[gy * 64 + gx];
                         uint8_t bid = raw_bid & 0x7F;
                         uint32_t col;
                         if (gx == lib_nav.cell_x && gy == lib_nav.cell_y)

@@ -39,6 +39,8 @@ typedef struct {
     uint8_t plane0[CITYGRID_CELLS];
     uint8_t plane1[CITYGRID_CELLS];
     uint8_t plane2[CITYGRID_CELLS];
+    /* Stable source building IDs retained when generation cells are finalized. */
+    uint8_t building_ids[CITYGRID_CELLS];
 
     uint8_t plane0_backup[CITYGRID_CELLS];
 

@@ -294,7 +294,7 @@ void city_nav_render(CityNavState *nav, const CityGridState *grid,
                 bool road_e = !city_nav_is_wall(grid, gx + 1, gy);
                 bool road_w = !city_nav_is_wall(grid, gx - 1, gy);
 
-                uint8_t raw_bid = grid->plane2[gy * CITYGRID_WIDTH + gx];
+                uint8_t raw_bid = grid->building_ids[gy * CITYGRID_WIDTH + gx];
                 uint8_t bid = raw_bid & 0x7F;
                 uint32_t type_offset = (raw_bid != 0 && raw_bid != 0xFF && bid != 0) ?
                     (bid * 11) & 0x0F : 0;
@@ -387,7 +387,7 @@ void city_nav_render_textured(CityNavState *nav, const CityGridState *grid,
                     if (road_e) render_textured_wall(render, wall_tex, wx + cs, wy, wx + cs, wy + cs, CITY_WALL_HEIGHT);
                     if (road_w) render_textured_wall(render, wall_tex, wx, wy + cs, wx, wy, CITY_WALL_HEIGHT);
                 } else {
-                    uint8_t raw_bid = grid->plane2[gy * CITYGRID_WIDTH + gx];
+                    uint8_t raw_bid = grid->building_ids[gy * CITYGRID_WIDTH + gx];
                     uint8_t bid = raw_bid & 0x7F;
                     uint32_t type_offset = (raw_bid != 0 && raw_bid != 0xFF && bid != 0) ?
                         (bid * 11) & 0x0F : 0;

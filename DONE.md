@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation city-grid finalization)
+
+- Den finaliserade Liberation-kartan skriver nu celltyper till det plan som
+  navigering och rendering använder.
+- Ursprungliga byggnads-ID:n sparas separat så att entréer, byggnadsdialoger,
+  väggfärger och snabbresor fortfarande hittar rätt byggnad efter finalisering.
+- Lade till regressionstest som säkerställer att både synliga celler och
+  byggnads-ID:n finns kvar efter genereringen.
+
 ## 2026-08-06 (Recursive ZIP data discovery)
 
 - VFS:en hittar nu ZIP-arkiv rekursivt under den valda datakatalogen på alla

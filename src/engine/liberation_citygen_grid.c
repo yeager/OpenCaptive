@@ -754,6 +754,9 @@ static void finalize_cells(CityGridState *s) {
     uint8_t out_plane2[CITYGRID_CELLS];
     memset(out_plane1, 0, CITYGRID_CELLS);
     memset(out_plane2, 0, CITYGRID_CELLS);
+    /* plane2 contains generation-time building IDs. Keep them available to
+     * navigation and building interaction after the output planes replace it. */
+    memcpy(s->building_ids, s->plane2, CITYGRID_CELLS);
 
     for (int i = 0; i < CITYGRID_CELLS; i++) {
         uint8_t raw = s->plane0[i];
@@ -897,8 +900,8 @@ static void finalize_cells(CityGridState *s) {
         out_p1 = (uint8_t)(((out_p1 << 2) | (out_p1 >> 6)) & 0xFF);
 
         out_plane1[i] = out_p1;
-        out_plane2[i] = out_type;
-        s->plane0[i] = out_p2;
+        out_plane2[i] = out_p2;
+        s->plane0[i] = out_type;
     }
 
     memcpy(s->plane1, out_plane1, CITYGRID_CELLS);
@@ -915,6 +918,7 @@ void citygrid_generate(CityGridState *s) {
     memset(s->plane0, 0, CITYGRID_CELLS);
     memset(s->plane1, 0, CITYGRID_CELLS);
     memset(s->plane2, 0, CITYGRID_CELLS);
+    memset(s->building_ids, 0, CITYGRID_CELLS);
     memset(s->meta, 0, sizeof(s->meta));
     s->entry_point = -1;
 
@@ -982,7 +986,7 @@ void citygrid_map_buildings(CityGridState *s, const CityGrid *bg) {
     if (bg_count > CITYGEN_MAX_BUILDINGS) bg_count = CITYGEN_MAX_BUILDINGS;
 
     for (int i = 0; i < CITYGRID_CELLS; i++) {
-        uint8_t raw_bid = s->plane2[i];
+        uint8_t raw_bid = s->building_ids[i];
         if (raw_bid == 0 || raw_bid == 0xFF) continue;
         uint8_t bid = raw_bid & 0x7F;
         if (bid == 0) continue;

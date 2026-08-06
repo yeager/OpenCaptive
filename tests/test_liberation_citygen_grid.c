@@ -58,12 +58,12 @@ static void test_borders(void) {
 
     /* After finalize, border cells are converted to wall types (non-zero in plane2) */
     for (int x = 0; x < 64; x++) {
-        assert(s.plane2[x] != 0);
-        assert(s.plane2[63 * 64 + x] != 0);
+        assert(s.plane0[x] != 0);
+        assert(s.plane0[63 * 64 + x] != 0);
     }
     for (int y = 0; y < 64; y++) {
-        assert(s.plane2[y * 64] != 0);
-        assert(s.plane2[y * 64 + 63] != 0);
+        assert(s.plane0[y * 64] != 0);
+        assert(s.plane0[y * 64 + 63] != 0);
     }
 }
 
@@ -74,8 +74,26 @@ static void test_has_road_cells(void) {
 
     int non_empty = 0;
     for (int i = 0; i < CITYGRID_CELLS; i++)
-        if (s.plane2[i] != 0) non_empty++;
+        if (s.plane0[i] != 0) non_empty++;
     assert(non_empty > 10);
+}
+
+static void test_finalized_planes_keep_navigation_and_building_ids(void) {
+    CityGridState s;
+    citygrid_init(&s, 9, 4, 5);
+    citygrid_generate(&s);
+
+    int visible_cells = 0;
+    int mapped_cells = 0;
+    for (int i = 0; i < CITYGRID_CELLS; i++) {
+        if (s.plane0[i] != 0) visible_cells++;
+        if (s.building_ids[i] != 0 && s.building_ids[i] != 0xFF)
+            mapped_cells++;
+    }
+    /* Finalization must leave a usable cell plane and retain source IDs for
+     * later building interaction; both were previously lost or mismatched. */
+    assert(visible_cells > 100);
+    assert(mapped_cells > 0);
 }
 
 static void test_meta_has_connections(void) {
@@ -95,7 +113,7 @@ static void test_difficulty_zero(void) {
     citygrid_generate(&s);
 
     /* Border cells should be finalized to non-zero type */
-    assert(s.plane2[0] != 0);
+    assert(s.plane0[0] != 0);
 }
 
 static void test_grid_size(void) {
@@ -130,7 +148,7 @@ static void test_high_difficulty(void) {
     /* Just verify it completes without crashing */
     int non_zero = 0;
     for (int i = 0; i < CITYGRID_CELLS; i++)
-        if (s.plane2[i] != 0) non_zero++;
+        if (s.plane0[i] != 0) non_zero++;
     assert(non_zero > 0);
 }
 
@@ -163,7 +181,7 @@ static void test_out_of_range_seed_low(void) {
 
     int non_zero = 0;
     for (int i = 0; i < CITYGRID_CELLS; i++)
-        if (s.plane2[i] != 0) non_zero++;
+        if (s.plane0[i] != 0) non_zero++;
     assert(non_zero > 0);
 }
 
@@ -186,12 +204,12 @@ static void test_building_mapping_ignores_plane2_flag_bit(void) {
     buildings.total_buildings = 2;
     buildings.buildings[0].type = BUILDING_SHOP;
     buildings.buildings[1].type = BUILDING_POLICE;
-    s.plane2[0] = 0x81; /* building 1 plus the high-bit cell flag */
+    s.building_ids[0] = 0x81; /* building 1 plus the high-bit cell flag */
     citygrid_map_buildings(&s, &buildings);
     assert(s.plane1[0] == BUILDING_SHOP);
 
     s.plane1[1] = 0;
-    s.plane2[1] = 0x80; /* flag bit without a building ID */
+    s.building_ids[1] = 0x80; /* flag bit without a building ID */
     citygrid_map_buildings(&s, &buildings);
     assert(s.plane1[1] == 0);
 }
@@ -210,6 +228,7 @@ int main(void) {
     test_different_seeds();
     test_borders();
     test_has_road_cells();
+    test_finalized_planes_keep_navigation_and_building_ids();
     test_meta_has_connections();
     test_difficulty_zero();
     test_grid_size();
