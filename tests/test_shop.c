@@ -1,6 +1,7 @@
 #include "shop.h"
 #include <assert.h>
 #include <limits.h>
+#include <string.h>
 
 static void test_shop_clamps_corrupt_definition_count(void) {
     ItemDatabase db = {0};
@@ -53,7 +54,7 @@ static void test_shop_clamps_negative_level(void) {
 static void test_shop_repair_rejects_invalid_droid_stats(void) {
     ShopState shop = {.gold = 1000};
     static GameState gs;
-    gs = (GameState){0};
+    memset(&gs, 0, sizeof(gs));
     Droid *d = &gs.droids[0];
 
     d->hp = -1;
@@ -72,7 +73,7 @@ static void test_shop_repair_rejects_invalid_droid_stats(void) {
 static void test_shop_repair_handles_large_valid_stats(void) {
     ShopState shop = {.gold = INT_MAX};
     static GameState gs;
-    gs = (GameState){0};
+    memset(&gs, 0, sizeof(gs));
     Droid *d = &gs.droids[0];
 
     d->hp = 0;
@@ -87,7 +88,7 @@ static void test_shop_repair_handles_large_valid_stats(void) {
 static void test_shop_repair_preserves_equipment(void) {
     ShopState shop = {.gold = 1000};
     static GameState gs;
-    gs = (GameState){0};
+    memset(&gs, 0, sizeof(gs));
     Droid *d = &gs.droids[0];
     d->hp = 90;
     d->hp_max = 100;
@@ -106,7 +107,7 @@ static void test_inactive_shop_cannot_sell(void) {
     ItemDatabase db;
     ShopState shop = {0};
     static GameState gs;
-    gs = (GameState){0};
+    memset(&gs, 0, sizeof(gs));
     item_db_init(&db);
     gs.selected_droid = 0;
     shop.item_ids[0] = 8;
@@ -122,7 +123,7 @@ static void test_shop_rejects_corrupt_item_count(void) {
     ItemDatabase db;
     ShopState shop = {0};
     static GameState gs;
-    gs = (GameState){0};
+    memset(&gs, 0, sizeof(gs));
     item_db_init(&db);
     shop.active = true;
     shop.num_items = SHOP_MAX_ITEMS + 1;

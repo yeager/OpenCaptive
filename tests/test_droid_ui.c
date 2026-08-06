@@ -1,10 +1,11 @@
 #include "droid_ui.h"
 #include <assert.h>
+#include <string.h>
 
 static void test_inactive_ui_cannot_mutate_state(void) {
     DroidUIState ui;
     static GameState gs;
-    gs = (GameState){0};
+    memset(&gs, 0, sizeof(gs));
     ItemDatabase db;
 
     item_db_init(&db);
@@ -24,7 +25,7 @@ static void test_inactive_ui_cannot_mutate_state(void) {
 static void test_battery_rejects_invalid_energy_state(void) {
     DroidUIState ui;
     static GameState gs;
-    gs = (GameState){0};
+    memset(&gs, 0, sizeof(gs));
     ItemDatabase db;
     item_db_init(&db);
     gs.droids[0].items[0] = 8;
@@ -41,7 +42,7 @@ static void test_battery_rejects_invalid_energy_state(void) {
 static void test_unknown_inventory_item_is_not_equipped(void) {
     DroidUIState ui;
     static GameState gs;
-    gs = (GameState){0};
+    memset(&gs, 0, sizeof(gs));
     ItemDatabase db;
     item_db_init(&db);
     gs.droids[0].items[0] = 255;
@@ -57,7 +58,7 @@ static void test_unknown_inventory_item_is_not_equipped(void) {
 static void test_non_weapon_item_is_not_equipped_as_weapon(void) {
     DroidUIState ui;
     static GameState gs;
-    gs = (GameState){0};
+    memset(&gs, 0, sizeof(gs));
     ItemDatabase db;
     item_db_init(&db);
     gs.droids[0].items[0] = 40; /* cartridges */
