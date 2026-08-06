@@ -4,6 +4,7 @@
 
 - Replay-inspelning kodar nu även Enter och numeriskt Enter som Captive-
   interaktion, med samma stabila actionkod som F.
+- Numeriskt Enter fungerar nu även direkt i Captive, inte bara vid replay.
 
 ## 2026-08-07 (Captive interaction key)
 

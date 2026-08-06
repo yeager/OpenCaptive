@@ -1594,7 +1594,8 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 gs->map_overlay = !gs->map_overlay;
             break;
         case SDLK_F:
-        case SDLK_RETURN: {
+        case SDLK_RETURN:
+        case SDLK_KP_ENTER: {
             if (lib_nav.facing < CITY_DIR_NORTH || lib_nav.facing > CITY_DIR_WEST)
                 break;
             int fwd_dx = (int[]){0,1,0,-1}[lib_nav.facing];
