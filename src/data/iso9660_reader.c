@@ -9,8 +9,15 @@ static uint32_t read_le32(const uint8_t *p) {
     return p[0] | ((uint32_t)p[1]<<8) | ((uint32_t)p[2]<<16) | ((uint32_t)p[3]<<24);
 }
 
+static uint32_t read_be32(const uint8_t *p) {
+    return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) |
+           ((uint32_t)p[2] << 8) | p[3];
+}
+
 static const uint8_t *sector_ptr(const ISOImage *iso, uint32_t lba) {
     if (!iso || !iso->data) return NULL;
+    if (iso->volume_space_size != 0 && lba >= iso->volume_space_size)
+        return NULL;
     if (iso->raw_mode) {
         // MODE1/2352: 16 bytes sync/header, then 2048 bytes user data
         uint64_t offset = (uint64_t)lba * ISO_RAW_SECTOR + 16;
@@ -30,6 +37,12 @@ static bool parse_pvd(ISOImage *iso) {
 
     // Type 1 = PVD, identifier "CD001"
     if (pvd[0] != 1 || memcmp(pvd + 1, "CD001", 5) != 0) return false;
+
+    // Both-endian copies must agree and define the logical volume boundary.
+    uint32_t volume_space_size = read_le32(pvd + 80);
+    if (volume_space_size == 0 || read_be32(pvd + 84) != volume_space_size)
+        return false;
+    iso->volume_space_size = volume_space_size;
 
     // Volume ID at offset 40, 32 bytes
     memcpy(iso->volume_id, pvd + 40, 32);
@@ -139,7 +152,12 @@ int iso_list_root(const ISOImage *iso, ISOEntry *entries, int max_entries) {
 }
 
 uint8_t *iso_read_file(const ISOImage *iso, uint32_t lba, uint32_t size) {
-    if (!iso || !iso->data || size > ISO_MAX_FILE_SIZE) return NULL;
+    if (!iso || !iso->data || size > ISO_MAX_FILE_SIZE ||
+        iso->volume_space_size == 0 || lba >= iso->volume_space_size)
+        return NULL;
+    uint64_t sectors = ((uint64_t)size + ISO_SECTOR_SIZE - 1U) /
+                       ISO_SECTOR_SIZE;
+    if (sectors > (uint64_t)iso->volume_space_size - lba) return NULL;
     uint8_t *result = malloc(size ? size : 1U);
     if (!result) return NULL;
     if (size == 0) return result;

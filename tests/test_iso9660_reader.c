@@ -9,6 +9,11 @@ static void put_le32(uint8_t *p, uint32_t value) {
     p[2] = (uint8_t)(value >> 16); p[3] = (uint8_t)(value >> 24);
 }
 
+static void put_be32(uint8_t *p, uint32_t value) {
+    p[0] = (uint8_t)(value >> 24); p[1] = (uint8_t)(value >> 16);
+    p[2] = (uint8_t)(value >> 8); p[3] = (uint8_t)value;
+}
+
 static uint8_t *sector(uint8_t *image, int lba) {
     return image + lba * ISO_RAW_SECTOR + 16;
 }
@@ -18,6 +23,8 @@ int main(void) {
     memset(image, 0, sizeof(image));
     uint8_t *pvd = sector(image, 16);
     pvd[0] = 1; memcpy(pvd + 1, "CD001", 5); memcpy(pvd + 40, "TEST_DISC", 9);
+    put_le32(pvd + 80, 21);
+    put_be32(pvd + 84, 21);
     pvd[156] = 34;
     put_le32(pvd + 158, 17);
     put_le32(pvd + 166, ISO_SECTOR_SIZE);
@@ -55,6 +62,8 @@ int main(void) {
     file = iso_read_file(&iso, entries[0].lba, 0);
     assert(file != NULL);
     free(file);
+    /* Trailing physical sectors are not part of the PVD-declared volume. */
+    assert(!iso_read_file(&iso, 21, 1));
 
     assert(!iso_open_raw(&iso, NULL, 0));
     assert(iso.data == NULL && iso.size == 0 && iso.root_lba == 0);
@@ -74,6 +83,10 @@ int main(void) {
     assert(!iso_open_raw(&iso, image, sizeof(image)));
     assert(iso.data == NULL && iso.size == 0 && iso.root_lba == 0);
     pvd[156 + 25] = 0x02;
+    put_be32(pvd + 84, 22); /* Both-endian volume sizes must agree. */
+    assert(!iso_open_raw(&iso, image, sizeof(image)));
+    assert(iso.data == NULL && iso.size == 0 && iso.root_lba == 0);
+    put_be32(pvd + 84, 21);
     put_le32(pvd + 158, UINT32_MAX); /* Extent must fit in the image. */
     assert(!iso_open_raw(&iso, image, sizeof(image)));
     assert(iso.data == NULL && iso.size == 0 && iso.root_lba == 0);

@@ -20,6 +20,7 @@ typedef struct {
     size_t         size;
     bool           raw_mode;     // true if MODE1/2352 sectors
     char           volume_id[33];
+    uint32_t       volume_space_size; // logical sectors declared by the PVD
     uint32_t       root_lba;
     uint32_t       root_size;
 } ISOImage;
