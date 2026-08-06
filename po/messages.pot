@@ -1031,3 +1031,12 @@ msgstr ""
 #: src/main.c
 msgid "R:RENAME  S:SWAP WEAPONS"
 msgstr ""
+
+#: src/main.c
+#, c-format
+msgid "Planet: %s"
+msgstr ""
+
+#: src/main.c
+msgid "ANY KEY: RETURN"
+msgstr ""

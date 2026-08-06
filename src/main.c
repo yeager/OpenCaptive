@@ -3684,7 +3684,7 @@ int main(int argc, char *argv[]) {
                 captive_generate_planet_name(&pname_seed,
                                              planet_name, sizeof(planet_name));
                 char planet_str[64];
-                snprintf(planet_str, sizeof(planet_str), "Planet: %s", planet_name);
+                    snprintf(planet_str, sizeof(planet_str), _("Planet: %s"), planet_name);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                               90, planet_str, 0xFFCCCCFF, 1);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
@@ -3828,7 +3828,7 @@ int main(int argc, char *argv[]) {
                             }
                     }
                 }
-                draw_centered(framebuffer, mw, mh, mh - 15, "ANY KEY: RETURN", 0xFF666666, 1);
+                draw_centered(framebuffer, mw, mh, mh - 15, _("ANY KEY: RETURN"), 0xFF666666, 1);
                 break;
             }
 

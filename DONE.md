@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive holomap-l10n)
+
+- Captives planetnamn och återgångstext i holamap-skärmen går nu via i18n.
+- Lades till i `po/messages.pot`; riktade i18n-, startmeny- och game-state-
+  tester passerar.
+
 ## 2026-08-07 (Captive hjälp- och droidkonfiguration l10n)
 
 - Captives hjälpskärm använder nu i18n för rörelse, interaktion, inventarie,
