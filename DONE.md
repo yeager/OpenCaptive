@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Legacy Liberation armor state)
+
+- Äldre Liberation-saves utan body-part-fält återställer nu droidarnas
+  rustningskondition till full (`255`) i stället för felaktigt `0`.
+- Lade till regressionstest för äldre save-versioner.
+
 ## 2026-08-06 (Captive platform selection)
 
 - Hindrade startmenyn från att erbjuda verifierade Amiga-ADF:er som spelbar

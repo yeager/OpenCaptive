@@ -204,6 +204,8 @@ bool lib_save_read(LibSaveData *data, const char *path) {
         d->energy = (int16_t)energy;
         d->energy_max = (int16_t)energy_max;
         d->xp = xp;
+        if (ver < LIB_SAVE_BODY_PART_VERSION)
+            memset(d->body_part_hp, UINT8_MAX, sizeof(d->body_part_hp));
         for (int j = 0; j < 8; j++) {
             if (!read_u16(f, &d->equipment[j])) {
                 fclose(f);

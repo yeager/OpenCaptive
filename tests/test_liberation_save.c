@@ -343,18 +343,20 @@ static void test_legacy_version_record_size_is_supported(void) {
     FILE *f = fopen(TEST_PATH, "r+b");
     assert(f != NULL);
     assert(fseek(f, 4, SEEK_SET) == 0);
-    uint8_t version[2] = {0, LIB_SAVE_PREVIOUS_VERSION};
+    uint8_t version[2] = {0, LIB_SAVE_REPUTATION_VERSION};
     assert(fwrite(version, 1, sizeof(version), f) == sizeof(version));
-    /* Remove only v7's two additional skill bytes; v6 retains body-part
-       condition bytes and reputation. */
-    assert(fseek(f, -2, SEEK_END) == 0);
+    /* Remove v7's two additional skill bytes and six body-part condition
+       bytes; v5 retains reputation but predates the durability field. */
+    assert(fseek(f, -8, SEEK_END) == 0);
     long end = ftell(f);
     assert(end >= 0 && ftruncate(fileno(f), end) == 0);
     assert(fclose(f) == 0);
 
     LibSaveData loaded;
     assert(lib_save_read(&loaded, TEST_PATH));
-    assert(loaded.version == LIB_SAVE_PREVIOUS_VERSION);
+    assert(loaded.version == LIB_SAVE_REPUTATION_VERSION);
+    assert(loaded.droids[0].body_part_hp[0] == UINT8_MAX);
+    assert(loaded.droids[0].body_part_hp[5] == UINT8_MAX);
     unlink(TEST_PATH);
 }
 
