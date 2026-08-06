@@ -11,6 +11,41 @@ static int renderer_brightness = 50;
 static int renderer_contrast = 50;
 static int renderer_gamma = 50;
 
+static const char *renderer_backend_name(int backend) {
+    if (backend == 1) return "gpu";
+    if (backend == 2) return "software";
+    return NULL;
+}
+
+static int normalize_renderer_backend(int backend) {
+    return backend >= 1 && backend <= 2 ? backend : 0;
+}
+
+static bool renderer_switch_backend(OpenCaptiveRenderer *r, int backend) {
+    backend = normalize_renderer_backend(backend);
+    if (backend == r->backend) return true;
+    SDL_Renderer *replacement = SDL_CreateRenderer(
+        r->window, renderer_backend_name(backend));
+    if (!replacement) return false;
+    SDL_Texture *texture = SDL_CreateTexture(replacement,
+        SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
+        r->texture_width, r->texture_height);
+    if (!texture) {
+        SDL_DestroyRenderer(replacement);
+        return false;
+    }
+    SDL_SetTextureScaleMode(texture,
+        renderer_bilinear ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
+    SDL_Texture *old_texture = r->framebuffer;
+    SDL_Renderer *old_renderer = r->renderer;
+    r->renderer = replacement;
+    r->framebuffer = texture;
+    r->backend = backend;
+    if (old_texture) SDL_DestroyTexture(old_texture);
+    if (old_renderer) SDL_DestroyRenderer(old_renderer);
+    return true;
+}
+
 static bool renderer_create_framebuffer(OpenCaptiveRenderer *r, int width, int height) {
     SDL_Texture *texture = SDL_CreateTexture(r->renderer,
         SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
@@ -71,10 +106,15 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
     SDL_SetWindowSize(r->window, w, h);
     SDL_SetWindowPosition(r->window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
-    const char *renderer_name = NULL;
-    if (config->renderer_backend == 1) renderer_name = "gpu";
-    else if (config->renderer_backend == 2) renderer_name = "software";
-    r->renderer = SDL_CreateRenderer(r->window, renderer_name);
+    int requested_backend = normalize_renderer_backend(config->renderer_backend);
+    r->renderer = SDL_CreateRenderer(r->window,
+                                     renderer_backend_name(requested_backend));
+    if (!r->renderer && requested_backend != 0) {
+        /* A requested backend may be unavailable on a platform or headless
+         * driver. Keep startup usable by falling back to SDL's auto choice. */
+        r->renderer = SDL_CreateRenderer(r->window, NULL);
+        requested_backend = 0;
+    }
     if (!r->renderer) {
         fprintf(stderr, "SDL_CreateRenderer: %s\n", SDL_GetError());
         SDL_DestroyWindow(r->window);
@@ -101,6 +141,7 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
                          config->brightness, config->contrast, config->gamma);
     r->window_width = w;
     r->window_height = h;
+    r->backend = requested_backend;
     r->mode = config->render_mode;
     renderer_apply_display(r, config);
     return true;
@@ -127,6 +168,7 @@ void renderer_apply_display(OpenCaptiveRenderer *r, const OpenCaptiveConfig *con
 
     r->integer_scaling = config->integer_scaling;
     r->mode = config->render_mode;
+    renderer_switch_backend(r, config->renderer_backend);
     if (config->window_width > 0 && config->window_height > 0 &&
         (r->window_width != config->window_width ||
          r->window_height != config->window_height)) {

@@ -15,6 +15,7 @@ typedef struct {
     int texture_width;
     int texture_height;
     CaptiveRenderMode mode;
+    int backend; // 0=auto, 1=gpu, 2=software
     bool integer_scaling;
     bool hd_upscale;
     int upscale_factor;
