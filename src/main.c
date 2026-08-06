@@ -1312,6 +1312,12 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                     char hmsg[64];
                     snprintf(hmsg, sizeof(hmsg), _("Industrial hazard! %d damage!"), dmg);
                     msg_push(hmsg, 0xFFFF8800);
+                    if (all_droids_dead(gs)) {
+                        lib_combat.active = false;
+                        lib_in_combat = false;
+                        gs->mode = STATE_GAMEOVER;
+                        return;
+                    }
                 }
                 if (lib_interact.fine_refused) {
                     lib_interact.fine_refused = false;
@@ -1392,6 +1398,12 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                         char hmsg[64];
                         snprintf(hmsg, sizeof(hmsg), _("Industrial hazard! %d damage!"), dmg);
                         msg_push(hmsg, 0xFFFF8800);
+                        if (all_droids_dead(gs)) {
+                            lib_combat.active = false;
+                            lib_in_combat = false;
+                            gs->mode = STATE_GAMEOVER;
+                            return;
+                        }
                     }
                     if (lib_interact.fine_refused) {
                         lib_interact.fine_refused = false;

@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation hazard leder korrekt till game-over)
+
+- En industrial hazard som förstör alla droids när en byggnad lämnas sätter
+  nu `STATE_GAMEOVER` direkt.
+- Falska efterföljande bar fights eller combat-state kan därmed inte starta
+  efter att hela gruppen redan dött.
+
 ## 2026-08-06 (Enhetlig startutrustning i Captive och Liberation)
 
 - Nya droids får nu ett riktigt KNUCKLE-DUSTER-ID tillsammans med matchande
