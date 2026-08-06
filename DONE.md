@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive armor inventory safety)
+
+- Att ta av en rustningsdel när droidens inventarie är full avbryts nu utan
+  att den utrustade delen försvinner.
+- Regressionstest lagt till för full inventarielista.
+
 ## 2026-08-07 (Captive Manhattan combat reach)
 
 - Stridsavståndet använder nu Manhattan-avstånd i stället för Chebyshev-

@@ -242,13 +242,20 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db
             } else if (ui->cursor < 6) {
                 uint8_t item_id = d->body_parts[ui->cursor];
                 if (item_id == 0) return true;
+                int empty_slot = -1;
                 for (int i = 0; i < 10; i++) {
                     if (d->items[i] == 0) {
-                        d->items[i] = item_id;
-                        d->body_parts[ui->cursor] = 0;
-                        return true;
+                        empty_slot = i;
+                        break;
                     }
                 }
+                /* Do not remove an equipped body part unless its replacement
+                 * has somewhere to go.  The old one was silently discarded
+                 * when all inventory slots were occupied. */
+                if (empty_slot < 0) return false;
+                d->items[empty_slot] = item_id;
+                d->body_parts[ui->cursor] = 0;
+                return true;
             } else {
                 int wi = ui->cursor - 6;
                 uint8_t item_id = d->weapons[wi];

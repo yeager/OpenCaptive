@@ -96,11 +96,28 @@ static void test_weapon_damage_uses_product_not_packed_order(void) {
     assert(d.weapon_damage == 0);
 }
 
+static void test_unequip_armor_preserves_item_when_inventory_full(void) {
+    DroidUIState ui;
+    GameState gs = {0};
+    ItemDatabase db;
+    item_db_init(&db);
+    gs.droids[0].body_parts[0] = 1; /* HEAD */
+    for (int i = 0; i < 10; i++) gs.droids[0].items[i] = 40;
+    droid_ui_init(&ui, 0);
+    ui.ui_mode = DROID_UI_EQUIP;
+    ui.cursor = 0;
+
+    assert(!droid_ui_handle_key(&ui, &gs, &db, 0x0D));
+    assert(gs.droids[0].body_parts[0] == 1);
+    for (int i = 0; i < 10; i++) assert(gs.droids[0].items[i] == 40);
+}
+
 int main(void) {
     test_inactive_ui_cannot_mutate_state();
     test_battery_rejects_invalid_energy_state();
     test_unknown_inventory_item_is_not_equipped();
     test_non_weapon_item_is_not_equipped_as_weapon();
     test_weapon_damage_uses_product_not_packed_order();
+    test_unequip_armor_preserves_item_when_inventory_full();
     return 0;
 }
