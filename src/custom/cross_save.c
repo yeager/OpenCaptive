@@ -1,5 +1,6 @@
 #include "custom_features.h"
 #include "game_state.h"
+#include "inventory.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +16,21 @@
 
 static bool read_exact(FILE *fp, void *dst, size_t size, size_t count);
 static bool write_exact(FILE *fp, const void *src, size_t size, size_t count);
+
+static bool valid_item_id(const ItemDatabase *db, uint8_t item_id) {
+    return item_id == 0 || (db && item_db_get(db, item_id) != NULL);
+}
+
+static bool valid_droid_items(const ItemDatabase *db, const Droid *droid) {
+    if (!db || !droid) return false;
+    for (size_t i = 0; i < sizeof(droid->body_parts); ++i)
+        if (!valid_item_id(db, droid->body_parts[i])) return false;
+    for (size_t i = 0; i < sizeof(droid->weapons); ++i)
+        if (!valid_item_id(db, droid->weapons[i])) return false;
+    for (size_t i = 0; i < sizeof(droid->items); ++i)
+        if (!valid_item_id(db, droid->items[i])) return false;
+    return true;
+}
 
 /* Cross-save is explicitly portable. Do not write native integer object
  * representations: the old implementation happened to work on the current
@@ -70,6 +86,8 @@ static bool replace_cross_save(const char *temporary_path, const char *path) {
 
 bool cross_save_export(const void *game_state_ptr, const char *path) {
     const GameState *gs = (const GameState *)game_state_ptr;
+    ItemDatabase item_db;
+    item_db_init(&item_db);
     /* Version 1 stores dungeon/party state only.  Liberation uses a
      * different city-navigation state and must not be advertised as
      * exportable through this Captive-only format. */
@@ -86,13 +104,16 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
         const Droid *dr = &gs->droids[d];
         if (dr->hp < 0 || dr->hp_max < 0 || dr->hp > dr->hp_max ||
             dr->energy < 0 || dr->energy_max < 0 ||
-            dr->energy > dr->energy_max) return false;
+            dr->energy > dr->energy_max || !valid_droid_items(&item_db, dr))
+            return false;
     }
     for (int l = 0; l < gs->num_levels; l++) {
         for (int y = 0; y < MAP_HEIGHT; y++) {
             for (int x = 0; x < MAP_WIDTH; x++) {
                 if (gs->levels[l].cells[y][x].type < CELL_WALL ||
-                    gs->levels[l].cells[y][x].type > CELL_PIT) return false;
+                    gs->levels[l].cells[y][x].type > CELL_PIT ||
+                    !valid_item_id(&item_db, gs->levels[l].cells[y][x].item_id))
+                    return false;
             }
         }
     }
@@ -228,6 +249,8 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
         fclose(fp);
         return false;
     }
+    ItemDatabase item_db;
+    item_db_init(&item_db);
 #define IMPORT_FAIL() do { fclose(fp); free(gs); return false; } while (0)
 
     uint32_t magic, version;
@@ -318,7 +341,8 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
         dr->energy_max = decode_i16(energy_max);
         dr->weapon_damage = weapon_damage;
         if (dr->hp < 0 || dr->hp_max < 0 || dr->hp > dr->hp_max ||
-            dr->energy < 0 || dr->energy_max < 0 || dr->energy > dr->energy_max) {
+            dr->energy < 0 || dr->energy_max < 0 || dr->energy > dr->energy_max ||
+            !valid_droid_items(&item_db, dr)) {
             IMPORT_FAIL();
         }
         dr->name[sizeof(dr->name) - 1] = '\0';
@@ -347,6 +371,8 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
                     !read_exact(fp, &c->flags, 1, 1)) {
                     IMPORT_FAIL();
                 }
+                if (!valid_item_id(&item_db, c->item_id))
+                    IMPORT_FAIL();
                 c->type = (CellType)ct;
             }
         }

@@ -356,7 +356,7 @@ add_executable(test_custom_features tests/test_custom_features.c
     src/custom/custom_features.c src/custom/upscale_xbrz.c
     src/custom/minimap.c src/custom/debug_hud.c src/custom/automap.c
     src/custom/audio_reverb.c src/custom/replay.c src/custom/lighting.c
-    src/custom/cross_save.c)
+    src/custom/cross_save.c src/engine/inventory.c)
 target_include_directories(test_custom_features PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME custom_features COMMAND test_custom_features)
 

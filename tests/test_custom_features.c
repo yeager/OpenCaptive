@@ -373,6 +373,22 @@ static void test_cross_save(void) {
     assert(gs2.config.brightness == 81);
     assert(gs2.config.data_path == data_path);
 
+    /* Portable saves must reject item IDs that the runtime database cannot
+       resolve, both when exporting live state and when importing a mutated
+       file. */
+    gs.droids[0].items[0] = UINT8_MAX;
+    assert(!cross_save_export(&gs, path));
+    gs.droids[0].items[0] = 0;
+    assert(cross_save_export(&gs, path));
+    FILE *bad_item = fopen(path, "r+b");
+    assert(bad_item);
+    /* Header (57) + droid name/stats/body parts/body condition/weapons (38). */
+    assert(fseek(bad_item, 57L + 38L, SEEK_SET) == 0);
+    assert(fputc(UINT8_MAX, bad_item) != EOF);
+    assert(fclose(bad_item) == 0);
+    assert(!cross_save_import(&gs2, path));
+    assert(cross_save_export(&gs, path));
+
     /* A level record must retain its array index; accepting a mismatched
        level ID would leave a cross-save with internally inconsistent maps. */
     assert(cross_save_export(&gs, path));
