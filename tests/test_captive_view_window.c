@@ -89,6 +89,16 @@ int main(void) {
     assert(window.hidden[9]);
     assert(!window.hidden[15]); /* cell 16 is not hidden by stale cell 10 */
 
+    /* Closed doors are opaque in combat and movement too; they must hide the
+     * same cells as walls in the first-person view. */
+    for (CellType opaque_type = CELL_DOOR;
+         opaque_type <= CELL_DOOR_LOCKED; opaque_type++) {
+        fill_level(&state.levels[0], CELL_FLOOR);
+        set_visible_cell(&state.levels[0], 10, 10, 9, opaque_type);
+        captive_view_window_build(&state, &window);
+        assert(window.hidden[3] && window.hidden[4] && window.hidden[9]);
+    }
+
     memset(&state, 0, sizeof(state));
     state.num_levels = MAX_LEVELS + 1;
     state.current_level = MAX_LEVELS;

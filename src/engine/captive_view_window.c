@@ -14,10 +14,13 @@ const CaptiveViewCellPosition captive_visible_cell_positions[
     { 0, -1}, { 0, 0}, { 0, 1},
 };
 
-static int visible_wall(const CaptiveViewWindow *window, int cell) {
+static int visible_opaque(const CaptiveViewWindow *window, int cell) {
     int index = cell - 1; /* Original renderer/source documentation numbers 1..19. */
     return index >= 0 && index < CAPTIVE_VISIBLE_CELL_COUNT &&
-        !window->hidden[index] && window->visible[index].type == CELL_WALL;
+        !window->hidden[index] &&
+        (window->visible[index].type == CELL_WALL ||
+         window->visible[index].type == CELL_DOOR ||
+         window->visible[index].type == CELL_DOOR_LOCKED);
 }
 
 static void hide_cell(CaptiveViewWindow *window, int cell) {
@@ -30,58 +33,58 @@ static void hide_cell(CaptiveViewWindow *window, int cell) {
  * analysis. A cleared cell ceases to participate in later wall tests, matching
  * the original copied-map state rather than line-of-sight approximation. */
 static void captive_view_window_hide_occluded(CaptiveViewWindow *window) {
-    if (visible_wall(window, 9)) {
+    if (visible_opaque(window, 9)) {
         hide_cell(window, 4); hide_cell(window, 5); hide_cell(window, 10);
     }
-    if (visible_wall(window, 7)) {
+    if (visible_opaque(window, 7)) {
         hide_cell(window, 1); hide_cell(window, 2); hide_cell(window, 6);
     }
-    if (visible_wall(window, 11) || visible_wall(window, 14) || visible_wall(window, 17)) {
+    if (visible_opaque(window, 11) || visible_opaque(window, 14) || visible_opaque(window, 17)) {
         hide_cell(window, 1); hide_cell(window, 6);
     }
-    if (visible_wall(window, 13) || visible_wall(window, 16) || visible_wall(window, 19)) {
+    if (visible_opaque(window, 13) || visible_opaque(window, 16) || visible_opaque(window, 19)) {
         hide_cell(window, 5); hide_cell(window, 10);
     }
-    if (visible_wall(window, 15)) {
-        if (visible_wall(window, 17)) {
+    if (visible_opaque(window, 15)) {
+        if (visible_opaque(window, 17)) {
             hide_cell(window, 14); hide_cell(window, 11); hide_cell(window, 7);
             hide_cell(window, 6); hide_cell(window, 1); hide_cell(window, 2);
-        } else if (visible_wall(window, 14)) {
+        } else if (visible_opaque(window, 14)) {
             hide_cell(window, 11); hide_cell(window, 7); hide_cell(window, 6);
             hide_cell(window, 1); hide_cell(window, 2);
-        } else if (visible_wall(window, 11)) {
+        } else if (visible_opaque(window, 11)) {
             hide_cell(window, 7); hide_cell(window, 6); hide_cell(window, 1); hide_cell(window, 2);
         }
-        if (visible_wall(window, 19)) {
+        if (visible_opaque(window, 19)) {
             hide_cell(window, 16); hide_cell(window, 13); hide_cell(window, 9);
             hide_cell(window, 10); hide_cell(window, 5); hide_cell(window, 4);
-        } else if (visible_wall(window, 16)) {
+        } else if (visible_opaque(window, 16)) {
             hide_cell(window, 13); hide_cell(window, 9); hide_cell(window, 10);
             hide_cell(window, 5); hide_cell(window, 4);
-        } else if (visible_wall(window, 13)) {
+        } else if (visible_opaque(window, 13)) {
             hide_cell(window, 9); hide_cell(window, 10); hide_cell(window, 5); hide_cell(window, 4);
         }
         hide_cell(window, 12); hide_cell(window, 8); hide_cell(window, 3);
     }
-    if (visible_wall(window, 12)) {
+    if (visible_opaque(window, 12)) {
         hide_cell(window, 8);
-        if (visible_wall(window, 14)) {
+        if (visible_opaque(window, 14)) {
             hide_cell(window, 11); hide_cell(window, 7); hide_cell(window, 6);
             hide_cell(window, 1); hide_cell(window, 2);
-        } else if (visible_wall(window, 11)) {
+        } else if (visible_opaque(window, 11)) {
             hide_cell(window, 7); hide_cell(window, 6); hide_cell(window, 1); hide_cell(window, 2);
         }
-        if (visible_wall(window, 16)) {
+        if (visible_opaque(window, 16)) {
             hide_cell(window, 13); hide_cell(window, 9); hide_cell(window, 10);
             hide_cell(window, 5); hide_cell(window, 4);
-        } else if (visible_wall(window, 13)) {
+        } else if (visible_opaque(window, 13)) {
             hide_cell(window, 9); hide_cell(window, 10); hide_cell(window, 5); hide_cell(window, 4);
         }
         hide_cell(window, 3);
     }
-    if (visible_wall(window, 8)) {
-        if (visible_wall(window, 11)) { hide_cell(window, 2); hide_cell(window, 7); }
-        if (visible_wall(window, 13)) { hide_cell(window, 4); hide_cell(window, 9); }
+    if (visible_opaque(window, 8)) {
+        if (visible_opaque(window, 11)) { hide_cell(window, 2); hide_cell(window, 7); }
+        if (visible_opaque(window, 13)) { hide_cell(window, 4); hide_cell(window, 9); }
         hide_cell(window, 3);
     }
 }

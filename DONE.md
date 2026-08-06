@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive door occlusion)
+
+- Stängda och låsta dörrar räknas nu som ogenomskinliga i 19-cellsvyn, i linje
+  med rörelse- och siktlogiken.
+- Regressionstest tillagt för båda dörrtyperna.
+
 ## 2026-08-07 (Captive shop navigation bounds)
 
 - Shopnavigeringen begränsas nu till samma 12 synliga varor som renderaren.
