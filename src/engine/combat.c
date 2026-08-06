@@ -121,6 +121,10 @@ static bool combat_is_ranged_weapon_id(uint8_t item_id) {
     return item_id >= 18 && item_id <= 38;
 }
 
+static bool combat_is_weapon_id(uint8_t item_id) {
+    return item_id >= 13 && item_id <= 38;
+}
+
 static bool combat_has_line_of_sight(const GameState *gs,
                                      int x0, int y0, int x1, int y1) {
     if (!gs || gs->current_level < 0 || gs->current_level >= gs->num_levels ||
@@ -270,6 +274,15 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     if (creature_count > MAX_CREATURES) creature_count = MAX_CREATURES;
     Droid *d = &gs->droids[droid_idx];
     if (d->hp <= 0) return false;
+
+    bool has_weapon = false;
+    for (int w = 0; w < 2; w++) {
+        if (combat_is_weapon_id(d->weapons[w])) {
+            has_weapon = true;
+            break;
+        }
+    }
+    if (!has_weapon) return false;
 
     int fwd_x = (int[]){0,1,0,-1}[gs->party_dir];
     int fwd_y = (int[]){-1,0,1,0}[gs->party_dir];

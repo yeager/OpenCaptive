@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Stridsattack kräver utrustat vapen)
+
+- Captive kan inte längre attackera med bara ett kvarlämnat `weapon_damage`-
+  värde när båda vapenplatserna är tomma.
+- Ogiltiga eller icke-vapen-ID:n ger inte längre en falsk närstridsattack.
+- Regressionsfall täcker både tomma vapenplatser och den normala skadevinstvägen.
+- Werror-bygg och hela testsviten: 57/57 godkända.
+
 ## 2026-08-06 (Säker pausrendering inne i Liberation-dungeon)
 
 - Pausvyn använder nu 320×200 när Liberation befinner sig i dungeonläge,
