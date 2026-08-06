@@ -79,6 +79,8 @@ reverse-engineered; Captive gameplay parity is likewise still under review.
 - Game cards with SHA-256 data verification status (checkmark/cross)
 - Continue game from existing saves
 - Settings panel (24 options: display, audio, language, data path and gameplay)
+- `WINDOW SIZE` provides presets; changing `SCALE` explicitly selects a custom
+  native-size window and is preserved when launching from the menu
 - Audio output can be set to 22,050, 44,100 or 48,000 Hz; the choice applies
   when the next game session starts and is shared by SFX and MIDI playback
 - About/Credits screen

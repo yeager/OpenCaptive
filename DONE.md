@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (SCALE från startmenyn)
+
+- Startmenyns `SCALE` är inte längre ett dött reglage: ett uttryckligt värde
+  1–5 bevaras när spelet startas och beräknar den anpassade native-
+  fönsterstorleken med samma minimiummått som CLI:t.
+- `WINDOW SIZE` återtar prioriteten när användaren väljer ett preset efteråt.
+- Regressionstestet täcker växlingen mellan anpassad skala och preset.
+- CLI-capture med `--scale 2` och riktig `.opencaptive`-data lyckades.
+- Werror-kompilering, statisk analys av huvud-/startmenykod och hela
+  testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (Reverb från startmenyn)
 
 - Startmenyns `REVERB`-val appliceras nu på den aktiva ljudmixern när nästa

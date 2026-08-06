@@ -455,8 +455,20 @@ static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu,
     config->scale_factor = menu->scale_factor;
     int window_size = menu->window_size;
     if (window_size < 0 || window_size >= 4) window_size = 1;
-    config->window_width = window_widths[window_size];
-    config->window_height = window_heights[window_size];
+    if (menu->scale_custom && menu->scale_factor >= 1 &&
+        menu->scale_factor <= 5) {
+        /* The menu's default scale is intentionally neutral: WINDOW SIZE
+         * controls the normal presets.  A deliberately changed SCALE value
+         * is a custom native-size request and must not be overwritten by the
+         * preset assignment above. */
+        config->window_width = CAPTIVE_ORIGINAL_WIDTH * menu->scale_factor;
+        config->window_height = CAPTIVE_ORIGINAL_HEIGHT * menu->scale_factor;
+        if (config->window_width < 640) config->window_width = 640;
+        if (config->window_height < 400) config->window_height = 400;
+    } else {
+        config->window_width = window_widths[window_size];
+        config->window_height = window_heights[window_size];
+    }
     config->fullscreen = menu->fullscreen;
     config->vsync = menu->vsync;
     config->scanlines = menu->scanlines;
@@ -506,6 +518,16 @@ static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *conf
     menu->brightness = config->brightness;
     menu->contrast = config->contrast;
     menu->scale_factor = config->scale_factor;
+    menu->scale_custom = false;
+    if (config->scale_factor >= 1 && config->scale_factor <= 5 &&
+        config->scale_factor != 3) {
+        int scaled_width = CAPTIVE_ORIGINAL_WIDTH * config->scale_factor;
+        int scaled_height = CAPTIVE_ORIGINAL_HEIGHT * config->scale_factor;
+        if (scaled_width < 640) scaled_width = 640;
+        if (scaled_height < 400) scaled_height = 400;
+        menu->scale_custom = config->window_width == scaled_width &&
+                             config->window_height == scaled_height;
+    }
     menu->gamma = config->gamma;
     menu->master_volume = config->master_volume;
     {

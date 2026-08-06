@@ -85,6 +85,18 @@ int main(void) {
     assert(menu.in_settings);
     menu.in_settings = false;
 
+    /* A custom SCALE request takes precedence over the window preset, while
+       choosing WINDOW SIZE returns control to the preset list. */
+    menu.in_settings = true;
+    menu.settings_cursor = 2;
+    event = key_event(SDLK_RIGHT);
+    start_menu_handle_event(&menu, &event);
+    assert(menu.scale_factor == 4 && menu.scale_custom);
+    menu.settings_cursor = 1;
+    start_menu_handle_event(&menu, &event);
+    assert(!menu.scale_custom);
+    menu.in_settings = false;
+
     /* item 5 = About */
     menu.selected_item = 5;
     event = key_event(SDLK_RETURN);

@@ -27,6 +27,7 @@ typedef struct {
     bool music_enabled;
     bool sfx_enabled;
     int scale_factor;     // 1-5
+    bool scale_custom;    // true when SCALE was explicitly selected
     bool fullscreen;
     bool vsync;
     bool scanlines;

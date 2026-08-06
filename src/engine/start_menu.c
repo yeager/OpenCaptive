@@ -846,12 +846,22 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
                         else if (left) menu->renderer_backend = (menu->renderer_backend + 2) % 3;
                         break;
                     case 1:
-                        if (right && menu->window_size < 3) menu->window_size++;
-                        else if (left && menu->window_size > 0) menu->window_size--;
+                        if (right && menu->window_size < 3) {
+                            menu->window_size++;
+                            menu->scale_custom = false;
+                        } else if (left && menu->window_size > 0) {
+                            menu->window_size--;
+                            menu->scale_custom = false;
+                        }
                         break;
                     case 2:
-                        if (right && menu->scale_factor < 5) menu->scale_factor++;
-                        else if (left && menu->scale_factor > 1) menu->scale_factor--;
+                        if (right && menu->scale_factor < 5) {
+                            menu->scale_factor++;
+                            menu->scale_custom = true;
+                        } else if (left && menu->scale_factor > 1) {
+                            menu->scale_factor--;
+                            menu->scale_custom = true;
+                        }
                         break;
                     case 3: menu->fullscreen = !menu->fullscreen; break;
                     case 4: menu->integer_scaling = !menu->integer_scaling; break;
