@@ -44,6 +44,20 @@ static void test_invalid(void) {
     assert(!midi_load(&mp, NULL, sizeof(test_midi)));
     ASSERT(!midi_load(&mp, (const uint8_t*)"NOPE", 4), "reject non-MIDI");
     ASSERT(!midi_load(&mp, test_midi, 5), "reject truncated");
+    uint8_t truncated_tracks[sizeof(test_midi)];
+    memcpy(truncated_tracks, test_midi, sizeof(truncated_tracks));
+    truncated_tracks[10] = 0;
+    truncated_tracks[11] = 2;
+    ASSERT(!midi_load(&mp, truncated_tracks, sizeof(truncated_tracks)),
+           "reject missing declared track");
+
+    uint8_t too_many_tracks[sizeof(test_midi)];
+    memcpy(too_many_tracks, test_midi, sizeof(too_many_tracks));
+    too_many_tracks[10] = 0;
+    too_many_tracks[11] = MIDI_MAX_TRACKS + 1;
+    ASSERT(!midi_load(&mp, too_many_tracks, sizeof(too_many_tracks)),
+           "reject unsupported track count");
+
     uint8_t truncated[sizeof(test_midi)];
     memcpy(truncated, test_midi, sizeof(truncated));
     truncated[18] = 0x7F; /* MTrk length exceeds the supplied buffer. */

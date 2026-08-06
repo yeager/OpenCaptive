@@ -260,11 +260,12 @@ bool midi_load(MIDIPlayer *player, const uint8_t *data, size_t size) {
     player->ticks_per_beat = read_be16(data + 12);
     if (player->ticks_per_beat == 0) return false;
 
-    if (num_tracks > MIDI_MAX_TRACKS) num_tracks = MIDI_MAX_TRACKS;
+    if (num_tracks == 0 || num_tracks > MIDI_MAX_TRACKS) return false;
 
     uint32_t pos = 8 + hdr_len;
-    for (int i = 0; i < num_tracks && pos + 8 <= size; i++) {
-        if (memcmp(data + pos, "MTrk", 4) != 0) break;
+    for (int i = 0; i < num_tracks; i++) {
+        if (size - pos < 8U || memcmp(data + pos, "MTrk", 4) != 0)
+            return false;
         uint32_t trk_len = read_be32(data + pos + 4);
         pos += 8;
         if ((uint64_t)pos + trk_len > size) return false;
@@ -294,7 +295,7 @@ bool midi_load(MIDIPlayer *player, const uint8_t *data, size_t size) {
     opl2_write(&player->opl, 0x01, 0x20);
     recalc_tick_rate(player);
 
-    return player->num_tracks > 0;
+    return player->num_tracks == num_tracks;
 }
 
 void midi_play(MIDIPlayer *player, bool loop) {
