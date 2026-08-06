@@ -3,6 +3,7 @@
 #include "data_vfs.h"
 #include "sha256.h"
 #include "liberation_data.h"
+#include "texture_atlas.h"
 #include "i18n.h"
 #include <stdlib.h>
 #include <string.h>
@@ -466,7 +467,8 @@ void start_menu_check_data(StartMenu *menu, const char *data_path) {
        has no Amiga graphics adapter. Advertising a verified ADF as a launch
        source made the version popup select Amiga and then silently load DOS
        assets instead. The verifier remains available to --verify-data. */
-    menu->captive_source_mask = dos_valid ? (1U << CAPTIVE_PLATFORM_DOS) : 0U;
+    menu->captive_source_mask = dos_valid && captive_scene_assets_available(&vfs)
+        ? (1U << CAPTIVE_PLATFORM_DOS) : 0U;
     menu->captive_data_ok = menu->captive_source_mask != 0U;
     menu->captive_source_choice = CAPTIVE_PLATFORM_DOS;
     menu->liberation_source_mask = liberation_data_available_sources(&vfs);
@@ -661,7 +663,8 @@ void start_menu_update(StartMenu *menu) {
         menu->scanner_phase = 2;
         menu->scanner_done = true;
         menu->captive_data_ok = menu->scanner_captive_found ==
-                                menu->scanner_captive_total;
+                                menu->scanner_captive_total &&
+                                captive_scene_assets_available(&menu->scanner_vfs);
         menu->captive_source_mask = menu->captive_data_ok
             ? (1U << CAPTIVE_PLATFORM_DOS) : 0U;
         menu->captive_source_choice = CAPTIVE_PLATFORM_DOS;

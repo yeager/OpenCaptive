@@ -2,7 +2,6 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
-
 static const char *const alien_hashes[6] = {
     "4a2bc840d184ff07657f56e630b0293f1d5d7cdbf1d00e4505a1a69dcf721667",
     "2c8db6bfbec2b463856ab4cd9a313f9fbf20be408a2e278d94d498653562f754",

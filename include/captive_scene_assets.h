@@ -6,6 +6,10 @@
  * or archive-entry contract. */
 #define CAPTIVE_VIEW_SOURCE_COUNT 23
 
+#include "data_vfs.h"
+
 extern const char *const captive_view_source_hashes[CAPTIVE_VIEW_SOURCE_COUNT];
+
+bool captive_scene_assets_available(const DataVFS *vfs);
 
 #endif

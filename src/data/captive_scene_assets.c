@@ -1,4 +1,5 @@
 #include "captive_scene_assets.h"
+#include <stdlib.h>
 
 const char *const captive_view_source_hashes[CAPTIVE_VIEW_SOURCE_COUNT] = {
     "47ad15b4a593c37880d0306b6a0f51b7a9f20615cf6a188f23716d5b48315524",
@@ -28,3 +29,14 @@ const char *const captive_view_source_hashes[CAPTIVE_VIEW_SOURCE_COUNT] = {
     "6eb09e17fdd6b97bdef223b3ebab5c94f12010c8cba615536fd40bf1509299c0",
     "70e0b9bfbaa5dfd12643b50cbe10d0b664de2fb1106d8ff0f2fde1ce6f443bbe",
 };
+
+bool captive_scene_assets_available(const DataVFS *vfs) {
+    if (!vfs || !vfs->initialized) return false;
+    for (int i = 0; i < CAPTIVE_VIEW_SOURCE_COUNT; ++i) {
+        size_t size = 0;
+        uint8_t *data = vfs_find_sha256(vfs, captive_view_source_hashes[i], &size);
+        if (!data) return false;
+        free(data);
+    }
+    return true;
+}

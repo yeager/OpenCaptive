@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive gemensam atlasverifiering)
+
+- Startmeny, `--verify-data` och Captive-start använder nu samma kompletta
+  lista över PL5-ytor som renderingsatlasen kräver.
+- Captive markeras inte längre som tillgängligt när bara en del av atlasen
+  finns.
+
 ## 2026-08-06 (Captive atlas-uppstart)
 
 - Captive startar inte längre med verifierade men ofullständigt avkodade

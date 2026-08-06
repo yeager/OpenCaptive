@@ -419,7 +419,7 @@ static bool validate_data_path(const DataVFS *vfs) {
         if (!data) return false;
         free(data);
     }
-    return true;
+    return captive_scene_assets_available(vfs);
 }
 
 static void show_missing_liberation_data_dialog(const char *data_path) {
