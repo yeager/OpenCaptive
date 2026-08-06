@@ -27,14 +27,15 @@ jobs:
             libgbm-dev libpulse-dev libasound2-dev
       - name: Build SDL3
         run: |
-          git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
-          cmake -S SDL3-src -B SDL3-build -DCMAKE_INSTALL_PREFIX=/usr/local -G Ninja -DCMAKE_BUILD_TYPE=Release
+          git clone --depth 1 --filter=blob:none https://github.com/libsdl-org/SDL.git SDL3-src
+          cmake -S SDL3-src -B SDL3-build -DCMAKE_INSTALL_PREFIX=/usr/local -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
           ninja -C SDL3-build
           sudo ninja -C SDL3-build install
           sudo ldconfig
       - name: Build SDL3_ttf
         run: |
-          git clone --depth 1 --recurse-submodules https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
+          git clone --depth 1 --filter=blob:none --recurse-submodules --shallow-submodules https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
           cmake -S SDL3_ttf-src -B SDL3_ttf-build -DCMAKE_INSTALL_PREFIX=/usr/local -G Ninja -DCMAKE_BUILD_TYPE=Release
           ninja -C SDL3_ttf-build
           sudo ninja -C SDL3_ttf-build install
@@ -73,13 +74,14 @@ jobs:
           cmake --install zlib-build --config Release
       - name: Install SDL3
         run: |
-          git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3-src
-          cmake -S SDL3-src -B SDL3-build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3-install
+          git clone --depth 1 --filter=blob:none https://github.com/libsdl-org/SDL.git SDL3-src
+          cmake -S SDL3-src -B SDL3-build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3-install \
+            -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
           cmake --build SDL3-build --config Release
           cmake --install SDL3-build --config Release
       - name: Install SDL3_ttf
         run: |
-          git clone --depth 1 --recurse-submodules https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
+          git clone --depth 1 --filter=blob:none --recurse-submodules --shallow-submodules https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf-src
           cmake -S SDL3_ttf-src -B SDL3_ttf-build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3_ttf-install -DCMAKE_PREFIX_PATH=${{ github.workspace }}/SDL3-install
           cmake --build SDL3_ttf-build --config Release
           cmake --install SDL3_ttf-build --config Release

@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (CI-beroenden)
+
+- CI bygger nu SDL3 utan SDL:s egna testprogram och exempel, som inte behövs
+  för OpenCaptive.
+- SDL- och SDL_ttf-källor hämtas med blob-filter och grunda submoduler där det
+  är möjligt, vilket minskar beroendestegens storlek och Windows-risken för
+  timeout.
+
 ## 2026-08-07 (Captive startmeny)
 
 - Korrigerade startmenyns interna antalspost från sex till åtta val. Det
