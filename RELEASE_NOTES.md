@@ -52,9 +52,9 @@ GitHub-releasen publicerar exakt den sektionen; automatiskt genererade
 - Linux-RPM och AppImage-paketen innehåller nu font, alla l10n-kataloger och
   menybilder, så installerade releasepaket får samma launcher-resurser som
   tarball, DEB och Windows-installern.
-- VFS-cachevalideringen använder nu en billig metadata-probe per hashuppslag
-  och räknar bara om hela dataträdets signatur när datarot eller arkiv har
-  ändrats. Det undviker upprepade metadata-pass genom samma arkivscan.
+- VFS-cachevalideringen använder nu en metadata-probe utan innehållsläsning per
+  hashuppslag. Den upptäcker även ersatta lösa filer, medan redan verifierade
+  filinnehåll fortsatt återanvänds från cachen.
 - Liberation F9 bygger nu om den seedade staden innan sparat tillstånd
   återställs, så ett uppdrag från en annan session inte blandas med gamla
   byggnader och navigeringsceller.

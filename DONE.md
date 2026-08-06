@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (VFS loose-file cache invalidation)
+
+- VFS-cacheproben inkluderar nu metadata för lösa filer, inte bara dataroten
+  och ZIP-arkiven.
+- Ett ersatt löst speldataobjekt med samma storlek kan därför inte längre
+  återanvända en gammal hash-cachepost.
+- Regressionstestet verifierar uttryckligen att den gamla hashen avvisas efter
+  filbyte.
+
 ## 2026-08-06 (Map generator frontier performance)
 
 - MapGen använder nu en inkrementell frontier i Architect-vandringen i stället

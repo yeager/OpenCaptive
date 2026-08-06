@@ -208,11 +208,14 @@ static void test_rejects_overlong_data_path(void) {
 
 static void test_finds_hash_in_extracted_tree(void) {
     const unsigned char payload[] = { 9, 8, 7, 6 };
-    FILE *f = fopen("test-vfs-loose.bin", "wb");
+    const char *test_dir = "test-vfs-loose-dir";
+    const char *test_file = "test-vfs-loose-dir/test-vfs-loose.bin";
+    assert(TEST_MKDIR(test_dir) == 0);
+    FILE *f = fopen(test_file, "wb");
     assert(f && fwrite(payload, 1, sizeof(payload), f) == sizeof(payload));
     assert(fclose(f) == 0);
     DataVFS vfs;
-    assert(vfs_init(&vfs, "."));
+    assert(vfs_init(&vfs, test_dir));
     size_t size = 0;
     uint8_t *result = vfs_find_sha256(&vfs,
         "63d987d1c6d69751c17297f410f5b3547a65d096a8993b35bcb4f9cad054f176", &size);
@@ -222,15 +225,20 @@ static void test_finds_hash_in_extracted_tree(void) {
     /* Replacing a loose file must invalidate the metadata-backed cache; an
        old payload must never satisfy a hash lookup after the source changes. */
     const unsigned char replacement[] = { 5, 6, 7, 8 };
-    f = fopen("test-vfs-loose.bin", "wb");
+    f = fopen(test_file, "wb");
     assert(f && fwrite(replacement, 1, sizeof(replacement), f) == sizeof(replacement));
     assert(fclose(f) == 0);
+    result = vfs_find_sha256(&vfs,
+        "63d987d1c6d69751c17297f410f5b3547a65d096a8993b35bcb4f9cad054f176", &size);
+    assert(result == NULL);
+    free(result);
     result = vfs_find_sha256(&vfs,
         "55e5509f8052998294266ee5b50cb592938191fb5d67f73cac2e60b0276b1bdd", &size);
     assert(result && size == sizeof(replacement) && memcmp(result, replacement, size) == 0);
     free(result);
     vfs_free(&vfs);
-    assert(remove("test-vfs-loose.bin") == 0);
+    assert(remove(test_file) == 0);
+    assert(TEST_RMDIR(test_dir) == 0);
 }
 
 static void test_reads_and_hashes_empty_file(void) {

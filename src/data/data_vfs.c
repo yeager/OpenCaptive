@@ -33,6 +33,7 @@
 static int compare_zip_paths(const void *left, const void *right);
 static void vfs_cache_signature(const DataVFS *vfs, char out[65]);
 static void vfs_cache_probe_signature(const DataVFS *vfs, char out[65]);
+static bool cache_source_signature(const char *path, char out[65]);
 
 static uint16_t read_u16(const uint8_t *p) {
     return (uint16_t)((uint16_t)p[0] | ((uint16_t)p[1] << 8));
@@ -636,6 +637,21 @@ static void cache_meta_update(SHA256Context *ctx, const char *path,
     if (n > 0) sha256_update(ctx, (const uint8_t *)line, (size_t)n);
 }
 
+static bool cache_source_signature(const char *path, char out[65]) {
+    if (!path || !path[0] || !out) return false;
+    struct stat st;
+    if (stat(path, &st) != 0 || !S_ISREG(st.st_mode)) return false;
+    SHA256Context ctx;
+    uint8_t digest[32];
+    sha256_init(&ctx);
+    cache_meta_update(&ctx, path, &st);
+    sha256_final(&ctx, digest);
+    for (int i = 0; i < 32; ++i)
+        snprintf(out + i * 2, 3, "%02x", digest[i]);
+    out[64] = '\0';
+    return true;
+}
+
 #ifdef _WIN32
 typedef struct {
     char path[1024];
@@ -745,10 +761,9 @@ static void vfs_cache_signature(const DataVFS *vfs, char out[65]) {
     out[64] = '\0';
 }
 
-/* Probe only the data root and the archives already discovered at init.  This
- * catches the common live-archive-change case without walking every loose
- * asset for every hash lookup.  A changed probe promotes the lookup to the
- * full tree signature above. */
+/* Probe only the data root and discovered archives.  Loose-file cache entries
+ * carry their own source fingerprint and are validated individually when a
+ * cache hit is read, so this common path does not walk the whole data tree. */
 static void vfs_cache_probe_signature(const DataVFS *vfs, char out[65]) {
     SHA256Context ctx;
     uint8_t digest[32];
@@ -797,7 +812,7 @@ static uint8_t *vfs_cache_read(const char hash[65], const char signature[65],
                                size_t *out_size) {
     const char *home = vfs_cache_home();
     if (!home || !valid_sha256_text(hash)) return NULL;
-    char meta[1200], data_path[1200], stored[65];
+    char meta[1200], data_path[1200], stored[4096];
     snprintf(meta, sizeof(meta), "%s/.cache/opencaptive/%s.meta", home, hash);
     snprintf(data_path, sizeof(data_path), "%s/.cache/opencaptive/%s.bin", home, hash);
     FILE *mf = fopen(meta, "rb");
@@ -805,7 +820,26 @@ static uint8_t *vfs_cache_read(const char hash[65], const char signature[65],
     size_t n = fread(stored, 1, sizeof(stored) - 1, mf);
     fclose(mf);
     stored[n] = '\0';
-    if (n != strlen(signature) || memcmp(stored, signature, n) != 0) return NULL;
+    /* v2 metadata stores the source path and its filesystem fingerprint.  Old
+     * one-line entries are intentionally ignored so a loose-file cache entry
+     * can never bypass source validation after an upgrade. */
+    if (strncmp(stored, "v2\n", 3) != 0) return NULL;
+    char *signature_line = stored + 3;
+    char *source_path = strchr(signature_line, '\n');
+    if (!source_path) return NULL;
+    *source_path++ = '\0';
+    if (strcmp(signature_line, signature) != 0) return NULL;
+    char *source_signature = strchr(source_path, '\n');
+    if (!source_signature) return NULL;
+    *source_signature++ = '\0';
+    char *end = strchr(source_signature, '\n');
+    if (end) *end = '\0';
+    if (source_path[0]) {
+        char current_source_signature[65];
+        if (!cache_source_signature(source_path, current_source_signature) ||
+            strcmp(source_signature, current_source_signature) != 0)
+            return NULL;
+    }
     size_t cached_size = 0;
     uint8_t *cached = read_regular_file(data_path, &cached_size);
     if (!cached) return NULL;
@@ -820,7 +854,7 @@ static uint8_t *vfs_cache_read(const char hash[65], const char signature[65],
 }
 
 static void vfs_cache_write(const char hash[65], const uint8_t *data, size_t size,
-                            const char signature[65]) {
+                            const char signature[65], const char *source_path) {
     const char *home = vfs_cache_home();
     if (!home || !valid_sha256_text(hash) || !data || size > ZIP_MAX_ENTRY_SIZE) return;
     char base[1024], meta[1200], data_path[1200];
@@ -853,10 +887,22 @@ static void vfs_cache_write(const char hash[65], const uint8_t *data, size_t siz
         return;
     }
 
+    char source_signature[65] = {0};
+    if (source_path && (strchr(source_path, '\n') || strchr(source_path, '\r') ||
+                        !cache_source_signature(source_path, source_signature)))
+        source_path = NULL;
+    char metadata[2400];
+    int metadata_length = snprintf(metadata, sizeof(metadata), "v2\n%s\n%s\n%s\n",
+                                   signature, source_path ? source_path : "",
+                                   source_path ? source_signature : "");
+    if (metadata_length < 0 || metadata_length >= (int)sizeof(metadata)) {
+        remove(meta_tmp);
+        return;
+    }
     FILE *mf = fopen(meta_tmp, "wb");
     if (!mf) return;
-    bool meta_write_ok = fwrite(signature, 1, strlen(signature), mf) ==
-                         strlen(signature);
+    bool meta_write_ok = fwrite(metadata, 1, (size_t)metadata_length, mf) ==
+                         (size_t)metadata_length;
     int meta_close_result = fclose(mf);
     if (!meta_write_ok || meta_close_result != 0) {
         remove(meta_tmp);
@@ -867,7 +913,8 @@ static void vfs_cache_write(const char hash[65], const uint8_t *data, size_t siz
 
 #ifndef _WIN32
 static uint8_t *find_hash_in_directory(const char *path, const char expected_sha256[65],
-                                       size_t *out_size, int depth) {
+                                       size_t *out_size, int depth,
+                                       char *source_path, size_t source_path_size) {
     if (depth > 32) return NULL;
     DIR *dir = opendir(path);
     if (!dir) return NULL;
@@ -879,19 +926,27 @@ static uint8_t *find_hash_in_directory(const char *path, const char expected_sha
         struct stat st;
         if (stat(child, &st) != 0) continue;
         if (S_ISDIR(st.st_mode)) {
-            uint8_t *found = find_hash_in_directory(child, expected_sha256, out_size, depth + 1);
+            uint8_t *found = find_hash_in_directory(child, expected_sha256, out_size,
+                                                    depth + 1, source_path,
+                                                    source_path_size);
             if (found) { closedir(dir); return found; }
         } else if (S_ISREG(st.st_mode) && (uint64_t)st.st_size <= ZIP_MAX_ENTRY_SIZE) {
             size_t size = 0; uint8_t *data = read_regular_file(child, &size);
             if (!data) continue;
             uint8_t digest[32]; sha256_digest(data, size, digest);
             if (sha256_matches_hex(digest, expected_sha256)) {
+                if (source_path && source_path_size)
+                    snprintf(source_path, source_path_size, "%s", child);
                 closedir(dir); if (out_size) *out_size = size; return data;
             }
             if (size == 901120U || size == 1802240U) {
                 uint8_t *adf_file = amiga_ofs_find_file_sha256(data, size,
                                                                 expected_sha256, out_size);
-                if (adf_file) { free(data); closedir(dir); return adf_file; }
+                if (adf_file) {
+                    if (source_path && source_path_size)
+                        snprintf(source_path, source_path_size, "%s", child);
+                    free(data); closedir(dir); return adf_file;
+                }
             }
             free(data);
         }
@@ -901,7 +956,8 @@ static uint8_t *find_hash_in_directory(const char *path, const char expected_sha
 }
 #else
 static uint8_t *find_hash_in_directory(const char *path, const char expected_sha256[65],
-                                       size_t *out_size, int depth) {
+                                       size_t *out_size, int depth,
+                                       char *source_path, size_t source_path_size) {
     if (depth > 32) return NULL;
     char pattern[1024];
     if (snprintf(pattern, sizeof(pattern), "%s\\*", path) >= (int)sizeof(pattern)) return NULL;
@@ -913,7 +969,9 @@ static uint8_t *find_hash_in_directory(const char *path, const char expected_sha
         char child[1024];
         if (snprintf(child, sizeof(child), "%s\\%s", path, entry.cFileName) >= (int)sizeof(child)) continue;
         if (entry.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-            uint8_t *found = find_hash_in_directory(child, expected_sha256, out_size, depth + 1);
+            uint8_t *found = find_hash_in_directory(child, expected_sha256, out_size,
+                                                    depth + 1, source_path,
+                                                    source_path_size);
             if (found) { FindClose(handle); return found; }
         } else {
             uint64_t size_on_disk = ((uint64_t)entry.nFileSizeHigh << 32) | entry.nFileSizeLow;
@@ -922,12 +980,18 @@ static uint8_t *find_hash_in_directory(const char *path, const char expected_sha
             if (!data) continue;
             uint8_t digest[32]; sha256_digest(data, size, digest);
             if (sha256_matches_hex(digest, expected_sha256)) {
+                if (source_path && source_path_size)
+                    snprintf(source_path, source_path_size, "%s", child);
                 FindClose(handle); if (out_size) *out_size = size; return data;
             }
             if (size == 901120U || size == 1802240U) {
                 uint8_t *adf_file = amiga_ofs_find_file_sha256(data, size,
                                                                 expected_sha256, out_size);
-                if (adf_file) { free(data); FindClose(handle); return adf_file; }
+                if (adf_file) {
+                    if (source_path && source_path_size)
+                        snprintf(source_path, source_path_size, "%s", child);
+                    free(data); FindClose(handle); return adf_file;
+                }
             }
             free(data);
         }
@@ -951,10 +1015,14 @@ uint8_t *vfs_find_sha256(const DataVFS *vfs, const char expected_sha256[65], siz
     uint8_t *cached = vfs_cache_read(expected_sha256, signature, out_size);
     if (cached) return cached;
     size_t found_size = 0;
-    uint8_t *loose = find_hash_in_directory(vfs->data_path, expected_sha256, &found_size, 0);
+    char source_path[1024] = {0};
+    uint8_t *loose = find_hash_in_directory(vfs->data_path, expected_sha256,
+                                             &found_size, 0, source_path,
+                                             sizeof(source_path));
     if (loose) {
         if (out_size) *out_size = found_size;
-        vfs_cache_write(expected_sha256, loose, found_size, signature);
+        vfs_cache_write(expected_sha256, loose, found_size, signature,
+                        source_path[0] ? source_path : NULL);
         return loose;
     }
     for (int i = 0; i < vfs->num_zips; i++) {
@@ -962,7 +1030,7 @@ uint8_t *vfs_find_sha256(const DataVFS *vfs, const char expected_sha256[65], siz
         uint8_t *data = zip_find_sha256(vfs->zip_paths[i], expected_sha256, &found_size);
         if (data) {
             if (out_size) *out_size = found_size;
-            vfs_cache_write(expected_sha256, data, found_size, signature);
+            vfs_cache_write(expected_sha256, data, found_size, signature, NULL);
             return data;
         }
     }
