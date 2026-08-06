@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Binary lever solution)
+
+- Synkade binära spakars lagrade lösning med interaktionslogiken till 0/1.
+- Clipboard-hjälpen använder nu samma bit som spelet faktiskt testar.
+- Regressionstest tillagt för en tidigare missvisande `OFF`/`ON`-hint.
+
 ## 2026-08-06 (Power socket recharge)
 
 - Korrigerade power socket så att varje laddning ger 420 energi, i linje med

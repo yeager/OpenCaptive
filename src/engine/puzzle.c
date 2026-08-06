@@ -82,7 +82,9 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
                     p->level = level_num;
                     p->face = d;
                     p->state = 0;
-                    p->solution = (uint8_t)(1 + captive_prng(&puzzle_seed) % 7);
+                    /* Binary levers use bit 0; keep the stored solution in
+                     * the same 0/1 domain used by interaction and hints. */
+                    p->solution = (uint8_t)(captive_prng(&puzzle_seed) & 1U);
                     p->solved = false;
 
                     // Find a locked door to link to
@@ -508,7 +510,8 @@ bool puzzle_get_clipboard_hint(const PuzzleList *pl, const GameState *gs,
             p->level != gs->current_level || p->solved) continue;
         switch (p->type) {
             case PUZZLE_LEVER:
-                snprintf(buf, buf_size, "Solution: %s", p->solution ? "ON" : "OFF");
+                snprintf(buf, buf_size, "Solution: %s",
+                         (p->solution & 1U) ? "ON" : "OFF");
                 return true;
             case PUZZLE_TRIPLE_LEVER:
                 snprintf(buf, buf_size, "Solution: %d%d%d",

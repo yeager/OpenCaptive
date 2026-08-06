@@ -231,6 +231,23 @@ static void test_power_socket_recharges_420_energy(void) {
     assert(gs.droids[0].energy == 1000);
 }
 
+static void test_binary_lever_hint_uses_bit_zero(void) {
+    PuzzleList puzzles = {0};
+    GameState gs;
+    char hint[64];
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    puzzles.num_puzzles = 1;
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_LEVER, .x = 1, .y = 1, .level = gs.current_level,
+        .face = DIR_NORTH, .solution = 2
+    };
+
+    assert(puzzle_get_clipboard_hint(&puzzles, &gs, 1, 1, DIR_NORTH,
+                                     hint, (int)sizeof(hint)));
+    assert(strcmp(hint, "Solution: OFF") == 0);
+}
+
 int main(void) {
     test_round_trip();
     test_corrupt_save_preserves_state();
@@ -242,6 +259,7 @@ int main(void) {
     test_save_rejects_negative_creature_defense();
     test_puzzle_interact_rejects_invalid_state();
     test_power_socket_recharges_420_energy();
+    test_binary_lever_hint_uses_bit_zero();
     remove(save_path);
     puts("All save/load tests passed");
     return 0;
