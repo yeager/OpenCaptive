@@ -30,6 +30,18 @@ int main(void) {
     assert(result.source_offset == 0x6662 && result.destination_offset == 0x1720);
     assert(result.width_bytes == 6 && result.height == 49 && result.flags == 6);
     assert(result.source_bank == 2 && result.source_segment == 0x55cf);
+    uint8_t *source = memory + ((size_t)result.source_segment << 4) + result.source_offset;
+    const uint8_t packed[] = { 0xe1, 0x42, 0x38, 0xa4, 0x1d };
+    memcpy(source, packed, sizeof(packed));
+    result.width_bytes = 1;
+    result.height = 1;
+    uint8_t indices[8] = {0};
+    const uint8_t expected_indices[] = { 1, 2, 15, 16, 4, 20, 29, 3 };
+    assert(captive_dos_descriptor_decode_indices(memory, memory_size, &result,
+                                                 indices, sizeof(indices)));
+    assert(memcmp(indices, expected_indices, sizeof(indices)) == 0);
+    assert(!captive_dos_descriptor_decode_indices(memory, memory_size, &result,
+                                                  indices, 7));
     assert(!captive_dos_descriptor_read(memory, memory_size - 1,
                                         descriptor_segment, source_bank_table_segment,
                                         graphic_id, &result));

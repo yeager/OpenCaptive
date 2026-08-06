@@ -38,3 +38,41 @@ bool captive_dos_descriptor_read(const uint8_t *memory, size_t memory_size,
     out->source_segment = read_le16(memory + bank_word);
     return true;
 }
+
+bool captive_dos_descriptor_decode_indices(const uint8_t *memory,
+                                           size_t memory_size,
+                                           const CaptiveDosDescriptor *descriptor,
+                                           uint8_t *indices,
+                                           size_t indices_stride) {
+    if (!memory || !descriptor || !indices || descriptor->width_bytes == 0U ||
+        descriptor->height == 0U) return false;
+    size_t width = (size_t)descriptor->width_bytes * 8U;
+    if (indices_stride < width) return false;
+    size_t source_base = (size_t)descriptor->source_segment << 4;
+    if (source_base > memory_size || descriptor->source_offset > memory_size - source_base)
+        return false;
+    size_t source_first = source_base + descriptor->source_offset;
+    size_t last_row = (size_t)descriptor->height - 1U;
+    if (last_row > (memory_size - source_first) / CAPTIVE_DOS_PACKED_SOURCE_STRIDE)
+        return false;
+    size_t source_last = source_first + last_row * CAPTIVE_DOS_PACKED_SOURCE_STRIDE;
+    size_t packed_width = (size_t)descriptor->width_bytes * 5U;
+    if (!range_fits(source_last, packed_width, memory_size)) return false;
+
+    for (size_t y = 0; y < descriptor->height; ++y) {
+        const uint8_t *row = memory + source_first + y * CAPTIVE_DOS_PACKED_SOURCE_STRIDE;
+        for (size_t group = 0; group < descriptor->width_bytes; ++group) {
+            const uint8_t *source = row + group * 5U;
+            uint8_t *out = indices + y * indices_stride + group * 8U;
+            out[0] = source[0] & 0x1fU;
+            out[1] = source[1] & 0x1fU;
+            out[2] = ((source[0] >> 5) & 0x07U) | ((source[1] >> 3) & 0x18U);
+            out[3] = ((source[2] << 1) | ((source[1] >> 5) & 0x01U)) & 0x1fU;
+            out[4] = source[3] & 0x1fU;
+            out[5] = ((source[2] >> 6) & 0x03U) | ((source[3] >> 3) & 0x1cU);
+            out[6] = source[4] & 0x1fU;
+            out[7] = ((source[2] >> 4) & 0x03U) | ((source[4] >> 3) & 0x1cU);
+        }
+    }
+    return true;
+}

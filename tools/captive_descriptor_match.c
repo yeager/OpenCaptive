@@ -16,7 +16,6 @@ enum {
     VIEW_HEIGHT = 112,
     DESCRIPTOR_SEGMENT = 0x2942,
     SOURCE_BANK_TABLE_SEGMENT = 0x0824,
-    PACKED_SOURCE_STRIDE = 200,
 };
 
 static const char captured_renderer_sha256[] =
@@ -68,19 +67,6 @@ static bool read_ppm(const char *path, uint32_t *pixels) {
     return fclose(file) == 0;
 }
 
-static void unpack_group(const uint8_t source[5], uint8_t out[8]) {
-    uint8_t s0 = source[0], s1 = source[1], s2 = source[2];
-    uint8_t s3 = source[3], s4 = source[4];
-    out[0] = s0 & 0x1f;
-    out[1] = s1 & 0x1f;
-    out[2] = ((s0 >> 5) & 0x07) | ((s1 >> 3) & 0x18);
-    out[3] = ((s2 << 1) | ((s1 >> 5) & 0x01)) & 0x1f;
-    out[4] = s3 & 0x1f;
-    out[5] = ((s2 >> 6) & 0x03) | ((s3 >> 3) & 0x1c);
-    out[6] = s4 & 0x1f;
-    out[7] = ((s2 >> 4) & 0x03) | ((s4 >> 3) & 0x1c);
-}
-
 static bool panel_decode(const uint8_t *memory, size_t memory_size,
                          const CaptiveDosDescriptor *descriptor,
                          DescriptorPanel *out) {
@@ -88,23 +74,18 @@ static bool panel_decode(const uint8_t *memory, size_t memory_size,
         descriptor->height == 0) return false;
     int width = descriptor->width_bytes * 8;
     int height = descriptor->height;
-    size_t source_base = (size_t)descriptor->source_segment << 4;
-    size_t source_last = source_base + descriptor->source_offset +
-        (size_t)(height - 1) * PACKED_SOURCE_STRIDE +
-        (size_t)descriptor->width_bytes * 5;
-    if (source_last > memory_size) return false;
     uint8_t *pixels = malloc((size_t)width * (size_t)height);
     if (!pixels) return false;
+    if (!captive_dos_descriptor_decode_indices(memory, memory_size, descriptor,
+                                               pixels, (size_t)width)) {
+        free(pixels);
+        return false;
+    }
     int opaque = 0;
     for (int y = 0; y < height; ++y) {
-        const uint8_t *row = memory + source_base + descriptor->source_offset +
-                             (size_t)y * PACKED_SOURCE_STRIDE;
         for (int group = 0; group < descriptor->width_bytes; ++group) {
-            uint8_t decoded[8];
-            unpack_group(row + group * 5, decoded);
             for (int x = 0; x < 8; ++x) {
-                uint8_t pixel = decoded[x];
-                pixels[y * width + group * 8 + x] = pixel;
+                uint8_t pixel = pixels[y * width + group * 8 + x];
                 if (!(descriptor->flags & 0x04) || pixel != 0) ++opaque;
             }
         }

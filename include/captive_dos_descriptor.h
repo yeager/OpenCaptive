@@ -19,6 +19,8 @@ typedef struct {
     uint16_t source_segment;
 } CaptiveDosDescriptor;
 
+#define CAPTIVE_DOS_PACKED_SOURCE_STRIDE 200U
+
 /* Decode one original descriptor from a physical one-megabyte DOS memory
  * image. `descriptor_segment` and `source_bank_table_segment` are the
  * relocated values observed in that process; neither is hard-coded as a
@@ -28,5 +30,14 @@ bool captive_dos_descriptor_read(const uint8_t *memory, size_t memory_size,
                                  uint16_t source_bank_table_segment,
                                  uint16_t graphic_id,
                                  CaptiveDosDescriptor *out);
+
+/* Expand one original descriptor source rectangle to 5-bit palette indices.
+ * The output remains in source order; callers apply the descriptor's mirror
+ * and transparency flags when executing the recovered draw command. */
+bool captive_dos_descriptor_decode_indices(const uint8_t *memory,
+                                           size_t memory_size,
+                                           const CaptiveDosDescriptor *descriptor,
+                                           uint8_t *indices,
+                                           size_t indices_stride);
 
 #endif
