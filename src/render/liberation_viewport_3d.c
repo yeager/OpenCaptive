@@ -67,9 +67,18 @@ static bool project(const Lib3dState *state, const Lib3dVec3 *v,
         !isfinite(v->z) || !isfinite(state->fov_scale) ||
         v->z < LIB3D_NEAR_CLIP) return false;
 
-    float inv_z = state->fov_scale / v->z;
-    out->sx = (int)(v->x * inv_z) + LIB3D_VP_WIDTH / 2;
-    out->sy = (int)(-v->y * inv_z) + LIB3D_VP_HEIGHT / 2;
+    double inv_z = (double)state->fov_scale / (double)v->z;
+    double sx = (double)v->x * inv_z + LIB3D_VP_WIDTH / 2.0;
+    double sy = -(double)v->y * inv_z + LIB3D_VP_HEIGHT / 2.0;
+    /* A finite input can still project outside the representable int range.
+     * Check the result before the float-to-int conversion; converting an
+     * out-of-range floating value to int is undefined in C. */
+    if (!isfinite(sx) || !isfinite(sy) ||
+        sx < (double)INT_MIN || sx > (double)INT_MAX ||
+        sy < (double)INT_MIN || sy > (double)INT_MAX)
+        return false;
+    out->sx = (int)sx;
+    out->sy = (int)sy;
     out->z = v->z;
     return true;
 }
@@ -335,6 +344,12 @@ void lib3d_render_textured_quad(Lib3dState *state,
     Lib3dProjected proj[4];
     bool behind[4];
     for (int i = 0; i < 4; i++) {
+        /* project() intentionally leaves its output untouched on rejection.
+         * Mixed front/behind quads still reach the rasterizer, so initialize
+         * the fallback coordinates before attempting the projection. */
+        proj[i] = (Lib3dProjected){
+            LIB3D_VP_WIDTH / 2, LIB3D_VP_HEIGHT / 2, view[i].z
+        };
         behind[i] = !project(state, &view[i], &proj[i]);
         if (behind[i]) proj[i].z = view[i].z;
     }

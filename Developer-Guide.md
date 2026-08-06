@@ -23,7 +23,7 @@ Always test both Debug and Release configurations. Test targets compile with ass
 ctest --test-dir build -j4 --output-on-failure
 ```
 
-- 49 tests covering decoders, game logic, rendering, combat, save/load.
+- 55 tests covering decoders, game logic, rendering, combat, save/load, and release metadata.
 - Some viewport tests require original game data files and will fail or timeout without them.
 - Run a subset with `-R <pattern>`:
 
@@ -48,7 +48,7 @@ src/
                 liberation_data/anim/vgm/x3g/img/fnt, i18n, iso9660
   custom/     - Custom features: replay, cross_save
 include/      - All public headers
-tests/        - 49 test files
+tests/        - 55 test files
 docs/         - Documentation and wiki
 po/           - Translation files (19 languages)
 data/         - Bundled fonts

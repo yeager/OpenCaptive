@@ -7,6 +7,14 @@
 - Lade till `version_consistency` som jämför headerns version med CMake-versionen
   vid kompilering.
 
+## 2026-08-06 (3D projection safety)
+
+- Förhindrade odefinierade flyttal-till-heltal-konverteringar när extrema
+  projektionskoordinater går utanför `int`-intervallet.
+- Initierade fallback-koordinater för texturerade polygonhörn bakom near clip,
+  så blandade front-/bakom-kameran-quads inte använder oinitierade värden.
+- Lade till regressionstester; Werror-byggningen och alla 55 CTest-tester passerar.
+
 ## 2026-08-06 (Windows CI release fix)
 
 - Gjorde scan-cachens filmetadata portabel över Windows genom att använda

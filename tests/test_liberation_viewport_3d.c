@@ -1,5 +1,6 @@
 #include "liberation_viewport_3d.h"
 #include <assert.h>
+#include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -231,6 +232,53 @@ static void test_nonfinite_textured_quad_is_rejected(void) {
     assert(state.zbuffer[0] > 1e20f);
 }
 
+static void test_mixed_depth_textured_quad_has_initialized_fallbacks(void) {
+    Lib3dState state;
+    Lib3dTexture tex;
+    lib3d_init(&state);
+    lib3d_clear(&state, 0xFF000000, 0xFF000000);
+    tex.width = 2;
+    tex.height = 2;
+    for (int i = 0; i < 4; ++i) tex.pixels[i] = 0xFFFFFFFF;
+
+    /* One corner is behind the near plane. The rasterizer must not consume
+     * uninitialized screen coordinates for this partially visible quad. */
+    lib3d_render_textured_quad(&state,
+        -20, -20, 2,
+         20, -20, 80,
+         20,  20, 80,
+        -20,  20, 80,
+        &tex);
+    for (size_t i = 0; i < sizeof(state.zbuffer) / sizeof(state.zbuffer[0]); ++i)
+        assert(isfinite(state.zbuffer[i]));
+}
+
+static void test_extreme_projection_is_rejected_before_integer_conversion(void) {
+    Lib3dState state;
+    lib3d_init(&state);
+    lib3d_set_camera(&state, 0, 0, 0, 0);
+
+    X3gVertex verts[3] = {
+        { 100, -1, 4, 0, {0, 0, 0, 0} },
+        { 0, 1, 100, 0, {0, 0, 0, 0} },
+        {-1, 1, 100, 0, {0, 0, 0, 0} },
+    };
+    X3gPolygon poly = {0};
+    poly.vertex_count = 3;
+    poly.vertex_indices[0] = 0;
+    poly.vertex_indices[1] = 1;
+    poly.vertex_indices[2] = 2;
+    X3gObject obj = {0};
+    obj.vertices = verts;
+    obj.vertex_count = 3;
+    obj.parsed_polys = &poly;
+    obj.polygon_count = 1;
+
+    state.fov_scale = FLT_MAX;
+    lib3d_render_object(&state, &obj, 0, 0, 0, NULL, 0);
+    assert(state.vis_count == 0);
+}
+
 static void test_oversized_texture_is_rejected(void) {
     Lib3dState state;
     lib3d_init(&state);
@@ -348,6 +396,8 @@ int main(void) {
     test_behind_camera();
     test_nonfinite_vertex_is_rejected();
     test_nonfinite_textured_quad_is_rejected();
+    test_mixed_depth_textured_quad_has_initialized_fallbacks();
+    test_extreme_projection_is_rejected_before_integer_conversion();
     test_oversized_texture_is_rejected();
     test_textured_quad();
     test_textured_quad_behind();
