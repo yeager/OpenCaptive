@@ -2923,19 +2923,19 @@ int main(int argc, char *argv[]) {
                                lib_mission_briefing && lib_city_generated) {
                         draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
                                       LIBERATION_SCREEN_HEIGHT, 30,
-                                      "MISSION BRIEFING", 0xFF44FF44, 2);
+                                      _("MISSION BRIEFING"), 0xFF44FF44, 2);
                         char line[128];
-                        snprintf(line, sizeof(line), "City: %s", lib_plot.city_name);
+                        snprintf(line, sizeof(line), _("City: %s"), lib_plot.city_name);
                         draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
                                       LIBERATION_SCREEN_HEIGHT, 70, line, 0xFFFFFF44, 1);
-                        snprintf(line, sizeof(line), "Find: %s (%s)",
+                        snprintf(line, sizeof(line), _("Find: %s (%s)"),
                                  lib_plot.victim_name, lib_plot.victim_title);
                         draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
                                       LIBERATION_SCREEN_HEIGHT, 90, line, 0xFFFFAAAA, 1);
-                        snprintf(line, sizeof(line), "Source: %s", lib_plot.news_source);
+                        snprintf(line, sizeof(line), _("Source: %s"), lib_plot.news_source);
                         draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
                                       LIBERATION_SCREEN_HEIGHT, 110, line, 0xFF8888CC, 1);
-                        snprintf(line, sizeof(line), "%d buildings in city",
+                        snprintf(line, sizeof(line), _("%d buildings in city"),
                                  lib_plot.num_buildings);
                         draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
                                       LIBERATION_SCREEN_HEIGHT, 140, line, 0xFFAAAAAA, 1);
@@ -2994,11 +2994,11 @@ int main(int argc, char *argv[]) {
                                           _("TAXI"), 0xFFFFFF00, 3);
                         }
                         char pos_str[64];
-                        snprintf(pos_str, sizeof(pos_str), "%s (%d,%d) %s",
+                        snprintf(pos_str, sizeof(pos_str), _("%s (%d,%d) %s"),
                             lib_plot.city_name[0] ? lib_plot.city_name : lib_buildings.city_name,
                             lib_nav.cell_x, lib_nav.cell_y,
                             city_nav_is_building_entrance(&lib_grid,
-                                lib_nav.cell_x, lib_nav.cell_y) ? "[ENTER]" : "");
+                                lib_nav.cell_x, lib_nav.cell_y) ? _("[ENTER]") : "");
                         draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                             LIBERATION_SCREEN_HEIGHT, 2, LIBERATION_SCREEN_HEIGHT - 10,
                             pos_str, 0xFFFFFFFF, 1);
@@ -3016,7 +3016,7 @@ int main(int argc, char *argv[]) {
                             for (int ei = 0; ei < combat_enemy_count; ei++) {
                                 LibCombatEnemy *e = &lib_combat.enemies[ei];
                                 char line[80];
-                                snprintf(line, sizeof(line), "%s%s HP:%d/%d DMG:%d",
+                                snprintf(line, sizeof(line), _("%s%s HP:%d/%d DMG:%d"),
                                     ei == lib_combat.selected_target ? ">" : " ",
                                     e->name, e->hp, e->hp_max, e->damage);
                                 uint32_t color = e->alive ? 0xFFFFFFFF : 0xFF666666;
@@ -3025,7 +3025,7 @@ int main(int argc, char *argv[]) {
                             }
                             draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                 LIBERATION_SCREEN_HEIGHT, 8, LIBERATION_SCREEN_HEIGHT - 30,
-                                "1-4:Attack TAB:Target ESC:Flee", 0xFFCCCCCC, 1);
+                                _("1-4:Attack TAB:Target ESC:Flee"), 0xFFCCCCCC, 1);
                             if (lib_combat_is_over(&lib_combat, &gs)) {
                                 draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                     LIBERATION_SCREEN_HEIGHT, 8, LIBERATION_SCREEN_HEIGHT / 2,
@@ -3068,7 +3068,7 @@ int main(int argc, char *argv[]) {
                                     lib_interact.shop.item_count > 0) {
                                     char shop_info[80];
                                     snprintf(shop_info, sizeof(shop_info),
-                                        "%d items available. Gold: %d",
+                                        _("%d items available. Gold: %d"),
                                         lib_interact.shop.item_count, gs.gold);
                                     draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                         LIBERATION_SCREEN_HEIGHT, 8,
@@ -3084,7 +3084,7 @@ int main(int argc, char *argv[]) {
                     } else {
                         draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
                                       LIBERATION_SCREEN_HEIGHT, 118,
-                                      "VERIFIED LIBERATION PRESENTATION DATA REQUIRED",
+                                      _("VERIFIED LIBERATION PRESENTATION DATA REQUIRED"),
                                       0xFFCCDDEE, 1);
                     }
                 } else {

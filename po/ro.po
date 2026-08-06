@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-06 14:42+0200\n"
+"POT-Creation-Date: 2026-08-06 19:11+0200\n"
 "PO-Revision-Date: 2026-08-03\n"
 "Last-Translator: Daniel Nylander <daniel@danielnylander.se>\n"
 "Language-Team: Romanian\n"
@@ -78,6 +78,7 @@ msgid "OPENCAPTIVE"
 msgstr "OPENCAPTIVE"
 
 #: src/engine/start_menu.c:908 src/engine/start_menu.c:1339 src/main.c:3255
+#: src/main.c:3325
 msgid "SETTINGS"
 msgstr "SETĂRI"
 
@@ -218,6 +219,7 @@ msgid "PRESS ANY KEY TO RETURN"
 msgstr "APĂSAȚI O TASTĂ PENTRU A REVENI"
 
 #: src/engine/start_menu.c:1040 src/engine/start_menu.c:1355 src/main.c:3221
+#: src/main.c:3291
 msgid "CONTROLS"
 msgstr "COMENZI"
 
@@ -401,7 +403,7 @@ msgstr "DE DANIEL NYLANDER"
 msgid "CONTINUE"
 msgstr "CONTINUARE"
 
-#: src/engine/start_menu.c:1355 src/main.c:3255
+#: src/engine/start_menu.c:1355 src/main.c:3255 src/main.c:3325
 msgid "QUIT"
 msgstr "IEȘIRE"
 
@@ -426,7 +428,7 @@ msgstr ""
 msgid "%s HP:%d/%d EN:%d/%d"
 msgstr ""
 
-#: src/engine/terminal.c:136
+#: src/engine/terminal.c:136 src/main.c:2926
 msgid "MISSION BRIEFING"
 msgstr ""
 
@@ -549,157 +551,157 @@ msgstr "ACTIVEAZĂ"
 msgid "UP DOWN ENTER TOGGLE"
 msgstr "SUS JOS ENTER COMUTĂ"
 
-#: src/main.c:1121 src/main.c:1201
+#: src/main.c:1121 src/main.c:1201 src/main.c:1130 src/main.c:1210
 msgid "Fine paid. Rep +15"
 msgstr ""
 
-#: src/main.c:1131 src/main.c:1211
+#: src/main.c:1131 src/main.c:1211 src/main.c:1140 src/main.c:1220
 #, c-format
 msgid "Industrial hazard! %d damage!"
 msgstr ""
 
-#: src/main.c:1148 src/main.c:1228
+#: src/main.c:1148 src/main.c:1228 src/main.c:1157 src/main.c:1237
 msgid "Bar fight! Rep -10"
 msgstr ""
 
-#: src/main.c:1177
+#: src/main.c:1177 src/main.c:1186
 msgid "Shared inventory is full."
 msgstr ""
 
-#: src/main.c:1181
+#: src/main.c:1181 src/main.c:1190
 #, c-format
 msgid "Purchased: %s"
 msgstr ""
 
-#: src/main.c:1185
+#: src/main.c:1185 src/main.c:1194
 msgid "Cannot buy that item."
 msgstr ""
 
-#: src/main.c:1257
+#: src/main.c:1257 src/main.c:1266
 msgid "Entered building interior"
 msgstr ""
 
-#: src/main.c:1372
+#: src/main.c:1372 src/main.c:1381
 msgid "Taxi: 50 gold"
 msgstr ""
 
-#: src/main.c:1523
+#: src/main.c:1523 src/main.c:1550
 msgid "Creature destroyed!"
 msgstr ""
 
-#: src/main.c:1528
+#: src/main.c:1528 src/main.c:1555
 msgid "LEVEL UP!"
 msgstr ""
 
-#: src/main.c:1533
+#: src/main.c:1533 src/main.c:1560
 #, c-format
 msgid "Droid %d fires!"
 msgstr ""
 
-#: src/main.c:1682
+#: src/main.c:1682 src/main.c:1723
 #, c-format
 msgid "Droid %d picked up item"
 msgstr ""
 
-#: src/main.c:1698
+#: src/main.c:1698 src/main.c:1739
 msgid "Fell into a pit!"
 msgstr ""
 
-#: src/main.c:1702
+#: src/main.c:1702 src/main.c:1743
 msgid "Click!"
 msgstr ""
 
-#: src/main.c:2485
+#: src/main.c:2485 src/main.c:2549
 msgid "Left building"
 msgstr ""
 
-#: src/main.c:2496
+#: src/main.c:2496 src/main.c:2560
 msgid "Mission complete. Rep +20"
 msgstr "Misiune finalizată. Reputație +20"
 
-#: src/main.c:2874
+#: src/main.c:2874 src/main.c:2944
 msgid "PRESS ENTER TO BEGIN"
 msgstr ""
 
-#: src/main.c:2924
+#: src/main.c:2924 src/main.c:2994
 msgid "TAXI"
 msgstr ""
 
-#: src/main.c:2941
+#: src/main.c:2941 src/main.c:3011
 msgid "COMBAT"
 msgstr ""
 
-#: src/main.c:2962 src/main.c:3206
+#: src/main.c:2962 src/main.c:3206 src/main.c:3032 src/main.c:3276
 msgid "VICTORY!"
 msgstr ""
 
-#: src/main.c:2962
+#: src/main.c:2962 src/main.c:3032
 msgid "DEFEATED"
 msgstr ""
 
-#: src/main.c:3050
+#: src/main.c:3050 src/main.c:3120
 #, c-format
 msgid "Droid %d hit for %d!"
 msgstr ""
 
-#: src/main.c:3058
+#: src/main.c:3058 src/main.c:3128
 #, c-format
 msgid "Droid %d destroyed!"
 msgstr ""
 
-#: src/main.c:3065
+#: src/main.c:3065 src/main.c:3135
 msgid "All droids destroyed! Mission failed."
 msgstr ""
 
-#: src/main.c:3103
+#: src/main.c:3103 src/main.c:3173
 msgid "INVENTORY"
 msgstr ""
 
-#: src/main.c:3142
+#: src/main.c:3142 src/main.c:3212
 msgid "SHARED ITEMS"
 msgstr ""
 
-#: src/main.c:3174
+#: src/main.c:3174 src/main.c:3244
 msgid "GAME OVER"
 msgstr ""
 
-#: src/main.c:3176
+#: src/main.c:3176 src/main.c:3246
 msgid "ALL DROIDS DESTROYED"
 msgstr ""
 
-#: src/main.c:3178 src/main.c:3212
+#: src/main.c:3178 src/main.c:3212 src/main.c:3248 src/main.c:3282
 msgid "PRESS ESCAPE"
 msgstr ""
 
-#: src/main.c:3208
+#: src/main.c:3208 src/main.c:3278
 msgid "ALL MISSIONS COMPLETE"
 msgstr ""
 
-#: src/main.c:3210
+#: src/main.c:3210 src/main.c:3280
 msgid "YOU HAVE ESCAPED!"
 msgstr ""
 
-#: src/main.c:3254
+#: src/main.c:3254 src/main.c:3324
 msgid "PAUSED"
 msgstr ""
 
-#: src/main.c:3255
+#: src/main.c:3255 src/main.c:3325
 msgid "RESUME"
 msgstr ""
 
-#: src/main.c:3264
+#: src/main.c:3264 src/main.c:3334
 msgid "ESC: RESUME"
 msgstr ""
 
-#: src/main.c:3273
+#: src/main.c:3273 src/main.c:3343
 msgid "DROID CONFIGURATION"
 msgstr ""
 
-#: src/main.c:3297
+#: src/main.c:3297 src/main.c:3367
 msgid "ENTER: START MISSION"
 msgstr ""
 
-#: src/main.c:3306
+#: src/main.c:3306 src/main.c:3376
 msgid "CITY MAP"
 msgstr ""
 
@@ -913,6 +915,53 @@ msgstr ""
 #, c-format
 msgid "This is %s. We're not taking visitors right now."
 msgstr "Aici e %s. Nu primim vizitatori acum."
+
+#: src/main.c:2928
+#, c-format
+msgid "City: %s"
+msgstr ""
+
+#: src/main.c:2931
+#, c-format
+msgid "Find: %s (%s)"
+msgstr ""
+
+#: src/main.c:2935
+#, c-format
+msgid "Source: %s"
+msgstr ""
+
+#: src/main.c:2938
+#, c-format
+msgid "%d buildings in city"
+msgstr ""
+
+#: src/main.c:2997
+#, c-format
+msgid "%s (%d,%d) %s"
+msgstr ""
+
+#: src/main.c:3001
+msgid "[ENTER]"
+msgstr ""
+
+#: src/main.c:3019
+#, c-format
+msgid "%s%s HP:%d/%d DMG:%d"
+msgstr ""
+
+#: src/main.c:3028
+msgid "1-4:Attack TAB:Target ESC:Flee"
+msgstr ""
+
+#: src/main.c:3071
+#, c-format
+msgid "%d items available. Gold: %d"
+msgstr ""
+
+#: src/main.c:3087
+msgid "VERIFIED LIBERATION PRESENTATION DATA REQUIRED"
+msgstr ""
 
 #~ msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
 #~ msgstr "SĂGEȚI: SELECTARE  ENTER: START  D: SCANARE DATE  F1: COMENZI"
