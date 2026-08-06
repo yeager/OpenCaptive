@@ -339,6 +339,18 @@ static void draw_liberation_card(uint32_t *pixels, int pw, int ph,
     } else draw_border(pixels,pw,ph,cx,cy,cw,ch,0xFF444466,2);
 }
 
+static int start_menu_logo_height(const StartMenu *menu, int width) {
+    if (!menu || !menu->logo_img || menu->logo_img_w <= 0 ||
+        menu->logo_img_h <= 0) return 45;
+    int max_w = width - 40;
+    int max_h = 60;
+    float scale = (float)max_w / menu->logo_img_w;
+    if (menu->logo_img_h * scale > max_h)
+        scale = (float)max_h / menu->logo_img_h;
+    int dh = (int)(menu->logo_img_h * scale);
+    return 3 + dh + 3;
+}
+
 static void start_menu_reset(StartMenu *menu, bool preserve_resources) {
     char saved_path[512] = {0};
     int saved_cursor = 0;
@@ -669,7 +681,7 @@ static int hit_test_main_menu(const StartMenu *menu, float x, float y) {
     int card_w = 390, card_h = 280, gap = 30;
     int total_w = card_w * 2 + gap;
     int cx0 = (MENU_WIDTH - total_w) / 2, cx1 = cx0 + card_w + gap;
-    int logo_h_used = menu->logo_img ? 66 : 45;
+    int logo_h_used = start_menu_logo_height(menu, MENU_WIDTH);
     int card_y = logo_h_used + 18;
     int label_y = card_y + card_h + 4;
     int year_y = label_y + 22;

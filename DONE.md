@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Klickzoner följer logotypens storlek)
+
+- Startmenyns mus-hit-test använder nu samma beräknade logotyphöjd som
+  renderingen.
+- Korta eller breda installerade logotyper förskjuter därför inte längre
+  kortens klickzoner.
+- Regressionstest täcker en logotyp med extrem aspektfördelning.
+
 ## 2026-08-06 (ANM-intro återhämtar tappad tid)
 
 - Captive-introt avancerar nu över alla hela 100 ms-intervall som gått sedan

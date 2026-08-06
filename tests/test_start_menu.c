@@ -126,6 +126,18 @@ int main(void) {
     start_menu_handle_event(&menu, &event);
     assert(!menu.in_controls);
 
+    /* Mouse hit testing must use the rendered logo aspect ratio.  A very
+       wide, short installed logo makes the cards start much higher than the
+       old fixed 66-pixel assumption. */
+    menu.logo_img = (uint32_t *)(uintptr_t)1;
+    menu.logo_img_w = 1000;
+    menu.logo_img_h = 20;
+    menu.selected_item = 1;
+    start_menu_handle_mouse_motion(&menu, 200.0f, 43.0f);
+    assert(menu.selected_item == 0);
+    menu.logo_img = NULL;
+    menu.logo_img_w = menu.logo_img_h = 0;
+
     snprintf(menu.data_path, sizeof(menu.data_path), ".");
 
     /* Automatic startup verification must share the bounded scanner without
