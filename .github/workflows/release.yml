@@ -46,9 +46,10 @@ jobs:
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
       - name: Package tar.gz
         run: |
-          mkdir -p opencaptive-linux-x86_64/data opencaptive-linux-x86_64/po
+          mkdir -p opencaptive-linux-x86_64/data opencaptive-linux-x86_64/po opencaptive-linux-x86_64/assets
           cp build/opencaptive opencaptive-linux-x86_64/
           cp data/DejaVuSansMono-Bold.ttf opencaptive-linux-x86_64/data/
+          cp -R assets/menu opencaptive-linux-x86_64/assets/
           cp po/*.po opencaptive-linux-x86_64/po/
           cp README.md LICENSE opencaptive-linux-x86_64/
           tar czf opencaptive-linux-x86_64.tar.gz opencaptive-linux-x86_64/
@@ -67,8 +68,10 @@ jobs:
           mkdir -p deb/usr/share/doc/opencaptive
           mkdir -p deb/usr/share/opencaptive/data
           mkdir -p deb/usr/share/opencaptive/po
+          mkdir -p deb/usr/share/opencaptive/assets
           cp build/opencaptive deb/usr/bin/
           cp data/DejaVuSansMono-Bold.ttf deb/usr/share/opencaptive/data/
+          cp -R assets/menu deb/usr/share/opencaptive/assets/
           cp po/*.po deb/usr/share/opencaptive/po/
           cp README.md LICENSE deb/usr/share/doc/opencaptive/
           mkdir -p deb/usr/share/icons
@@ -197,9 +200,11 @@ jobs:
           mkdir -p "$APP/Contents/Frameworks"
           mkdir -p "$APP/Contents/Resources/data"
           mkdir -p "$APP/Contents/Resources/po"
+          mkdir -p "$APP/Contents/Resources/assets"
           cp assets/icon.icns "$APP/Contents/Resources/OpenCaptive.icns"
           cp build/opencaptive "$APP/Contents/MacOS/OpenCaptive"
           cp data/DejaVuSansMono-Bold.ttf "$APP/Contents/Resources/data/"
+          cp -R assets/menu "$APP/Contents/Resources/assets/"
           cp po/*.po "$APP/Contents/Resources/po/"
           cp -R assets/lproj/*.lproj "$APP/Contents/Resources/"
           # Bundle all non-system dylibs recursively
@@ -292,11 +297,13 @@ jobs:
           mkdir dist
           mkdir dist\data
           mkdir dist\po
+          mkdir dist\assets
           copy build\Release\opencaptive.exe dist\
           copy ${{ github.workspace }}\SDL3-install\bin\SDL3.dll dist\
           copy ${{ github.workspace }}\SDL3_ttf-install\bin\SDL3_ttf.dll dist\
           copy ${{ github.workspace }}\zlib-install\bin\zlib.dll dist\ 2>nul || copy ${{ github.workspace }}\zlib-install\bin\zlib1.dll dist\ 2>nul || echo No zlib DLL found
           copy data\DejaVuSansMono-Bold.ttf dist\data\
+          xcopy /E /I /Y assets\menu dist\assets\menu
           copy po\*.po dist\po\
           copy README.md dist\
           copy LICENSE dist\
@@ -424,12 +431,14 @@ jobs:
           VERSION=${GITHUB_REF_NAME#v}
           APP=Payload/OpenCaptive.app
           mkdir -p "$APP/data" "$APP/po"
+          mkdir -p "$APP/assets"
           # Find the built binary (cmake may place it in various locations)
           BINARY=$(find build-ios -name "opencaptive" -type f -not -path "*/CMakeFiles/*" | head -1)
           echo "Found binary at: $BINARY"
           ls -la build-ios/opencaptive* 2>/dev/null || true
           cp "$BINARY" "$APP/OpenCaptive"
           cp data/DejaVuSansMono-Bold.ttf "$APP/data/"
+          cp -R assets/menu "$APP/assets/"
           cp po/*.po "$APP/po/"
           sed "s/\$(VERSION)/$VERSION/g" assets/Info-iOS.plist > "$APP/Info.plist"
           # Compile LaunchScreen storyboard
@@ -530,9 +539,11 @@ jobs:
           mkdir -p apk-project/app/src/main/res/mipmap-xxxhdpi
           mkdir -p apk-project/app/src/main/assets/data
           mkdir -p apk-project/app/src/main/assets/po
+          mkdir -p apk-project/app/src/main/assets/assets
 
           # Copy game resources to APK assets
           cp data/DejaVuSansMono-Bold.ttf apk-project/app/src/main/assets/data/
+          cp -R assets/menu apk-project/app/src/main/assets/assets/
           cp po/*.po apk-project/app/src/main/assets/po/
 
           # Copy native libs

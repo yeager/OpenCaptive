@@ -144,6 +144,21 @@ if(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     target_link_libraries(opencaptive PRIVATE "-framework Cocoa")
 endif()
 
+# The launcher artwork is deliberately separate from game data.  Copy it
+# beside development binaries as well, so SDL_GetBasePath() resolves the
+# same start menu in a local build and in a release package.
+if(NOT ANDROID)
+    add_custom_command(TARGET opencaptive POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            "$<TARGET_FILE_DIR:opencaptive>/assets/menu"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/assets/menu/captive-cover-v1.png"
+            "$<TARGET_FILE_DIR:opencaptive>/assets/menu/captive-cover-v1.png"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/assets/menu/liberation-cover-v1.png"
+            "$<TARGET_FILE_DIR:opencaptive>/assets/menu/liberation-cover-v1.png")
+endif()
+
 # --- Tests ---
 
 enable_testing()

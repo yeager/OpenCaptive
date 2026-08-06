@@ -43,6 +43,11 @@ static uint32_t *load_card_image(const char *filename, int *w, int *h) {
     unsigned char *rgba = load_png_file(path, w, h);
     if (rgba) return (uint32_t *)rgba;
 
+    /* Native Unix packages keep launcher resources separate from /usr/bin. */
+    snprintf(path, sizeof(path), "/usr/share/opencaptive/%s", filename);
+    rgba = load_png_file(path, w, h);
+    if (rgba) return (uint32_t *)rgba;
+
     const char *home = getenv("HOME");
     if (home) {
         snprintf(path, sizeof(path), "%s/Downloads/%s", home, filename);
@@ -370,10 +375,10 @@ static void start_menu_reset(StartMenu *menu, bool preserve_resources) {
         menu->logo_img = load_card_image("captivelogo.png",
             &menu->logo_img_w, &menu->logo_img_h);
     if (!menu->captive_img)
-        menu->captive_img = load_card_image("captive.png",
+        menu->captive_img = load_card_image("assets/menu/captive-cover-v1.png",
             &menu->captive_img_w, &menu->captive_img_h);
     if (!menu->liberation_img)
-        menu->liberation_img = load_card_image("liberation.png",
+        menu->liberation_img = load_card_image("assets/menu/liberation-cover-v1.png",
             &menu->liberation_img_w, &menu->liberation_img_h);
 
     if (!menu->ttf_ready) {
