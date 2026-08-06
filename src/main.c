@@ -544,6 +544,10 @@ static LiberationData liberation_data;
 static bool liberation_intro_active;
 static bool liberation_mission_menu_active;
 static bool skip_liberation_intro_requested;
+/* The CD32 media currently verifies presentation only.  Keep the recovered
+ * menu and ANIM frames live, but do not enter the older generated city and
+ * 3D-projection prototype from the default game path. */
+static const bool liberation_prototype_gameplay_enabled = false;
 static uint32_t *liberation_mission_menu_pixels;
 static uint16_t liberation_mission_menu_width;
 static uint16_t liberation_mission_menu_height;
@@ -917,7 +921,7 @@ static void start_liberation_session(GameState *gs_ptr) {
     liberation_mission_menu_active = false;
     lib_mission_briefing = false;
 
-    if (!lib_city_generated) {
+    if (liberation_prototype_gameplay_enabled && !lib_city_generated) {
         uint16_t seed = (uint16_t)(gs_ptr->mission_seed & 0xFFFF);
         uint16_t seed_hi = (uint16_t)((gs_ptr->mission_seed >> 16) & 0xFFFF);
         if (!seed) seed = 0x1234;
@@ -2365,7 +2369,8 @@ int main(int argc, char *argv[]) {
                                    event.type == SDL_EVENT_KEY_DOWN &&
                                    event.key.key == SDLK_RETURN) {
                             lib_mission_briefing = false;
-                        } else if (!liberation_intro_active && !liberation_mission_menu_active &&
+                        } else if (liberation_prototype_gameplay_enabled &&
+                                   !liberation_intro_active && !liberation_mission_menu_active &&
                                    !lib_mission_briefing && lib_city_generated) {
                             if (lib_in_dungeon) {
                                 if (event.type == SDL_EVENT_KEY_DOWN &&
@@ -2736,7 +2741,8 @@ int main(int argc, char *argv[]) {
                                    (size_t)y * liberation_mission_menu_width,
                                    (size_t)liberation_mission_menu_width * sizeof(*framebuffer));
                         }
-                    } else if (lib_mission_briefing && lib_city_generated) {
+                    } else if (liberation_prototype_gameplay_enabled &&
+                               lib_mission_briefing && lib_city_generated) {
                         draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
                                       LIBERATION_SCREEN_HEIGHT, 30,
                                       "MISSION BRIEFING", 0xFF44FF44, 2);
@@ -2758,7 +2764,7 @@ int main(int argc, char *argv[]) {
                         draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
                                       LIBERATION_SCREEN_HEIGHT, 180,
                                       "PRESS ENTER TO BEGIN", 0xFF888888, 1);
-                    } else if (lib_city_generated) {
+                    } else if (liberation_prototype_gameplay_enabled && lib_city_generated) {
                         uint32_t now = SDL_GetTicks();
                         float dt = (now - gs.last_frame_ms) / 1000.0f;
                         if (dt > 0.1f) dt = 0.1f;
