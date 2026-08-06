@@ -319,6 +319,8 @@ static void test_cross_save(void) {
     gs.gold = 1234;
     gs.mission_seed = 0xCAFEBABE;
     gs.tick = 9999;
+    for (int level = 0; level < gs.num_levels; level++)
+        gs.levels[level].level = level;
     strcpy(gs.droids[0].name, "Alpha");
     gs.droids[0].hp = 100;
     gs.droids[0].hp_max = 200;
@@ -370,6 +372,18 @@ static void test_cross_save(void) {
     assert(gs2.config.scanlines);
     assert(gs2.config.brightness == 81);
     assert(gs2.config.data_path == data_path);
+
+    /* A level record must retain its array index; accepting a mismatched
+       level ID would leave a cross-save with internally inconsistent maps. */
+    assert(cross_save_export(&gs, path));
+    FILE *bad_level = fopen(path, "r+b");
+    assert(bad_level);
+    assert(fseek(bad_level, 57L + 4L * 64L, SEEK_SET) == 0);
+    uint8_t wrong_level[4] = {1, 0, 0, 0};
+    assert(fwrite(wrong_level, 1, sizeof(wrong_level), bad_level) == sizeof(wrong_level));
+    assert(fclose(bad_level) == 0);
+    assert(!cross_save_import(&gs2, path));
+    assert(cross_save_export(&gs, path));
 
     /* Build a v1 fixture from the v2 export by removing the six-byte armor
        condition field that the old format did not contain. */

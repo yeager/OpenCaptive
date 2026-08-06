@@ -328,7 +328,8 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
         DungeonLevel *lvl = &gs->levels[l];
         uint32_t level, seed;
         if (!read_le32(fp, &level) || level > INT32_MAX ||
-            !read_le32(fp, &seed) || level >= MAX_LEVELS) {
+            !read_le32(fp, &seed) || level >= MAX_LEVELS ||
+            level != (uint32_t)l) {
             IMPORT_FAIL();
         }
         lvl->level = (int)level;
