@@ -281,6 +281,7 @@ static uint8_t *zip_extract_memory_entry(const uint8_t *archive, size_t archive_
     size_t data_offset = (size_t)local_offset + 30U + name_len + extra_len;
     if (data_offset > archive_size || comp_size > archive_size - data_offset) return NULL;
     uint8_t *out = malloc(uncomp_size ? uncomp_size : 1U);
+    if (!out) return NULL;
     if (method == ZIP_METHOD_STORE) {
         if (comp_size != uncomp_size) { free(out); return NULL; }
         if (uncomp_size) memcpy(out, archive + data_offset, uncomp_size);

@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Säker ZIP-nästling)
+
+- Nästlade ZIP-poster avbryter nu säkert vid misslyckad minnesallokering i
+  stället för att skriva via en nullpekare.
+- Ändringen gäller både lagrade och deflaterade poster genom den gemensamma
+  minnesdekodern.
+
 ## 2026-08-06 (Intern cache undantas från metadata)
 
 - VFS-cachekatalogen `.cache` räknas inte längre som speldata när vald
