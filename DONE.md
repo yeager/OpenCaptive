@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation city block templates)
+
+- Korrigerade radindexering för Liberation-stadens byggnadsmallar; den
+  nioelementiga blockfamiljen lästes tidigare med åttaelements radsteg.
+- Stadsgenereringens regressionstest körs mot den korrigerade mall-layouten.
+
 ## 2026-08-06 (Preserve runtime options when loading)
 
 - Bevarade aktiv grafik-, ljud- och datasökvägskonfiguration när ett Captive-

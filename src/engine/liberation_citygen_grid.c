@@ -250,9 +250,10 @@ static void set_borders(CityGridState *s) {
     }
 }
 
-static int place_block(CityGridState *s, const int16_t templates[][8],
+static int place_block(CityGridState *s, const int16_t *templates,
                        int tmpl_stride, int cell_count, int retry_limit) {
-    (void)tmpl_stride;
+    if (!s || !templates || tmpl_stride <= cell_count || cell_count < 1)
+        return -1;
     while (retry_limit-- > 0) {
         citygrid_prng(s);
         uint16_t rval = s->prng_state;
@@ -290,7 +291,10 @@ static int place_block(CityGridState *s, const int16_t templates[][8],
         if (rval & 0x8000) type += 2;
         type = (type + 2) & 3;
 
-        const int16_t *tmpl = templates[type];
+        /* The block families have different row widths (A=8, B=9).  Treat
+         * the table as flat data and apply its explicit stride so a cast to
+         * the wrong array width cannot make type N read from another row. */
+        const int16_t *tmpl = templates + type * tmpl_stride;
         bool all_free = true;
         for (int i = 0; i < cell_count; i++) {
             int pos = (int)offset + tmpl[i];
@@ -335,7 +339,7 @@ static void place_features(CityGridState *s) {
         uint8_t sv = (s->seed_combined & 0x0F) + 1;
         if (sv > 15) sv = 7;
         s->road_id = sv;
-        place_block(s, (const int16_t(*)[8])block_template_b, 9, 7, 4095);
+        place_block(s, &block_template_b[0][0], 9, 7, 4095);
     }
     s->building_counter_b--;
 }
@@ -346,7 +350,7 @@ static void place_road_blocks(CityGridState *s) {
 
     for (int i = 0; i <= (int)count; i++) {
         s->road_id = s->seed_combined & 1;
-        place_block(s, (const int16_t(*)[8])block_template_a, 8, 6, 4095);
+        place_block(s, &block_template_a[0][0], 8, 6, 4095);
     }
 
     uint8_t diff = s->building_counter_b + 1;

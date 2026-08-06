@@ -19,6 +19,8 @@
   is reachable through the currently implemented single-panel interaction.
 - Loading a Captive save now preserves active runtime options, including F10
   graphics settings and the configured data path.
+- Corrected Liberation city block-template strides so generated building
+  layouts use the intended offsets for every template orientation.
 
 ## v1.1.72 (2026-08-04)
 
