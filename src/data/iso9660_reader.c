@@ -40,8 +40,16 @@ static bool parse_pvd(ISOImage *iso) {
 
     // Root directory record at offset 156
     const uint8_t *root_rec = pvd + 156;
+    if (root_rec[0] < 34 || (root_rec[25] & 0x02U) == 0) return false;
     iso->root_lba = read_le32(root_rec + 2);
     iso->root_size = read_le32(root_rec + 10);
+    if (iso->root_size == 0) return false;
+    uint64_t root_sectors = ((uint64_t)iso->root_size + ISO_SECTOR_SIZE - 1U) /
+                            ISO_SECTOR_SIZE;
+    if (root_sectors == 0 ||
+        root_sectors > (uint64_t)UINT32_MAX - iso->root_lba + 1U ||
+        !sector_ptr(iso, iso->root_lba + (uint32_t)root_sectors - 1U))
+        return false;
 
     return true;
 }

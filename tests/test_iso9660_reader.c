@@ -21,6 +21,7 @@ int main(void) {
     pvd[156] = 34;
     put_le32(pvd + 158, 17);
     put_le32(pvd + 166, ISO_SECTOR_SIZE);
+    pvd[156 + 25] = 0x02; /* root extent is a directory */
 
     uint8_t *root = sector(image, 17);
     root[0] = 41; put_le32(root + 2, 18); put_le32(root + 10, 4);
@@ -61,6 +62,19 @@ int main(void) {
     assert(iso.data == NULL && iso.size == 0 && iso.root_lba == 0);
 
     pvd[0] = 0; /* A failed reopen must leave no partially opened image. */
+    assert(!iso_open_raw(&iso, image, sizeof(image)));
+    assert(iso.data == NULL && iso.size == 0 && iso.root_lba == 0);
+
+    pvd[0] = 1;
+    pvd[156] = 33; /* Root records must include the fixed 34-byte prefix. */
+    assert(!iso_open_raw(&iso, image, sizeof(image)));
+    assert(iso.data == NULL && iso.size == 0 && iso.root_lba == 0);
+    pvd[156] = 34;
+    pvd[156 + 25] = 0; /* The root extent must be marked as a directory. */
+    assert(!iso_open_raw(&iso, image, sizeof(image)));
+    assert(iso.data == NULL && iso.size == 0 && iso.root_lba == 0);
+    pvd[156 + 25] = 0x02;
+    put_le32(pvd + 158, UINT32_MAX); /* Extent must fit in the image. */
     assert(!iso_open_raw(&iso, image, sizeof(image)));
     assert(iso.data == NULL && iso.size == 0 && iso.root_lba == 0);
 
