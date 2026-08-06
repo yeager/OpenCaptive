@@ -6,6 +6,10 @@ static uint16_t read_le16(const uint8_t *p) {
     return p[0] | ((uint16_t)p[1] << 8);
 }
 
+static uint64_t declared_disk_size(const STDisk *disk) {
+    return (uint64_t)disk->total_sectors * ST_SECTOR_SIZE;
+}
+
 bool st_disk_open(STDisk *disk, const uint8_t *data, size_t size) {
     if (!disk) return false;
     memset(disk, 0, sizeof(*disk));
@@ -71,10 +75,11 @@ static void format_name(const uint8_t *raw, char *out) {
 
 int st_disk_list_root(const STDisk *disk, STEntry *entries, int max_entries) {
     if (!disk || !disk->data || !entries || max_entries <= 0) return 0;
+    uint64_t disk_limit = declared_disk_size(disk);
     int count = 0;
     for (int i = 0; i < disk->root_entries && count < max_entries; i++) {
         uint64_t offset64 = (uint64_t)disk->root_dir_offset + (uint64_t)i * 32U;
-        if (offset64 + 32U > disk->size) break;
+        if (offset64 + 32U > disk_limit) break;
         uint32_t offset = (uint32_t)offset64;
 
         const uint8_t *entry = disk->data + offset;
@@ -94,7 +99,7 @@ int st_disk_list_root(const STDisk *disk, STEntry *entries, int max_entries) {
             uint64_t cluster_offset = (uint64_t)disk->data_area_offset +
                 (uint64_t)(e->cluster - 2U) * disk->sectors_per_cluster *
                 ST_SECTOR_SIZE;
-            if (cluster_offset < disk->size && cluster_offset <= UINT32_MAX)
+            if (cluster_offset < disk_limit && cluster_offset <= UINT32_MAX)
                 e->offset = (uint32_t)cluster_offset;
         }
         count++;
@@ -116,8 +121,9 @@ uint8_t *st_disk_read_file(const STDisk *disk, uint16_t first_cluster,
                             uint32_t file_size, uint32_t *out_size) {
     if (out_size) *out_size = 0;
     if (!disk || !disk->data || first_cluster < 2) return NULL;
-    if (disk->data_area_offset > disk->size ||
-        (uint64_t)file_size > (uint64_t)(disk->size - disk->data_area_offset))
+    uint64_t disk_limit = declared_disk_size(disk);
+    if (disk->data_area_offset > disk_limit ||
+        (uint64_t)file_size > disk_limit - disk->data_area_offset)
         return NULL;
 
     uint8_t *result = malloc(file_size ? file_size : 1U);
@@ -132,13 +138,17 @@ uint8_t *st_disk_read_file(const STDisk *disk, uint16_t first_cluster,
     uint32_t cluster_size = disk->sectors_per_cluster * ST_SECTOR_SIZE;
     uint16_t cluster = first_cluster;
     uint32_t written = 0;
-    size_t clusters_left = (disk->size > disk->data_area_offset && cluster_size != 0) ?
-        (disk->size - disk->data_area_offset + cluster_size - 1U) / cluster_size : 0;
+    size_t clusters_left = (disk_limit > disk->data_area_offset && cluster_size != 0) ?
+        (size_t)((disk_limit - disk->data_area_offset + cluster_size - 1U) /
+                 cluster_size) : 0;
 
     while (cluster >= 2 && cluster < 0xFF0 && written < file_size && clusters_left-- > 0) {
-        size_t offset = (size_t)disk->data_area_offset +
-                        (size_t)(cluster - 2) * cluster_size;
-        if (offset > disk->size || cluster_size > disk->size - offset) break;
+        uint64_t offset64 = (uint64_t)disk->data_area_offset +
+                            (uint64_t)(cluster - 2U) * cluster_size;
+        if (offset64 > disk_limit || cluster_size > disk_limit - offset64 ||
+            offset64 > SIZE_MAX)
+            break;
+        size_t offset = (size_t)offset64;
 
         uint32_t chunk = file_size - written;
         if (chunk > cluster_size) chunk = cluster_size;

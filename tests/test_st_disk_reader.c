@@ -51,6 +51,16 @@ int main(void) {
     free(file);
     put_le16(image + 17, 16);
 
+    /* A FAT cluster outside the BPB-declared disk must not be read from
+     * trailing bytes that happen to be present in the image buffer. */
+    put_le16(image + 19, 6); /* 3072 declared bytes; image is much larger. */
+    image[3072] = 'N'; image[3073] = 'O';
+    assert(st_disk_open(&disk, image, sizeof(image)));
+    out_size = 123;
+    assert(st_disk_read_file(&disk, 4, 2, &out_size) == NULL);
+    assert(out_size == 0);
+    put_le16(image + 19, 1440);
+
     out_size = 123;
     assert(st_disk_read_file(&disk, 2, 513, &out_size) == NULL);
     assert(out_size == 0);
