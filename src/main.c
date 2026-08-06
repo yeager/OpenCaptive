@@ -1941,12 +1941,39 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             }
             return;
         case SDLK_PERIOD: // > stairs down
-            if (game_state_change_floor(gs, 1))
-                stair_flash_ttl = 6;
+            {
+                int old_level = gs->current_level;
+                int old_x = gs->party_x;
+                int old_y = gs->party_y;
+                if (game_state_change_floor(gs, 1) &&
+                    !combat_cell_occupied(&creatures, gs->current_level,
+                                          gs->party_x, gs->party_y)) {
+                    stair_flash_ttl = 6;
+                } else if (gs->current_level != old_level) {
+                    /* A stair arrival is a movement event too: never leave
+                     * the party on an active creature when the destination
+                     * floor's arrival cell is occupied. */
+                    gs->current_level = old_level;
+                    gs->party_x = old_x;
+                    gs->party_y = old_y;
+                }
+            }
             return;
         case SDLK_COMMA: // < stairs up
-            if (game_state_change_floor(gs, -1))
-                stair_flash_ttl = 6;
+            {
+                int old_level = gs->current_level;
+                int old_x = gs->party_x;
+                int old_y = gs->party_y;
+                if (game_state_change_floor(gs, -1) &&
+                    !combat_cell_occupied(&creatures, gs->current_level,
+                                          gs->party_x, gs->party_y)) {
+                    stair_flash_ttl = 6;
+                } else if (gs->current_level != old_level) {
+                    gs->current_level = old_level;
+                    gs->party_x = old_x;
+                    gs->party_y = old_y;
+                }
+            }
             return;
         case SDLK_H:
             gs->mode = STATE_HELP;

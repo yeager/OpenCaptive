@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive trappövergångar)
+
+- Trappor kan inte längre lämna party ovanpå en aktiv fiende på
+  mottagningsvåningen. Övergången återställs till den ursprungliga våningen
+  om ankomstcellen är blockerad.
+- Lokal Werror/CTest körs efter ändringen.
+
 ## 2026-08-06 (Captive teleporter-kollision)
 
 - Teleporterfällor kan inte längre lämna party ovanpå en aktiv fiende, vare
