@@ -77,6 +77,16 @@ static void test_invalid(void) {
     assert(!x3g_open(&x3g, NULL, 0));
     assert(!x3g_open(&x3g, (const uint8_t *)"bad", 3));
 
+    /* An empty EXVL chunk must be rejected before its missing vertex count
+     * is read. */
+    static const uint8_t empty_exvl[] = {
+        'F','O','R','M', 0,0,0,38, 'O','3','D','G',
+        'O','F','F','S', 0,0,0,6, 0,1, 0,0, 0,0,
+        'F','O','R','M', 0,0,0,12, 'V','C','D','O',
+        'E','X','V','L', 0,0,0,0
+    };
+    assert(!x3g_open(&x3g, empty_exvl, sizeof(empty_exvl)));
+
     uint8_t bad[20] = {'F','O','R','M', 0,0,0,8, 'B','A','D','!', 0,0,0,0, 0,0,0,0};
     assert(!x3g_open(&x3g, bad, sizeof(bad)));
 

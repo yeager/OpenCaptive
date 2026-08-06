@@ -33,7 +33,11 @@ static bool parse_vcdo(X3gObject *obj, const uint8_t *data, size_t size) {
     while (size - pos >= 8) {
         if (tag_eq(data + pos, "EXVL")) {
             uint32_t chunk_size = be32(data + pos + 4);
-            if ((size_t)chunk_size > size - pos - 8U) return false;
+            /* EXVL starts with a 16-bit vertex count.  Check that prefix
+             * before reading it; a zero-length chunk otherwise reads past
+             * the supplied X3G buffer. */
+            if (chunk_size < 2U ||
+                (size_t)chunk_size > size - pos - 8U) return false;
 
             const uint8_t *exvl = data + pos + 8;
             unsigned nv = be16(exvl);

@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (X3G EXVL bounds)
+
+- Avvisar nu tomma `EXVL`-chunks innan vertexantalet läses. Det förhindrar
+  out-of-bounds-läsning i Liberation-modellparsern vid korrupt indata.
+- Regressionstest tillagt för en tom `EXVL`-post.
+
 ## 2026-08-06 (Save/import state stack usage)
 
 - Flyttade temporära `GameState`-objekt i Captive-save och cross-save-import
