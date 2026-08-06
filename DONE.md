@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive inventory-droidval)
+
+- Tangenterna `1`–`4` byter nu aktiv droid direkt inne i Captive-inventoryt
+  och uppdaterar samtidigt panelens equipment/inventory.
+- Lokal Werror/CTest: 58/58 tester passerar.
+
 ## 2026-08-06 (Captive F10-realtidsfusk)
 
 - `Invulnerable` och `Infinite energy` appliceras nu direkt när F10-popupens

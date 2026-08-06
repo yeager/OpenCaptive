@@ -2990,6 +2990,13 @@ int main(int argc, char *argv[]) {
                                 case SDLK_TAB:
                                     droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x09);
                                     break;
+                                case SDLK_1: case SDLK_2:
+                                case SDLK_3: case SDLK_4: {
+                                    int droid_idx = (int)(event.key.key - SDLK_1);
+                                    gs.selected_droid = droid_idx;
+                                    droid_ui_init(&droid_ui, droid_idx);
+                                    break;
+                                }
                                 case SDLK_RETURN:
                                     droid_ui_handle_key(&droid_ui, &gs, &item_db, 0x0D);
                                     break;
