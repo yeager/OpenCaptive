@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Hermetic VFS regression test)
+
+- Isolerade testet för överlånga ZIP-namn i en egen testkatalog.
+- En avbruten tidigare testkörning eller en annan fixture kan därför inte
+  påverka testets negativa resultat.
+- `test_data_vfs` passerar efter ändringen.
+
 ## 2026-08-06 (VFS scan performance)
 
 - Lade till en billig probe-signatur för datarot och upptäckta ZIP-filer.

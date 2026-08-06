@@ -169,14 +169,24 @@ static void test_rejects_overlong_archive_names(void) {
     char name[513];
     memset(name, 'a', sizeof(name) - 1);
     name[sizeof(name) - 1] = '\0';
-    write_stored_zip("test-vfs-overlong.zip", name, (const unsigned char *)"x", 1);
+    const char *test_dir = "test-vfs-overlong-dir";
+    const char *test_zip = "test-vfs-overlong-dir/archive.zip";
+    /* Keep this negative test hermetic.  The other VFS tests intentionally
+     * scan the repository root, so an interrupted earlier run must not leave
+     * a valid WALLA.PL5 fixture that makes this overlong-name assertion pass
+     * for the wrong archive. */
+    (void)remove(test_zip);
+    (void)TEST_RMDIR(test_dir);
+    assert(TEST_MKDIR(test_dir) == 0);
+    write_stored_zip(test_zip, name, (const unsigned char *)"x", 1);
 
     DataVFS vfs;
-    assert(vfs_init(&vfs, "."));
+    assert(vfs_init(&vfs, test_dir));
     size_t size = 0;
     assert(vfs_read_file(&vfs, "CAPICS/WALLA.PL5", &size) == NULL);
     vfs_free(&vfs);
-    assert(remove("test-vfs-overlong.zip") == 0);
+    assert(remove(test_zip) == 0);
+    assert(TEST_RMDIR(test_dir) == 0);
 }
 
 static void test_rejects_invalid_hash_text(void) {
