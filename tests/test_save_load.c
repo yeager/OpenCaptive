@@ -132,6 +132,24 @@ static void test_unknown_item_id_rejected(void) {
     assert(!save_game(&saved, &creatures, &puzzles, save_path));
 }
 
+static void test_droid_slots_use_matching_item_categories(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+
+    for (int i = 0; i < 6; i++)
+        assert(gs.droids[0].body_parts[i] == (uint8_t)(i + 1));
+    assert(save_game(&gs, &creatures, &puzzles, save_path));
+
+    gs.droids[0].body_parts[0] = 18; /* handgun cannot occupy armor slot */
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    gs.droids[0].body_parts[0] = 1;
+    gs.droids[0].weapons[0] = 2; /* chest armor cannot occupy weapon slot */
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+}
+
 static void test_save_rejects_state_load_would_reject(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -300,6 +318,7 @@ int main(void) {
     test_corrupt_save_preserves_state();
     test_trailing_save_bytes_rejected();
     test_unknown_item_id_rejected();
+    test_droid_slots_use_matching_item_categories();
     test_save_rejects_state_load_would_reject();
     test_save_rejects_invalid_identifiers();
     test_save_rejects_invalid_puzzle();

@@ -373,6 +373,15 @@ static void test_cross_save(void) {
     assert(gs2.config.brightness == 81);
     assert(gs2.config.data_path == data_path);
 
+    /* A valid item ID is not enough: armor and weapons must stay in their
+       respective droid slots in portable saves. */
+    gs.droids[0].body_parts[0] = 18; /* handgun in an armor slot */
+    assert(!cross_save_export(&gs, path));
+    gs.droids[0].body_parts[0] = 0;
+    gs.droids[0].weapons[0] = 2; /* chest armor in a weapon slot */
+    assert(!cross_save_export(&gs, path));
+    gs.droids[0].weapons[0] = 0;
+
     /* Portable saves must reject item IDs that the runtime database cannot
        resolve, both when exporting live state and when importing a mutated
        file. */

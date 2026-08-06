@@ -27,7 +27,11 @@ void game_state_init(GameState *gs, GameType type, int mission) {
         gs->droids[i].xp = 1024;
         gs->droids[i].weapon_damage = 0x050A;
         for (int p = 0; p < 6; p++) {
-            gs->droids[i].body_parts[p] = 1;
+            /* The six slots use the six distinct CAPPO item records:
+             * HEAD, CHEST, ARM, LEG, FOOT and HAND.  Repeating HEAD here
+             * made a fresh droid look fully equipped while all other armor
+             * slots displayed the wrong item. */
+            gs->droids[i].body_parts[p] = (uint8_t)(p + 1);
             gs->droids[i].body_part_hp[p] = 255;
         }
     }

@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Korrekt droidutrustning och slotvalidering)
+
+- Nya droids får nu HEAD, CHEST, ARM, LEG, FOOT och HAND i rätt
+  kroppsplatser i stället för HEAD i alla sex platser.
+- Captive-save och cross-save avvisar armor i vapenplatser och vapen i
+  armorplatser, även om item-ID:t i sig är giltigt.
+- Regressionstester täcker både korrekt startutrustning och felaktiga
+  slotkategorier.
+
 ## 2026-08-06 (Stridsattack kräver utrustat vapen)
 
 - Captive kan inte längre attackera med bara ett kvarlämnat `weapon_damage`-

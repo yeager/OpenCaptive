@@ -209,12 +209,26 @@ static bool valid_item_id(const ItemDatabase *db, uint8_t item_id) {
     return item_id == 0 || (db && item_db_get(db, item_id) != NULL);
 }
 
+static bool valid_body_part_id(const ItemDatabase *db, uint8_t item_id) {
+    if (item_id == 0) return true;
+    const Item *item = db ? item_db_get(db, item_id) : NULL;
+    return item && item->category >= ITEM_ARMOR_HEAD &&
+           item->category <= ITEM_ARMOR_HAND;
+}
+
+static bool valid_weapon_id(const ItemDatabase *db, uint8_t item_id) {
+    if (item_id == 0) return true;
+    const Item *item = db ? item_db_get(db, item_id) : NULL;
+    return item && item->category >= ITEM_WEAPON_MELEE &&
+           item->category <= ITEM_WEAPON_SPRAY;
+}
+
 static bool valid_droid_items(const ItemDatabase *db, const Droid *d) {
     if (!db || !d) return false;
     for (size_t i = 0; i < sizeof(d->body_parts); ++i)
-        if (!valid_item_id(db, d->body_parts[i])) return false;
+        if (!valid_body_part_id(db, d->body_parts[i])) return false;
     for (size_t i = 0; i < sizeof(d->weapons); ++i)
-        if (!valid_item_id(db, d->weapons[i])) return false;
+        if (!valid_weapon_id(db, d->weapons[i])) return false;
     for (size_t i = 0; i < sizeof(d->items); ++i)
         if (!valid_item_id(db, d->items[i])) return false;
     return true;
