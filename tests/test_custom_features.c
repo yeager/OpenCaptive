@@ -320,6 +320,7 @@ static void test_cross_save(void) {
     strcpy(gs.droids[0].name, "Alpha");
     gs.droids[0].hp = 100;
     gs.droids[0].hp_max = 200;
+    gs.droids[0].body_part_hp[0] = 37;
     gs.levels[0].seed = 42;
     gs.levels[0].cells[5][10].type = CELL_DOOR;
 
@@ -335,7 +336,7 @@ static void test_cross_save(void) {
     assert(fclose(header) == 0);
     assert(header_bytes[0] == 0x56 && header_bytes[1] == 0x53 &&
            header_bytes[2] == 0x43 && header_bytes[3] == 0x4F);
-    assert(header_bytes[4] == 1 && header_bytes[5] == 0 &&
+    assert(header_bytes[4] == 2 && header_bytes[5] == 0 &&
            header_bytes[6] == 0 && header_bytes[7] == 0);
 
     GameState gs2;
@@ -360,6 +361,7 @@ static void test_cross_save(void) {
     assert(strcmp(gs2.droids[0].name, "Alpha") == 0);
     assert(gs2.droids[0].hp == 100);
     assert(gs2.droids[0].hp_max == 200);
+    assert(gs2.droids[0].body_part_hp[0] == 37);
     assert(gs2.levels[0].seed == 42);
     assert(gs2.levels[0].cells[5][10].type == CELL_DOOR);
     assert(gs2.config.render_mode == CAPTIVE_RENDER_ENHANCED);
@@ -404,8 +406,8 @@ static void test_cross_save(void) {
     assert(cross_save_export(&gs, path));
     mutated = fopen(path, "r+b");
     assert(mutated);
-    /* Header (57 bytes) + four 58-byte droid records. */
-    assert(fseek(mutated, 57 + 4 * 58, SEEK_SET) == 0);
+    /* Header (57 bytes) + four 64-byte v2 droid records. */
+    assert(fseek(mutated, 57 + 4 * 64, SEEK_SET) == 0);
     assert(fwrite(invalid, 1, sizeof(invalid), mutated) == sizeof(invalid));
     assert(fclose(mutated) == 0);
     assert(!cross_save_import(&preserved, path));

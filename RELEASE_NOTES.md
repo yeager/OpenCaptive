@@ -3,6 +3,8 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Cross-save v2 preserves individual droid armor durability while remaining
+  compatible with imports from the previous v1 format.
 - CustomFeatures-konfigurationen accepterar nu valfria blanksteg runt
   likhetstecknet.
 - GitHub Actions build jobs now have a 20-minute timeout, preventing a
@@ -29,8 +31,8 @@
   outside a supplied template row.
 - Cross-save imports now preserve active runtime options, including F10
   graphics settings and the configured data path.
-- Cross-save files now use explicit little-endian integer encoding, preserving
-  the existing v1 layout while making exports portable across CPU byte orders.
+- Cross-save files use explicit little-endian integer encoding; v2 adds armor
+  durability while imports remain compatible with the previous v1 layout.
 - Replay files now use the same explicit little-endian encoding for their v1
   header, seed, count, and input ticks.
 - Liberation save loading now accepts version 5 files, including their

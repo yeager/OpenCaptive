@@ -5,7 +5,10 @@
 #include <string.h>
 
 #define CROSS_SAVE_MAGIC 0x4F435356 /* "OCSV" */
-#define CROSS_SAVE_VERSION 1
+#define CROSS_SAVE_VERSION 2
+#define CROSS_SAVE_VERSION_LEGACY 1
+#define CROSS_SAVE_DROID_V1_SIZE 58U
+#define CROSS_SAVE_DROID_V2_SIZE 64U
 
 static bool read_exact(FILE *fp, void *dst, size_t size, size_t count);
 static bool write_exact(FILE *fp, const void *src, size_t size, size_t count);
@@ -128,6 +131,7 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
             return false;
         }
         WRITE_OR_FAIL(dr->body_parts, 6, 1);
+        WRITE_OR_FAIL(dr->body_part_hp, 6, 1);
         WRITE_OR_FAIL(dr->weapons, 2, 1);
         WRITE_OR_FAIL(dr->items, 10, 1);
         WRITE_OR_FAIL(dr->skill_levels, 10, 1);
@@ -188,7 +192,8 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
     if (!read_le32(fp, &magic) || magic != CROSS_SAVE_MAGIC) {
         IMPORT_FAIL();
     }
-    if (!read_le32(fp, &version) || version != CROSS_SAVE_VERSION) {
+    if (!read_le32(fp, &version) ||
+        (version != CROSS_SAVE_VERSION && version != CROSS_SAVE_VERSION_LEGACY)) {
         IMPORT_FAIL();
     }
 
@@ -239,7 +244,10 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
     long file_end = ftell(fp);
     long long level_bytes = (long long)vals[5] *
                             (8LL + (long long)MAP_WIDTH * MAP_HEIGHT * 10);
-    long long required_end = (long long)payload_start + 4LL * 58 + level_bytes;
+    uint32_t droid_record_size = version == CROSS_SAVE_VERSION
+        ? CROSS_SAVE_DROID_V2_SIZE : CROSS_SAVE_DROID_V1_SIZE;
+    long long required_end = (long long)payload_start +
+                             4LL * droid_record_size + level_bytes;
     if (file_end < 0 || (long long)file_end < required_end ||
         fseek(fp, payload_start, SEEK_SET) != 0) {
         IMPORT_FAIL();
@@ -252,12 +260,16 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
             !read_le16(fp, &hp) || !read_le16(fp, &hp_max) ||
             !read_le16(fp, &energy) || !read_le16(fp, &energy_max) ||
             !read_exact(fp, dr->body_parts, 6, 1) ||
+            (version == CROSS_SAVE_VERSION &&
+             !read_exact(fp, dr->body_part_hp, 6, 1)) ||
             !read_exact(fp, dr->weapons, 2, 1) ||
             !read_exact(fp, dr->items, 10, 1) ||
             !read_exact(fp, dr->skill_levels, 10, 1) ||
             !read_le32(fp, &dr->xp) || !read_le16(fp, &weapon_damage)) {
             IMPORT_FAIL();
         }
+        if (version == CROSS_SAVE_VERSION_LEGACY)
+            memset(dr->body_part_hp, UINT8_MAX, sizeof(dr->body_part_hp));
         dr->hp = decode_i16(hp);
         dr->hp_max = decode_i16(hp_max);
         dr->energy = decode_i16(energy);

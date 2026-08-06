@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Cross-save armor durability)
+
+- Cross-save v2 sparar nu droidarnas individuella `body_part_hp`, så skadad
+  rustning inte återställs till full kondition efter import.
+- Importen behåller bakåtkompatibilitet med v1 och ger äldre sparfiler full
+  kondition som tidigare format saknade skadefältet.
+
 ## 2026-08-06 (Whitespace-tolerant custom config)
 
 - Lät CustomFeatures-konfigurationen acceptera blanksteg runt `=`, så
