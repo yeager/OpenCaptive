@@ -5,7 +5,8 @@
 #include <string.h>
 
 #define SAVE_MAGIC 0x4F435356  // "OCSV" - OpenCaptive Save
-#define SAVE_VERSION 3
+#define SAVE_VERSION 4
+#define SAVE_VERSION_LEGACY 3
 
 typedef struct {
     uint32_t magic;
@@ -107,8 +108,12 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
     for (int i = 0; i < gs->num_levels; i++) {
         for (int y = 0; y < MAP_HEIGHT; y++) {
             for (int x = 0; x < MAP_WIDTH; x++) {
-                uint8_t type = gs->levels[i].cells[y][x].type;
-                if (fwrite(&type, 1, 1, f) != 1) ok = false;
+                uint8_t cell_state[2] = {
+                    (uint8_t)gs->levels[i].cells[y][x].type,
+                    gs->levels[i].cells[y][x].item_id
+                };
+                if (fwrite(cell_state, 1, sizeof(cell_state), f) != sizeof(cell_state))
+                    ok = false;
             }
         }
     }
@@ -131,7 +136,8 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
 
     SaveHeader hdr;
     if (fread(&hdr, sizeof(hdr), 1, f) != 1) { fclose(f); return false; }
-    if (hdr.magic != SAVE_MAGIC || hdr.version != SAVE_VERSION ||
+    if (hdr.magic != SAVE_MAGIC ||
+        (hdr.version != SAVE_VERSION && hdr.version != SAVE_VERSION_LEGACY) ||
         hdr.game_type != GAME_CAPTIVE || hdr.mission == 0 ||
         hdr.mission > INT_MAX || hdr.base_id > INT_MAX ||
         hdr.party_x < 0 || hdr.party_x >= MAP_WIDTH ||
@@ -196,6 +202,10 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
                 if (fread(&type, 1, 1, f) != 1 || type > CELL_PIT)
                     LOAD_FAIL();
                 restored->levels[i].cells[y][x].type = (CellType)type;
+                if (hdr.version >= SAVE_VERSION) {
+                    if (fread(&restored->levels[i].cells[y][x].item_id, 1, 1, f) != 1)
+                        LOAD_FAIL();
+                }
             }
         }
     }

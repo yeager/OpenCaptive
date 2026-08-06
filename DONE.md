@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Captive floor-item saves)
+
+- Utökade save-format v4 med föremåls-ID för varje Captive-cell så uppplockade
+  föremål inte återkommer efter omladdning.
+- Äldre v3-sparningar kan fortfarande läsas med tidigare cellformat.
+- Regressionstest tillagt för att bevara ett markföremål genom save/load.
+
 ## 2026-08-06 (Binary lever solution)
 
 - Synkade binära spakars lagrade lösning med interaktionslogiken till 0/1.

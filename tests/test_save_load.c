@@ -23,6 +23,7 @@ static void test_round_trip(void) {
     saved.droids[2].hp = 37;
     memset(saved.droids[0].name, 'D', sizeof(saved.droids[0].name));
     saved.levels[0].cells[7][12].type = CELL_FLOOR;
+    saved.levels[0].cells[7][12].item_id = 57;
     saved.generators_destroyed = 1;
     saved_creatures.num_creatures = 1;
     saved_creatures.creatures[0] = (Creature){
@@ -46,6 +47,7 @@ static void test_round_trip(void) {
     assert(loaded.droids[0].name[sizeof(loaded.droids[0].name) - 1] == '\0');
     assert(loaded.gold == 777);
     assert(loaded.levels[0].cells[7][12].type == CELL_FLOOR);
+    assert(loaded.levels[0].cells[7][12].item_id == 57);
     assert(loaded.generators_destroyed == 1);
     assert(loaded_creatures.num_creatures == 1);
     assert(!loaded_creatures.creatures[0].active);

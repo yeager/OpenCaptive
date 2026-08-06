@@ -3,6 +3,7 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Captive save files now preserve floor items, preventing collected items from reappearing after reload; legacy v3 saves remain readable.
 - Release jobs now fail when iOS or Android packaging fails instead of publishing a partial release.
 - Android releases no longer fall back to an unsigned debug APK.
 - Release creation verifies that every desktop and mobile artifact exists and is non-empty.
