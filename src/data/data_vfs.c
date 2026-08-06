@@ -889,8 +889,13 @@ static void vfs_cache_write(const char hash[65], const uint8_t *data, size_t siz
 
     char source_signature[65] = {0};
     if (source_path && (strchr(source_path, '\n') || strchr(source_path, '\r') ||
-                        !cache_source_signature(source_path, source_signature)))
-        source_path = NULL;
+                        !cache_source_signature(source_path, source_signature))) {
+        /* Never persist a loose-file payload without the source fingerprint;
+         * otherwise an unusual path or a race during the write would turn
+         * this back into an unvalidated cache entry. */
+        remove(meta_tmp);
+        return;
+    }
     char metadata[2400];
     int metadata_length = snprintf(metadata, sizeof(metadata), "v2\n%s\n%s\n%s\n",
                                    signature, source_path ? source_path : "",
