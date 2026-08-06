@@ -5,6 +5,8 @@
 ### Release and CI hardening
 - Legacy Liberation saves now restore full armor condition when loaded from
   versions that predate the body-part durability field.
+- Liberation bar fights now correctly carry a pending police fine into the
+  next police-station visit, where it can be paid or refused.
 - F10's live original/enhanced display toggle now synchronizes the renderer
   state immediately while a game is running.
 - Droids carrying a melee weapon in one hand and a ranged weapon in the other

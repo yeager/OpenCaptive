@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation police fine flow)
+
+- Barbråkets påföljd sparas nu tills nästa besök på en polisstation, så
+  betalning eller vägran av böter fungerar i riktig spelkörning.
+- Lade till state-hantering som kopplar ihop barens och polisens separata
+  byggnadsdialoger.
+
 ## 2026-08-06 (F10 renderer synchronization)
 
 - F10-popupens byte mellan original/enhanced grafikläge uppdaterar nu även

@@ -577,6 +577,10 @@ static bool liberation_dynamic_lighting;
 static BuildingInteraction lib_interact;
 static bool lib_city_generated;
 static bool lib_in_building;
+/* A bar fight is resolved after leaving the bar, but its police fine is
+ * offered during a later visit to a police station.  Keep that consequence
+ * outside the short-lived BuildingInteraction instance. */
+static bool lib_bar_fight_pending;
 static LibCombatState lib_combat;
 static PlotgenState lib_plot;
 static bool lib_mission_briefing;
@@ -1028,6 +1032,7 @@ static void start_liberation_session(GameState *gs_ptr) {
         }
         building_interact_init(&lib_interact);
         lib_in_building = false;
+        lib_bar_fight_pending = false;
         lib_combat_init(&lib_combat);
         lib_in_combat = false;
         lib_city_generated = true;
@@ -1106,6 +1111,7 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 lib_in_building = false;
                 if (lib_interact.fine_paid) {
                     lib_interact.fine_paid = false;
+                    lib_bar_fight_pending = false;
                     gs->reputation += 15;
                     if (gs->reputation > 100) gs->reputation = 100;
                     msg_push(_("Fine paid. Rep +15"), 0xFF44FF44);
@@ -1123,11 +1129,13 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 }
                 if (lib_interact.fine_refused) {
                     lib_interact.fine_refused = false;
+                    lib_bar_fight_pending = false;
                     lib_combat_generate_encounter(&lib_combat,
                         (uint16_t)(gs->tick * 0x5E5 + 17U), gs->mission);
                     lib_in_combat = true;
                 } else if (lib_interact.bar_fight) {
                     lib_interact.bar_fight = false;
+                    lib_bar_fight_pending = true;
                     lib_combat_generate_encounter(&lib_combat,
                         (uint16_t)(gs->tick * 0x5E5), gs->mission);
                     lib_in_combat = true;
@@ -1183,6 +1191,7 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                     lib_in_building = false;
                     if (lib_interact.fine_paid) {
                         lib_interact.fine_paid = false;
+                        lib_bar_fight_pending = false;
                         gs->reputation += 15;
                         if (gs->reputation > 100) gs->reputation = 100;
                         msg_push(_("Fine paid. Rep +15"), 0xFF44FF44);
@@ -1200,11 +1209,13 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                     }
                     if (lib_interact.fine_refused) {
                         lib_interact.fine_refused = false;
+                        lib_bar_fight_pending = false;
                         lib_combat_generate_encounter(&lib_combat,
                             (uint16_t)(gs->tick * 0x5E5 + 17U), gs->mission);
                         lib_in_combat = true;
                     } else if (lib_interact.bar_fight) {
                         lib_interact.bar_fight = false;
+                        lib_bar_fight_pending = true;
                         lib_combat_generate_encounter(&lib_combat,
                             (uint16_t)(gs->tick * 0x5E5), gs->mission);
                         lib_in_combat = true;
@@ -1365,6 +1376,8 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 if (building_interact_enter(&lib_interact, &lib_grid,
                         &lib_buildings, lib_nav.cell_x, lib_nav.cell_y,
                         &gs->gold)) {
+                    if (lib_interact.type == INTERACT_POLICE)
+                        lib_interact.bar_fight = lib_bar_fight_pending;
                     building_interact_set_reputation(&lib_interact, gs->reputation);
                     lib_in_building = true;
                 }
