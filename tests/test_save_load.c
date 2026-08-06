@@ -30,6 +30,7 @@ static void test_round_trip(void) {
     saved_creatures.creatures[0] = (Creature){
         .type = CREATURE_ALIEN1, .hp = 0, .hp_max = 30,
         .x = 12, .y = 7, .level = 0, .active = false,
+        .respawn_timer = 600,
     };
     saved_puzzles.num_puzzles = 1;
     saved_puzzles.puzzles[0] = (Puzzle){
@@ -305,6 +306,9 @@ static void test_save_rejects_invalid_creature_runtime_fields(void) {
     creatures.creatures[0].range = 0;
     creatures.creatures[0].active = false;
     creatures.creatures[0].hp = 10;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    creatures.creatures[0].hp = 0;
+    creatures.creatures[0].respawn_timer = 0;
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
 }
 

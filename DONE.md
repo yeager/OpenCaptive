@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive save-respawn-invariant)
+
+- Save/load avvisar nu döda, inaktiva fiender utan aktiv respawn-timer.
+- Ett sådant tillstånd kunde tidigare sparas men blev permanent osynligt och
+  kunde aldrig återaktiveras av `combat_tick()`.
+- Roundtrip- och valideringstesterna täcker nu det korrekta döda tillståndet
+  med 600 ticks kvar.
+
 ## 2026-08-07 (Captive combat game-over invariant)
 
 - `combat_tick()` sätter nu `STATE_GAMEOVER` direkt när den sista levande
