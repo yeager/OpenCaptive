@@ -27,6 +27,9 @@
 - Liberation 3D rasterization now clips extreme projected spans before scanline iteration, avoiding overflow and pathological frame times from oversized coordinates.
 - Captive save files now preserve floor items, preventing collected items from reappearing after reload; legacy v3 saves remain readable.
 - Release jobs now fail when iOS or Android packaging fails instead of publishing a partial release.
+- Windows VFS-cache-signaturer är nu deterministiska genom att katalogmetadata
+  sorteras före hashing, så oförändrade speldata inte skannas om mellan
+  körningar på grund av ospecificerad filsystemordning.
 - Android releases no longer fall back to an unsigned debug APK.
 - Release creation verifies that every desktop and mobile artifact exists and is non-empty.
 - Added and expanded automated coverage for data readers, launcher, terminal, shop, game state, audio, lighting, and Liberation rendering.

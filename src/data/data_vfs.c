@@ -561,6 +561,18 @@ static void cache_meta_update(SHA256Context *ctx, const char *path,
 }
 
 #ifdef _WIN32
+typedef struct {
+    char path[1024];
+    struct stat st;
+    bool is_directory;
+} CacheTreeEntry;
+
+static int compare_cache_tree_entries(const void *left, const void *right) {
+    const CacheTreeEntry *a = (const CacheTreeEntry *)left;
+    const CacheTreeEntry *b = (const CacheTreeEntry *)right;
+    return strcmp(a->path, b->path);
+}
+
 static void cache_tree_metadata(SHA256Context *ctx, const char *path, int depth) {
     if (depth > 32) return;
     char pattern[1024];
@@ -568,6 +580,9 @@ static void cache_tree_metadata(SHA256Context *ctx, const char *path, int depth)
     WIN32_FIND_DATAA entry;
     HANDLE handle = FindFirstFileA(pattern, &entry);
     if (handle == INVALID_HANDLE_VALUE) return;
+    CacheTreeEntry *entries = NULL;
+    size_t entry_count = 0;
+    size_t entry_capacity = 0;
     do {
         if (!strcmp(entry.cFileName, ".") || !strcmp(entry.cFileName, "..")) continue;
         char child[1024];
@@ -575,11 +590,33 @@ static void cache_tree_metadata(SHA256Context *ctx, const char *path, int depth)
             (int)sizeof(child)) continue;
         struct stat st;
         if (stat(child, &st) != 0) continue;
-        cache_meta_update(ctx, child, &st);
-        if (entry.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-            cache_tree_metadata(ctx, child, depth + 1);
+        if (entry_count == entry_capacity) {
+            size_t new_capacity = entry_capacity ? entry_capacity * 2U : 32U;
+            CacheTreeEntry *grown = realloc(entries,
+                                            new_capacity * sizeof(*entries));
+            if (!grown) {
+                free(entries);
+                FindClose(handle);
+                return;
+            }
+            entries = grown;
+            entry_capacity = new_capacity;
+        }
+        snprintf(entries[entry_count].path, sizeof(entries[entry_count].path), "%s", child);
+        entries[entry_count].st = st;
+        entries[entry_count].is_directory =
+            (entry.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+        entry_count++;
     } while (FindNextFileA(handle, &entry));
     FindClose(handle);
+
+    qsort(entries, entry_count, sizeof(*entries), compare_cache_tree_entries);
+    for (size_t i = 0; i < entry_count; ++i) {
+        cache_meta_update(ctx, entries[i].path, &entries[i].st);
+        if (entries[i].is_directory)
+            cache_tree_metadata(ctx, entries[i].path, depth + 1);
+    }
+    free(entries);
 }
 #else
 static void cache_tree_metadata(SHA256Context *ctx, const char *path, int depth) {

@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Windows VFS cache determinism)
+
+- VFS-cache-signaturen sorterar nu Windows-katalogposter innan metadata hashas.
+  Oförändrade speldata får därför stabila cacheträffar även mellan separata
+  körningar, i stället för att ibland skannas om på grund av filsystemets
+  ospecificerade listordning.
+
 ## 2026-08-06 (Liberation save state isolation)
 
 - Temporära pending-böter från ett tidigare Liberation-spel läcker inte längre
