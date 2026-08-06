@@ -7,6 +7,8 @@
 - SDL- och SDL_ttf-källor hämtas med blob-filter och grunda submoduler där det
   är möjligt, vilket minskar beroendestegens storlek och Windows-risken för
   timeout.
+- Windows-kommandot använder nu PowerShell-kompatibel radsyntax för SDL3-
+  flaggorna.
 
 ## 2026-08-07 (Captive startmeny)
 

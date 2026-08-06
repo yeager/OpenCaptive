@@ -75,8 +75,7 @@ jobs:
       - name: Install SDL3
         run: |
           git clone --depth 1 --filter=blob:none https://github.com/libsdl-org/SDL.git SDL3-src
-          cmake -S SDL3-src -B SDL3-build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3-install \
-            -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
+          cmake -S SDL3-src -B SDL3-build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/SDL3-install -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
           cmake --build SDL3-build --config Release
           cmake --install SDL3-build --config Release
       - name: Install SDL3_ttf
