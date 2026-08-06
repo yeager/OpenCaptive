@@ -8,7 +8,8 @@ OpenCaptive is an actively verified reimplementation. Disassembly-verified data 
 
 ## For players
 
-- [[User Guide]] — Building, running, CLI flags, graphics settings, controls
+- [[User Guide]] — Building, running, CLI flags, graphics settings, controls,
+  xBRZ upscaling and the live F10 popup
 - [[Start Menu]] — 8-item start menu layout, game cards, data scanner
 - [[Save and Load]] — Save slots, quicksave, quickload
 - [[Internationalization]] — 19 supported languages

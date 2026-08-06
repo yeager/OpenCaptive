@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (HD framebuffer upscaling)
+
+- Kopplade `--hd-upscale` och `--upscale-factor` till den gemensamma SDL-
+  presenteringen. Native-spelbilden lämnas oförändrad och xBRZ appliceras
+  endast på utdata i 2x, 3x eller 4x.
+- Dokumenterade flaggorna och F10-popupen i README, User Guide och wiki-index.
+
 ## 2026-08-06 (Audio sample-rate configuration)
 
 - Startmenyns val av 22 050, 44 100 eller 48 000 Hz används nu av SDL:s

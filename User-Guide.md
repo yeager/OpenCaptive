@@ -87,6 +87,8 @@ opencaptive --data /path/to/your/media --lang sv
 | `--fps <N>` | FPS limit: 0 (unlimited), 30, 60, 120 (default: 60) |
 | `--brightness <N>` | Brightness level 0-100 (default: 50) |
 | `--contrast <N>` | Contrast level 0-100 (default: 50) |
+| `--hd-upscale` | Apply xBRZ upscaling to native game frames |
+| `--upscale-factor <N>` | xBRZ factor: 2, 3 or 4 (implies `--hd-upscale`) |
 | `--renderer <mode>` | Render mode: `original` or `enhanced` |
 | `--platform <name>` | Platform variant: `dos`, `amiga`, or `atarist` |
 
@@ -182,6 +184,7 @@ The settings panel contains 16 configurable items:
 | F6 | Cycle save slots |
 | F7 | Debug HUD |
 | F8 | Minimap toggle |
+| F10 | Runtime options popup: display effects, audio toggles, overlays and cheats |
 
 ### Menu and help
 
@@ -190,6 +193,10 @@ The settings panel contains 16 configurable items:
 | H | Help screen |
 | ESC | Pause menu |
 | F1 | Controls reference |
+
+The F10 popup applies display changes immediately while playing. God Mode and
+Infinite Energy affect both Captive and Liberation; Escape or F10 closes the
+popup.
 
 ### Speed
 

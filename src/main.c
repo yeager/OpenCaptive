@@ -2824,6 +2824,9 @@ int main(int argc, char *argv[]) {
         }
         if (renderer.canvas_width != frame_width || renderer.canvas_height != frame_height)
             renderer_set_canvas(&renderer, frame_width, frame_height, &config);
+        renderer_set_upscale(&renderer,
+                             custom.hd_upscale && frame_width <= 640 && frame_height <= 400,
+                             custom.upscale_factor);
 
         memset(framebuffer, 0, (size_t)frame_width * frame_height * sizeof(uint32_t));
 

@@ -1,4 +1,6 @@
 #include "renderer.h"
+#include "custom_features.h"
+#include <limits.h>
 #include <stdio.h>
 
 static bool renderer_bilinear;
@@ -15,8 +17,19 @@ static bool renderer_create_framebuffer(OpenCaptiveRenderer *r, int width, int h
         renderer_bilinear ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
     if (r->framebuffer) SDL_DestroyTexture(r->framebuffer);
     r->framebuffer = texture;
-    r->canvas_width = width;
-    r->canvas_height = height;
+    r->texture_width = width;
+    r->texture_height = height;
+    return true;
+}
+
+static bool renderer_texture_size(int width, int height, bool enabled, int factor,
+                                  int *out_width, int *out_height) {
+    if (!out_width || !out_height || width <= 0 || height <= 0) return false;
+    if (!enabled) factor = 1;
+    if (factor < 1 || factor > 4 || width > INT_MAX / factor || height > INT_MAX / factor)
+        return false;
+    *out_width = width * factor;
+    *out_height = height * factor;
     return true;
 }
 
@@ -54,6 +67,8 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
 
     r->canvas_width = CAPTIVE_ORIGINAL_WIDTH;
     r->canvas_height = CAPTIVE_ORIGINAL_HEIGHT;
+    r->hd_upscale = false;
+    r->upscale_factor = 1;
     if (!renderer_create_framebuffer(r, r->canvas_width, r->canvas_height)) {
         fprintf(stderr, "SDL_CreateTexture: %s\n", SDL_GetError());
         SDL_DestroyRenderer(r->renderer);
@@ -75,9 +90,15 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
 bool renderer_set_canvas(OpenCaptiveRenderer *r, int width, int height,
                          const OpenCaptiveConfig *config) {
     if (!r || !r->renderer || !config || width <= 0 || height <= 0) return false;
-    if (r->canvas_width != width || r->canvas_height != height) {
-        if (!renderer_create_framebuffer(r, width, height)) return false;
+    int texture_width, texture_height;
+    if (!renderer_texture_size(width, height, r->hd_upscale, r->upscale_factor,
+                               &texture_width, &texture_height)) return false;
+    if (r->canvas_width != width || r->canvas_height != height ||
+        r->texture_width != texture_width || r->texture_height != texture_height) {
+        if (!renderer_create_framebuffer(r, texture_width, texture_height)) return false;
     }
+    r->canvas_width = width;
+    r->canvas_height = height;
     return true;
 }
 
@@ -102,32 +123,68 @@ void renderer_set_effects(OpenCaptiveRenderer *r, bool bilinear, bool scanlines,
         renderer_bilinear ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
 }
 
+void renderer_set_upscale(OpenCaptiveRenderer *r, bool enabled, int factor) {
+    if (!r || !r->renderer) return;
+    if (!enabled) factor = 1;
+    if (factor < 1 || factor > 4) return;
+    int texture_width, texture_height;
+    if (!renderer_texture_size(r->canvas_width, r->canvas_height, enabled, factor,
+                               &texture_width, &texture_height)) return;
+    if (r->hd_upscale == enabled && r->upscale_factor == factor &&
+        r->texture_width == texture_width && r->texture_height == texture_height)
+        return;
+    if (!renderer_create_framebuffer(r, texture_width, texture_height)) return;
+    r->hd_upscale = enabled;
+    r->upscale_factor = factor;
+    SDL_SetTextureScaleMode(r->framebuffer,
+        renderer_bilinear ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
+}
+
 void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
     if (!r || !r->renderer || !r->framebuffer) return;
     if (pixels) {
+        uint32_t *upscaled = NULL;
         uint32_t *processed = NULL;
         const uint32_t *source = pixels;
+        int render_width = r->canvas_width;
+        int render_height = r->canvas_height;
+        if (r->hd_upscale && r->upscale_factor > 1) {
+            size_t pixel_count = (size_t)r->texture_width * (size_t)r->texture_height;
+            if (pixel_count <= SIZE_MAX / sizeof(*upscaled))
+                upscaled = (uint32_t *)SDL_malloc(pixel_count * sizeof(*upscaled));
+            if (upscaled) {
+                switch (r->upscale_factor) {
+                    case 2: upscale_xbrz_2x(pixels, r->canvas_width, r->canvas_height, upscaled); break;
+                    case 3: upscale_xbrz_3x(pixels, r->canvas_width, r->canvas_height, upscaled); break;
+                    case 4: upscale_xbrz_4x(pixels, r->canvas_width, r->canvas_height, upscaled); break;
+                    default: break;
+                }
+                source = upscaled;
+                render_width = r->texture_width;
+                render_height = r->texture_height;
+            }
+        }
         bool apply_curvature = renderer_crt_curvature &&
-                               r->canvas_width > 1 && r->canvas_height > 1;
+                               render_width > 1 && render_height > 1;
         if (renderer_scanlines || apply_curvature ||
             renderer_brightness != 50 || renderer_contrast != 50) {
-            size_t pixel_count = (size_t)r->canvas_width * (size_t)r->canvas_height;
+            size_t pixel_count = (size_t)render_width * (size_t)render_height;
             if (pixel_count <= SIZE_MAX / sizeof(*processed))
                 processed = (uint32_t *)SDL_malloc(pixel_count * sizeof(*processed));
-            if (processed) for (int y = 0; y < r->canvas_height; y++) {
-                for (int x = 0; x < r->canvas_width; x++) {
+            if (processed) for (int y = 0; y < render_height; y++) {
+                for (int x = 0; x < render_width; x++) {
                     int sx = x, sy = y;
                     if (apply_curvature) {
-                        float nx = (2.0f * x) / (r->canvas_width - 1) - 1.0f;
-                        float ny = (2.0f * y) / (r->canvas_height - 1) - 1.0f;
+                        float nx = (2.0f * x) / (render_width - 1) - 1.0f;
+                        float ny = (2.0f * y) / (render_height - 1) - 1.0f;
                         float curved_x = nx * (1.0f + 0.12f * ny * ny);
                         float curved_y = ny * (1.0f + 0.12f * nx * nx);
-                        sx = (int)((curved_x + 1.0f) * (r->canvas_width - 1) / 2.0f);
-                        sy = (int)((curved_y + 1.0f) * (r->canvas_height - 1) / 2.0f);
+                        sx = (int)((curved_x + 1.0f) * (render_width - 1) / 2.0f);
+                        sy = (int)((curved_y + 1.0f) * (render_height - 1) / 2.0f);
                     }
-                    uint32_t color = (sx < 0 || sx >= r->canvas_width ||
-                                      sy < 0 || sy >= r->canvas_height)
-                        ? 0xFF000000 : pixels[sy * r->canvas_width + sx];
+                    uint32_t color = (sx < 0 || sx >= render_width ||
+                                      sy < 0 || sy >= render_height)
+                        ? 0xFF000000 : source[sy * render_width + sx];
                     uint8_t red = apply_channel((color >> 16) & 0xFF);
                     uint8_t green = apply_channel((color >> 8) & 0xFF);
                     uint8_t blue = apply_channel(color & 0xFF);
@@ -136,33 +193,34 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
                         green = (uint8_t)(green * 3 / 5);
                         blue = (uint8_t)(blue * 3 / 5);
                     }
-                    processed[y * r->canvas_width + x] = 0xFF000000 |
+                    processed[y * render_width + x] = 0xFF000000 |
                         ((uint32_t)red << 16) | ((uint32_t)green << 8) | blue;
                 }
             }
             if (processed) source = processed;
         }
         SDL_UpdateTexture(r->framebuffer, NULL, source,
-                          r->canvas_width * sizeof(uint32_t));
+                          render_width * sizeof(uint32_t));
         if (processed && source == processed) SDL_free(processed);
+        if (upscaled) SDL_free(upscaled);
     }
 
     SDL_SetRenderDrawColor(r->renderer, 0, 0, 0, 255);
     SDL_RenderClear(r->renderer);
-    int output_width = r->canvas_width;
-    int output_height = r->canvas_height;
+    int output_width = r->texture_width;
+    int output_height = r->texture_height;
     SDL_GetRenderOutputSize(r->renderer, &output_width, &output_height);
-    float scale_x = (float)output_width / r->canvas_width;
-    float scale_y = (float)output_height / r->canvas_height;
+    float scale_x = (float)output_width / r->texture_width;
+    float scale_y = (float)output_height / r->texture_height;
     float scale = scale_x < scale_y ? scale_x : scale_y;
     if (r->integer_scaling && scale >= 1.0f) {
         scale = (float)(int)scale;
     }
     SDL_FRect destination = {
-        (output_width - r->canvas_width * scale) / 2.0f,
-        (output_height - r->canvas_height * scale) / 2.0f,
-        r->canvas_width * scale,
-        r->canvas_height * scale,
+        (output_width - r->texture_width * scale) / 2.0f,
+        (output_height - r->texture_height * scale) / 2.0f,
+        r->texture_width * scale,
+        r->texture_height * scale,
     };
     SDL_RenderTexture(r->renderer, r->framebuffer, NULL, &destination);
     SDL_RenderPresent(r->renderer);
