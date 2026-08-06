@@ -169,14 +169,20 @@ static bool write_creature_v5(FILE *f, const Creature *c) {
 
 static bool read_creature_v5(FILE *f, Creature *c) {
     uint32_t type;
-    return read_u32_le(f, &type) && (c->type = (CreatureType)type, true) &&
-           read_i16_le(f, &c->hp) && read_i16_le(f, &c->hp_max) &&
-           read_i16_le(f, &c->damage_min) && read_i16_le(f, &c->damage_max) &&
-           read_i16_le(f, &c->defense) && fread(&c->speed, 1, 1, f) == 1 &&
-           fread(&c->range, 1, 1, f) == 1 && read_i32_le(f, &c->x) &&
-           read_i32_le(f, &c->y) && read_i32_le(f, &c->level) &&
-           fread(&c->cooldown, 1, 1, f) == 1 && fread(&c->active, 1, 1, f) == 1 &&
-           fread(&c->alerted, 1, 1, f) == 1 && read_u16_le(f, &c->respawn_timer);
+    uint8_t active, alerted;
+    if (!read_u32_le(f, &type) || !read_i16_le(f, &c->hp) ||
+        !read_i16_le(f, &c->hp_max) || !read_i16_le(f, &c->damage_min) ||
+        !read_i16_le(f, &c->damage_max) || !read_i16_le(f, &c->defense) ||
+        fread(&c->speed, 1, 1, f) != 1 || fread(&c->range, 1, 1, f) != 1 ||
+        !read_i32_le(f, &c->x) || !read_i32_le(f, &c->y) ||
+        !read_i32_le(f, &c->level) || fread(&c->cooldown, 1, 1, f) != 1 ||
+        fread(&active, 1, 1, f) != 1 || fread(&alerted, 1, 1, f) != 1 ||
+        !read_u16_le(f, &c->respawn_timer) || active > 1 || alerted > 1)
+        return false;
+    c->type = (CreatureType)type;
+    c->active = active != 0;
+    c->alerted = alerted != 0;
+    return true;
 }
 
 static bool write_puzzle_v5(FILE *f, const Puzzle *p) {
@@ -203,6 +209,11 @@ static bool valid_puzzle_target(const Puzzle *p) {
     return (p->target_x == -1 && p->target_y == -1) ||
            (p->target_x >= 0 && p->target_x < MAP_WIDTH &&
             p->target_y >= 0 && p->target_y < MAP_HEIGHT);
+}
+
+static bool valid_creature_runtime_state(const Creature *c) {
+    return c && c->speed <= 60 && c->range <= 7 && c->cooldown <= 60 &&
+           c->respawn_timer <= 600;
 }
 
 static bool valid_item_id(const ItemDatabase *db, uint8_t item_id) {
@@ -286,7 +297,8 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
             c->x < 0 || c->x >= MAP_WIDTH || c->y < 0 || c->y >= MAP_HEIGHT ||
             c->level < 0 || c->level >= gs->num_levels || c->hp < 0 ||
             c->hp_max < 0 || c->hp > c->hp_max || c->damage_min < 0 ||
-            c->damage_max < c->damage_min || c->defense < 0)
+            c->damage_max < c->damage_min || c->defense < 0 ||
+            !valid_creature_runtime_state(c))
             return false;
     }
     for (int i = 0; i < puzzles->num_puzzles; i++) {
@@ -511,7 +523,7 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
             creature->hp < 0 || creature->hp_max < 0 ||
             creature->hp > creature->hp_max || creature->damage_min < 0 ||
             creature->damage_max < creature->damage_min ||
-            creature->defense < 0) {
+            creature->defense < 0 || !valid_creature_runtime_state(creature)) {
             LOAD_FAIL();
         }
     }

@@ -265,6 +265,54 @@ static void test_save_rejects_negative_creature_defense(void) {
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
 }
 
+static void test_save_rejects_invalid_creature_runtime_fields(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 10, .hp_max = 10,
+        .x = 1, .y = 1, .level = 0, .active = true,
+        .speed = 61
+    };
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    creatures.creatures[0].speed = 0;
+    creatures.creatures[0].range = 8;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+}
+
+static void test_load_rejects_noncanonical_creature_flag(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 10, .hp_max = 10,
+        .x = 1, .y = 1, .level = 0, .active = true
+    };
+    assert(save_game(&gs, &creatures, &puzzles, save_path));
+
+    /* Header (72) + four 64-byte droids + all serialized dungeon levels. */
+    FILE *file = fopen(save_path, "r+b");
+    assert(file != NULL);
+    long creature_offset = 72L + 4L * 64L +
+                            (long)gs.num_levels * MAP_WIDTH * MAP_HEIGHT * 2L;
+    /* Creature v5: type(4), hp fields(8), damage/defense(6), speed/range(2),
+     * coordinates/level(12), cooldown(1), active(1). */
+    assert(fseek(file, creature_offset + 29, SEEK_SET) == 0);
+    assert(fputc(2, file) != EOF);
+    assert(fclose(file) == 0);
+
+    GameState loaded;
+    CreatureList loaded_creatures = {0};
+    PuzzleList loaded_puzzles = {0};
+    assert(!load_game(&loaded, &loaded_creatures, &loaded_puzzles, save_path));
+}
+
 static void test_puzzle_interact_rejects_invalid_state(void) {
     PuzzleList puzzles = {0};
     GameState gs;
@@ -347,6 +395,8 @@ int main(void) {
     test_save_rejects_invalid_puzzle();
     test_save_rejects_invalid_creature_damage();
     test_save_rejects_negative_creature_defense();
+    test_save_rejects_invalid_creature_runtime_fields();
+    test_load_rejects_noncanonical_creature_flag();
     test_puzzle_interact_rejects_invalid_state();
     test_power_socket_recharges_420_energy();
     test_binary_lever_hint_uses_bit_zero();

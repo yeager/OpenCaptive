@@ -3316,3 +3316,6 @@
 - Captive-fiender spawnas nu inte ovanpå redan aktiva fiender på samma nivå.
   Gruppspawn behåller därför unika kartpositioner, med ett regressionsprov över
   många frön.
+- Captive-saveparsern validerar nu fienders runtimefält innan de aktiveras.
+  Orimlig hastighet, räckvidd, cooldown eller respawn-timer avvisas, och v5:s
+  booleska flaggor dekoderas som kanoniska bytevärden med regressionsprov.
