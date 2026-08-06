@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Bakgrundsskanning vid första uppstart)
+
+- Startmenyn startar nu den inkrementella, cachebaserade dataskanningen i
+  bakgrunden i stället för att blockera innan första menyrutan visas.
+- Korten får verifieringsstatus när skanningen är färdig, medan D fortfarande
+  öppnar ett synligt progressfönster för samma scanner.
+- Spelstart gör en slutlig verifiering efter användarens val och förblir
+  säker om data ändras mellan menyvisning och start.
+- Regressionstest täcker att bakgrundsskanningen gör framsteg utan att öppna
+  scannerfönstret.
+
 ## 2026-08-06 (VFS-cache utan upprepad katalogskanning)
 
 - Dataskannern beräknar nu rotens cache-signatur en gång när VFS:en öppnas.
@@ -8,6 +19,8 @@
   medan samma VFS-instans används.
 - Ett flerfilsuppslag går därför inte längre igenom hela dataträdet för varje
   hash, samtidigt som ersatta ZIP- och lösfiler fortsatt nekas gammal data.
+- VFS-öppningen räknar inte längre om hela lösfilsträdet; endast vald rot och
+  upptäckta arkiv ingår i den billiga globala namnrymden.
 
 ## 2026-08-06 (Isolerat VFS-test)
 
@@ -63,8 +76,9 @@
 
 - GitHub Actions avslöjade att en ersatt lös fil kunde få gammal hashcache
   på Windows när katalogens metadata inte ändrades.
-- VFS:ens snabba cacheprobe omfattar nu hela metadata-trädet, utan att läsa
-  eller hasha filinnehåll, så ersatta lösa filer invaliderar sina poster.
+- VFS:ens per-källfingeravtryck använder Windows filidentitet och högupplöst
+  ändringstid, så ersatta lösa filer invaliderar sina poster utan att varje
+  hashuppslag behöver skanna hela metadata-trädet.
 - `data_vfs`-regressionstestet passerar lokalt efter ändringen.
 
 ## 2026-08-06 (Icke-blockerande Liberation-skanning)

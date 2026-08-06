@@ -87,7 +87,7 @@ reverse-engineered; Captive gameplay parity is likewise still under review.
 - Controls reference (F1)
 - In-game F10 runtime popup: change display effects and toggle cheats in real time (God Mode and Infinite Energy work in both games)
 - Data Scanner (D key) — reports verified game files per game
-- Scanner results are cached by file identity and metadata, so unchanged files are not hashed again; the menu advances the scan incrementally and stays responsive
+- Scanner results are cached by file identity and metadata, so unchanged files are not hashed again; the initial scan runs incrementally in the background, while D opens the visible progress view
 - If multiple verified versions of a game are available, launch opens a localized version-selection popup
 - With `cross_save=1` or `--cross-save-export`, Captive F5 saves also create a
   portable `.ocsv` file beside the normal save (`opencaptive.ocsv` or the

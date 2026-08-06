@@ -554,7 +554,10 @@ static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *conf
         if (menu->mouse_sensitivity < 1) menu->mouse_sensitivity = 1;
         if (menu->mouse_sensitivity > 10) menu->mouse_sensitivity = 10;
     }
-    start_menu_check_data(menu, menu->data_path);
+    /* Keep the first launcher frame responsive: the same incremental scanner
+     * used by D runs in the background and refreshes the card badges as it
+     * completes.  Game start still performs a final synchronous validation. */
+    start_menu_start_scan(menu, menu->data_path, false);
     start_menu_check_saves(menu);
     if (menu->captive_save_slot >= 0)
         quicksave_slot = menu->captive_save_slot;

@@ -73,6 +73,7 @@ typedef struct {
     int scanner_total;
     int scanner_phase;
     bool scanner_done;
+    bool scanner_background;
     bool scanner_vfs_ready;
     size_t scanner_captive_index;
     DataVFS scanner_vfs;
@@ -101,6 +102,10 @@ void start_menu_init(StartMenu *menu);
 void start_menu_reinit(StartMenu *menu);
 void start_menu_free(StartMenu *menu);
 void start_menu_check_data(StartMenu *menu, const char *data_path);
+/* Start a cached, frame-bounded scan.  Explicit scans show progress; a
+ * background scan keeps the start menu responsive while refreshing status. */
+void start_menu_start_scan(StartMenu *menu, const char *data_path,
+                           bool show_progress);
 void start_menu_check_saves(StartMenu *menu);
 /* Advance one bounded scanner operation without blocking menu rendering. */
 void start_menu_update(StartMenu *menu);

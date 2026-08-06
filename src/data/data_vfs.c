@@ -656,101 +656,6 @@ static bool cache_source_signature(const char *path, char out[65]) {
     return true;
 }
 
-#ifdef _WIN32
-typedef struct {
-    char path[1024];
-    struct stat st;
-    bool is_directory;
-} CacheTreeEntry;
-
-static int compare_cache_tree_entries(const void *left, const void *right) {
-    const CacheTreeEntry *a = (const CacheTreeEntry *)left;
-    const CacheTreeEntry *b = (const CacheTreeEntry *)right;
-    return strcmp(a->path, b->path);
-}
-
-static void cache_tree_metadata(SHA256Context *ctx, const char *path, int depth) {
-    if (depth > 32) return;
-    char pattern[1024];
-    if (snprintf(pattern, sizeof(pattern), "%s\\*", path) >= (int)sizeof(pattern)) return;
-    WIN32_FIND_DATAA entry;
-    HANDLE handle = FindFirstFileA(pattern, &entry);
-    if (handle == INVALID_HANDLE_VALUE) return;
-    CacheTreeEntry *entries = NULL;
-    size_t entry_count = 0;
-    size_t entry_capacity = 0;
-    do {
-        if (!strcmp(entry.cFileName, ".") || !strcmp(entry.cFileName, "..")) continue;
-        char child[1024];
-        if (snprintf(child, sizeof(child), "%s\\%s", path, entry.cFileName) >=
-            (int)sizeof(child)) continue;
-        struct stat st;
-        if (stat(child, &st) != 0) continue;
-        if (entry_count == entry_capacity) {
-            size_t new_capacity = entry_capacity ? entry_capacity * 2U : 32U;
-            CacheTreeEntry *grown = realloc(entries,
-                                            new_capacity * sizeof(*entries));
-            if (!grown) {
-                free(entries);
-                FindClose(handle);
-                return;
-            }
-            entries = grown;
-            entry_capacity = new_capacity;
-        }
-        snprintf(entries[entry_count].path, sizeof(entries[entry_count].path), "%s", child);
-        entries[entry_count].st = st;
-        entries[entry_count].is_directory =
-            (entry.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-        entry_count++;
-    } while (FindNextFileA(handle, &entry));
-    FindClose(handle);
-
-    qsort(entries, entry_count, sizeof(*entries), compare_cache_tree_entries);
-    for (size_t i = 0; i < entry_count; ++i) {
-        cache_meta_update(ctx, entries[i].path, &entries[i].st);
-        if (entries[i].is_directory)
-            cache_tree_metadata(ctx, entries[i].path, depth + 1);
-    }
-    free(entries);
-}
-#else
-static void cache_tree_metadata(SHA256Context *ctx, const char *path, int depth) {
-    if (depth > 32) return;
-    struct dirent **entries = NULL;
-    int entry_count = scandir(path, &entries, NULL, alphasort);
-    if (entry_count < 0) return;
-    for (int i = 0; i < entry_count; ++i) {
-        struct dirent *entry = entries[i];
-        if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
-            free(entry);
-            continue;
-        }
-        /* Keep the internal persistent cache out of source metadata when the
-         * selected data root contains the user's cache directory. */
-        if (!strcmp(entry->d_name, ".cache")) {
-            free(entry);
-            continue;
-        }
-        char child[1024];
-        if (snprintf(child, sizeof(child), "%s/%s", path, entry->d_name) >=
-            (int)sizeof(child)) {
-            free(entry);
-            continue;
-        }
-        struct stat st;
-        if (stat(child, &st) != 0) {
-            free(entry);
-            continue;
-        }
-        cache_meta_update(ctx, child, &st);
-        if (S_ISDIR(st.st_mode)) cache_tree_metadata(ctx, child, depth + 1);
-        free(entry);
-    }
-    free(entries);
-}
-#endif
-
 static int compare_zip_paths(const void *left, const void *right) {
     return strcmp((const char *)left, (const char *)right);
 }
@@ -761,7 +666,14 @@ static void vfs_cache_signature(const DataVFS *vfs, char out[65]) {
     sha256_init(&ctx);
     sha256_update(&ctx, (const uint8_t *)vfs->data_path,
                   strlen(vfs->data_path) + 1);
-    cache_tree_metadata(&ctx, vfs->data_path, 0);
+    /* Cache entries validate their own source file or archive.  The global
+     * namespace signature therefore only needs the selected root and the
+     * discovered archive identities; recursively hashing every loose-file
+     * metadata record here would make opening the VFS proportional to the
+     * whole game-data tree before the first menu frame. */
+    struct stat root_st;
+    if (stat(vfs->data_path, &root_st) == 0)
+        cache_meta_update(&ctx, vfs->data_path, &root_st);
     for (int i = 0; i < vfs->num_zips; ++i) {
         struct stat st;
         if (stat(vfs->zip_paths[i], &st) == 0)

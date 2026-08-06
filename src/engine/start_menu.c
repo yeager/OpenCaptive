@@ -28,6 +28,8 @@ static const char *captive_required_hashes[] = {
 };
 #define CAPTIVE_HASH_COUNT (sizeof(captive_required_hashes)/sizeof(captive_required_hashes[0]))
 
+static void stop_data_scanner(StartMenu *menu);
+
 #define SETTINGS_COUNT 24
 
 static uint32_t *load_card_image(const char *filename, int *w, int *h) {
@@ -427,6 +429,9 @@ void start_menu_reinit(StartMenu *menu) {
 
 void start_menu_check_data(StartMenu *menu, const char *data_path) {
     if (!menu) return;
+    stop_data_scanner(menu);
+    menu->in_scanner = false;
+    menu->scanner_background = false;
     menu->captive_data_ok = false;
     menu->liberation_data_ok = false;
     menu->captive_source_mask = 0U;
@@ -568,12 +573,17 @@ static void stop_data_scanner(StartMenu *menu) {
     }
 }
 
-static void start_data_scanner(StartMenu *menu, const char *data_path) {
-    if (!menu || !data_path || !data_path[0]) {
-        if (menu) menu->scanner_done = true;
+void start_menu_start_scan(StartMenu *menu, const char *data_path,
+                           bool show_progress) {
+    if (!menu) return;
+    stop_data_scanner(menu);
+    menu->in_scanner = show_progress;
+    menu->scanner_background = !show_progress;
+    menu->scanner_done = false;
+    if (!data_path || !data_path[0]) {
+        menu->scanner_done = true;
         return;
     }
-    stop_data_scanner(menu);
     if (!vfs_init(&menu->scanner_vfs, data_path)) {
         menu->scanner_done = true;
         return;
@@ -593,7 +603,8 @@ static void start_data_scanner(StartMenu *menu, const char *data_path) {
 }
 
 void start_menu_update(StartMenu *menu) {
-    if (!menu || !menu->in_scanner || menu->scanner_done) return;
+    if (!menu || (!menu->in_scanner && !menu->scanner_background) ||
+        menu->scanner_done) return;
     if (!menu->scanner_vfs_ready) {
         menu->scanner_done = true;
         return;
@@ -627,6 +638,17 @@ void start_menu_update(StartMenu *menu) {
         menu->scanner_progress = menu->scanner_total;
         menu->scanner_phase = 2;
         menu->scanner_done = true;
+        menu->captive_data_ok = menu->scanner_captive_found ==
+                                menu->scanner_captive_total;
+        menu->captive_source_mask = menu->captive_data_ok
+            ? (1U << CAPTIVE_PLATFORM_DOS) : 0U;
+        menu->captive_source_choice = CAPTIVE_PLATFORM_DOS;
+        menu->liberation_data_ok = menu->liberation_source_mask != 0U;
+        menu->liberation_source_choice = menu->liberation_data_ok
+            ? ((menu->liberation_source_mask &
+                (1U << LIBERATION_SOURCE_CD32))
+                   ? LIBERATION_SOURCE_CD32 : LIBERATION_SOURCE_AMIGA_ADF)
+            : LIBERATION_SOURCE_NONE;
         stop_data_scanner(menu);
     }
 }
@@ -699,6 +721,7 @@ MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
     if (menu->in_scanner) {
         stop_data_scanner(menu);
         menu->in_scanner = false;
+        menu->scanner_background = false;
         menu->scanner_done = false;
         return MENU_RESULT_NONE;
     }
@@ -832,6 +855,7 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
         if (event->key.key == SDLK_ESCAPE || event->key.key == SDLK_RETURN) {
             stop_data_scanner(menu);
             menu->in_scanner = false;
+            menu->scanner_background = false;
             menu->scanner_done = false;
         }
         return MENU_RESULT_NONE;
@@ -988,8 +1012,7 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
             break;
         case SDLK_F1: menu->in_controls = true; break;
         case SDLK_D:
-            menu->in_scanner = true;
-            start_data_scanner(menu, menu->data_path);
+            start_menu_start_scan(menu, menu->data_path, true);
             break;
         case SDLK_ESCAPE: return MENU_RESULT_QUIT;
     }

@@ -126,9 +126,17 @@ int main(void) {
     start_menu_handle_event(&menu, &event);
     assert(!menu.in_controls);
 
-    /* Data scanning must advance incrementally so the menu can render its
-       progress bar between hash lookups. */
     snprintf(menu.data_path, sizeof(menu.data_path), ".");
+
+    /* Automatic startup verification must share the bounded scanner without
+       replacing the first menu frame with the scanner screen. */
+    start_menu_start_scan(&menu, menu.data_path, false);
+    assert(!menu.in_scanner && menu.scanner_background && !menu.scanner_done);
+    int background_progress = menu.scanner_progress;
+    start_menu_update(&menu);
+    assert(menu.scanner_progress == background_progress + 1);
+
+    /* Explicit D scanning shows the same bounded progress operation. */
     event = key_event(SDLK_D);
     assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_NONE);
     assert(menu.in_scanner && !menu.scanner_done);
