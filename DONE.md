@@ -4,7 +4,8 @@
 
 - Save/load avvisar nu party- och creature-positioner på väggar eller
   stängda dörrar, inte bara koordinater utanför kartan.
-- Lade till regressionstester för både blockerad party-position och creature.
+- Lade till regressionstester för både blockerad party-position och creature,
+  inklusive en manipulerad save som avvisas vid laddning.
 - Lokal Werror/CTest: 58/58 tester passerar.
 
 ## 2026-08-06 (Captive LOS-hörn)

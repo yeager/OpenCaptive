@@ -307,6 +307,21 @@ static void test_save_rejects_blocked_runtime_positions(void) {
     };
     gs.levels[gs.current_level].cells[gs.party_y][gs.party_x].type = CELL_DOOR;
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
+
+    game_state_new_mission(&gs, 1);
+    assert(save_game(&gs, &creatures, &puzzles, save_path));
+    FILE *file = fopen(save_path, "r+b");
+    assert(file != NULL);
+    long cell_offset = 72L + 4L * 64L +
+        ((long)gs.current_level * MAP_HEIGHT * MAP_WIDTH +
+         (long)gs.party_y * MAP_WIDTH + gs.party_x) * 2L;
+    assert(fseek(file, cell_offset, SEEK_SET) == 0);
+    assert(fputc(CELL_WALL, file) != EOF);
+    assert(fclose(file) == 0);
+    GameState loaded;
+    CreatureList loaded_creatures = {0};
+    PuzzleList loaded_puzzles = {0};
+    assert(!load_game(&loaded, &loaded_creatures, &loaded_puzzles, save_path));
 }
 
 static void test_load_rejects_noncanonical_creature_flag(void) {
