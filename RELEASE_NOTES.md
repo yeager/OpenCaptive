@@ -3,6 +3,8 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Liberation-sparningar använder nu samma atomiska filbyte som Captive.
+  Misslyckade skrivningar lämnar den tidigare fungerande sparningen intakt.
 - Captive-sparningar skrivs nu till en temporär fil och byts atomiskt på plats.
   Ett avbrutet eller misslyckat skrivförsök lämnar den senast fungerande
   sparningen intakt.

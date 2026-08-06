@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Atomic Liberation saves)
+
+- Liberation-sparningar skrivs färdigt till en temporär fil innan destinationen
+  ersätts atomiskt.
+- Ett avbrutet eller misslyckat skrivförsök kan inte längre trunka den senaste
+  fungerande Liberation-sparningen.
+- Verifierade `test_liberation_save` och diff-format.
+
 ## 2026-08-06 (Atomic Captive saves)
 
 - Captive-sparningar byggs färdigt i en temporär fil innan den ersätter den

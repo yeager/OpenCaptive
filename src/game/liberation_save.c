@@ -1,6 +1,11 @@
 #include "liberation_save.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 static bool write_u16(FILE *f, uint16_t v) {
     uint8_t b[2] = { (uint8_t)(v >> 8), (uint8_t)v };
@@ -28,6 +33,15 @@ static bool read_u32(FILE *f, uint32_t *out) {
     return true;
 }
 
+static bool replace_save_file(const char *temporary_path, const char *path) {
+#ifdef _WIN32
+    return MoveFileExA(temporary_path, path,
+                       MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+#else
+    return rename(temporary_path, path) == 0;
+#endif
+}
+
 bool lib_save_write(const LibSaveData *data, const char *path) {
     if (!data || !path || data->num_droids > LIB_SAVE_MAX_DROIDS ||
         data->city_x < 0 || data->city_x >= CITYGRID_WIDTH ||
@@ -43,8 +57,16 @@ bool lib_save_write(const LibSaveData *data, const char *path) {
             d->energy < 0 || d->energy_max < 0 || d->energy > d->energy_max)
             return false;
     }
-    FILE *f = fopen(path, "wb");
-    if (!f) return false;
+    size_t path_length = strlen(path);
+    if (path_length > SIZE_MAX - 5) return false;
+    char *temporary_path = malloc(path_length + 5);
+    if (!temporary_path) return false;
+    snprintf(temporary_path, path_length + 5, "%s.tmp", path);
+    FILE *f = fopen(temporary_path, "wb");
+    if (!f) {
+        free(temporary_path);
+        return false;
+    }
 
     bool ok = fwrite(LIB_SAVE_MAGIC, 1, 4, f) == 4;
     ok = write_u16(f, LIB_SAVE_VERSION) && ok;
@@ -92,6 +114,14 @@ bool lib_save_write(const LibSaveData *data, const char *path) {
 
     ok = ok && !ferror(f);
     ok = fclose(f) == 0 && ok;
+    if (!ok) {
+        remove(temporary_path);
+        free(temporary_path);
+        return false;
+    }
+    ok = replace_save_file(temporary_path, path);
+    if (!ok) remove(temporary_path);
+    free(temporary_path);
     return ok;
 }
 
