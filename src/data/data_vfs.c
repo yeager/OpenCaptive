@@ -633,6 +633,10 @@ static void vfs_cache_signature(const DataVFS *vfs, char out[65]) {
 
 static const char *vfs_cache_home(void) {
     const char *home = getenv("HOME");
+    /* Windows normally exposes the user directory as USERPROFILE rather
+     * than HOME.  Without this fallback the scanner cache silently becomes
+     * process-local on a standard Windows installation. */
+    if ((!home || !home[0])) home = getenv("USERPROFILE");
     return home && home[0] ? home : NULL;
 }
 
