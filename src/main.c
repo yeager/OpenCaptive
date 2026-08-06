@@ -632,6 +632,16 @@ static bool liberation_intro_active;
 static bool liberation_mission_menu_active;
 static bool skip_liberation_intro_requested;
 
+static void open_captive_shop(GameState *gs, int level) {
+    if (!gs) return;
+    shop_return_mode = STATE_GAME;
+    shop_init(&shop, &item_db, level, gs->mission_seed);
+    shop.gold = gs->gold;
+    gs->mode = STATE_SHOP;
+    music_play(&music_sys, MUSIC_SHOP);
+    sfx_play(&sfx, SFX_DOOR_OPEN);
+}
+
 static int menu_audio_sample_rate(const StartMenu *menu) {
     static const int sample_rates[] = {22050, 44100, 48000};
     int choice = menu ? menu->audio_sample_rate : 1;
@@ -1800,12 +1810,7 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             const DungeonLevel *cur = &gs->levels[gs->current_level];
             // Check if on shop cell
             if (cur->cells[gs->party_y][gs->party_x].type == CELL_SHOP) {
-                shop_return_mode = STATE_GAME;
-                shop_init(&shop, &item_db, gs->current_level, gs->mission_seed);
-                shop.gold = gs->gold;
-                gs->mode = STATE_SHOP;
-                music_play(&music_sys, MUSIC_SHOP);
-                sfx_play(&sfx, SFX_DOOR_OPEN);
+                open_captive_shop(gs, gs->current_level);
                 return;
             }
             // Try puzzle first, then general interact
@@ -1846,6 +1851,10 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 CellType cell_before = CELL_WALL;
                 if (tx >= 0 && tx < MAP_WIDTH && ty >= 0 && ty < MAP_HEIGHT)
                     cell_before = gs->levels[gs->current_level].cells[ty][tx].type;
+                if (cell_before == CELL_SHOP) {
+                    open_captive_shop(gs, gs->current_level);
+                    return;
+                }
                 combat_interact(gs, &item_db);
                 if (gs->generators_destroyed > gen_before) {
                     sfx_play(&sfx, SFX_GENERATOR);

@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive adjacent-shop entry)
+
+- Shoppen öppnas nu korrekt även när spelaren står framför en shop-cell.
+- Den tidigare vägen ändrade bara speltillståndet till `STATE_SHOP` utan att
+  ladda lager, guld eller musik och kunde därför visa gammal shop-data.
+- Båda öppningsvägarna använder nu samma initialisering.
+
 ## 2026-08-07 (Captive armor inventory safety)
 
 - Att ta av en rustningsdel när droidens inventarie är full avbryts nu utan

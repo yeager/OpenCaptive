@@ -522,9 +522,6 @@ void combat_interact(GameState *gs, const void *item_db_ptr) {
             if (gs->generators_destroyed >= gs->generators_total)
                 game_state_complete_mission(gs);
             break;
-        case CELL_SHOP:
-            gs->mode = STATE_SHOP;
-            break;
         case CELL_TERMINAL:
             gs->mode = STATE_TERMINAL;
             break;
