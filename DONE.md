@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Säkrare referensbildsläsning)
+
+- VGA- och PPM-referensläsarna avbryter nu korrekt efter avkortade filer och
+  försöker inte läsa vidare från en ström vars position är osäker eller redan
+  nått EOF.
+- Statisk analys av `src/main.c` är tyst och hela testsuiten med 56 tester
+  passerar.
+
 ## 2026-08-06 (Start-menyns återinträde)
 
 - Menyn återanvänder nu laddade bilder och fonter när användaren går tillbaka

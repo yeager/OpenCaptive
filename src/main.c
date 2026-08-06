@@ -130,7 +130,12 @@ static bool write_dos_vga_reference(const char *dump_path, const char *output_pa
         return false;
     }
     size_t read = fread(memory, 1, DOS_VGA_MEMORY_SIZE, file);
-    int trailing = fgetc(file);
+    int trailing = EOF;
+    /* Do not query the stream after a short read: a failed read may leave the
+     * file position indeterminate.  A complete reference must still have no
+     * trailing byte. */
+    if (read == DOS_VGA_MEMORY_SIZE)
+        trailing = fgetc(file);
     bool ok = read == DOS_VGA_MEMORY_SIZE && trailing == EOF;
     if (fclose(file) != 0) ok = false;
     if (!ok) {
@@ -172,7 +177,11 @@ static uint32_t *read_ppm_frame(const char *path, int *out_width, int *out_heigh
     }
     if (separator == '\r') {
         int next = fgetc(file);
-        if (next != '\n' && next != EOF) ungetc(next, file);
+        if (next == EOF) {
+            fclose(file);
+            return NULL;
+        }
+        if (next != '\n') ungetc(next, file);
     }
     size_t count = (size_t)width * (size_t)height;
     if (count > SIZE_MAX / sizeof(uint32_t) || count > SIZE_MAX / 3) {
