@@ -38,6 +38,12 @@ static uint32_t *load_card_image(const char *filename, int *w, int *h) {
         snprintf(path, sizeof(path), "%s%s", base, filename);
         unsigned char *rgba = load_png_file(path, w, h);
         if (rgba) return (uint32_t *)rgba;
+
+        /* A macOS app bundle keeps launch resources in Contents/Resources,
+         * while SDL_GetBasePath() points at Contents/MacOS. */
+        snprintf(path, sizeof(path), "%s../Resources/%s", base, filename);
+        rgba = load_png_file(path, w, h);
+        if (rgba) return (uint32_t *)rgba;
     }
     snprintf(path, sizeof(path), "./%s", filename);
     unsigned char *rgba = load_png_file(path, w, h);
