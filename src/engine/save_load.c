@@ -131,6 +131,10 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
 bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
                const char *path) {
     if (!gs || !creatures || !puzzles || !path) return false;
+    /* Display/runtime options are not part of the save format.  Preserve the
+     * active configuration while replacing the gameplay state below; this
+     * keeps F10 settings and the selected data root intact after loading. */
+    OpenCaptiveConfig active_config = gs->config;
     FILE *f = fopen(path, "rb");
     if (!f) return false;
 
@@ -259,6 +263,7 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
         return false;
     }
     restored->mode = STATE_GAME;
+    restored->config = active_config;
     *gs = *restored;
     free(restored);
     *creatures = restored_creatures;

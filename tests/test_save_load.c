@@ -39,6 +39,11 @@ static void test_round_trip(void) {
 
     assert(save_game(&saved, &saved_creatures, &saved_puzzles, save_path));
     memset(&loaded, 0, sizeof(loaded));
+    static const char data_path[] = "/tmp/opencaptive-data";
+    loaded.config.render_mode = CAPTIVE_RENDER_ENHANCED;
+    loaded.config.scanlines = true;
+    loaded.config.brightness = 73;
+    loaded.config.data_path = data_path;
     assert(load_game(&loaded, &loaded_creatures, &loaded_puzzles, save_path));
     assert(loaded.mission == 17 && loaded.mission_seed == 179);
     assert(loaded.party_x == 11 && loaded.party_y == 7);
@@ -53,6 +58,10 @@ static void test_round_trip(void) {
     assert(!loaded_creatures.creatures[0].active);
     assert(loaded_puzzles.num_puzzles == 1);
     assert(loaded_puzzles.puzzles[0].solved);
+    assert(loaded.config.render_mode == CAPTIVE_RENDER_ENHANCED);
+    assert(loaded.config.scanlines);
+    assert(loaded.config.brightness == 73);
+    assert(loaded.config.data_path == data_path);
 }
 
 static void test_corrupt_save_preserves_state(void) {

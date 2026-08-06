@@ -17,6 +17,8 @@
   Liberation sessions instead of silently doing nothing.
 - Corrected generated Liberation button-combination puzzles so their solution
   is reachable through the currently implemented single-panel interaction.
+- Loading a Captive save now preserves active runtime options, including F10
+  graphics settings and the configured data path.
 
 ## v1.1.72 (2026-08-04)
 

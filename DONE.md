@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Preserve runtime options when loading)
+
+- Bevarade aktiv grafik-, ljud- och datasökvägskonfiguration när ett Captive-
+  spel laddas; F10-inställningar återställs inte längre till nollade värden.
+- Regressionstest tillagt för runtime-konfiguration genom save/load.
+
 ## 2026-08-06 (Liberation F10 cheats)
 
 - God Mode och Infinite Energy från F10 gäller nu även Liberation; tidigare
