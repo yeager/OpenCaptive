@@ -118,6 +118,20 @@ static void test_trailing_save_bytes_rejected(void) {
     assert(!load_game(&loaded, &loaded_creatures, &loaded_puzzles, save_path));
 }
 
+static void test_unknown_item_id_rejected(void) {
+    GameState saved;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&saved, GAME_CAPTIVE, 1);
+    game_state_new_mission(&saved, 1);
+    saved.droids[0].items[0] = 255;
+    assert(!save_game(&saved, &creatures, &puzzles, save_path));
+
+    saved.droids[0].items[0] = 0;
+    saved.levels[0].cells[0][0].item_id = 255;
+    assert(!save_game(&saved, &creatures, &puzzles, save_path));
+}
+
 static void test_save_rejects_state_load_would_reject(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -285,6 +299,7 @@ int main(void) {
     test_round_trip();
     test_corrupt_save_preserves_state();
     test_trailing_save_bytes_rejected();
+    test_unknown_item_id_rejected();
     test_save_rejects_state_load_would_reject();
     test_save_rejects_invalid_identifiers();
     test_save_rejects_invalid_puzzle();

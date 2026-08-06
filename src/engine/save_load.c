@@ -1,4 +1,5 @@
 #include "save_load.h"
+#include "inventory.h"
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -204,6 +205,21 @@ static bool valid_puzzle_target(const Puzzle *p) {
             p->target_y >= 0 && p->target_y < MAP_HEIGHT);
 }
 
+static bool valid_item_id(const ItemDatabase *db, uint8_t item_id) {
+    return item_id == 0 || (db && item_db_get(db, item_id) != NULL);
+}
+
+static bool valid_droid_items(const ItemDatabase *db, const Droid *d) {
+    if (!db || !d) return false;
+    for (size_t i = 0; i < sizeof(d->body_parts); ++i)
+        if (!valid_item_id(db, d->body_parts[i])) return false;
+    for (size_t i = 0; i < sizeof(d->weapons); ++i)
+        if (!valid_item_id(db, d->weapons[i])) return false;
+    for (size_t i = 0; i < sizeof(d->items); ++i)
+        if (!valid_item_id(db, d->items[i])) return false;
+    return true;
+}
+
 static bool replace_save_file(const char *temporary_path, const char *path) {
 #ifdef _WIN32
     /* The CRT rename() refuses to replace an existing file on Windows. */
@@ -247,10 +263,13 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
             !valid_puzzle_target(p))
             return false;
     }
+    ItemDatabase item_db;
+    item_db_init(&item_db);
     for (int i = 0; i < 4; i++) {
         const Droid *d = &gs->droids[i];
         if (d->hp < 0 || d->hp_max < 0 || d->hp > d->hp_max ||
-            d->energy < 0 || d->energy_max < 0 || d->energy > d->energy_max)
+            d->energy < 0 || d->energy_max < 0 || d->energy > d->energy_max ||
+            !valid_droid_items(&item_db, d))
             return false;
     }
     for (int level = 0; level < gs->num_levels; level++) {
@@ -258,6 +277,8 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
             for (int x = 0; x < MAP_WIDTH; x++) {
                 CellType type = gs->levels[level].cells[y][x].type;
                 if (type < CELL_WALL || type > CELL_PIT) return false;
+                if (!valid_item_id(&item_db, gs->levels[level].cells[y][x].item_id))
+                    return false;
             }
         }
     }
@@ -373,6 +394,8 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
     }
     CreatureList restored_creatures = {0};
     PuzzleList restored_puzzles = {0};
+    ItemDatabase item_db;
+    item_db_init(&item_db);
 #define LOAD_FAIL() do { fclose(f); free(restored); return false; } while (0)
     game_state_init(restored, GAME_CAPTIVE, (int)hdr.mission);
     restored->base_id = (int)hdr.base_id;
@@ -403,7 +426,8 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
         const Droid *droid = &restored->droids[i];
         if (droid->hp < 0 || droid->hp > droid->hp_max ||
             droid->hp_max < 0 || droid->energy < 0 ||
-            droid->energy > droid->energy_max || droid->energy_max < 0)
+            droid->energy > droid->energy_max || droid->energy_max < 0 ||
+            !valid_droid_items(&item_db, droid))
             LOAD_FAIL();
     }
 
@@ -417,6 +441,9 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
                 restored->levels[i].cells[y][x].type = (CellType)type;
                 if (hdr.version >= SAVE_VERSION_RAW) {
                     if (fread(&restored->levels[i].cells[y][x].item_id, 1, 1, f) != 1)
+                        LOAD_FAIL();
+                    if (!valid_item_id(&item_db,
+                                       restored->levels[i].cells[y][x].item_id))
                         LOAD_FAIL();
                 }
             }
