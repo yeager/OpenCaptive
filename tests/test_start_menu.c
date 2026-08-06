@@ -74,7 +74,18 @@ int main(void) {
     menu.show_version_popup = true;
     menu.version_popup_game = GAME_CAPTIVE;
     menu.version_popup_selection = 1;
+    menu.captive_source_mask = (1U << CAPTIVE_PLATFORM_DOS) |
+                               (1U << CAPTIVE_PLATFORM_AMIGA);
     event = key_event(SDLK_RETURN);
+    assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_START_CAPTIVE);
+    assert(menu.platform == CAPTIVE_PLATFORM_AMIGA);
+
+    /* A popup with only one verified source must map row zero to that source,
+       rather than silently selecting the first hard-coded row. */
+    menu.show_version_popup = true;
+    menu.version_popup_game = GAME_CAPTIVE;
+    menu.version_popup_selection = 0;
+    menu.captive_source_mask = (1U << CAPTIVE_PLATFORM_AMIGA);
     assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_START_CAPTIVE);
     assert(menu.platform == CAPTIVE_PLATFORM_AMIGA);
 

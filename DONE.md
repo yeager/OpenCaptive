@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Versionspopup med verifierade källor)
+
+- Versionspopupen visar och startar nu endast spelversioner som faktiskt
+  verifierats i den aktuella datamappen.
+- Captive DOS/Amiga och Liberation CD32/Amiga mappas via sina riktiga
+  plattforms-ID:n även när bara den andra versionen finns.
+- Mus- och tangentbordsval använder samma källista, med regressionstest för
+  ett ensamt verifierat alternativ.
+- Werror-kompilering och hela testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (SCALE från startmenyn)
 
 - Startmenyns `SCALE` är inte längre ett dött reglage: ett uttryckligt värde

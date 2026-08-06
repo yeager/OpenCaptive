@@ -474,6 +474,66 @@ static MenuResult request_game_start(StartMenu *menu, int game) {
                                    : MENU_RESULT_START_CAPTIVE;
 }
 
+static unsigned version_popup_source_mask(const StartMenu *menu) {
+    if (!menu) return 0U;
+    return menu->version_popup_game == GAME_CAPTIVE
+        ? menu->captive_source_mask : menu->liberation_source_mask;
+}
+
+static int version_popup_source_candidate(const StartMenu *menu, int index) {
+    static const int captive_sources[] = {
+        CAPTIVE_PLATFORM_DOS, CAPTIVE_PLATFORM_AMIGA
+    };
+    static const int liberation_sources[] = {
+        LIBERATION_SOURCE_CD32, LIBERATION_SOURCE_AMIGA_ADF
+    };
+    const int *sources = menu && menu->version_popup_game == GAME_CAPTIVE
+        ? captive_sources : liberation_sources;
+    return sources[index];
+}
+
+static int version_popup_source_at(const StartMenu *menu, int selection) {
+    unsigned mask = version_popup_source_mask(menu);
+    int found = 0;
+    if (selection < 0) return -1;
+    for (int index = 0; index < 2; ++index) {
+        int source = version_popup_source_candidate(menu, index);
+        if ((mask & (1U << source)) == 0U) continue;
+        if (found++ == selection) return source;
+    }
+    return -1;
+}
+
+static void version_popup_clamp_selection(StartMenu *menu) {
+    if (!menu) return;
+    int count = 0;
+    unsigned mask = version_popup_source_mask(menu);
+    for (int index = 0; index < 2; ++index) {
+        int source = version_popup_source_candidate(menu, index);
+        if (mask & (1U << source)) count++;
+    }
+    if (count <= 0) menu->version_popup_selection = 0;
+    else if (menu->version_popup_selection >= count) menu->version_popup_selection = count - 1;
+    else if (menu->version_popup_selection < 0) menu->version_popup_selection = 0;
+}
+
+static MenuResult version_popup_start(StartMenu *menu) {
+    if (!menu) return MENU_RESULT_NONE;
+    int source = version_popup_source_at(menu, menu->version_popup_selection);
+    if (source < 0) {
+        menu->show_version_popup = false;
+        return MENU_RESULT_NONE;
+    }
+    menu->show_version_popup = false;
+    if (menu->version_popup_game == GAME_CAPTIVE) {
+        menu->captive_source_choice = (CaptivePlatform)source;
+        menu->platform = menu->captive_source_choice;
+        return MENU_RESULT_START_CAPTIVE;
+    }
+    menu->liberation_source_choice = (LiberationSource)source;
+    return MENU_RESULT_START_LIBERATION;
+}
+
 void start_menu_check_saves(StartMenu *menu) {
     if (!menu) return;
     menu->captive_save_exists = false;
@@ -621,16 +681,7 @@ MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
         }
         if (x >= px && x < px + pw && y >= py && y < py + ph) {
             if (y >= py + ph - 60) {
-                menu->show_version_popup = false;
-                if (menu->version_popup_game == GAME_CAPTIVE) {
-                    menu->captive_source_choice = menu->version_popup_selection == 0
-                        ? CAPTIVE_PLATFORM_DOS : CAPTIVE_PLATFORM_AMIGA;
-                    menu->platform = menu->captive_source_choice;
-                    return MENU_RESULT_START_CAPTIVE;
-                }
-                menu->liberation_source_choice = menu->version_popup_selection == 0
-                    ? LIBERATION_SOURCE_CD32 : LIBERATION_SOURCE_AMIGA_ADF;
-                return MENU_RESULT_START_LIBERATION;
+                return version_popup_start(menu);
             }
             return MENU_RESULT_NONE;
         }
@@ -712,20 +763,12 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
             if (event->key.key == SDLK_ESCAPE) {
                 menu->show_version_popup = false;
             } else if (event->key.key == SDLK_UP || event->key.key == SDLK_LEFT) {
-                menu->version_popup_selection = 0;
+                if (menu->version_popup_selection > 0) menu->version_popup_selection--;
             } else if (event->key.key == SDLK_DOWN || event->key.key == SDLK_RIGHT) {
-                menu->version_popup_selection = 1;
+                menu->version_popup_selection++;
+                version_popup_clamp_selection(menu);
             } else if (event->key.key == SDLK_RETURN || event->key.key == SDLK_KP_ENTER) {
-                menu->show_version_popup = false;
-                if (menu->version_popup_game == GAME_CAPTIVE) {
-                    menu->captive_source_choice = menu->version_popup_selection == 0
-                        ? CAPTIVE_PLATFORM_DOS : CAPTIVE_PLATFORM_AMIGA;
-                    menu->platform = menu->captive_source_choice;
-                    return MENU_RESULT_START_CAPTIVE;
-                }
-                menu->liberation_source_choice = menu->version_popup_selection == 0
-                    ? LIBERATION_SOURCE_CD32 : LIBERATION_SOURCE_AMIGA_ADF;
-                return MENU_RESULT_START_LIBERATION;
+                return version_popup_start(menu);
             }
         }
         return MENU_RESULT_NONE;
@@ -1252,16 +1295,25 @@ static void render_version_popup(StartMenu *menu, uint32_t *pixels, int width, i
     ttf_text_centered(pixels, width, height, py + 70,
                       _("UP-DOWN: SELECT  ENTER: START  ESC: QUIT"), body, 0xFFCCCCCC);
     /* Platform names are product/version identifiers and are intentionally
-       kept unchanged across locales. */
-    const char *const *labels = menu->version_popup_game == GAME_CAPTIVE
-        ? (const char *[]) { _("CAPTIVE DOS"), _("CAPTIVE AMIGA") }
-        : (const char *[]) { _("LIBERATION CD32"), _("LIBERATION AMIGA") };
-    for (int i = 0; i < 2; ++i) {
+       kept unchanged across locales.  Render only verified sources; this
+       also keeps the highlighted row aligned with keyboard selection. */
+    version_popup_clamp_selection(menu);
+    unsigned mask = version_popup_source_mask(menu);
+    int row = 0;
+    for (int index = 0; index < 2; ++index) {
+        int source = version_popup_source_candidate(menu, index);
+        if ((mask & (1U << source)) == 0U) continue;
+        const char *label;
+        if (menu->version_popup_game == GAME_CAPTIVE)
+            label = source == CAPTIVE_PLATFORM_DOS ? _("CAPTIVE DOS") : _("CAPTIVE AMIGA");
+        else
+            label = source == LIBERATION_SOURCE_CD32 ? _("LIBERATION CD32") : _("LIBERATION AMIGA");
+        int i = row++;
         uint32_t color = i == menu->version_popup_selection ? 0xFFFFFF44 : 0xFFAAAAAA;
         ttf_text(pixels, width, height, px + 100, py + 125 + i * 42,
                  i == menu->version_popup_selection ? ">" : " ", body, color);
         ttf_text(pixels, width, height, px + 130, py + 125 + i * 42,
-                 labels[i], body, color);
+                 label, body, color);
     }
     ttf_text_centered(pixels, width, height, py + ph - 30,
                       _("UP-DOWN: SELECT  ENTER: START  ESC: QUIT"), small, 0xFF666666);
