@@ -3,6 +3,8 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Startmenyns ljudsamplingsfrekvens är nu faktisk: 22 050, 44 100 och
+  48 000 Hz används av SDL-ljudströmmen, SFX-resampling och MIDI-timing.
 - Captive F5-sparning skapar nu även den portabla `.ocsv`-filen när
   cross-save-export är aktiverat; quicksave behåller samma slotnummer.
 - Liberation-sessioner återställer nu transient dungeon-, byggnads-, strids-

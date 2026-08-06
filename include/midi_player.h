@@ -69,5 +69,6 @@ void midi_play(MIDIPlayer *player, bool loop);
 void midi_stop(MIDIPlayer *player);
 void midi_render(MIDIPlayer *player, int16_t *buffer, int num_samples);
 void midi_set_volume(MIDIPlayer *player, float vol);
+void midi_set_sample_rate(MIDIPlayer *player, int sample_rate);
 
 #endif

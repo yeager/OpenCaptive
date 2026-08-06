@@ -346,6 +346,12 @@ void midi_set_volume(MIDIPlayer *player, float vol) {
     }
 }
 
+void midi_set_sample_rate(MIDIPlayer *player, int sample_rate) {
+    if (!player || sample_rate <= 0) return;
+    player->sample_rate = sample_rate;
+    recalc_tick_rate(player);
+}
+
 void midi_render(MIDIPlayer *player, int16_t *buffer, int num_samples) {
     if (!player || !buffer || num_samples <= 0) return;
     if (player->samples_per_tick <= 0) {

@@ -75,6 +75,8 @@ reverse-engineered; Captive gameplay parity is likewise still under review.
 - Game cards with SHA-256 data verification status (checkmark/cross)
 - Continue game from existing saves
 - Settings panel (16 options: display, audio, language, data path)
+- Audio output can be set to 22,050, 44,100 or 48,000 Hz; the choice applies
+  when the next game session starts and is shared by SFX and MIDI playback
 - About/Credits screen
 - Controls reference (F1)
 - In-game F10 runtime popup: change display effects and toggle cheats in real time (God Mode and Infinite Energy work in both games)

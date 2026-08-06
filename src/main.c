@@ -2127,9 +2127,9 @@ int main(int argc, char *argv[]) {
     }
 
     // Audio
-    sound_init(&sound_sys);
+    sound_init(&sound_sys, (uint32_t)custom.audio_sample_rate);
     sound_set_reverb(&sound_sys, custom.audio_reverb, custom.reverb_amount);
-    music_init(&music_sys, &sound_sys, &vfs);
+    music_init(&music_sys, &sound_sys, &vfs, custom.audio_sample_rate);
 
     // Items and SFX
     item_db_init(&item_db);

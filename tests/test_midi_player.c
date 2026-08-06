@@ -96,6 +96,20 @@ static void test_master_volume(void) {
     assert(mp.master_volume == 1.0f);
 }
 
+static void test_sample_rate(void) {
+    MIDIPlayer mp;
+    assert(midi_load(&mp, test_midi, sizeof(test_midi)));
+    ASSERT(mp.sample_rate == 22050, "MIDI defaults to 22050 Hz");
+    int original_ticks = mp.samples_per_tick;
+    midi_set_sample_rate(&mp, 44100);
+    ASSERT(mp.sample_rate == 44100, "MIDI sample rate changes");
+    ASSERT(mp.samples_per_tick > original_ticks &&
+           mp.samples_per_tick >= original_ticks * 2 - 1,
+           "MIDI tick timing follows sample rate");
+    midi_set_sample_rate(&mp, 0);
+    ASSERT(mp.sample_rate == 44100, "invalid MIDI sample rate is ignored");
+}
+
 static void test_loop(void) {
     MIDIPlayer mp;
     midi_load(&mp, test_midi, sizeof(test_midi));
@@ -115,6 +129,7 @@ int main(void) {
     test_render();
     test_stop();
     test_master_volume();
+    test_sample_rate();
     test_loop();
     if (failures) {
         printf("%d test(s) FAILED\n", failures);

@@ -6,6 +6,12 @@
 
 OpenCaptive has three audio subsystems: sound effects (SFX), 8SVX sample playback, and MIDI music synthesis.
 
+The start-menu audio setting offers 22,050, 44,100 and 48,000 Hz. The selected
+rate is applied when the audio device is created, and is shared by SFX mixing
+and MIDI timing. Changing it in the start menu takes effect on the next
+session start; F10 remains reserved for runtime display, audio toggles and
+cheats.
+
 ## Sound Effects (SFX)
 
 Captive's AdLib SFX bytecode is decoded and rendered through the software OPL2
@@ -32,11 +38,11 @@ Parses IFF 8SVX format (Amiga standard):
 - 8 simultaneous channels
 - Per-channel: volume, pitch (playback rate ratio), looping
 - Channel stealing: oldest channel reused when all busy
-- Mixing: signed 16-bit with clamping, output to SDL3 audio stream
+- Mixing: signed 16-bit with clamping, output to the selected SDL3 sample rate
 
 ## MIDI Music
 
-Software synthesizer:
+Software synthesizer (at the selected output sample rate):
 - Standard MIDI file parser (MThd/MTrk)
 - Variable-length quantity (VLQ) delta time decoding
 - Running status support

@@ -4,16 +4,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool sound_init(SoundSystem *snd) {
+bool sound_init(SoundSystem *snd, uint32_t sample_rate) {
     if (!snd) return false;
+    if (sample_rate != 22050 && sample_rate != 44100 && sample_rate != 48000)
+        sample_rate = SOUND_SAMPLE_RATE;
     memset(snd, 0, sizeof(*snd));
+    snd->sample_rate = sample_rate;
     snd->master_volume = 0.8f;
     snd->reverb_amount = 0.3f;
 
     SDL_AudioSpec spec = {
         .format = SDL_AUDIO_S16,
         .channels = 1,
-        .freq = SOUND_SAMPLE_RATE,
+        .freq = (int)sample_rate,
     };
 
     snd->stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
@@ -168,7 +171,7 @@ void sound_mix(SoundSystem *snd) {
             continue;
         }
 
-        float step = (float)ch->sample->sample_rate / SOUND_SAMPLE_RATE * ch->pitch;
+        float step = (float)ch->sample->sample_rate / snd->sample_rate * ch->pitch;
         if (!isfinite(step) || step <= 0.0f) {
             ch->playing = false;
             continue;

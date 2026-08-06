@@ -35,9 +35,10 @@ typedef struct {
     bool initialized;
     bool enabled;
     bool reverb_enabled;
+    uint32_t sample_rate;
 } SoundSystem;
 
-bool sound_init(SoundSystem *snd);
+bool sound_init(SoundSystem *snd, uint32_t sample_rate);
 void sound_shutdown(SoundSystem *snd);
 int  sound_load_raw(SoundSystem *snd, const int8_t *data, uint32_t length, uint32_t rate);
 int  sound_load_8svx(SoundSystem *snd, const uint8_t *data, uint32_t size);

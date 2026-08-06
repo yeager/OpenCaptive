@@ -392,7 +392,8 @@ categories matching the music_categories table from the executable:
 
 Categories with multiple variants are selected randomly using the game PRNG.
 All 63 files are identified by SHA-256 content hash. The MIDI player renders
-through a software synthesizer at 22050 Hz.
+through a software synthesizer at the start menu's selected output rate
+(22,050, 44,100 or 48,000 Hz; 22,050 Hz remains the compatibility fallback).
 
 ### AdLib sound effects
 

@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Audio sample-rate configuration)
+
+- Startmenyns val av 22 050, 44 100 eller 48 000 Hz används nu av SDL:s
+  ljudström samt SFX- och MIDI-renderingen.
+- Lade till MIDI-regressionstest som verifierar att ticktimingen följer vald
+  samplingsfrekvens.
+- Dokumenterade inställningen i README, ljudsystemdokumentationen och den
+  tekniska Captive-dokumentationen.
+
 ## 2026-08-06 (Enable cross-save export)
 
 - `--cross-save-export` och `cross_save=1` används nu av Captive F5-sparning.
