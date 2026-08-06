@@ -3250,3 +3250,6 @@
 - Windows-CI:s VFS-cachetest är nu deterministiskt: ersättningsarkivet ändrar
   storlek så att källfingeravtrycket alltid invalideras även vid mycket snabba
   omskrivningar inom samma Windows-tidsupplösning.
+- RNC-dekoderns framåtriktade bitläsare avvisar nu avkortade strömmar i stället
+  för att fylla på med syntetiska nollbitar. Ett regressionsprov säkerställer
+  att korrupt Liberation-data inte kan passera som en giltig dekodning.

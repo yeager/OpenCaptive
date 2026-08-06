@@ -130,6 +130,7 @@ typedef struct {
     int len;
     uint32_t buf;
     int bits;
+    bool truncated;
 } Bits;
 
 static void bits_init(Bits *b, const uint8_t *data, int pos, int len) {
@@ -138,29 +139,37 @@ static void bits_init(Bits *b, const uint8_t *data, int pos, int len) {
     b->len = len;
     b->buf = 0;
     b->bits = 0;
+    b->truncated = false;
 }
 
-static void bits_load(Bits *b) {
+static bool bits_load(Bits *b) {
     while (b->bits < 16) {
-        uint8_t next = b->pos < b->len ? b->data[b->pos] : 0;
+        if (b->pos >= b->len) {
+            b->truncated = true;
+            return false;
+        }
+        uint8_t next = b->data[b->pos];
         b->pos++;
         b->buf |= (uint32_t)next << b->bits;
         b->bits += 8;
     }
+    return true;
 }
 
-static uint32_t bits_read(Bits *b, int n) {
-    if (n == 0) return 0;
+static bool bits_read(Bits *b, int n, uint32_t *value) {
+    if (!b || !value || n < 0 || n > 16) return false;
+    if (n == 0) {
+        *value = 0;
+        return true;
+    }
     while (b->bits < n) {
-        uint8_t next = b->pos < b->len ? b->data[b->pos] : 0;
-        b->pos++;
-        b->buf |= (uint32_t)next << b->bits;
-        b->bits += 8;
+        if (!bits_load(b)) return false;
     }
     uint32_t v = b->buf & ((1u << n) - 1);
     b->buf >>= n;
     b->bits -= n;
-    return v;
+    *value = v;
+    return true;
 }
 
 #define MAX_HT 32
@@ -172,15 +181,20 @@ typedef struct {
 
 static bool ht_read(Bits *b, HuffTab *h) {
     if (!b || !h) return false;
-    h->num = bits_read(b, 5);
+    uint32_t num;
+    if (!bits_read(b, 5, &num)) return false;
+    h->num = (int)num;
     if (h->num == 0) {
         h->num = 1;
         h->lens[0] = 0;
         return true;
     }
     if (h->num > MAX_HT) return false;
-    for (int i = 0; i < h->num; i++)
-        h->lens[i] = bits_read(b, 4);
+    for (int i = 0; i < h->num; i++) {
+        uint32_t length;
+        if (!bits_read(b, 4, &length)) return false;
+        h->lens[i] = (int)length;
+    }
     return true;
 }
 
@@ -208,15 +222,13 @@ static int ht_decode(Bits *b, HuffTab *h) {
             sym_codes[i] = 0xFFFFFFFF;
     }
 
-    while (b->bits < 16) {
-        if (b->pos >= b->len) return -1;
-        b->buf |= (uint32_t)b->data[b->pos++] << b->bits;
-        b->bits += 8;
-    }
+    if (!bits_load(b)) return -1;
 
     uint32_t acc = 0;
     for (int len = 1; len <= 15; len++) {
-        acc = (acc << 1) | (bits_read(b, 1));
+        uint32_t bit;
+        if (!bits_read(b, 1, &bit)) return -1;
+        acc = (acc << 1) | bit;
         for (int i = 0; i < h->num; i++) {
             if (h->lens[i] == len && sym_codes[i] == acc)
                 return i;
@@ -252,8 +264,8 @@ int rnc_decode(const uint8_t *src, int src_len, uint8_t *dst, int dst_cap) {
 
     Bits b;
     bits_init(&b, src, 18, src_len);
-    bits_load(&b);
-    bits_read(&b, 2);
+    uint32_t value;
+    if (!bits_load(&b) || !bits_read(&b, 2, &value)) return -3;
 
     int out = 0;
     int safety = 0;
@@ -263,7 +275,8 @@ int rnc_decode(const uint8_t *src, int src_len, uint8_t *dst, int dst_cap) {
         if (!ht_read(&b, &raw) || !ht_read(&b, &dist) || !ht_read(&b, &len))
             return -3;
 
-        uint32_t count = bits_read(&b, 16);
+        uint32_t count;
+        if (!bits_read(&b, 16, &count)) return -3;
 
         for (uint32_t i = 0; i < count && out < (int)unp; i++) {
             int raw_len = ht_decode(&b, &raw);
@@ -274,7 +287,7 @@ int rnc_decode(const uint8_t *src, int src_len, uint8_t *dst, int dst_cap) {
             }
             b.buf = 0;
             b.bits = 0;
-            bits_load(&b);
+            if (!bits_load(&b)) return -3;
 
             if (out >= (int)unp) break;
 

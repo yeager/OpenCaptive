@@ -234,6 +234,10 @@ add_executable(test_sha256 tests/test_sha256.c src/data/sha256.c)
 target_include_directories(test_sha256 PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME sha256 COMMAND test_sha256)
 
+add_executable(test_rnc_decoder tests/test_rnc_decoder.c src/data/rnc_decoder.c)
+target_include_directories(test_rnc_decoder PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME rnc_decoder COMMAND test_rnc_decoder)
+
 add_executable(test_version_consistency tests/test_version_consistency.c)
 target_include_directories(test_version_consistency PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_compile_definitions(test_version_consistency PRIVATE
