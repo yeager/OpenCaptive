@@ -18,6 +18,7 @@ int main(void) {
     start_menu_render(NULL, NULL, 0, 0);
     start_menu_init(&menu);
     assert(menu.music_enabled && menu.sfx_enabled);
+    assert(menu.num_items == 8);
 
     /* Re-entry preserves the user's path and remains valid for a menu that
      * has already initialized its resources. */

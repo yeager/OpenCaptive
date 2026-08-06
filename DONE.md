@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive startmeny)
+
+- Korrigerade startmenyns interna antalspost från sex till åtta val. Det
+  omfattar nu även kontroller och avslut, i linje med faktisk navigering och
+  klickhantering.
+- Lade till ett test som låser detta menyinvariant.
+
 ## 2026-08-07 (Captive Windows-CI)
 
 - Flyttade den sista stora `GameState`-allokeringen i `droid_ui`-testet från

@@ -367,7 +367,10 @@ static void start_menu_reset(StartMenu *menu, bool preserve_resources) {
     memset(menu, 0, sizeof(*menu));
     memcpy(menu->data_path, saved_path, sizeof(menu->data_path));
     menu->data_path_cursor = saved_cursor ? saved_cursor : (int)strlen(menu->data_path);
-    menu->num_items = 6;
+    /* Two game cards, two continue entries, settings, about, controls and
+     * quit are all selectable from the main menu (indices 0..7).  Keep the
+     * public count in sync with hit-testing and keyboard navigation. */
+    menu->num_items = 8;
     menu->platform = CAPTIVE_PLATFORM_DOS;
     menu->music_enabled = true;
     menu->sfx_enabled = true;
