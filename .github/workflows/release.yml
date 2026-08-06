@@ -720,6 +720,12 @@ jobs:
             }
           ' RELEASE_NOTES.md > release-notes.md
           test -s release-notes.md
+          for heading in Tillagt Ändrat Borttaget; do
+            if ! grep -Fqx "### $heading" release-notes.md; then
+              echo "Release notes for v$VERSION must contain: ### $heading" >&2
+              exit 1
+            fi
+          done
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:

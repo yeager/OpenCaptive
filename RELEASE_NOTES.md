@@ -1,8 +1,45 @@
 # OpenCaptive Release Notes
 
+## Princip för release notes
+
+Varje ny version ska ha en handskriven versionssektion med **Tillagt**,
+**Ändrat** och **Borttaget**. Skriv `Inget` när en kategori saknar ändringar.
+GitHub-releasen publicerar exakt den sektionen; automatiskt genererade
+ändringsloggar används inte.
+
 ## v1.1.79 (2026-08-06)
 
-### Release and CI hardening
+### Tillagt
+
+- F10-menyn ger nu direkt kontroll över grafiska förbättringar, filter,
+  scanlines, CRT, ljussättning, hjälpöverlägg och valfria fuskfunktioner.
+- Replay-inspelning kan sparas vid avslut med `--replay-record`; sökvägen kan
+  väljas med `--replay-output`.
+- Linux-installationer, RPM och AppImage levererar nu de resurser som krävs
+  för startmenyn och hittar dem även efter installation.
+- Releaseflödet kan startas manuellt med en uttrycklig semantisk version och
+  skapar motsvarande GitHub-tag.
+
+### Ändrat
+
+- Sparningar, cross-save, replay och konfiguration skrivs atomiskt så att ett
+  avbrott inte förstör den senast fungerande filen.
+- Captive-sparningar använder ett portabelt little-endian-format och äldre
+  versioner fortsätter att kunna läsas.
+- `--hd-upscale`, `--upscale-factor`, `--widescreen` och `--hq-midi` har nu
+  faktisk effekt under spelkörning.
+- Liberation återställer transient spelstatus korrekt vid Continue och bygger
+  om den seedade staden innan tillståndet återställs.
+- Datacache och ZIP-sökning har gjorts robustare vid arkivbyte, snabba
+  filsystemändringar och tomma komprimerade poster.
+- Releasebyggen kontrollerar att samtliga skrivbords- och mobilpaket finns
+  innan en release publiceras.
+
+### Borttaget
+
+- Inga användarfunktioner har tagits bort i denna version.
+
+### Tekniska detaljer
 
 - Architect-mapgeneratorn använder nu en inkrementell frontier och undviker
   upprepade fullständiga kartskanningar. Den breda seed-regressionen är nu
