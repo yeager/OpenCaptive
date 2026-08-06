@@ -739,10 +739,10 @@ static uint8_t *vfs_cache_read(const DataVFS *vfs, const char hash[65], size_t *
     snprintf(data_path, sizeof(data_path), "%s/.cache/opencaptive/%s.bin", home, hash);
     FILE *mf = fopen(meta, "rb");
     if (!mf) return NULL;
-    if (vfs->cache_signature_valid)
-        memcpy(signature, vfs->cache_signature, sizeof(vfs->cache_signature));
-    else
-        vfs_cache_signature(vfs, signature);
+    /* The data root can change while one VFS instance remains alive. Recompute
+     * the cheap metadata signature before trusting a cached payload so an old
+     * entry cannot survive a source-archive replacement. */
+    vfs_cache_signature(vfs, signature);
     size_t n = fread(stored, 1, sizeof(stored) - 1, mf);
     fclose(mf);
     stored[n] = '\0';
@@ -772,10 +772,7 @@ static void vfs_cache_write(const DataVFS *vfs, const char hash[65],
     (void)mkdir(base, 0755);
     snprintf(meta, sizeof(meta), "%s/%s.meta", base, hash);
     snprintf(data_path, sizeof(data_path), "%s/%s.bin", base, hash);
-    if (vfs->cache_signature_valid)
-        memcpy(signature, vfs->cache_signature, sizeof(vfs->cache_signature));
-    else
-        vfs_cache_signature(vfs, signature);
+    vfs_cache_signature(vfs, signature);
     char data_tmp[1250], meta_tmp[1250];
     unsigned long process_id = cache_process_id();
     if (snprintf(data_tmp, sizeof(data_tmp), "%s.tmp.%lu", data_path,

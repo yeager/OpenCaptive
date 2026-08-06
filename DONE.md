@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Live VFS cache invalidation)
+
+- VFS:en räknar om källmetadata före varje cacheuppslag, så ett utbytt ZIP-
+  arkiv invaliderar gamla poster även i en redan initierad VFS-instans.
+- Lade till regressionstest som ersätter ett ZIP efter första uppslaget och
+  verifierar att gammalt hashresultat avvisas.
+- `test_data_vfs` passerar efter ändringen.
+
 ## 2026-08-06 (Atomic VFS cache writes)
 
 - Verifierade payloads och cachemetadata skrivs nu till processunika temporära

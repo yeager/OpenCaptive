@@ -136,6 +136,35 @@ static void test_reads_zip_in_nested_data_directory(void) {
     assert(TEST_RMDIR("test-vfs-nested") == 0);
 }
 
+static void test_replacing_zip_invalidates_live_cache(void) {
+    const unsigned char original[] = { 1, 2, 3, 4 };
+    const unsigned char replacement[] = { 5, 6, 7, 8 };
+    const char *original_hash =
+        "9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a";
+    const char *replacement_hash =
+        "55e5509f8052998294266ee5b50cb592938191fb5d67f73cac2e60b0276b1bdd";
+
+    write_stored_zip("test-vfs-replace.zip", "payload.bin",
+                     original, sizeof(original));
+    DataVFS vfs;
+    assert(vfs_init(&vfs, "."));
+    size_t size = 0;
+    uint8_t *result = vfs_find_sha256(&vfs, original_hash, &size);
+    assert(result && size == sizeof(original));
+    free(result);
+
+    write_stored_zip("test-vfs-replace.zip", "payload.bin",
+                     replacement, sizeof(replacement));
+    result = vfs_find_sha256(&vfs, original_hash, &size);
+    assert(result == NULL);
+    result = vfs_find_sha256(&vfs, replacement_hash, &size);
+    assert(result && size == sizeof(replacement) &&
+           memcmp(result, replacement, size) == 0);
+    free(result);
+    vfs_free(&vfs);
+    assert(remove("test-vfs-replace.zip") == 0);
+}
+
 static void test_rejects_overlong_archive_names(void) {
     char name[513];
     memset(name, 'a', sizeof(name) - 1);
@@ -267,6 +296,7 @@ static void test_finds_hash_in_nested_zip(void) {
 int main(void) {
     vfs_free(NULL);
     test_reads_prefixed_case_insensitive_zip_entry();
+    test_replacing_zip_invalidates_live_cache();
     test_reads_zip_in_nested_data_directory();
     test_rejects_overlong_archive_names();
     test_rejects_invalid_hash_text();
