@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Puzzle hint localization)
+
+- Pusselens clipboard-hintar använder nu l10n för lösning, matchning, kod och
+  lösenord samt återanvänder översättningarna för `ON` och `OFF`.
+- POT och samtliga översättningskataloger regenererades efter källändringen.
+
 ## 2026-08-06 (Empty deflated ZIP entries)
 
 - VFS-dekodern accepterar nu även giltiga deflaterade ZIP-poster med noll

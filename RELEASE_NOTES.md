@@ -3,6 +3,8 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Pusselens lösningshintar går nu genom l10n, inklusive etiketter för lösning,
+  matchning, kod och lösenord.
 - VFS:en läser nu giltiga tomma deflaterade ZIP-poster korrekt. Det förhindrar
   att en tom fil i ett komprimerat arkiv felaktigt rapporteras som saknad.
 - Synliga skärmrubriker och statusmeddelanden i spelvyn går nu genom l10n,

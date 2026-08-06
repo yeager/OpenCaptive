@@ -369,8 +369,9 @@ add_executable(test_game_state tests/test_game_state.c
     src/engine/engine.c src/engine/map_gen.c src/engine/combat.c
     src/engine/captive_data.c src/engine/xp_level.c src/engine/inventory.c
     src/engine/mapgen_ca.c src/engine/spawn.c src/engine/creature_stats.c
-    src/engine/puzzle.c)
+    src/engine/puzzle.c src/data/i18n.c)
 target_include_directories(test_game_state PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_game_state PRIVATE SDL3::SDL3)
 add_test(NAME game_state COMMAND test_game_state)
 
 add_executable(test_ctv_decoder tests/test_ctv_decoder.c src/data/ctv_decoder.c)
@@ -381,8 +382,10 @@ add_executable(test_save_load tests/test_save_load.c
     src/engine/save_load.c src/engine/engine.c src/engine/map_gen.c
     src/engine/combat.c src/engine/puzzle.c src/engine/captive_data.c
     src/engine/xp_level.c src/engine/inventory.c
-    src/engine/mapgen_ca.c src/engine/spawn.c src/engine/creature_stats.c)
+    src/engine/mapgen_ca.c src/engine/spawn.c src/engine/creature_stats.c
+    src/data/i18n.c)
 target_include_directories(test_save_load PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_save_load PRIVATE SDL3::SDL3)
 add_test(NAME save_load COMMAND test_save_load)
 
 add_executable(test_holamap tests/test_holamap.c

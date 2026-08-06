@@ -1,5 +1,6 @@
 #include "puzzle.h"
 #include "captive_data.h"
+#include "i18n.h"
 #include <limits.h>
 #include <string.h>
 #include <stdio.h>
@@ -556,21 +557,21 @@ bool puzzle_get_clipboard_hint(const PuzzleList *pl, const GameState *gs,
             p->level != gs->current_level || p->solved) continue;
         switch (p->type) {
             case PUZZLE_LEVER:
-                snprintf(buf, buf_size, "Solution: %s",
-                         (p->solution & 1U) ? "ON" : "OFF");
+                snprintf(buf, buf_size, _("Solution: %s"),
+                         (p->solution & 1U) ? _("ON") : _("OFF"));
                 return true;
             case PUZZLE_TRIPLE_LEVER:
-                snprintf(buf, buf_size, "Solution: %d%d%d",
+                snprintf(buf, buf_size, _("Solution: %d%d%d"),
                          (p->solution >> 2) & 1, (p->solution >> 1) & 1, p->solution & 1);
                 return true;
             case PUZZLE_BARS:
-                snprintf(buf, buf_size, "Match: %d", p->solution);
+                snprintf(buf, buf_size, _("Match: %d"), p->solution);
                 return true;
             case PUZZLE_BUTTON_COMBO:
-                snprintf(buf, buf_size, "Code: %02X", p->solution);
+                snprintf(buf, buf_size, _("Code: %02X"), p->solution);
                 return true;
             case PUZZLE_LASER_CODE:
-                snprintf(buf, buf_size, "Password: %d", p->solution);
+                snprintf(buf, buf_size, _("Password: %d"), p->solution);
                 return true;
             default: break;
         }

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenCaptive 1.1.29\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-06 14:27+0200\n"
+"POT-Creation-Date: 2026-08-06 14:42+0200\n"
 "PO-Revision-Date: 2026-08-03\n"
 "Last-Translator: Daniel Nylander\n"
 "Language-Team: Czech\n"
@@ -14,6 +14,47 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: src/engine/puzzle.c:560
+#, c-format
+msgid "Solution: %s"
+msgstr ""
+
+#: src/engine/puzzle.c:561 src/engine/start_menu.c:928
+#: src/engine/start_menu.c:929 src/engine/start_menu.c:930
+#: src/engine/start_menu.c:934 src/engine/start_menu.c:935
+#: src/engine/start_menu.c:940 src/engine/start_menu.c:941
+#: src/engine/start_menu.c:942 src/engine/start_menu.c:948 src/main.c:774
+msgid "ON"
+msgstr "ZAP"
+
+#: src/engine/puzzle.c:561 src/engine/start_menu.c:928
+#: src/engine/start_menu.c:929 src/engine/start_menu.c:930
+#: src/engine/start_menu.c:934 src/engine/start_menu.c:935
+#: src/engine/start_menu.c:940 src/engine/start_menu.c:941
+#: src/engine/start_menu.c:942 src/engine/start_menu.c:948 src/main.c:774
+msgid "OFF"
+msgstr "VYP"
+
+#: src/engine/puzzle.c:564
+#, c-format
+msgid "Solution: %d%d%d"
+msgstr ""
+
+#: src/engine/puzzle.c:568
+#, c-format
+msgid "Match: %d"
+msgstr ""
+
+#: src/engine/puzzle.c:571
+#, c-format
+msgid "Code: %02X"
+msgstr ""
+
+#: src/engine/puzzle.c:574
+#, c-format
+msgid "Password: %d"
+msgstr ""
 
 #: src/engine/liberation_citygen.c:310
 msgid "Private Residence"
@@ -137,22 +178,6 @@ msgstr "VYLEPŠENÝ:"
 #: src/engine/start_menu.c:922
 msgid "BACK"
 msgstr "ZPĚT"
-
-#: src/engine/start_menu.c:928 src/engine/start_menu.c:929
-#: src/engine/start_menu.c:930 src/engine/start_menu.c:934
-#: src/engine/start_menu.c:935 src/engine/start_menu.c:940
-#: src/engine/start_menu.c:941 src/engine/start_menu.c:942
-#: src/engine/start_menu.c:948 src/main.c:774
-msgid "ON"
-msgstr "ZAP"
-
-#: src/engine/start_menu.c:928 src/engine/start_menu.c:929
-#: src/engine/start_menu.c:930 src/engine/start_menu.c:934
-#: src/engine/start_menu.c:935 src/engine/start_menu.c:940
-#: src/engine/start_menu.c:941 src/engine/start_menu.c:942
-#: src/engine/start_menu.c:948 src/main.c:774
-msgid "OFF"
-msgstr "VYP"
 
 #: src/engine/start_menu.c:931
 msgid "UNLIMITED"
@@ -432,219 +457,6 @@ msgstr ""
 msgid "ESC:BACK"
 msgstr ""
 
-#: src/game/liberation_npc_dialogue.c:64
-msgid "You leave."
-msgstr "Odcházíte."
-
-#: src/game/liberation_npc_dialogue.c:67 src/game/liberation_npc_dialogue.c:69
-#: src/game/liberation_npc_dialogue.c:72
-#: src/game/liberation_building_interact.c:38
-msgid "NPC"
-msgstr ""
-
-#: src/game/liberation_npc_dialogue.c:68
-msgid "I don't have anything to trade right now. Try the shops."
-msgstr ""
-
-#: src/game/liberation_npc_dialogue.c:70
-msgid ""
-"Check the library or records office if you need information. The police "
-"might know about threats in the area."
-msgstr ""
-
-#: src/game/liberation_npc_dialogue.c:73
-msgid "Trade"
-msgstr "Obchod"
-
-#: src/game/liberation_npc_dialogue.c:74
-#: src/game/liberation_building_interact.c:63
-#: src/game/liberation_building_interact.c:105
-msgid "Ask around"
-msgstr "Poptat se"
-
-#: src/game/liberation_npc_dialogue.c:75 src/game/liberation_shop.c:117
-#: src/game/liberation_building_interact.c:64
-#: src/game/liberation_building_interact.c:81
-#: src/game/liberation_building_interact.c:95
-#: src/game/liberation_building_interact.c:106
-#: src/game/liberation_building_interact.c:124
-#: src/game/liberation_building_interact.c:135
-#: src/game/liberation_building_interact.c:142
-msgid "Leave"
-msgstr "Odejít"
-
-# Shop
-#: src/game/liberation_shop.c:106
-#, c-format
-msgid "Welcome to %s! What can I do for you?"
-msgstr "Vítejte v %s! Co pro vás mohu udělat?"
-
-#: src/game/liberation_shop.c:108
-msgid "Goodbye!"
-msgstr "Nashledanou!"
-
-#: src/game/liberation_shop.c:110
-msgid "Take a look at what I have."
-msgstr ""
-
-#: src/game/liberation_shop.c:112
-msgid "I might have heard something. Check back later."
-msgstr ""
-
-#: src/game/liberation_shop.c:115
-msgid "Buy"
-msgstr ""
-
-#: src/game/liberation_shop.c:116
-msgid "Any news?"
-msgstr "Nějaké novinky?"
-
-#: src/game/liberation_building_interact.c:29
-msgid "Shopkeeper"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:30
-msgid "Bartender"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:31
-msgid "Receptionist"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:32
-msgid "Librarian"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:33
-msgid "Officer"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:34
-msgid "Clerk"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:35
-msgid "Resident"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:36
-msgid "Foreman"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:37
-msgid "Agent"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:48
-msgid "You leave the building."
-msgstr "Opouštíte budovu."
-
-#: src/game/liberation_building_interact.c:53
-#, c-format
-msgid "Welcome to %s. The archives are available for public access."
-msgstr "Vítejte v %s. Archivy jsou veřejně přístupné."
-
-#: src/game/liberation_building_interact.c:56
-#, c-format
-msgid ""
-"Records indicate %d buildings in this city. The target is in a special-class "
-"building. Check the industrial and commercial districts."
-msgstr ""
-
-#: src/game/liberation_building_interact.c:62
-msgid "Search archives"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:69
-#, c-format
-msgid "This is the %s police station. State your business."
-msgstr "Toto je policejní stanice %s. Jaký je váš požadavek?"
-
-#: src/game/liberation_building_interact.c:71
-msgid ""
-"We have reports of suspicious activity in the industrial district. Stay "
-"alert out there."
-msgstr ""
-
-#: src/game/liberation_building_interact.c:74
-msgid "You have been fined 100 gold for disturbing the peace."
-msgstr ""
-
-#: src/game/liberation_building_interact.c:77
-msgid "Ask for information"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:79
-msgid "Pay fine"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:86
-msgid "City Records Office. How can we help?"
-msgstr "Městský archiv. Jak vám můžeme pomoci?"
-
-#: src/game/liberation_building_interact.c:89
-#, c-format
-msgid ""
-"Building registry entry %d: %s. Cross-reference with police reports for "
-"suspect locations."
-msgstr ""
-
-#: src/game/liberation_building_interact.c:94
-msgid "Look up records"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:100
-msgid "This is a private residence. What do you want?"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:102
-msgid ""
-"I heard strange noises from the special building down the road. Something's "
-"going on in there."
-msgstr ""
-
-#: src/game/liberation_building_interact.c:111
-#, c-format
-msgid "Welcome to %s. This area is restricted."
-msgstr ""
-
-#: src/game/liberation_building_interact.c:113
-msgid "WARNING: Machinery malfunction! Electrical discharge hits your droids!"
-msgstr ""
-
-#: src/game/liberation_building_interact.c:115
-msgid ""
-"The machinery hums loudly. There might be useful equipment stored in the "
-"back, but the foreman keeps it locked."
-msgstr ""
-
-#: src/game/liberation_building_interact.c:119
-#: src/game/liberation_building_interact.c:122
-#, fuzzy
-msgid "Look around"
-msgstr "Poptat se"
-
-#: src/game/liberation_building_interact.c:129
-#, c-format
-msgid "%s. You shouldn't be here."
-msgstr "%s. Neměli byste tu být."
-
-#: src/game/liberation_building_interact.c:131
-msgid ""
-"This location appears to be connected to your mission. The generator control "
-"panel is somewhere inside."
-msgstr ""
-
-#: src/game/liberation_building_interact.c:134
-msgid "Investigate"
-msgstr ""
-
-# Building interactions
-#: src/game/liberation_building_interact.c:140
-#, c-format
-msgid "This is %s. We're not taking visitors right now."
-msgstr "Toto je %s. Právě nepřijímáme návštěvy."
-
 #: src/main.c:778
 msgid "LOW"
 msgstr "NÍZKÝ"
@@ -886,6 +698,219 @@ msgstr ""
 #: src/main.c:3306
 msgid "CITY MAP"
 msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:64
+msgid "You leave."
+msgstr "Odcházíte."
+
+#: src/game/liberation_npc_dialogue.c:67 src/game/liberation_npc_dialogue.c:69
+#: src/game/liberation_npc_dialogue.c:72
+#: src/game/liberation_building_interact.c:38
+msgid "NPC"
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:68
+msgid "I don't have anything to trade right now. Try the shops."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:70
+msgid ""
+"Check the library or records office if you need information. The police "
+"might know about threats in the area."
+msgstr ""
+
+#: src/game/liberation_npc_dialogue.c:73
+msgid "Trade"
+msgstr "Obchod"
+
+#: src/game/liberation_npc_dialogue.c:74
+#: src/game/liberation_building_interact.c:63
+#: src/game/liberation_building_interact.c:105
+msgid "Ask around"
+msgstr "Poptat se"
+
+#: src/game/liberation_npc_dialogue.c:75 src/game/liberation_shop.c:117
+#: src/game/liberation_building_interact.c:64
+#: src/game/liberation_building_interact.c:81
+#: src/game/liberation_building_interact.c:95
+#: src/game/liberation_building_interact.c:106
+#: src/game/liberation_building_interact.c:124
+#: src/game/liberation_building_interact.c:135
+#: src/game/liberation_building_interact.c:142
+msgid "Leave"
+msgstr "Odejít"
+
+# Shop
+#: src/game/liberation_shop.c:106
+#, c-format
+msgid "Welcome to %s! What can I do for you?"
+msgstr "Vítejte v %s! Co pro vás mohu udělat?"
+
+#: src/game/liberation_shop.c:108
+msgid "Goodbye!"
+msgstr "Nashledanou!"
+
+#: src/game/liberation_shop.c:110
+msgid "Take a look at what I have."
+msgstr ""
+
+#: src/game/liberation_shop.c:112
+msgid "I might have heard something. Check back later."
+msgstr ""
+
+#: src/game/liberation_shop.c:115
+msgid "Buy"
+msgstr ""
+
+#: src/game/liberation_shop.c:116
+msgid "Any news?"
+msgstr "Nějaké novinky?"
+
+#: src/game/liberation_building_interact.c:29
+msgid "Shopkeeper"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:30
+msgid "Bartender"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:31
+msgid "Receptionist"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:32
+msgid "Librarian"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:33
+msgid "Officer"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:34
+msgid "Clerk"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:35
+msgid "Resident"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:36
+msgid "Foreman"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:37
+msgid "Agent"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:48
+msgid "You leave the building."
+msgstr "Opouštíte budovu."
+
+#: src/game/liberation_building_interact.c:53
+#, c-format
+msgid "Welcome to %s. The archives are available for public access."
+msgstr "Vítejte v %s. Archivy jsou veřejně přístupné."
+
+#: src/game/liberation_building_interact.c:56
+#, c-format
+msgid ""
+"Records indicate %d buildings in this city. The target is in a special-class "
+"building. Check the industrial and commercial districts."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:62
+msgid "Search archives"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:69
+#, c-format
+msgid "This is the %s police station. State your business."
+msgstr "Toto je policejní stanice %s. Jaký je váš požadavek?"
+
+#: src/game/liberation_building_interact.c:71
+msgid ""
+"We have reports of suspicious activity in the industrial district. Stay "
+"alert out there."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:74
+msgid "You have been fined 100 gold for disturbing the peace."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:77
+msgid "Ask for information"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:79
+msgid "Pay fine"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:86
+msgid "City Records Office. How can we help?"
+msgstr "Městský archiv. Jak vám můžeme pomoci?"
+
+#: src/game/liberation_building_interact.c:89
+#, c-format
+msgid ""
+"Building registry entry %d: %s. Cross-reference with police reports for "
+"suspect locations."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:94
+msgid "Look up records"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:100
+msgid "This is a private residence. What do you want?"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:102
+msgid ""
+"I heard strange noises from the special building down the road. Something's "
+"going on in there."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:111
+#, c-format
+msgid "Welcome to %s. This area is restricted."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:113
+msgid "WARNING: Machinery malfunction! Electrical discharge hits your droids!"
+msgstr ""
+
+#: src/game/liberation_building_interact.c:115
+msgid ""
+"The machinery hums loudly. There might be useful equipment stored in the "
+"back, but the foreman keeps it locked."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:119
+#: src/game/liberation_building_interact.c:122
+#, fuzzy
+msgid "Look around"
+msgstr "Poptat se"
+
+#: src/game/liberation_building_interact.c:129
+#, c-format
+msgid "%s. You shouldn't be here."
+msgstr "%s. Neměli byste tu být."
+
+#: src/game/liberation_building_interact.c:131
+msgid ""
+"This location appears to be connected to your mission. The generator control "
+"panel is somewhere inside."
+msgstr ""
+
+#: src/game/liberation_building_interact.c:134
+msgid "Investigate"
+msgstr ""
+
+# Building interactions
+#: src/game/liberation_building_interact.c:140
+#, c-format
+msgid "This is %s. We're not taking visitors right now."
+msgstr "Toto je %s. Právě nepřijímáme návštěvy."
 
 #~ msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
 #~ msgstr "ŠIPKY: VÝBĚR  ENTER: START  D: SKENOVAT DATA  F1: OVLÁDÁNÍ"
