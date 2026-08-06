@@ -252,7 +252,9 @@ static void set_borders(CityGridState *s) {
 
 static int place_block(CityGridState *s, const int16_t *templates,
                        int tmpl_stride, int cell_count, int retry_limit) {
-    if (!s || !templates || tmpl_stride <= cell_count || cell_count < 1)
+    /* The two entries after the occupied cells are adjacency probes. */
+    if (!s || !templates || cell_count < 1 ||
+        tmpl_stride < cell_count + 2)
         return -1;
     while (retry_limit-- > 0) {
         citygrid_prng(s);

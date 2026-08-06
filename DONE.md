@@ -1,5 +1,10 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Liberation block-template bounds)
+
+- Säkrade valideringen av Liberation-blockmallarnas radsteg så att även de
+  två anslutningsoffsetarna alltid ryms i mallen.
+
 ## 2026-08-06 (Liberation city block templates)
 
 - Korrigerade radindexering för Liberation-stadens byggnadsmallar; den

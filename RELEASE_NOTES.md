@@ -21,6 +21,8 @@
   graphics settings and the configured data path.
 - Corrected Liberation city block-template strides so generated building
   layouts use the intended offsets for every template orientation.
+- Hardened block-template bounds checking so adjacency offsets cannot be read
+  outside a supplied template row.
 
 ## v1.1.72 (2026-08-04)
 
