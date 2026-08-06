@@ -25,7 +25,12 @@ void game_state_init(GameState *gs, GameType type, int mission) {
         gs->droids[i].energy = 100;
         gs->droids[i].energy_max = 100;
         gs->droids[i].xp = 1024;
-        gs->droids[i].weapon_damage = 0x050A;
+        /* Every fresh droid starts with the basic KNUCKLE-DUSTER (item 13).
+         * Its CAPPO damage bytes are 04/21, stored low byte first.  Keeping
+         * the item ID and cached damage together makes the initial state
+         * valid for both Captive and Liberation combat. */
+        gs->droids[i].weapons[0] = 13;
+        gs->droids[i].weapon_damage = 0x2104;
         for (int p = 0; p < 6; p++) {
             /* The six slots use the six distinct CAPPO item records:
              * HEAD, CHEST, ARM, LEG, FOOT and HAND.  Repeating HEAD here

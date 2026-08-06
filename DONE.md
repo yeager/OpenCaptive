@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Enhetlig startutrustning i Captive och Liberation)
+
+- Nya droids får nu ett riktigt KNUCKLE-DUSTER-ID tillsammans med matchande
+  cached skadevärde i stället för ett löst skadevärde utan utrustning.
+- Liberation-combat kräver nu, liksom Captive, ett giltigt utrustat vapen före
+  energi dras eller attackskada beräknas.
+- Regressionstest täcker att Liberation inte kan attackera med tomma
+  vapenplatser även om `weapon_damage` är manipulerat.
+
 ## 2026-08-06 (Korrekt droidutrustning och slotvalidering)
 
 - Nya droids får nu HEAD, CHEST, ARM, LEG, FOOT och HAND i rätt

@@ -340,6 +340,8 @@ static void test_combat_requires_equipped_weapon(void) {
     gs.party_x = 1;
     gs.party_y = 1;
     gs.party_dir = DIR_EAST;
+    gs.droids[0].weapons[0] = 0;
+    gs.droids[0].weapons[1] = 0;
     gs.droids[0].weapon_damage = 0xFFFF;
 
     for (int y = 0; y < MAP_HEIGHT; y++)

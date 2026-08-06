@@ -15,6 +15,7 @@ static void init_test_gs(GameState *gs) {
         gs->droids[i].hp_max = 100;
         gs->droids[i].energy = 50;
         gs->droids[i].energy_max = 100;
+        gs->droids[i].weapons[0] = 13; /* basic KNUCKLE-DUSTER */
         gs->droids[i].weapon_damage = 0x0305;
     }
 }
@@ -94,6 +95,19 @@ static void test_energy_required(void) {
     bool ok = lib_combat_droid_attack(&cs, gs, 0);
     assert(!ok);
     printf("  PASS energy_required\n");
+}
+
+static void test_equipped_weapon_required(void) {
+    LibCombatState cs;
+    GameState *gs = &test_gs_storage;
+    init_test_gs(gs);
+    gs->droids[0].weapons[0] = 0;
+    gs->droids[0].weapons[1] = 0;
+    gs->droids[0].weapon_damage = UINT16_MAX;
+    lib_combat_init(&cs);
+    lib_combat_generate_encounter(&cs, 99, 1);
+    assert(!lib_combat_droid_attack(&cs, gs, 0));
+    assert(gs->droids[0].energy == 50);
 }
 
 static void test_invalid_target_does_not_consume_energy(void) {
@@ -237,6 +251,7 @@ int main(void) {
     test_extreme_difficulty_is_bounded();
     test_droid_attack();
     test_energy_required();
+    test_equipped_weapon_required();
     test_invalid_target_does_not_consume_energy();
     test_corrupt_enemy_count_cannot_escape_array_bounds();
     test_max_weapon_damage_does_not_wrap();

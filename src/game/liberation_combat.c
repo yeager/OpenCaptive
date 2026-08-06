@@ -9,6 +9,11 @@ static uint16_t combat_prng(uint16_t *state) {
     return *state;
 }
 
+static bool combat_is_weapon_id(uint8_t item_id) {
+    /* Captive's shared item database reserves 13-38 for weapons. */
+    return item_id >= 13 && item_id <= 38;
+}
+
 static const char *enemy_names[] = {
     "Guard", "Soldier", "Enforcer", "Drone",
     "Sentinel", "Trooper", "Agent", "Warden",
@@ -62,6 +67,8 @@ bool lib_combat_droid_attack(LibCombatState *cs, GameState *gs, int droid_idx) {
 
     Droid *d = &gs->droids[droid_idx];
     if (d->hp <= 0 || d->energy < 3) return false;
+    if (!combat_is_weapon_id(d->weapons[0]) &&
+        !combat_is_weapon_id(d->weapons[1])) return false;
     d->energy -= 3;
 
     uint16_t dmg_word = d->weapon_damage;
