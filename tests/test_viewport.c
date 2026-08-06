@@ -29,7 +29,11 @@ int main(void) {
     static uint32_t framebuffer[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
     static GameState gs;
     static CreatureList creatures;
-    memset(texture_pixels, 0x34, sizeof(texture_pixels));
+    for (size_t i = 0; i < sizeof(texture_pixels) / sizeof(texture_pixels[0]); i++)
+        texture_pixels[i] = 0xFF101010;
+    for (int y = 0; y < 32; y++)
+        for (int x = 0; x < 32; x++)
+            texture_pixels[y * 320 + x] = 0xFFFF0000;
     memset(&gs, 0, sizeof(gs));
     memset(&creatures, 0, sizeof(creatures));
 
@@ -59,6 +63,7 @@ int main(void) {
         for (int x = 0; x < MAP_WIDTH; ++x)
             gs.levels[0].cells[y][x].type = CELL_FLOOR;
     gs.levels[0].cells[9][10].type = CELL_WALL;
+    gs.levels[0].cells[10][10].ornament[DIR_NORTH] = ORNAMENT_BUTTON;
 
     CaptiveViewWindow window;
     captive_view_window_build(&gs, &window);
@@ -67,6 +72,16 @@ int main(void) {
     viewport_render(&window, &atlas, framebuffer,
                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
     assert(viewport_changed(framebuffer));
+
+    uint32_t without_ornament[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
+    memcpy(without_ornament, framebuffer, sizeof(without_ornament));
+    gs.levels[0].cells[10][10].ornament[DIR_NORTH] = ORNAMENT_NONE;
+    captive_view_window_build(&gs, &window);
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render(&window, &atlas, framebuffer,
+                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+    assert(memcmp(without_ornament, framebuffer, sizeof(framebuffer)) != 0);
 
     creatures.num_creatures = 1;
     creatures.creatures[0].type = CREATURE_ALIEN1;

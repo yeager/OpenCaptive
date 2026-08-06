@@ -102,6 +102,7 @@ void captive_view_window_build(const GameState *gs, CaptiveViewWindow *window) {
 
     const DungeonLevel *level = &gs->levels[gs->current_level];
     int direction = gs->party_dir;
+    window->facing = (Direction)direction;
     int fx = forward_x[direction];
     int fy = forward_y[direction];
     int rx = forward_x[(direction + 1) & 3];

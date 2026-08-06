@@ -15,6 +15,7 @@
 typedef struct {
     MapCell cells[CAPTIVE_VIEW_WINDOW_SIZE][CAPTIVE_VIEW_WINDOW_SIZE];
     MapCell visible[CAPTIVE_VISIBLE_CELL_COUNT];
+    Direction facing;
     /* True when the original visibility pass clears the copied cell.  The
      * source map is never mutated; a renderer must skip hidden cells. */
     bool hidden[CAPTIVE_VISIBLE_CELL_COUNT];

@@ -229,6 +229,17 @@ static void draw_ornament(uint32_t *fb, int fb_w, int fb_h,
     }
 }
 
+static const MapCell *visible_cell_at(const CaptiveViewWindow *window,
+                                      int forward, int lateral) {
+    if (!window) return NULL;
+    for (int i = 0; i < CAPTIVE_VISIBLE_CELL_COUNT; i++) {
+        if (captive_visible_cell_positions[i].forward == forward &&
+            captive_visible_cell_positions[i].lateral == lateral)
+            return &window->visible[i];
+    }
+    return NULL;
+}
+
 void viewport_render(const CaptiveViewWindow *window,
                      const TextureAtlas *atlas,
                      uint32_t *framebuffer, int fb_width, int fb_height) {
@@ -315,15 +326,31 @@ void viewport_render(const CaptiveViewWindow *window,
                 }
             }
 
-            /* Ornament on center segment (bit 3 = left-center/ornament) */
-            if (cell->ornament[0] != ORNAMENT_NONE) {
+            /* Wall ornaments belong to the adjacent floor cell, where the
+             * map generator and Captive puzzle placement store them.  For a
+             * frontal wall that cell is one step nearer to the party.  At
+             * range zero, the visible side walls are backed by the party's
+             * cell instead. */
+            const MapCell *ornament_cell = NULL;
+            int ornament_face = -1;
+            if (forward > 0) {
+                ornament_cell = visible_cell_at(window, forward - 1, lateral);
+                ornament_face = window->facing;
+            } else if (forward == 0 && (lateral == -1 || lateral == 1)) {
+                ornament_cell = visible_cell_at(window, 0, 0);
+                ornament_face = lateral < 0
+                    ? (window->facing + 3) & 3 : (window->facing + 1) & 3;
+            }
+            OrnamentType ornament = ornament_cell && ornament_face >= 0
+                ? ornament_cell->ornament[ornament_face] : ORNAMENT_NONE;
+            if (ornament != ORNAMENT_NONE) {
                 int orn_w = cell_w / 3;
                 int orn_h = rp->wall_height / 4;
                 int orn_x = cell_left + (cell_w - orn_w) / 2;
                 int orn_y = rp->top_y + (rp->wall_height - orn_h) / 2;
                 draw_ornament(framebuffer, fb_width, fb_height, atlas,
                               orn_x, orn_y, orn_w, orn_h,
-                              vp_x, vp_y, cell->ornament[0]);
+                              vp_x, vp_y, ornament);
             }
         } else {
             /* Floor/corridor cell — draw floor and ceiling */
@@ -348,6 +375,11 @@ void viewport_render(const CaptiveViewWindow *window,
                 draw_wall(framebuffer, fb_width, fb_height, atlas,
                           cell_left, rp->top_y, side_w, rp->wall_height,
                           vp_x, vp_y, cell->wall_tex[3], range);
+                if (cell->ornament[(window->facing + 3) & 3] != ORNAMENT_NONE)
+                    draw_ornament(framebuffer, fb_width, fb_height, atlas,
+                                  cell_left, rp->top_y + rp->wall_height / 3,
+                                  side_w, rp->wall_height / 4, vp_x, vp_y,
+                                  cell->ornament[(window->facing + 3) & 3]);
             }
 
             /* Right side wall */
@@ -368,6 +400,12 @@ void viewport_render(const CaptiveViewWindow *window,
                           cell_right - side_w + 1, rp->top_y,
                           side_w, rp->wall_height,
                           vp_x, vp_y, cell->wall_tex[1], range);
+                if (cell->ornament[(window->facing + 1) & 3] != ORNAMENT_NONE)
+                    draw_ornament(framebuffer, fb_width, fb_height, atlas,
+                                  cell_right - side_w + 1,
+                                  rp->top_y + rp->wall_height / 3,
+                                  side_w, rp->wall_height / 4, vp_x, vp_y,
+                                  cell->ornament[(window->facing + 1) & 3]);
             }
 
             /* Door */

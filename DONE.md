@@ -5,6 +5,8 @@
 - Replay-inspelning kodar nu även Enter och numeriskt Enter som Captive-
   interaktion, med samma stabila actionkod som F.
 - Numeriskt Enter fungerar nu även direkt i Captive, inte bara vid replay.
+- Korrigerat så att numeriskt Enter verkligen når Captive-interaktionen.
+- Captive-ornament på golvceller renderas nu på rätt vägg, inklusive pusselpaneler.
 
 ## 2026-08-07 (Captive interaction key)
 
