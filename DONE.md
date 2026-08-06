@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Release resource packaging)
+
+- RPM-paketet inkluderar nu font, l10n-kataloger och menyresurser i både
+  källtarball och installerad fil-lista.
+- AppImage-bygget kopierar samma menyresurser som övriga desktop-paket.
+- Validerade `.github/workflows/release.yml` som YAML och kontrollerade
+  release-diffen.
+
 ## 2026-08-06 (Hermetic VFS regression test)
 
 - Isolerade testet för överlånga ZIP-namn i en egen testkatalog.

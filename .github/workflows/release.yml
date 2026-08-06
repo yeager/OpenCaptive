@@ -86,6 +86,12 @@ jobs:
           mkdir -p rpmbuild/SOURCES/opencaptive-${PKG_VERSION}
           cp build/opencaptive rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/
           cp README.md LICENSE rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/
+          mkdir -p rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/data
+          mkdir -p rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/po
+          mkdir -p rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets
+          cp data/DejaVuSansMono-Bold.ttf rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/data/
+          cp po/*.po rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/po/
+          cp -R assets/menu rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets/
           tar czf rpmbuild/SOURCES/opencaptive-${PKG_VERSION}.tar.gz \
             -C rpmbuild/SOURCES opencaptive-${PKG_VERSION}
           printf '%s\n' \
@@ -107,11 +113,20 @@ jobs:
             "%install" \
             "mkdir -p %{buildroot}/usr/bin" \
             "cp opencaptive %{buildroot}/usr/bin/" \
+            "mkdir -p %{buildroot}/usr/share/opencaptive/data" \
+            "mkdir -p %{buildroot}/usr/share/opencaptive/po" \
+            "mkdir -p %{buildroot}/usr/share/opencaptive/assets" \
+            "cp data/DejaVuSansMono-Bold.ttf %{buildroot}/usr/share/opencaptive/data/" \
+            "cp po/*.po %{buildroot}/usr/share/opencaptive/po/" \
+            "cp -R assets/menu %{buildroot}/usr/share/opencaptive/assets/" \
             "mkdir -p %{buildroot}/usr/share/doc/opencaptive" \
             "cp README.md LICENSE %{buildroot}/usr/share/doc/opencaptive/" \
             "" \
             "%files" \
             "/usr/bin/opencaptive" \
+            "/usr/share/opencaptive/data/DejaVuSansMono-Bold.ttf" \
+            "/usr/share/opencaptive/po/*" \
+            "/usr/share/opencaptive/assets/menu/*" \
             "/usr/share/doc/opencaptive/README.md" \
             "/usr/share/doc/opencaptive/LICENSE" \
             > rpmbuild/SPECS/opencaptive.spec
@@ -159,10 +174,11 @@ jobs:
       - name: Create AppDir
         run: |
           mkdir -p AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/256x256/apps
-          mkdir -p AppDir/usr/share/opencaptive/data AppDir/usr/share/opencaptive/po
+          mkdir -p AppDir/usr/share/opencaptive/data AppDir/usr/share/opencaptive/po AppDir/usr/share/opencaptive/assets
           cp build/opencaptive AppDir/usr/bin/
           cp data/DejaVuSansMono-Bold.ttf AppDir/usr/share/opencaptive/data/
           cp po/*.po AppDir/usr/share/opencaptive/po/
+          cp -R assets/menu AppDir/usr/share/opencaptive/assets/
           printf '%s\n' '[Desktop Entry]' 'Name=OpenCaptive' 'Exec=opencaptive' 'Icon=opencaptive' 'Type=Application' 'Categories=Game;' > AppDir/usr/share/applications/opencaptive.desktop
           rsvg-convert -w 256 -h 256 assets/icon.svg -o AppDir/usr/share/icons/hicolor/256x256/apps/opencaptive.png
       - name: Download linuxdeploy

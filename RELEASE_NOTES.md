@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Linux-RPM och AppImage-paketen innehåller nu font, alla l10n-kataloger och
+  menybilder, så installerade releasepaket får samma launcher-resurser som
+  tarball, DEB och Windows-installern.
 - VFS-cachevalideringen använder nu en billig metadata-probe per hashuppslag
   och räknar bara om hela dataträdets signatur när datarot eller arkiv har
   ändrats. Det undviker upprepade metadata-pass genom samma arkivscan.
