@@ -113,6 +113,14 @@ static bool blocks_movement_or_sight(CellType cell) {
     return cell == CELL_WALL || cell == CELL_DOOR || cell == CELL_DOOR_LOCKED;
 }
 
+static bool combat_is_ranged_weapon_id(uint8_t item_id) {
+    /* Inventory IDs 13-17 are melee weapons and 18-38 are ranged weapons.
+     * Do not classify arbitrary non-weapon IDs as ranged merely because they
+     * fall outside the melee interval: these values can survive in a legacy
+     * or damaged save and must not silently extend attack reach. */
+    return item_id >= 18 && item_id <= 38;
+}
+
 static bool combat_has_line_of_sight(const GameState *gs,
                                      int x0, int y0, int x1, int y1) {
     if (!gs || gs->current_level < 0 || gs->current_level >= gs->num_levels ||
@@ -273,7 +281,7 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     bool has_ranged_weapon = false;
     for (int w = 0; w < 2; w++) {
         uint8_t wid = d->weapons[w];
-        if (wid != 0 && (wid < 13 || wid > 17)) {
+        if (combat_is_ranged_weapon_id(wid)) {
             has_ranged_weapon = true;
             break;
         }
