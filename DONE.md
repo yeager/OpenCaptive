@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive Amiga-verifiering)
+
+- RNC-verifieringen av Captive Amiga-data avvisar nu komprimerade och
+  dekomprimerade resurser som inte ryms i avkodarens `int`-storlek. Det
+  förhindrar trunkering vid korrupta eller ovanligt stora diskfiler.
+- Werror-bygg och hela den lokala testsviten är verifierade: 58 av 58 test
+  passerar.
+
 ## 2026-08-07 (CI-beroenden)
 
 - CI bygger nu SDL3 utan SDL:s egna testprogram och exempel, som inte behövs

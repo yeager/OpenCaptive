@@ -5,6 +5,7 @@
 #include "rnc_decoder.h"
 #include "sha256.h"
 
+#include <limits.h>
 #include <stdlib.h>
 
 static const char amiga_adf_sha256[] =
@@ -41,8 +42,15 @@ static bool verify_mapgen_payload(const uint8_t *adf, size_t adf_size) {
                                                       amiga_mapgen_sha256,
                                                       &compressed_size);
     if (!compressed) return false;
+    if (compressed_size > (size_t)INT_MAX) {
+        free(compressed);
+        return false;
+    }
     uint32_t raw_size = rnc_uncompressed_size(compressed, (int)compressed_size);
-    if (raw_size != 29340U) { free(compressed); return false; }
+    if (raw_size != 29340U || raw_size > (uint32_t)INT_MAX) {
+        free(compressed);
+        return false;
+    }
     uint8_t *raw = malloc(raw_size);
     bool valid = raw && rnc_decode(compressed, (int)compressed_size, raw,
                                    (int)raw_size) == (int)raw_size &&
@@ -71,8 +79,18 @@ bool captive_amiga_data_verify(const DataVFS *vfs) {
                                                         required_ofs_sha256[i],
                                                         &resource_size);
         if (!resource) { valid = false; break; }
+        if (resource_size > (size_t)INT_MAX) {
+            free(resource);
+            valid = false;
+            break;
+        }
         uint32_t raw_size = rnc_uncompressed_size(resource, (int)resource_size);
         if (!raw_size || raw_size > 1024U * 1024U) {
+            free(resource);
+            valid = false;
+            break;
+        }
+        if (raw_size > (uint32_t)INT_MAX) {
             free(resource);
             valid = false;
             break;
