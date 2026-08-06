@@ -5,6 +5,8 @@
 bool object_sprite_load(const PL5Image *sheet, ObjectSpriteSet *out) {
     if (!sheet || !out || !sheet->pixel_data) return false;
     if (sheet->width < PL5_WIDTH || sheet->height < PL5_HEIGHT) return false;
+    size_t required_size = (size_t)sheet->width * (size_t)sheet->height;
+    if (sheet->data_size < required_size) return false;
 
     memset(out, 0, sizeof(*out));
     memcpy(out->palette, sheet->palette, sizeof(out->palette));

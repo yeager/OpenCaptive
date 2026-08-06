@@ -29,6 +29,16 @@ static void test_load_synthetic(void) {
     free(sheet.pixel_data);
 }
 
+static void test_load_rejects_short_pixel_buffer(void) {
+    PL5Image sheet = {0};
+    sheet.width = PL5_WIDTH;
+    sheet.height = PL5_HEIGHT;
+    sheet.pixel_data = (uint8_t *)1;
+    sheet.data_size = PL5_PIXEL_COUNT - 1;
+    CreatureSpriteSet sprites;
+    assert(!creature_sprite_load(&sheet, &sprites));
+}
+
 static void test_blit(void) {
     CreatureFrame frame;
     memset(&frame, 0, sizeof(frame));
@@ -76,6 +86,7 @@ static void test_null_safety(void) {
 
 int main(void) {
     test_load_synthetic();
+    test_load_rejects_short_pixel_buffer();
     test_blit();
     test_blit_scale();
     test_null_safety();

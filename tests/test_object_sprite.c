@@ -25,6 +25,16 @@ static void test_load(void) {
     free(sheet.pixel_data);
 }
 
+static void test_load_rejects_short_pixel_buffer(void) {
+    PL5Image sheet = {0};
+    sheet.width = PL5_WIDTH;
+    sheet.height = PL5_HEIGHT;
+    sheet.pixel_data = (uint8_t *)1;
+    sheet.data_size = PL5_PIXEL_COUNT - 1;
+    ObjectSpriteSet sprites;
+    assert(!object_sprite_load(&sheet, &sprites));
+}
+
 static void test_blit(void) {
     ObjectFrame frame;
     memset(&frame, 0, sizeof(frame));
@@ -43,6 +53,7 @@ static void test_blit(void) {
 
 int main(void) {
     test_load();
+    test_load_rejects_short_pixel_buffer();
     test_blit();
     printf("All object sprite tests passed.\n");
     return 0;
