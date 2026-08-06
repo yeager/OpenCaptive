@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Windows VFS cache precision)
+
+- Windows-cache-signaturen använder nu 100 ns-ändringstid, volym och
+  filindex från `GetFileInformationByHandle`.
+- Åtgärdar Windows-CI-felet där ett snabbt ersatt ZIP kunde behålla gammalt
+  hashresultat i en levande VFS-instans.
+- `test_data_vfs` passerar lokalt efter ändringen.
+
 ## 2026-08-06 (Portable Captive save format)
 
 - Captive-sparningar använder nu explicit little-endian-serialisering för

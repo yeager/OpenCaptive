@@ -3,6 +3,9 @@
 ## v1.1.79 (2026-08-06)
 
 ### Release and CI hardening
+- Windows VFS-cachemetadata använder nu filsystemets högupplösta ändringstid
+  och filidentitet. Snabba ersättningar av ett ZIP-arkiv kan därför inte
+  återanvända en gammal cachepost på Windows.
 - Captive-sparningar använder nu ett explicit little-endian-format i version 5.
   Nya filer är oberoende av C-strukturernas padding och enumstorlek och kan
   flyttas mellan macOS, Windows och Linux; äldre v3/v4-filer kan fortfarande
