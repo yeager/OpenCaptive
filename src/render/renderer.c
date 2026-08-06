@@ -124,6 +124,13 @@ void renderer_apply_display(OpenCaptiveRenderer *r, const OpenCaptiveConfig *con
 
     r->integer_scaling = config->integer_scaling;
     r->mode = config->render_mode;
+    if (config->window_width > 0 && config->window_height > 0 &&
+        (r->window_width != config->window_width ||
+         r->window_height != config->window_height)) {
+        SDL_SetWindowSize(r->window, config->window_width, config->window_height);
+        r->window_width = config->window_width;
+        r->window_height = config->window_height;
+    }
     SDL_SetRenderVSync(r->renderer, config->vsync ? 1 : 0);
     SDL_SetWindowFullscreen(r->window, config->fullscreen);
 }

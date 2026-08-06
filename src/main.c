@@ -445,11 +445,17 @@ static bool reload_captive_assets(TextureAtlas *atlas, const DataVFS *vfs,
 
 static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu,
                               CustomFeatures *feat) {
+    static const int window_widths[] = {960, 1280, 1600, 1920};
+    static const int window_heights[] = {600, 800, 1000, 1200};
     config->data_path = menu->data_path;
     config->platform = menu->platform;
     config->render_mode = menu->enhanced_mode
         ? CAPTIVE_RENDER_ENHANCED : CAPTIVE_RENDER_ORIGINAL;
     config->scale_factor = menu->scale_factor;
+    int window_size = menu->window_size;
+    if (window_size < 0 || window_size >= 4) window_size = 1;
+    config->window_width = window_widths[window_size];
+    config->window_height = window_heights[window_size];
     config->fullscreen = menu->fullscreen;
     config->vsync = menu->vsync;
     config->scanlines = menu->scanlines;
@@ -498,6 +504,18 @@ static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *conf
     menu->scale_factor = config->scale_factor;
     menu->gamma = config->gamma;
     menu->master_volume = config->master_volume;
+    {
+        static const int window_widths[] = {960, 1280, 1600, 1920};
+        static const int window_heights[] = {600, 800, 1000, 1200};
+        menu->window_size = 1;
+        for (int i = 0; i < 4; ++i) {
+            if (config->window_width == window_widths[i] &&
+                config->window_height == window_heights[i]) {
+                menu->window_size = i;
+                break;
+            }
+        }
+    }
     if (feat) {
         if (feat->audio_sample_rate == 22050) menu->audio_sample_rate = 0;
         else if (feat->audio_sample_rate == 48000) menu->audio_sample_rate = 2;
@@ -1781,6 +1799,8 @@ int main(int argc, char *argv[]) {
         .render_mode = CAPTIVE_RENDER_ORIGINAL,
         .data_path = default_data_path,
         .scale_factor = 3,
+        .window_width = 1280,
+        .window_height = 800,
         .vsync = true,
         .integer_scaling = true,
         .brightness = 50,

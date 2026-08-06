@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Fönsterstorlek från startmenyn)
+
+- `WINDOW SIZE` kopieras nu från menyinställningen till konfigurationen och
+  appliceras på det aktiva SDL-fönstret.
+- Standardfönstret är explicit 1280×800; matchande CLI-upplösningar återförs
+  korrekt till motsvarande menyval.
+- Werror-kompilering och hela testsuiten med 56 tester passerar.
+
 ## 2026-08-06 (Mastervolym)
 
 - Startmenyns `VOLUME` påverkar nu både SFX-mixern och MIDI-musiken.
