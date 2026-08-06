@@ -26,8 +26,10 @@ static uint8_t *read_file_chain(const uint8_t *adf, size_t block_count,
                                 uint32_t header_block, size_t *out_size) {
     if (!adf || block_count == 0U || header_block >= block_count) return NULL;
     const uint8_t *header = adf + (size_t)header_block * ADF_BLOCK_SIZE;
+    uint32_t expected_size = read_be32(header + 324U);
     uint32_t current = read_be32(header + 16U);
     if (current == 0U) {
+        if (expected_size != 0U) return NULL;
         uint8_t *empty = malloc(1U);
         if (empty && out_size) *out_size = 0;
         return empty;
@@ -71,7 +73,10 @@ static uint8_t *read_file_chain(const uint8_t *adf, size_t block_count,
         size = required;
         current = next;
     }
-    if (current != 0U || size == 0U) { free(out); return NULL; }
+    if (current != 0U || size == 0U || size != expected_size) {
+        free(out);
+        return NULL;
+    }
     if (out_size) *out_size = size;
     return out;
 }

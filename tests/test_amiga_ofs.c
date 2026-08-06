@@ -38,6 +38,7 @@ int main(void) {
     put_be32(header, 2);                 /* T_HEADER */
     put_be32(header + 4, 2);             /* own key */
     put_be32(header + 16, 3);            /* first data block */
+    put_be32(header + 324, 4);           /* declared file size */
     put_be32(header + 508, 0xfffffffdU); /* ST_FILE */
     unsigned char *data = adf + 3 * 512;
     put_be32(data, 8);                   /* T_DATA */
@@ -52,11 +53,16 @@ int main(void) {
     free(result);
     assert(!amiga_ofs_find_file_sha256(adf, sizeof(adf),
         "0000000000000000000000000000000000000000000000000000000000000000", &size));
+    put_be32(header + 324, 3); /* A chain must match the header file size. */
+    assert(!amiga_ofs_find_file_sha256(adf, sizeof(adf),
+        "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08", &size));
+    put_be32(header + 324, 4);
     VisitResult visited = {0};
     assert(amiga_ofs_visit_file_hashes(adf, sizeof(adf), capture_hash, &visited) == 1);
     assert(visited.count == 1 && visited.size == 4 && visited.first_byte == 't');
 
     put_be32(header + 16, 0); /* Valid zero-length OFS file has no data chain. */
+    put_be32(header + 324, 0);
     result = amiga_ofs_find_file_sha256(adf, sizeof(adf),
         "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", &size);
     assert(result && size == 0);
