@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive deterministisk skanningscache)
+
+- Metadata-signaturen för dataskanningen sorterar nu kataloginnehållet innan
+  det hashas. Samma dataträd ger därmed samma cache-signatur även när
+  filsystemet returnerar katalogposter i olika ordning.
+- Detta hindrar onödiga omskanningar av redan kontrollerade Captive-filer.
+- Werror-bygg och hela den lokala testsviten är verifierade: 58 av 58 test
+  passerar.
+
 ## 2026-08-07 (Captive Amiga-verifiering)
 
 - RNC-verifieringen av Captive Amiga-data avvisar nu komprimerade och

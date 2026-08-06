@@ -36,6 +36,27 @@ static bool cache_source_signature(const char *path, char out[65]);
 static void cache_tree_metadata(SHA256Context *ctx, const char *path,
                                 int depth);
 
+static char *cache_copy_path(const char *path) {
+    if (!path) return NULL;
+    size_t length = strlen(path);
+    char *copy = malloc(length + 1U);
+    if (!copy) return NULL;
+    memcpy(copy, path, length + 1U);
+    return copy;
+}
+
+static int compare_cache_paths(const void *left, const void *right) {
+    const char *const *a = left;
+    const char *const *b = right;
+    return strcmp(*a, *b);
+}
+
+static void free_cache_paths(char **paths, size_t count) {
+    if (!paths) return;
+    for (size_t i = 0; i < count; ++i) free(paths[i]);
+    free(paths);
+}
+
 static uint16_t read_u16(const uint8_t *p) {
     return (uint16_t)((uint16_t)p[0] | ((uint16_t)p[1] << 8));
 }
@@ -693,29 +714,77 @@ static void cache_tree_metadata(SHA256Context *ctx, const char *path,
     WIN32_FIND_DATAA entry;
     HANDLE handle = FindFirstFileA(pattern, &entry);
     if (handle == INVALID_HANDLE_VALUE) return;
+    char **children = NULL;
+    size_t child_count = 0;
+    size_t child_capacity = 0;
     do {
         if (!strcmp(entry.cFileName, ".") || !strcmp(entry.cFileName, "..") ||
             !strcmp(entry.cFileName, ".cache")) continue;
         char child[1024];
         if (snprintf(child, sizeof(child), "%s\\%s", path,
                      entry.cFileName) >= (int)sizeof(child)) continue;
-        cache_tree_metadata(ctx, child, depth + 1);
+        if (child_count == child_capacity) {
+            size_t next_capacity = child_capacity ? child_capacity * 2U : 16U;
+            char **next = realloc(children, next_capacity * sizeof(*next));
+            if (!next) {
+                FindClose(handle);
+                free_cache_paths(children, child_count);
+                return;
+            }
+            children = next;
+            child_capacity = next_capacity;
+        }
+        children[child_count] = cache_copy_path(child);
+        if (!children[child_count]) {
+            FindClose(handle);
+            free_cache_paths(children, child_count);
+            return;
+        }
+        child_count++;
     } while (FindNextFileA(handle, &entry));
     FindClose(handle);
+    qsort(children, child_count, sizeof(*children), compare_cache_paths);
+    for (size_t i = 0; i < child_count; ++i)
+        cache_tree_metadata(ctx, children[i], depth + 1);
+    free_cache_paths(children, child_count);
 #else
     if (!S_ISDIR(current.st_mode)) return;
     DIR *dir = opendir(path);
     if (!dir) return;
     struct dirent *entry;
+    char **children = NULL;
+    size_t child_count = 0;
+    size_t child_capacity = 0;
     while ((entry = readdir(dir)) != NULL) {
         if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..") ||
             !strcmp(entry->d_name, ".cache")) continue;
         char child[1024];
         if (snprintf(child, sizeof(child), "%s/%s", path,
                      entry->d_name) >= (int)sizeof(child)) continue;
-        cache_tree_metadata(ctx, child, depth + 1);
+        if (child_count == child_capacity) {
+            size_t next_capacity = child_capacity ? child_capacity * 2U : 16U;
+            char **next = realloc(children, next_capacity * sizeof(*next));
+            if (!next) {
+                closedir(dir);
+                free_cache_paths(children, child_count);
+                return;
+            }
+            children = next;
+            child_capacity = next_capacity;
+        }
+        children[child_count] = cache_copy_path(child);
+        if (!children[child_count]) {
+            closedir(dir);
+            free_cache_paths(children, child_count);
+            return;
+        }
+        child_count++;
     }
     closedir(dir);
+    qsort(children, child_count, sizeof(*children), compare_cache_paths);
+    for (size_t i = 0; i < child_count; ++i)
+        cache_tree_metadata(ctx, children[i], depth + 1);
+    free_cache_paths(children, child_count);
 #endif
 }
 
