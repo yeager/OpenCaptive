@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #define CROSS_SAVE_MAGIC 0x4F435356 /* "OCSV" */
 #define CROSS_SAVE_VERSION 2
@@ -56,6 +59,15 @@ static bool write_exact(FILE *fp, const void *src, size_t size, size_t count) {
     return fp && src && fwrite(src, size, count, fp) == count;
 }
 
+static bool replace_cross_save(const char *temporary_path, const char *path) {
+#ifdef _WIN32
+    return MoveFileExA(temporary_path, path,
+                       MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+#else
+    return rename(temporary_path, path) == 0;
+#endif
+}
+
 bool cross_save_export(const void *game_state_ptr, const char *path) {
     const GameState *gs = (const GameState *)game_state_ptr;
     /* Version 1 stores dungeon/party state only.  Liberation uses a
@@ -84,13 +96,23 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
             }
         }
     }
-    FILE *fp = fopen(path, "wb");
-    if (!fp) return false;
+    size_t path_length = strlen(path);
+    if (path_length > SIZE_MAX - 5) return false;
+    char *temporary_path = malloc(path_length + 5);
+    if (!temporary_path) return false;
+    snprintf(temporary_path, path_length + 5, "%s.tmp", path);
+    FILE *fp = fopen(temporary_path, "wb");
+    if (!fp) {
+        free(temporary_path);
+        return false;
+    }
 
 #define WRITE_OR_FAIL(src, size, count) \
     do { \
         if (!write_exact(fp, (src), (size), (count))) { \
             fclose(fp); \
+            remove(temporary_path); \
+            free(temporary_path); \
             return false; \
         } \
     } while (0)
@@ -98,6 +120,8 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
     if (!write_le32(fp, CROSS_SAVE_MAGIC) ||
         !write_le32(fp, CROSS_SAVE_VERSION)) {
         fclose(fp);
+        remove(temporary_path);
+        free(temporary_path);
         return false;
     }
 
@@ -113,10 +137,14 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
     for (size_t i = 0; i < sizeof(vals) / sizeof(vals[0]); i++)
         if (!write_le32(fp, (uint32_t)vals[i])) {
             fclose(fp);
+            remove(temporary_path);
+            free(temporary_path);
             return false;
         }
     if (!write_le32(fp, gs->mission_seed) || !write_le32(fp, gs->tick)) {
         fclose(fp);
+        remove(temporary_path);
+        free(temporary_path);
         return false;
     }
 
@@ -128,6 +156,8 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
             !write_le16(fp, (uint16_t)dr->energy) ||
             !write_le16(fp, (uint16_t)dr->energy_max)) {
             fclose(fp);
+            remove(temporary_path);
+            free(temporary_path);
             return false;
         }
         WRITE_OR_FAIL(dr->body_parts, 6, 1);
@@ -138,6 +168,8 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
         if (!write_le32(fp, dr->xp) ||
             !write_le16(fp, dr->weapon_damage)) {
             fclose(fp);
+            remove(temporary_path);
+            free(temporary_path);
             return false;
         }
     }
@@ -147,6 +179,8 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
         if (!write_le32(fp, (uint32_t)lvl->level) ||
             !write_le32(fp, lvl->seed)) {
             fclose(fp);
+            remove(temporary_path);
+            free(temporary_path);
             return false;
         }
         for (int y = 0; y < MAP_HEIGHT; y++) {
@@ -165,6 +199,14 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
     }
 
     bool ok = fclose(fp) == 0;
+    if (!ok) {
+        remove(temporary_path);
+        free(temporary_path);
+        return false;
+    }
+    ok = replace_cross_save(temporary_path, path);
+    if (!ok) remove(temporary_path);
+    free(temporary_path);
 #undef WRITE_OR_FAIL
     return ok;
 }

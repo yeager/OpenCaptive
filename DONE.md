@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-06 (Atomic cross-save export)
+
+- Captives portabla cross-save skrivs färdigt till en temporär fil innan den
+  ersätter befintlig `.ocsv`.
+- Misslyckade exportförsök lämnar tidigare fungerande cross-save intakt.
+- Verifierade `test_custom_features` och diff-format.
+
 ## 2026-08-06 (Atomic Liberation saves)
 
 - Liberation-sparningar skrivs färdigt till en temporär fil innan destinationen
