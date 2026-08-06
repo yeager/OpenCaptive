@@ -38,6 +38,13 @@ known presentation forms. `SCPT` record boundaries are retained for analysis;
 their opcode meanings, timing model and the remaining packed delta/layer data
 are not yet decoded.
 
+For analysis, `liberation_presentation_capture --all <data-dir> <output-dir>`
+exports every first decodable frame from the verified presentation bundle in
+one pass. Each output is named with the decoded FORM's SHA-256 digest, not an
+original filename. Some outputs are deliberately sparse or black because the
+original presentation uses them as layers; the export is evidence for SCPT
+recovery, not a claim that the first frames form complete screens by themselves.
+
 See [the technical notes](wiki/Liberation-Technical.md) for resource hashes,
 container observations and the exact current limitations.
 
