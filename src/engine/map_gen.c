@@ -465,16 +465,37 @@ static void architect_place_doors(DungeonLevel *level) {
     }
 
     /* A base without a door makes the door and wall-control gameplay paths
-     * unreachable.  Guarantee one where topology permits, then add up to the
-     * documented maximum of eight with Architect's PRNG. */
+     * unreachable. Guarantee one locked door where topology permits: the
+     * puzzle generator links its lever/bar controls to CELL_DOOR_LOCKED, and
+     * previously every generated choke point was an ordinary CELL_DOOR. Add
+     * up to the documented maximum of eight doors with Architect's PRNG. */
     int placed = 0;
     while (count > 0 && placed < 8) {
         int index = (int)(prng_next() % (uint16_t)count);
         int pos = candidates[index];
         candidates[index] = candidates[--count];
         if (placed == 0 || (prng_next() & 3u) == 0) {
-            level->cells[pos / MAP_WIDTH][pos % MAP_WIDTH].type = CELL_DOOR;
+            level->cells[pos / MAP_WIDTH][pos % MAP_WIDTH].type = placed == 0
+                ? CELL_DOOR_LOCKED : CELL_DOOR;
             placed++;
+        }
+    }
+
+    /* Some small section layouts have no strict wall-flanked choke point.
+     * Still provide the puzzle path on those floors by converting a
+     * connected corridor cell with at least two open neighbours. */
+    if (placed == 0) {
+        for (int y = 1; y < MAP_HEIGHT - 1 && placed == 0; y++) {
+            for (int x = 1; x < MAP_WIDTH - 1; x++) {
+                if (level->cells[y][x].type != CELL_FLOOR) continue;
+                int open = 0;
+                for (int d = 0; d < 4; d++)
+                    open += level->cells[y + dy[d]][x + dx[d]].type != CELL_WALL;
+                if (open < 2) continue;
+                level->cells[y][x].type = CELL_DOOR_LOCKED;
+                placed = 1;
+                break;
+            }
         }
     }
 }

@@ -36,6 +36,7 @@
 - [x] Implement feature placement pipeline from 0x33D7 (doors, puzzles, traps)
 - [x] Validate MapGen output against original dumps
 - [x] Verify exterior generation stage
+- [x] Generate a reachable locked Captive door for puzzle controls
 
 ### Items
 - [x] Decode type code prefix bytes in item table (0x00/0x08/0x10/0x20/0x21/0x27/0x30/0x60/0x65)

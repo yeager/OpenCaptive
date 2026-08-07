@@ -15,6 +15,14 @@
 - Ett regressionstest verifierar att ändrade golv- och taktexturer påverkar
   den renderade bilden.
 
+## 2026-08-07 (Captive låsta dörrar och pussel)
+
+- Varje genererat basplan får nu minst en låst dörr när kartans choke points
+  tillåter det. Pusselgeneratorn kunde tidigare bara länka spakar och
+  kontrollpaneler till `CELL_DOOR_LOCKED`, men kartgeneratorn skapade aldrig
+  sådana dörrar i den aktiva missionsvägen.
+- Karttestet verifierar att varje genererat plan innehåller en låst dörr.
+
 ## 2026-08-07 (Captive creature-djupsortering)
 
 - Creature-sprites i Captive sorteras nu från längst bort till närmast innan

@@ -35,6 +35,41 @@ static void test_new_mission_rejects_null_state(void) {
     assert(!game_state_new_mission_seeded(NULL, 1, 0));
 }
 
+static void test_generated_missions_link_puzzles_to_locked_doors(void) {
+    GameState gs;
+    PuzzleList puzzles;
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    assert(game_state_new_mission_seeded(&gs, 1, 179));
+
+    /* Level zero is the exterior landing zone and intentionally has no
+     * locked base door; Architect floors begin at level one. */
+    for (int level = 1; level < gs.num_levels; level++) {
+        int locked_doors = 0;
+        for (int y = 0; y < MAP_HEIGHT; y++)
+            for (int x = 0; x < MAP_WIDTH; x++)
+                locked_doors += gs.levels[level].cells[y][x].type ==
+                                CELL_DOOR_LOCKED;
+        assert(locked_doors > 0);
+
+        puzzle_init(&puzzles);
+        puzzle_generate(&puzzles, &gs.levels[level], level, gs.mission_seed);
+        bool linked = false;
+        for (int i = 0; i < puzzles.num_puzzles; i++) {
+            const Puzzle *p = &puzzles.puzzles[i];
+            if (p->target_x < 0 || p->target_y < 0) continue;
+            assert(p->target_x < MAP_WIDTH && p->target_y < MAP_HEIGHT);
+            if (p->type == PUZZLE_LEVER || p->type == PUZZLE_TRIPLE_LEVER ||
+                p->type == PUZZLE_BARS || p->type == PUZZLE_BUTTON_COMBO ||
+                p->type == PUZZLE_HIDDEN_BUTTON) {
+                assert(gs.levels[level].cells[p->target_y][p->target_x].type ==
+                       CELL_DOOR_LOCKED);
+                linked = true;
+            }
+        }
+        assert(linked);
+    }
+}
+
 static void test_button_combo_solution_is_reachable(void) {
     GameState gs;
     PuzzleList puzzles = {0};
@@ -1007,6 +1042,7 @@ static void test_init_normalizes_invalid_mission(void) {
 
 int main(void) {
     test_new_mission_rejects_null_state();
+    test_generated_missions_link_puzzles_to_locked_doors();
     test_init_normalizes_invalid_mission();
     test_puzzle_rejects_invalid_level();
     test_button_combo_solution_is_reachable();
