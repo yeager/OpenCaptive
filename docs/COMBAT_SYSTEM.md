@@ -35,17 +35,21 @@ formula by one step (capped at the recovered eight-step scale).
 3. **Chase**: creature moves toward player each AI tick
 4. **Attack**: creature is adjacent to player and cooldown expired
 
-AI ticks occur every 4 game ticks (combat_tick). Movement uses Manhattan distance pathfinding toward the player's position.
+The main loop calls `combat_tick` every 10 game-loop ticks. Movement uses
+Manhattan distance pathfinding toward the player's position.
 
 ## Droid Attacks
 
 - Attack key (Space) fires selected droid's equipped weapon
-- Damage = weapon base damage + random range + skill bonus
-- Defense reduces damage: `effective = max(1, damage - target.defense)`
+- Damage uses the cache shared by the equipped weapons. The low/high bytes
+  are multiplied and then doubled three times, capped at `0xFFFD`.
+- Defense reduces damage by half: `effective = max(1, damage - target.defense / 2)`
 - Range check: the equipped weapon's range versus Manhattan distance to the
   nearest creature; spray weapons use range 4 while the other ranged weapons
   use range 6
-- Cooldown between attacks based on weapon speed
+- Each successful droid attack costs 3 energy. Creature cooldowns use the
+  recovered creature speed; droid attacks currently have no separate weapon
+  cooldown.
 
 ## Experience and Leveling
 

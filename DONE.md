@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive combatdokumentation)
+
+- `docs/COMBAT_SYSTEM.md` beskriver nu den faktiska combat-prototypen:
+  tio-loopars AI-intervall, cachead vapenskada, halverad defense-reduktion,
+  energikostnad och avsaknad av separat droid-vapencooldown.
+
 ## 2026-08-07 (Captive spawn-difficulty)
 
 - Captive-fiender använder nu det nollbaserade dungeon-level-värdet direkt i
