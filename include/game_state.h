@@ -155,6 +155,9 @@ typedef struct {
     int         reputation; // -100 to +100, starts at 0
     uint8_t     lib_mission_complete[LIBERATION_MISSION_BITMAP_BYTES];
 
+    // Difficulty (0=easy, 1=normal, 2=hard)
+    uint8_t     difficulty;
+
     // Score
     uint32_t    score;
 

@@ -350,6 +350,9 @@ void combat_tick(CreatureList *cl, GameState *gs) {
                 ? UINT32_MAX : (uint32_t)damage_range64;
             int damage = damage_min + (int)(combat_rand() % damage_range);
             if (damage < 1) damage = 1;
+            if (gs->difficulty == 0) damage = damage * 2 / 3;
+            else if (gs->difficulty == 2) damage = damage * 3 / 2;
+            if (damage < 1) damage = 1;
             int part = combat_rand() % 6;
             if (d->body_parts[part] != 0 && d->body_part_hp[part] > 0) {
                 int armor_reduce = d->body_part_hp[part] / 32;

@@ -15,6 +15,9 @@ typedef enum {
     SFX_DEATH,
     SFX_LEVEL_UP,
     SFX_GENERATOR,
+    SFX_AMBIENT_DRIP,
+    SFX_AMBIENT_HUM,
+    SFX_AMBIENT_WIND,
     SFX_COUNT,
 } SfxType;
 

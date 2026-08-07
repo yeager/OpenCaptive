@@ -280,3 +280,38 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db
             return false;
     }
 }
+
+bool droid_ui_handle_click(DroidUIState *ui, GameState *gs, const ItemDatabase *db,
+                           int mx, int my, int width, int height) {
+    if (!ui || !gs || !db || !ui->active) return false;
+    (void)width; (void)height;
+    int px = 20, py = 10, pw = 280;
+    int slot_y_start = py + 38;
+
+    if (my >= py + 4 && my < py + 12) {
+        int dx = mx - px;
+        if (dx >= 0 && dx < pw) {
+            int di = dx / (pw / 4);
+            if (di >= 0 && di < 4) {
+                gs->selected_droid = di;
+                ui->droid_idx = di;
+                return true;
+            }
+        }
+    }
+
+    if (my < slot_y_start - 1 || my >= slot_y_start + 10 * 10) return false;
+    int row = (my - slot_y_start + 1) / 10;
+    if (row < 0 || row > 9) return false;
+
+    if (mx >= px + 4 && mx < px + pw / 2) {
+        ui->ui_mode = DROID_UI_EQUIP;
+        if (row <= 7) ui->cursor = row;
+        return droid_ui_handle_key(ui, gs, db, 0x0D);
+    } else if (mx >= px + pw / 2 + 4 && mx < px + pw - 4) {
+        ui->ui_mode = DROID_UI_INVENTORY;
+        if (row <= 9) ui->cursor = row;
+        return droid_ui_handle_key(ui, gs, db, 0x0D);
+    }
+    return false;
+}

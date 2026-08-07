@@ -91,6 +91,10 @@ static const Item item_defs[] = {
     {55, ITEM_DROID_CHIP, "DROID CHIP",        0x20, 0,  0,   0, 0, 0, 0, 0,  400, 0.1f, 0},
     {56, ITEM_MAP,       "MESSAGE FROM RATT",  0x00, 0,  0,   0, 0, 0, 0, 0,    0, 0.1f, 0},
     {57, ITEM_KEY,       "KEY",                0x00, 0,  0,   0, 0, 0, 0, 0,   50, 0.1f, 0},
+    {58, ITEM_SHIELD,    "SHIELD MK1",         0x27, 0,  0,  15, 0, 0, 0, 0,  150, 1.5f, 0},
+    {59, ITEM_SHIELD,    "SHIELD MK2",         0x27, 0,  0,  30, 0, 0, 0, 0,  300, 2.0f, 0},
+    {60, ITEM_GRENADE,   "GRENADE",            0x60, 20, 40,  0, 3, 0, 1, 1,  100, 0.5f, 0},
+    {61, ITEM_GRENADE,   "FRAG GRENADE",       0x60, 30, 60,  0, 3, 0, 1, 1,  200, 0.5f, 0},
 };
 
 const UpgradeTier upgrade_tiers[UPGRADE_TIER_COUNT] = {

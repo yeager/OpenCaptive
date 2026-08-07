@@ -319,7 +319,7 @@
 ### Shields and advanced weapons
 - [x] Implement shield items with damage absorption (equippable, absorbs before HP)
 - [x] Implement spray weapons hitting multiple targets in an arc (IDs 33-35)
-- [ ] Implement grenade/explosive weapons with area damage
+- [x] Implement grenade/explosive weapons with area damage
 
 ### Weight and movement
 - [x] Implement droid speed affected by carried weight and body part damage
@@ -337,14 +337,14 @@
 - [x] Implement multiple save slots (original supported several)
 
 ### Audio (ambient)
-- [ ] Implement ambient dungeon sounds (dripping, wind, electrical hum)
+- [x] Implement ambient dungeon sounds (dripping, wind, electrical hum)
 
 ### HUD
 - [x] Implement message log scrollback (review past messages)
 
 ### Input
-- [ ] Implement mouse-driven inventory management
-- [ ] Implement drag-and-drop equipment between droids
+- [x] Implement mouse-driven inventory management
+- [x] Implement drag-and-drop equipment between droids
 
 ### Palette accuracy
 - [ ] Verify and enforce original VGA 256-color palette for dungeon rendering
@@ -370,7 +370,7 @@
 
 ### Building interaction
 - [ ] Implement animated building entrance sequences
-- [ ] Implement shop inventory varying by city and mission
+- [x] Implement shop inventory varying by city and mission
 - [ ] Implement bar mini-games and interactive conversations
 
 ### Crime system
@@ -393,7 +393,7 @@
 - [ ] Implement save game thumbnail and description per slot
 
 ### Difficulty
-- [ ] Implement player-selectable difficulty levels
+- [x] Implement player-selectable difficulty levels
 
 ## Start menu enhancements
 

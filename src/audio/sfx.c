@@ -21,6 +21,9 @@ static const int sfx_sequence_map[SFX_COUNT] = {
     [SFX_DEATH]       = 17,  // game idx 28 -> 28-11=17 (creature death, at 0x578E)
     [SFX_LEVEL_UP]    = 15,  // game idx 26 -> 26-11=15 (combat variant A, at 0x56AC)
     [SFX_GENERATOR]   = 8,   // game idx 19 -> 19-11=8 (combat event, at 0x56B6)
+    [SFX_AMBIENT_DRIP] = 18, // reuse UI/ambient sequence for drip
+    [SFX_AMBIENT_HUM]  = 8,  // low rumble reuse
+    [SFX_AMBIENT_WIND] = 15, // reuse combat variant for wind
 };
 
 bool sfx_init(SfxSystem *sfx, SoundSystem *snd) {

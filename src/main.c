@@ -46,6 +46,7 @@
 #include <SDL3/SDL_main.h>
 
 static int quicksave_slot = 0;
+static int cmd_difficulty = 1;
 static int fade_alpha = 0;
 static int fade_direction = 0;
 static GameStateMode fade_target = STATE_GAME;
@@ -1985,6 +1986,42 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             if (combat_change_floor_if_clear(gs, &creatures, -1))
                 stair_flash_ttl = 6;
             return;
+        case SDLK_G: {
+            Droid *gd = &gs->droids[gs->selected_droid];
+            int grenade_slot = -1;
+            for (int si = 0; si < 10; si++) {
+                uint8_t gid = gd->items[si];
+                if (gid == 60 || gid == 61) { grenade_slot = si; break; }
+            }
+            if (grenade_slot < 0) { msg_push(_("No grenades!"), 0xFFFF4444); return; }
+            const Item *gi = item_db_get(&item_db, gd->items[grenade_slot]);
+            int gdmg = gi ? (gi->damage_min + gi->damage_max) / 2 : 30;
+            gd->items[grenade_slot] = 0;
+            int fwd_x2 = (int[]){0,1,0,-1}[gs->party_dir];
+            int fwd_y2 = (int[]){-1,0,1,0}[gs->party_dir];
+            int gx = gs->party_x + fwd_x2 * 2;
+            int gy = gs->party_y + fwd_y2 * 2;
+            int creature_count2 = creatures.num_creatures;
+            if (creature_count2 > MAX_CREATURES) creature_count2 = MAX_CREATURES;
+            for (int ci = 0; ci < creature_count2; ci++) {
+                Creature *gc = &creatures.creatures[ci];
+                if (!gc->active || gc->level != gs->current_level || gc->hp <= 0) continue;
+                int cdist = abs(gc->x - gx) + abs(gc->y - gy);
+                if (cdist > 2) continue;
+                int dmg = gdmg - gc->defense / 3;
+                if (dmg < 1) dmg = 1;
+                if (dmg >= gc->hp) {
+                    gc->hp = 0; gc->active = false; gc->respawn_timer = 600;
+                    gs->score += (uint32_t)(gc->hp_max / 2 + 1);
+                    msg_push(_("Creature destroyed!"), 0xFF44AAFF);
+                } else {
+                    gc->hp = (int16_t)(gc->hp - dmg);
+                }
+            }
+            sfx_play(&sfx, SFX_GENERATOR);
+            msg_push(_("Grenade thrown!"), 0xFFFF8800);
+            return;
+        }
         case SDLK_H:
             gs->mode = STATE_HELP;
             return;
@@ -2249,6 +2286,9 @@ int main(int argc, char *argv[]) {
             config.vsync = true;
         } else if (strcmp(argv[i], "--no-vsync") == 0) {
             config.vsync = false;
+        } else if (strcmp(argv[i], "--difficulty") == 0 && i + 1 < argc) {
+            int d = atoi(argv[++i]);
+            if (d >= 0 && d <= 2) cmd_difficulty = d;
         } else if (strcmp(argv[i], "--scanlines") == 0) {
             config.scanlines = true;
         } else if (strcmp(argv[i], "--crt") == 0) {
@@ -2511,6 +2551,7 @@ int main(int argc, char *argv[]) {
     static GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
     gs.config = config;
+    gs.difficulty = (uint8_t)cmd_difficulty;
 
     // Virtual filesystem
     DataVFS vfs;
@@ -3038,6 +3079,15 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 case STATE_INVENTORY:
+                    if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
+                        event.button.button == SDL_BUTTON_LEFT &&
+                        gs.game_type == GAME_CAPTIVE) {
+                        float cx, cy;
+                        if (window_to_canvas(renderer.window, event.button.x, event.button.y,
+                                             CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT, &cx, &cy))
+                            droid_ui_handle_click(&droid_ui, &gs, &item_db, (int)cx, (int)cy,
+                                                  CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                    }
                     if (event.type == SDL_EVENT_KEY_DOWN) {
                         if (gs.game_type == GAME_LIBERATION) {
                             switch (event.key.key) {
@@ -3735,6 +3785,10 @@ int main(int argc, char *argv[]) {
                     }
                     gs.tick++;
                     if (gs.move_cooldown > 0) gs.move_cooldown--;
+                    if (gs.tick % 600 == 0) {
+                        SfxType ambient[] = {SFX_AMBIENT_DRIP, SFX_AMBIENT_HUM, SFX_AMBIENT_WIND};
+                        sfx_play(&sfx, ambient[gs.tick / 600 % 3]);
+                    }
                     if (gs.tick % 300 == 0) {
                         for (int di = 0; di < 4; di++) {
                             if (gs.droids[di].hp > 0) {
