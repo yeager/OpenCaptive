@@ -2,6 +2,7 @@
 #include "opencaptive.h"
 #include "gfx_loader.h"
 #include "object_sprite.h"
+#include "captive_viewport_descriptors.h"
 #include <string.h>
 
 /* Captive's original viewport is a panel-based compositor: pre-projected
@@ -268,6 +269,53 @@ static const MapCell *visible_cell_at(const CaptiveViewWindow *window,
             return &window->visible[i];
     }
     return NULL;
+}
+
+/* Blit one descriptor panel from a decoded PL5 sheet into the viewport
+ * work buffer.  source_offset is in packed PL5 byte space (200 bytes/row);
+ * we convert to decoded pixel coordinates (320 pixels/row). */
+static void descriptor_blit(const CaptiveDosDescriptor *desc,
+                            const TextureAtlas *atlas,
+                            uint32_t *vp_buf, int vp_stride) {
+    if (!desc || !atlas || !vp_buf || desc->width_bytes == 0 || desc->height == 0)
+        return;
+    int bank = desc->source_bank;
+    int sheet = -1;
+    if (bank >= 0 && bank < 5)
+        sheet = atlas->wall_sheets[bank];
+    else if (bank == 4)
+        sheet = atlas->roof_sheet;
+    if (sheet < 0) return;
+    const Texture *tex = gfx_get(&atlas->gfx, sheet);
+    if (!tex || !tex->indices) return;
+
+    int src_row = (int)(desc->source_offset / 200U);
+    int src_col = (int)((desc->source_offset % 200U) * 8 / 5);
+    int pixel_w = (int)desc->width_bytes * 8;
+    bool mirror = (desc->flags & CAPTIVE_DESC_FLAG_MIRROR_H) != 0;
+    bool mask_zero = (desc->flags & CAPTIVE_DESC_FLAG_MASK_ZERO) != 0;
+
+    int dst_x, dst_y;
+    if (desc->destination_offset >= CAPTIVE_DOS_VIEW_STRIDE * CAPTIVE_DOS_VIEW_HEIGHT)
+        return;
+    dst_x = (int)(desc->destination_offset % CAPTIVE_DOS_VIEW_STRIDE);
+    dst_y = (int)(desc->destination_offset / CAPTIVE_DOS_VIEW_STRIDE);
+
+    for (int y = 0; y < (int)desc->height; y++) {
+        int sy = src_row + y;
+        int dy = dst_y + y;
+        if (sy < 0 || sy >= tex->height || dy < 0 || dy >= (int)CAPTIVE_DOS_VIEW_HEIGHT)
+            continue;
+        for (int x = 0; x < pixel_w; x++) {
+            int sx = mirror ? src_col + pixel_w - 1 - x : src_col + x;
+            if (sx < 0 || sx >= tex->width) continue;
+            int dx = dst_x + x;
+            if (dx < 0 || dx >= CAPTIVE_VIEWPORT_WIDTH) continue;
+            uint8_t idx = tex->indices[sy * tex->width + sx];
+            if (mask_zero && idx == 0) continue;
+            vp_buf[dy * vp_stride + dx] = tex->pixels[sy * tex->width + sx];
+        }
+    }
 }
 
 void viewport_render(const CaptiveViewWindow *window,
