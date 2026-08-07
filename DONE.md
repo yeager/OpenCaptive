@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive startmeny – källval)
+
+- Startmenyn synkroniserar nu vald Captive-plattform med den senaste
+  dataskanningen även när exakt en källa hittas.
+- Ett tidigare versionsval kan därför inte längre ligga kvar som ett gammalt
+  plattformsval efter att datamappen ändrats eller skannats om.
+- Fullt lokalt testpaket: 58 av 58 tester godkända. Captive-datan i
+  `~/.opencaptive` verifierar både DOS- och Amiga-källan.
+
 ## 2026-08-07 (Captive seedade save-load)
 
 - Captive laddar nu om uppdrag med det auktoritativa `mission_seed`-värdet från

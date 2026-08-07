@@ -16,6 +16,7 @@ extern unsigned char *load_png_file(const char *path, int *w, int *h);
 #define CAPTIVE_HASH_COUNT CAPTIVE_REQUIRED_SOURCE_COUNT
 
 static void stop_data_scanner(StartMenu *menu);
+static int version_popup_source_at(const StartMenu *menu, int selection);
 
 #define SETTINGS_COUNT 24
 
@@ -484,6 +485,19 @@ static MenuResult request_game_start(StartMenu *menu, int game) {
         menu->version_popup_game = game;
         menu->version_popup_selection = 0;
         return MENU_RESULT_NONE;
+    }
+    /* A fresh scan may find only one source after the user previously chose
+     * another version.  Resolve that source explicitly instead of leaving a
+     * stale Captive platform or Liberation source in the launch config. */
+    if (game == GAME_CAPTIVE) {
+        int source = version_popup_source_at(menu, 0);
+        if (source >= 0) {
+            menu->captive_source_choice = (CaptivePlatform)source;
+            menu->platform = menu->captive_source_choice;
+        }
+    } else if (menu->liberation_data_ok) {
+        menu->liberation_source_choice =
+            start_menu_preferred_liberation_source(source_mask);
     }
     return game == GAME_LIBERATION ? MENU_RESULT_START_LIBERATION
                                    : MENU_RESULT_START_CAPTIVE;
