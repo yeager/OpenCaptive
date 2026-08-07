@@ -157,6 +157,9 @@ static void test_generated_mission_progression_reaches_generators(void) {
                 for (int x = 0; x < MAP_WIDTH; x++)
                     if (gs.levels[level].cells[y][x].type == CELL_GENERATOR)
                         assert(reachable[y][x]);
+            for (int i = 0; i < puzzles.num_puzzles; i++)
+                if (puzzles.puzzles[i].level == level)
+                    assert(reachable[puzzles.puzzles[i].y][puzzles.puzzles[i].x]);
         }
     }
 }

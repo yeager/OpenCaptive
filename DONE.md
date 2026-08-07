@@ -3754,3 +3754,5 @@
   generatorn inte hamna bakom en dörr vars alla kontroller ligger på fel sida.
 - Regressionstestet simulerar dörrar som blockeringar och pussel som
   upplåsningar över 256 missionsfrön. Hela sviten passerar: 58/58 tester.
+- Samma regression verifierar dessutom att alla genererade pusselpositioner
+  är nåbara efter upplåsningskedjan.
