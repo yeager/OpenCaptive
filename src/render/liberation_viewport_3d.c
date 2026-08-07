@@ -138,7 +138,7 @@ static void fill_triangle(Lib3dState *state, int x0, int y0, float z0,
         float zb = second_half ? z1 + (float)((z2 - z1) * beta) :
                                 z0 + (float)((z1 - z0) * beta);
 
-        if (xa > xb) { float f = za; za = zb; zb = f; }
+        if (xa > xb) { int t = xa; xa = xb; xb = t; float f = za; za = zb; zb = f; }
 
         for (int x = xa; x <= xb; x++) {
             float t = (xb != xa) ? (float)(x - xa) / (xb - xa) : 0;

@@ -80,13 +80,15 @@ static void test_shop_repair_handles_large_valid_stats(void) {
     d->hp_max = INT16_MAX;
     d->energy = 0;
     d->energy_max = INT16_MAX;
+    for (int i = 0; i < 6; i++) d->body_part_hp[i] = 0;
+    int64_t expected_cost = (int64_t)INT16_MAX * 2 + (int64_t)INT16_MAX * 2 + (int64_t)255 * 6 * 2;
     assert(shop_repair(&shop, &gs, 0));
-    assert(shop.gold == INT_MAX - 4 * INT16_MAX);
+    assert(shop.gold == INT_MAX - (int)expected_cost);
     assert(d->hp == INT16_MAX && d->energy == INT16_MAX);
 }
 
 static void test_shop_repair_preserves_equipment(void) {
-    ShopState shop = {.gold = 1000};
+    ShopState shop = {.gold = 10000};
     static GameState gs;
     memset(&gs, 0, sizeof(gs));
     Droid *d = &gs.droids[0];
@@ -94,6 +96,7 @@ static void test_shop_repair_preserves_equipment(void) {
     d->hp_max = 100;
     d->energy = 80;
     d->energy_max = 100;
+    for (int i = 0; i < 6; i++) d->body_part_hp[i] = 255;
     d->body_parts[0] = 17;
     d->body_parts[1] = 23;
     d->body_part_hp[0] = 10;

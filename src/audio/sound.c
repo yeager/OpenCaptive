@@ -160,7 +160,10 @@ void sound_set_reverb(SoundSystem *snd, bool enabled, float amount) {
     if (amount < 0.0f) amount = 0.0f;
     if (amount > 1.0f) amount = 1.0f;
     snd->reverb_amount = amount;
+    bool was_enabled = snd->reverb_enabled;
     snd->reverb_enabled = enabled && amount > 0.0f;
+    if (snd->reverb_enabled && !was_enabled)
+        reverb_reset();
 }
 
 void sound_mix(SoundSystem *snd) {
@@ -234,8 +237,27 @@ void sound_mix(SoundSystem *snd) {
         }
     }
 
+    for (int a = 0; a < snd->aux_count; a++) {
+        if (snd->aux_pending[a] && *snd->aux_pending[a]) {
+            for (int s = 0; s < 1024; s++) {
+                int32_t mixed = (int32_t)buffer[s] + (int32_t)snd->aux_buf[a][s];
+                if (mixed > 32767) mixed = 32767;
+                if (mixed < -32768) mixed = -32768;
+                buffer[s] = (int16_t)mixed;
+            }
+            *snd->aux_pending[a] = false;
+        }
+    }
+
     if (snd->reverb_enabled)
         reverb_process(buffer, (int)(sizeof(buffer) / sizeof(buffer[0])),
                        snd->reverb_amount);
     SDL_PutAudioStreamData(snd->stream, buffer, sizeof(buffer));
+}
+
+void sound_register_aux(SoundSystem *snd, int16_t *buf, bool *pending) {
+    if (!snd || !buf || !pending || snd->aux_count >= 4) return;
+    snd->aux_buf[snd->aux_count] = buf;
+    snd->aux_pending[snd->aux_count] = pending;
+    snd->aux_count++;
 }

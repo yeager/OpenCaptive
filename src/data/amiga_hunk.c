@@ -92,11 +92,14 @@ bool amiga_hunk_parse(const uint8_t *data, size_t size, AmigaHunkInfo *info) {
             } while (count != 0);
         } else if (value == HUNK_SYMBOL) {
             if (!hunk_open) return false;
-            do {
-                if (!read_be32(data, size, &offset, &value) || !skip_longs(size, &offset, value))
-                    return false;
-                if (value != 0 && !read_be32(data, size, &offset, &value)) return false;
-            } while (value != 0);
+            for (;;) {
+                uint32_t name_len;
+                if (!read_be32(data, size, &offset, &name_len)) return false;
+                if (name_len == 0) break;
+                if (!skip_longs(size, &offset, name_len)) return false;
+                uint32_t sym_val;
+                if (!read_be32(data, size, &offset, &sym_val)) return false;
+            }
         } else {
             return false;
         }

@@ -95,29 +95,36 @@ SpawnResult spawn_creatures(int category, int difficulty, uint8_t direction,
     uint8_t base_subcell = spawn_subcell_from_direction(direction, position);
 
     if (type < 0x0A) {
+        if (result.count < MAX_SPAWN_ENTRIES) {
         SpawnEntry *e = &result.entries[result.count++];
         e->creature_type = type;
         e->subcell = base_subcell;
         e->modifier = mod;
         e->hp = spawn_compute_hp(type, difficulty, mod);
+        }
     } else if (type <= 0x0B) {
+        if (result.count < MAX_SPAWN_ENTRIES) {
         SpawnEntry *e = &result.entries[result.count++];
         e->creature_type = type;
         e->subcell = base_subcell | 0x20;
         e->modifier = mod;
         e->hp = spawn_compute_hp(type, difficulty, mod);
+        }
     } else if (type == 0x0C) {
+        if (result.count < MAX_SPAWN_ENTRIES) {
         SpawnEntry *e0 = &result.entries[result.count++];
         e0->creature_type = type;
         e0->subcell = base_subcell | 0x20;
         e0->modifier = mod;
         e0->hp = spawn_compute_hp(type, difficulty, mod);
-
+        }
+        if (result.count < MAX_SPAWN_ENTRIES) {
         SpawnEntry *e1 = &result.entries[result.count++];
         e1->creature_type = type;
         e1->subcell = (base_subcell + 1) | 0x20;
         e1->modifier = mod;
         e1->hp = spawn_compute_hp(type, difficulty, mod);
+        }
     } else if (type <= 0x0E) {
         for (int i = 0; i < 3 && result.count < MAX_SPAWN_ENTRIES; i++) {
             SpawnEntry *e = &result.entries[result.count++];
@@ -127,45 +134,54 @@ SpawnResult spawn_creatures(int category, int difficulty, uint8_t direction,
             e->hp = spawn_compute_hp(type, difficulty, mod);
         }
     } else if (type == 0x0F) {
+        if (result.count < MAX_SPAWN_ENTRIES) {
         SpawnEntry *e0 = &result.entries[result.count++];
         e0->creature_type = type;
         e0->subcell = base_subcell;
         e0->modifier = mod;
         e0->hp = spawn_compute_hp(type, difficulty, mod);
-
+        }
         uint8_t opp_dir = direction ^ 0x02;
         uint8_t opp_sub = spawn_subcell_from_direction(opp_dir, position);
+        if (result.count < MAX_SPAWN_ENTRIES) {
         SpawnEntry *e1 = &result.entries[result.count++];
         e1->creature_type = type;
         e1->subcell = opp_sub;
         e1->modifier = mod;
         e1->hp = spawn_compute_hp(type, difficulty, mod);
-
+        }
         uint8_t perp_dir = (~direction) & 0x01;
         uint8_t perp_sub = spawn_subcell_from_direction(perp_dir, position);
+        if (result.count < MAX_SPAWN_ENTRIES) {
         SpawnEntry *e2 = &result.entries[result.count++];
         e2->creature_type = type;
         e2->subcell = perp_sub;
         e2->modifier = mod;
         e2->hp = spawn_compute_hp(type, difficulty, mod);
+        }
     } else if (type == 0x15) {
+        if (result.count < MAX_SPAWN_ENTRIES) {
         SpawnEntry *e0 = &result.entries[result.count++];
         e0->creature_type = type;
         e0->subcell = base_subcell;
         e0->modifier = mod;
         e0->hp = spawn_compute_hp(type, difficulty, mod);
-
+        }
+        if (result.count < MAX_SPAWN_ENTRIES) {
         SpawnEntry *e1 = &result.entries[result.count++];
         e1->creature_type = type;
         e1->subcell = base_subcell | 0x20;
         e1->modifier = mod;
         e1->hp = spawn_compute_hp(type, difficulty, mod);
+        }
     } else {
+        if (result.count < MAX_SPAWN_ENTRIES) {
         SpawnEntry *e = &result.entries[result.count++];
         e->creature_type = type;
         e->subcell = base_subcell;
         e->modifier = mod;
         e->hp = spawn_compute_hp(type, difficulty, mod);
+        }
     }
 
     return result;

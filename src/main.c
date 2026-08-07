@@ -497,10 +497,14 @@ static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu,
     config->master_volume = menu->master_volume;
     if (feat) {
         static const int sample_rates[] = {22050, 44100, 48000};
-        feat->audio_sample_rate = sample_rates[menu->audio_sample_rate];
+        int sr_idx = menu->audio_sample_rate;
+        if (sr_idx < 0 || sr_idx >= 3) sr_idx = 1;
+        feat->audio_sample_rate = sample_rates[sr_idx];
         feat->audio_reverb = menu->audio_reverb;
         static const float speeds[] = {0.5f, 1.0f, 2.0f};
-        feat->game_speed = speeds[menu->game_speed];
+        int sp_idx = menu->game_speed;
+        if (sp_idx < 0 || sp_idx >= 3) sp_idx = 1;
+        feat->game_speed = speeds[sp_idx];
         feat->speed_control = (menu->game_speed != 1);
         feat->mouse_sensitivity = (float)menu->mouse_sensitivity;
     }
@@ -884,6 +888,11 @@ static uint32_t utf8_decode(const char **p) {
                (s[1] & 0xC0) == 0x80 && (s[2] & 0xC0) == 0x80) {
         cp = ((uint32_t)(s[0] & 0x0F) << 12) | ((uint32_t)(s[1] & 0x3F) << 6) | (s[2] & 0x3F);
         *p += 3;
+    } else if ((s[0] & 0xF8) == 0xF0 && s[1] != '\0' && s[2] != '\0' && s[3] != '\0' &&
+               (s[1] & 0xC0) == 0x80 && (s[2] & 0xC0) == 0x80 && (s[3] & 0xC0) == 0x80) {
+        cp = ((uint32_t)(s[0] & 0x07) << 18) | ((uint32_t)(s[1] & 0x3F) << 12) |
+             ((uint32_t)(s[2] & 0x3F) << 6) | (s[3] & 0x3F);
+        *p += 4;
     } else { cp = '?'; *p += 1; }
     return cp;
 }
@@ -1162,7 +1171,7 @@ static void restore_liberation_save_state(GameState *gs_ptr,
     gs_ptr->mission_seed = ((uint32_t)save->seed_hi << 16) | save->seed_lo;
     gs_ptr->gold = save->gold > (uint32_t)INT_MAX ? INT_MAX :
         (int)save->gold;
-    gs_ptr->lib_inventory_count = save->shared_inventory_count > 40 ? 0 :
+    gs_ptr->lib_inventory_count = save->shared_inventory_count > 40 ? 40 :
         save->shared_inventory_count;
     for (int i = 0; i < gs_ptr->lib_inventory_count; i++) {
         snprintf(gs_ptr->lib_inventory[i].name,
@@ -1966,6 +1975,8 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         CellType cell = lvl->cells[ny][nx].type;
         if (cell != CELL_WALL && cell != CELL_DOOR && cell != CELL_DOOR_LOCKED &&
             !combat_cell_occupied(&creatures, gs->current_level, nx, ny)) {
+            int pre_move_x = gs->party_x;
+            int pre_move_y = gs->party_y;
             gs->party_x = nx;
             gs->party_y = ny;
             for (int di = 0; di < 4; di++) {
@@ -1979,8 +1990,8 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 /* Teleporters have no creature-list dependency.  Reject a
                  * destination occupied by an active creature and leave the
                  * party on the safe tile that triggered the teleport. */
-                gs->party_x = nx;
-                gs->party_y = ny;
+                gs->party_x = pre_move_x;
+                gs->party_y = pre_move_y;
             }
             /* A teleporter may move the party while resolving the step.
              * All post-movement effects must use the actual landing cell,
@@ -3381,13 +3392,15 @@ int main(int argc, char *argv[]) {
                                 LIBERATION_SCREEN_HEIGHT, 0, 47);
                         }
                     } else if (liberation_mission_menu_active && liberation_mission_menu_pixels) {
+                        int copy_w = liberation_mission_menu_width;
+                        if (copy_w > LIBERATION_SCREEN_WIDTH) copy_w = LIBERATION_SCREEN_WIDTH;
                         for (uint16_t y = 0; y < liberation_mission_menu_height; ++y) {
                             if (y + LIBERATION_MISSION_MENU_Y >= LIBERATION_SCREEN_HEIGHT) break;
                             memcpy(framebuffer + (size_t)(y + LIBERATION_MISSION_MENU_Y) *
                                    LIBERATION_SCREEN_WIDTH,
                                    liberation_mission_menu_pixels +
                                    (size_t)y * liberation_mission_menu_width,
-                                   (size_t)liberation_mission_menu_width * sizeof(*framebuffer));
+                                   (size_t)copy_w * sizeof(*framebuffer));
                         }
                     } else if (liberation_prototype_gameplay_enabled &&
                                lib_mission_briefing && lib_city_generated) {
@@ -3456,7 +3469,9 @@ int main(int argc, char *argv[]) {
                         }
                         if (taxi_flash_ttl > 0) {
                             taxi_flash_ttl--;
-                            uint32_t flash = 0xFF000000 | ((taxi_flash_ttl * 17) << 8);
+                            uint32_t g = (uint32_t)taxi_flash_ttl * 17;
+                            if (g > 255) g = 255;
+                            uint32_t flash = 0xFF000000 | (g << 8);
                             for (int i = 0; i < LIBERATION_SCREEN_WIDTH * (LIBERATION_SCREEN_HEIGHT - 40); i++)
                                 framebuffer[i] = flash;
                             draw_centered(framebuffer, LIBERATION_SCREEN_WIDTH,
@@ -3476,7 +3491,8 @@ int main(int argc, char *argv[]) {
                             for (int y = 0; y < LIBERATION_SCREEN_HEIGHT; y++)
                                 for (int x = 0; x < LIBERATION_SCREEN_WIDTH; x++)
                                     framebuffer[y * LIBERATION_SCREEN_WIDTH + x] =
-                                        (framebuffer[y * LIBERATION_SCREEN_WIDTH + x] >> 1) & 0x7F7F7F;
+                                        (framebuffer[y * LIBERATION_SCREEN_WIDTH + x] & 0xFF000000) |
+                                        ((framebuffer[y * LIBERATION_SCREEN_WIDTH + x] & 0xFEFEFE) >> 1);
                             draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                 LIBERATION_SCREEN_HEIGHT, 8, 8, _("COMBAT"), 0xFFFF0000, 1);
                             int combat_enemy_count = lib_combat.enemy_count;
@@ -3509,7 +3525,8 @@ int main(int argc, char *argv[]) {
                                      y < LIBERATION_SCREEN_HEIGHT; y++)
                                     for (int x = 0; x < LIBERATION_SCREEN_WIDTH; x++)
                                         framebuffer[y * LIBERATION_SCREEN_WIDTH + x] =
-                                            (framebuffer[y * LIBERATION_SCREEN_WIDTH + x] >> 2) & 0x3F3F3F;
+                                            (framebuffer[y * LIBERATION_SCREEN_WIDTH + x] & 0xFF000000) |
+                                            ((framebuffer[y * LIBERATION_SCREEN_WIDTH + x] & 0xFCFCFC) >> 2);
                                 // NPC type indicator (portrait substitute)
                                 {
                                     const char *npc_icons[] = {"[?]","[S]","[B]","[C]","[L]","[P]","[R]","[H]","[I]","[!]"};
@@ -3587,6 +3604,7 @@ int main(int argc, char *argv[]) {
                         combat_tick(&creatures, &gs);
                         if (creatures.attack_occurred) {
                             int ti = creatures.last_attack_target;
+                            if (ti < 0 || ti >= 4) ti = 0;
                             char msg[64];
                             snprintf(msg, sizeof(msg), _("Droid %d hit for %d!"),
                                      ti + 1,

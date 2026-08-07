@@ -1,6 +1,7 @@
 #include "shop.h"
 #include "captive_data.h"
 #include <stdint.h>
+#include <limits.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -233,11 +234,13 @@ bool shop_repair(ShopState *shop, GameState *gs, int droid_idx) {
 
     int64_t damage = (int64_t)(d->hp_max - d->hp) +
                      (int64_t)(d->energy_max - d->energy);
+    for (int i = 0; i < 6; i++)
+        damage += (int64_t)(255 - d->body_part_hp[i]);
     int64_t cost = damage * 2;
     if (cost < 10) cost = 10;
     if (cost > shop->gold) return false;
 
-    shop->gold -= (int)cost;
+    shop->gold -= (int)(cost > INT_MAX ? INT_MAX : cost);
     d->hp = d->hp_max;
     d->energy = d->energy_max;
     for (int i = 0; i < 6; i++)

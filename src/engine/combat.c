@@ -203,17 +203,17 @@ static bool combat_has_line_of_sight(const GameState *gs,
         return false;
     int dx = x1 > x0 ? x1 - x0 : x0 - x1;
     int sx = x0 < x1 ? 1 : -1;
-    int dy = y1 > y0 ? y0 - y1 : y1 - y0;
+    int dy = -(y1 > y0 ? y1 - y0 : y0 - y1);
     int sy = y0 < y1 ? 1 : -1;
-    int error = dx - dy;
+    int error = dx + dy;
     int x = x0, y = y0;
 
     while (x != x1 || y != y1) {
         int twice_error = error * 2;
         int old_x = x;
         int old_y = y;
-        if (twice_error > -dy) { error -= dy; x += sx; }
-        if (twice_error < dx) { error += dx; y += sy; }
+        if (twice_error >= dy) { error += dy; x += sx; }
+        if (twice_error <= dx) { error += dx; y += sy; }
         if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT ||
             blocks_movement_or_sight(gs->levels[gs->current_level].cells[y][x].type))
             return false;
@@ -442,7 +442,7 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     if (cx <= 0) cx = 5;
     for (int i = 0; i < 3; i++) {
         int next = cx * 2;
-        if (next > 0x7FFF) { cx = 0xFFFD; break; }
+        if (next > 0x7FFF) { cx = (int)(int16_t)0xFFFD; break; }
         cx = next;
     }
     int base_damage = (int)cx;

@@ -106,10 +106,10 @@ void debug_hud_render(uint32_t *fb, int fb_w, int fb_h,
     CellType ct = lvl->cells[gs->party_y][gs->party_x].type;
     static const char *cell_names[] = {
         "WALL", "FLOOR", "DOOR", "LOCKED", "UP", "DOWN",
-        "SHOP", "TELE", "GEN", "TERM"
+        "SHOP", "TELE", "GEN", "TERM", "ELEV", "PLATE", "PIT"
     };
     int safe_cell = (int)ct;
-    if (safe_cell < 0 || safe_cell >= 10) safe_cell = 0;
+    if (safe_cell < 0 || safe_cell >= 13) safe_cell = 0;
     snprintf(buf, sizeof(buf), "CELL: %s", cell_names[safe_cell]);
     draw_string(fb, fb_w, fb_h, 2, y, buf, color);
     y += 8;

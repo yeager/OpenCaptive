@@ -1,6 +1,6 @@
 # User Guide
 
-> Updated for v1.1.79. The launcher now caches unchanged data-scan results and asks which verified version to launch when several versions are present.
+> Updated for v1.1.82. The launcher now caches unchanged data-scan results and asks which verified version to launch when several versions are present.
 
 ## System requirements
 
@@ -76,7 +76,7 @@ opencaptive --data /path/to/your/media --lang sv
 | Flag | Description |
 | --- | --- |
 | `--fullscreen` | Start in fullscreen mode |
-| `--scale <N>` | Window scale factor (1-8, default: 3) |
+| `--scale <N>` | Window scale factor (1-5, default: 3) |
 | `--scanlines` | Enable scanline effect |
 | `--crt` | Enable CRT curvature effect |
 | `--bilinear` | Enable bilinear texture filtering |
@@ -129,7 +129,7 @@ Appears only when save files exist (`opencaptive.sav` or `liberation.sav`). Resu
 
 ## Settings
 
-The settings panel contains 16 configurable items:
+The settings panel contains 24 configurable items (some shown only when relevant):
 
 | Setting | Values |
 | --- | --- |
@@ -255,7 +255,7 @@ Place ZIP archives containing your original game media in the data directory. Op
 
 | Game | Verified files needed |
 | --- | --- |
-| Captive | 12 |
+| Captive | 25 |
 | Liberation | 7 |
 
 ### Data Scanner

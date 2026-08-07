@@ -527,6 +527,12 @@ add_executable(pl5_to_bmp
 )
 target_include_directories(pl5_to_bmp PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
+add_executable(pl5_analyze
+    tools/pl5_analyze.c
+    src/data/pl5_decoder.c
+)
+target_include_directories(pl5_analyze PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
 add_executable(anm_extract
     tools/anm_extract.c
     src/data/anm_decoder.c

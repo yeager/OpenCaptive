@@ -95,9 +95,9 @@ static uint8_t sample_sheet_index(const TextureAtlas *atlas, int sheet,
     return tex->indices[sy * tex->width + sx];
 }
 
-/* The compatibility renderer treats each verified 320x200 panel as a
- * 4-by-4 collection of 80x50 source regions.  Keep the same addressing for
- * floor and ceiling fields as draw_wall() uses for wall_tex. */
+/* Map a local floor/ceiling coordinate to a source position in the PL5
+ * sheet.  The texture index selects a 80x50 tile within the 320x200 sheet
+ * (4 columns x 4 rows). */
 static void panel_tile_position(uint8_t texture, int local_x, int local_y,
                                 int *sx, int *sy) {
     if (!sx || !sy) return;
@@ -146,7 +146,7 @@ static void draw_floor_ceiling(uint32_t *fb, int fb_w, int fb_h,
                                 int vp_x, int vp_y) {
     (void)lateral;
     const RangeParams *rp = &range_params[range];
-    int sheet = atlas->wall_sheets[range < 5 ? range : 4];
+    int sheet = atlas->wall_sheets[0];
     if (sheet < 0) return;
 
     int floor_y = rp->bottom_y;
@@ -190,7 +190,7 @@ static void draw_wall(uint32_t *fb, int fb_w, int fb_h,
                        int wall_x, int wall_y, int wall_w, int wall_h,
                        int vp_x, int vp_y,
                        uint8_t wall_tex, int range) {
-    int sheet = atlas->wall_sheets[range < 5 ? range : 4];
+    int sheet = atlas->wall_sheets[0];
     if (sheet < 0) return;
 
     int src_base_x = (wall_tex % 4) * 80;
@@ -288,8 +288,9 @@ void viewport_render(const CaptiveViewWindow *window,
         for (int x = 0; x < vp_w; x++) {
             uint32_t c;
             if (roof_sheet >= 0) {
-                int sy = y < vp_h / 2 ? y : y;
-                c = sample_sheet(atlas, roof_sheet, x % 320, sy % 200);
+                int rx = x;
+                int ry = y < vp_h / 2 ? y : vp_h - 1 - y;
+                c = sample_sheet(atlas, roof_sheet, 160 + (rx % 160), ry % 100);
             } else {
                 c = y < vp_h / 2 ? 0xFF1A1A2E : 0xFF0A0A1A;
             }
@@ -660,8 +661,8 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
 
     int dx_table[] = {0, 1, 0, -1};
     int dy_table[] = {-1, 0, 1, 0};
-    int lx_table[] = {-1, 0, 1, 0};
-    int ly_table[] = {0, -1, 0, 1};
+    int lx_table[] = {1, 0, -1, 0};
+    int ly_table[] = {0, 1, 0, -1};
 
     int safe_dir = (gs->party_dir >= DIR_NORTH && gs->party_dir <= DIR_WEST)
         ? gs->party_dir : DIR_NORTH;

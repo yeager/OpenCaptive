@@ -360,6 +360,8 @@ static void architect_ensure_minimum_floor(DungeonLevel *level,
 
 static void architect_carve_floor(DungeonLevel *level, const int section_floor[16],
                                   int floor, int start_x, int start_y) {
+    if (start_x < 0 || start_x >= MAP_WIDTH ||
+        start_y < 0 || start_y >= MAP_HEIGHT) return;
     level->cells[start_y][start_x].type = CELL_FLOOR;
     int x = start_x, y = start_y;
     int carved = 1;
@@ -668,6 +670,7 @@ void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
         int start_section = -1;
         for (int s = 0; s < 16; s++)
             if (section_floor[s] == f) { start_section = s; break; }
+        if (start_section < 0) start_section = 0;
         int sx = (start_section % 4) * ARCH_SECTION_W + ARCH_SECTION_W / 2;
         int sy = (start_section / 4) * ARCH_SECTION_H + ARCH_SECTION_H / 2;
         if (f == 0) {
@@ -737,11 +740,13 @@ void map_generate_exterior(DungeonLevel *exterior, int entrance_x, uint32_t seed
 
     /* Scatter some terrain obstacles using the mission PRNG */
     uint16_t state = (uint16_t)(seed ^ 0xA3B7);
-    for (int i = 0; i < 8; i++) {
+    int pad_w = pad_x1 - pad_x0 - 3;
+    int pad_h = pad_y1 - pad_y0 - 4;
+    for (int i = 0; i < 8 && pad_w > 0 && pad_h > 0; i++) {
         state = (uint16_t)(state * 0x5E5u + 0x29u);
-        int ox = pad_x0 + 2 + (state % (pad_x1 - pad_x0 - 3));
+        int ox = pad_x0 + 2 + (state % pad_w);
         state = (uint16_t)(state * 0x5E5u + 0x29u);
-        int oy = pad_y0 + 3 + (state % (pad_y1 - pad_y0 - 4));
+        int oy = pad_y0 + 3 + (state % pad_h);
         if (oy > pad_y0 + 1 && exterior->cells[oy][ox].type == CELL_FLOOR)
             exterior->cells[oy][ox].type = CELL_WALL;
     }

@@ -240,6 +240,7 @@ void adlib_sfx_init(AdlibSfxPlayer *player, int sample_rate) {
     if (!player) return;
     memset(player, 0, sizeof(*player));
     opl2_init(&player->opl);
+    player->opl.sample_rate = sample_rate;
     opl2_write(&player->opl, 0x01, 0x20);
     player->samples_per_tick = sample_rate / SFX_TICK_RATE;
     if (player->samples_per_tick < 1) player->samples_per_tick = 1;

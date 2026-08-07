@@ -1,6 +1,6 @@
 # Developer Guide
 
-> Updated for v1.1.79. Release tags build and verify Linux, macOS, Windows, Android, and iOS artifacts in GitHub Actions.
+> Updated for v1.1.82. Release tags build and verify Linux, macOS, Windows, Android, and iOS artifacts in GitHub Actions.
 
 ## Build
 
@@ -46,7 +46,9 @@ src/
   data/       - Data loading: data_vfs, sha256, gfx_loader, texture_atlas,
                 pl5/anm/rnc/ctv decoders, amiga_ofs/hunk/planar,
                 liberation_data/anim/vgm/x3g/img/fnt, i18n, iso9660
-  custom/     - Custom features: replay, cross_save
+  custom/     - Custom features: replay, cross_save, debug_hud, automap, lighting,
+                minimap, audio_reverb, upscale_xbrz
+  platform/   - Platform-specific: macos_menu
 include/      - All public headers
 tests/        - 59 test source files (58 CTest targets)
 docs/         - Documentation and wiki
@@ -70,7 +72,7 @@ The start menu presents an 8-item navigation grid (2 columns x 4 rows):
 - **Continue** items are only shown when saves exist for that game.
 - **Data status indicators**: each game card shows a SHA-256 verification indicator (checkmark when all required data is present, cross when missing).
 - **Data Scanner** (press D): scans the VFS for all required content hashes and reports results per game.
-- **Settings panel**: 16 configurable options with scrolling.
+- **Settings panel**: 24 configurable options with scrolling.
 - **About screen**: credits, version, technology.
 - **Controls screen**: full keyboard reference.
 

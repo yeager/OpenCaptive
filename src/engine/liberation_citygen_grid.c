@@ -416,7 +416,8 @@ static int citygrid_walk_to_origin(uint8_t *plane0, uint8_t *plane2,
     dir ^= 2;
     int d4 = 1;
     int prev = offset;
-    for (;;) {
+    int max_steps = CITYGRID_WIDTH * CITYGRID_HEIGHT;
+    for (int step = 0; step < max_steps; step++) {
         int heading = dir & 3;
         int x = offset % CITYGRID_WIDTH;
         int y = offset / CITYGRID_WIDTH;
@@ -435,7 +436,7 @@ static int citygrid_walk_to_origin(uint8_t *plane0, uint8_t *plane2,
         offset = next_off;
         dir = dummy_dir;
     }
-    return prev;
+    return offset;
 }
 
 /* sub_07D2 + sub_0800: resolve building shapes */
@@ -489,13 +490,9 @@ static void resolve_building_shapes(CityGridState *s) {
                     }
 
                     if (conn == 1) {
-                        uint8_t val = (uint8_t)((s->buildings[j].connection >> 16) + 1);
-                        val |= 1;
-                        s->buildings[j].connection = val;
+                        s->buildings[j].connection |= 1;
                     } else if (conn == 2) {
-                        uint8_t val = (uint8_t)((s->buildings[j].connection >> 16) & ~1);
-                        val += 2;
-                        s->buildings[j].connection = val;
+                        s->buildings[j].connection = (s->buildings[j].connection & ~1) + 2;
                     }
                 }
             }
@@ -959,7 +956,8 @@ void citygrid_generate(CityGridState *s) {
 
     if (s->road_count > 0) {
         int dir = 0;
-        while (!(s->road_mask & (1 << dir))) dir++;
+        while (dir < 4 && !(s->road_mask & (1 << dir))) dir++;
+        if (dir >= 4) dir = 0;
 
         for (uint16_t i = 0; i < s->road_count; i++) {
             walk_road(s, dir ^ 2, road_corners[dir][0], road_corners[dir][1]);

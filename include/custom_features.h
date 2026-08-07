@@ -82,6 +82,7 @@ bool automap_is_visited(const Automap *am, int level, int x, int y);
 // --- Audio Reverb ---
 
 void reverb_process(int16_t *buffer, int num_samples, float amount);
+void reverb_reset(void);
 
 // --- Replay ---
 

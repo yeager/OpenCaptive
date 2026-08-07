@@ -42,6 +42,7 @@ typedef struct {
     bool        waveform_enable;
     uint8_t     timer_ctl;
     uint32_t    noise_rng;
+    int         sample_rate;
 } OPL2;
 
 void opl2_init(OPL2 *opl);

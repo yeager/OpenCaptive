@@ -85,23 +85,20 @@ static uint8_t effective_channel_volume(const MIDIPlayer *mp, int channel) {
 
 static int alloc_voice(MIDIPlayer *mp, int midi_ch) {
     (void)midi_ch;
-    int oldest_idx = -1;
-    uint32_t oldest_age = 0;
-
     for (int i = 0; i < OPL2_VOICE_COUNT; i++) {
         if (!mp->voices[i].active) return i;
     }
-    for (int i = 0; i < OPL2_VOICE_COUNT; i++) {
+    int oldest_idx = 0;
+    uint32_t oldest_age = mp->voices[0].age;
+    for (int i = 1; i < OPL2_VOICE_COUNT; i++) {
         if (mp->voices[i].age > oldest_age) {
             oldest_age = mp->voices[i].age;
             oldest_idx = i;
         }
     }
-    if (oldest_idx >= 0) {
-        opl2_note_off(&mp->opl, oldest_idx);
-        mp->voices[oldest_idx].active = false;
-    }
-    return oldest_idx >= 0 ? oldest_idx : 0;
+    opl2_note_off(&mp->opl, oldest_idx);
+    mp->voices[oldest_idx].active = false;
+    return oldest_idx;
 }
 
 static void process_event(MIDIPlayer *mp, uint8_t status, const uint8_t *data,
@@ -292,6 +289,7 @@ bool midi_load(MIDIPlayer *player, const uint8_t *data, size_t size) {
     player->master_volume = 1.0f;
 
     opl2_init(&player->opl);
+    player->opl.sample_rate = player->sample_rate;
     opl2_write(&player->opl, 0x01, 0x20);
     recalc_tick_rate(player);
 
@@ -323,6 +321,7 @@ void midi_play(MIDIPlayer *player, bool loop) {
     }
 
     opl2_init(&player->opl);
+    player->opl.sample_rate = player->sample_rate;
     opl2_write(&player->opl, 0x01, 0x20);
     memset(player->voices, 0, sizeof(player->voices));
 }
@@ -352,6 +351,7 @@ void midi_set_volume(MIDIPlayer *player, float vol) {
 void midi_set_sample_rate(MIDIPlayer *player, int sample_rate) {
     if (!player || sample_rate <= 0) return;
     player->sample_rate = sample_rate;
+    player->opl.sample_rate = sample_rate;
     recalc_tick_rate(player);
 }
 

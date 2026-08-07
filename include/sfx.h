@@ -22,6 +22,8 @@ typedef struct {
     AdlibSfxPlayer adlib;
     SoundSystem *sound;
     int sfx_map[SFX_COUNT];
+    int16_t mix_buf[1024];
+    bool mix_pending;
     bool enabled;
 } SfxSystem;
 

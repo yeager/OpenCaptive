@@ -27,6 +27,7 @@ static void write_bmp(const char *path, int width, int height,
     fwrite(header, 1, 54, f);
 
     uint8_t *row = calloc(row_padded, 1);
+    if (!row) { fclose(f); return; }
     for (int y = height - 1; y >= 0; y--) {
         for (int x = 0; x < width; x++) {
             uint8_t idx = pixels[y * width + x];
@@ -53,7 +54,9 @@ int main(int argc, char *argv[]) {
     fseek(f, 0, SEEK_END);
     long size = ftell(f);
     fseek(f, 0, SEEK_SET);
+    if (size <= 0) { fprintf(stderr, "Empty file\n"); fclose(f); return 1; }
     uint8_t *data = malloc(size);
+    if (!data) { fprintf(stderr, "Out of memory\n"); fclose(f); return 1; }
     fread(data, 1, size, f);
     fclose(f);
 

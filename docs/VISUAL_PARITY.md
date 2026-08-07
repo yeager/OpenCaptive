@@ -1,6 +1,6 @@
 # Visuell paritet
 
-> Uppdaterad för v1.1.79. Dokumentet skiljer mellan reproducerbara originalbilder och prototypgrafik.
+> Uppdaterad för v1.1.82. Dokumentet skiljer mellan reproducerbara originalbilder och prototypgrafik.
 
 Paritetskontroller får bara använda avkodade originalresurser eller fångster
 från en sådan avkodningsväg. Den tidigare CI-snapshoten av en hembyggd

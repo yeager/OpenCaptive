@@ -55,6 +55,7 @@ static void draw_number(uint32_t *pixels, int w, int h,
     char buf[8];
     snprintf(buf, sizeof(buf), "%d", value);
     for (int i = 0; buf[i]; i++) {
+        if (buf[i] < '0' || buf[i] > '9') continue;
         draw_digit(pixels, w, h, x + i * 5, y, buf[i] - '0', color);
     }
 }

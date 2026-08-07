@@ -940,7 +940,7 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
                 if (c < col_items - 1) {
                     menu->settings_cursor++;
                 } else if (c == col_items - 1) {
-                    menu->settings_cursor = back;
+                    menu->settings_cursor = col_items;
                 } else if (c < back - 1) {
                     menu->settings_cursor++;
                 } else {
@@ -1098,8 +1098,12 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
         _("DATA PATH:"), _("LANGUAGE:"), _("ENHANCED:"), _("BACK"),
     };
     char values[SETTINGS_COUNT][32];
-    snprintf(values[0], 32, "%s", renderer_names[menu->renderer_backend]);
-    snprintf(values[1], 32, "%dx%d", win_w[menu->window_size], win_h[menu->window_size]);
+    int rb = menu->renderer_backend;
+    if (rb < 0 || rb >= 3) rb = 0;
+    int ws = menu->window_size;
+    if (ws < 0 || ws >= 4) ws = 0;
+    snprintf(values[0], 32, "%s", renderer_names[rb]);
+    snprintf(values[1], 32, "%dx%d", win_w[ws], win_h[ws]);
     snprintf(values[2], 32, "%dX", menu->scale_factor);
     snprintf(values[3], 32, "%s", menu->fullscreen ? _("ON") : _("OFF"));
     snprintf(values[4], 32, "%s", menu->integer_scaling ? _("ON") : _("OFF"));
@@ -1116,11 +1120,17 @@ static void render_settings(StartMenu *menu, uint32_t *pixels, int width, int he
     snprintf(values[14], 32, "%s", menu->music_enabled ? _("ON") : _("OFF"));
     snprintf(values[15], 32, "%s", menu->sfx_enabled ? _("ON") : _("OFF"));
     snprintf(values[16], 32, "%s", menu->audio_reverb ? _("ON") : _("OFF"));
-    snprintf(values[17], 32, "%d Hz", sample_rates[menu->audio_sample_rate]);
-    snprintf(values[18], 32, "%s", speed_labels[menu->game_speed]);
+    int sr_i = menu->audio_sample_rate;
+    if (sr_i < 0 || sr_i >= 3) sr_i = 1;
+    int sp_i = menu->game_speed;
+    if (sp_i < 0 || sp_i >= 3) sp_i = 1;
+    snprintf(values[17], 32, "%d Hz", sample_rates[sr_i]);
+    snprintf(values[18], 32, "%s", speed_labels[sp_i]);
     snprintf(values[19], 32, "%d", menu->mouse_sensitivity);
     values[20][0] = '\0';
-    snprintf(values[21], 32, "%s", lang_labels[menu->lang_index]);
+    int li = menu->lang_index;
+    if (li < 0 || li >= LANG_COUNT) li = 0;
+    snprintf(values[21], 32, "%s", lang_labels[li]);
     snprintf(values[22], 32, "%s", menu->enhanced_mode ? _("ON") : _("OFF"));
     values[23][0] = '\0';
 

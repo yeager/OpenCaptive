@@ -36,6 +36,8 @@ typedef struct {
     uint32_t    prng_state;
     int         sample_rate;
     float       master_volume;
+    int16_t     mix_buf[1024];
+    bool        mix_pending;
     bool        high_quality;
     bool        enabled;
 } MusicSystem;

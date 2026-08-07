@@ -64,7 +64,6 @@ uint16_t citygen_prng(uint16_t *state);
 void citygen_init(CityGrid *grid, uint16_t seed, uint16_t level);
 void citygen_compute_params(CityGrid *grid);
 void citygen_place_buildings(CityGrid *grid);
-void citygen_connect_roads(CityGrid *grid);
 void citygen_assign_types(CityGrid *grid);
 void citygen_generate_name(CityGrid *grid);
 void citygen_generate(CityGrid *grid, uint16_t seed, uint16_t level);

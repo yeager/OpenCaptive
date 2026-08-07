@@ -148,6 +148,7 @@ bool music_init(MusicSystem *mus, SoundSystem *snd, const DataVFS *vfs,
     mus->sample_rate = sample_rate;
     mus->master_volume = 1.0f;
     mus->high_quality = high_quality;
+    if (snd) sound_register_aux(snd, mus->mix_buf, &mus->mix_pending);
     return true;
 }
 
@@ -216,14 +217,10 @@ void music_stop(MusicSystem *mus) {
 }
 
 void music_update(MusicSystem *mus) {
-    if (!mus || !mus->enabled || !mus->player.playing) return;
+    if (!mus || !mus->enabled || !mus->player.playing) { if (mus) mus->mix_pending = false; return; }
 
-    int16_t buffer[1024];
-    midi_render(&mus->player, buffer, 1024);
-
-    if (mus->sound && mus->sound->stream) {
-        SDL_PutAudioStreamData(mus->sound->stream, buffer, sizeof(buffer));
-    }
+    midi_render(&mus->player, mus->mix_buf, 1024);
+    mus->mix_pending = true;
 }
 
 void music_shutdown(MusicSystem *mus) {

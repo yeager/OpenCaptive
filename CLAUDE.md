@@ -5,7 +5,7 @@
 A modern reimplementation of two classic sci-fi dungeon crawlers by Antony Crowther:
 
 - **Captive** (1990, Mindscape) — supports DOS, Atari ST, and Amiga game data
-- **Liberation: Captive 2** (1994, Mindscape) — supports Amiga and Amiga CD32 game data
+- **Liberation: Captive 2** (1993, Mindscape) — supports Amiga and Amiga CD32 game data
 
 Both games use original-faithful rendering with an optional enhanced graphics mode. A start menu lets the user choose which game to play.
 
@@ -25,21 +25,33 @@ ctest --test-dir build -j4
 ## Run
 
 ```bash
-./build/opencaptive --data <path-to-game-data> [--enhanced] [--platform dos|atari|amiga] [--scale N]
+./build/opencaptive --data <path-to-game-data> [--enhanced] [--platform dos] [--scale 1-5]
 ```
 
 ## Project structure
 
 ```
 src/
-  engine/     - Game logic: map_gen, combat, start_menu, inventory, shop, save_load, puzzle, droid_ui, terminal
-  data/       - Format decoders: pl5, anm, rnc, gfx_loader, texture_atlas, adf_reader, iso9660, st_disk, mid_loader
-  render/     - SDL3: renderer, viewport (3D with creatures), hud
-  audio/      - Sound: 8SVX loader, 8-channel mixer, MIDI player, music system
-include/      - Public headers (one per module)
-tests/        - Test sources (pl5_decoder, anm_decoder, map_gen)
-tools/        - Standalone: pl5_to_bmp, anm_extract, rnc_decode
-docs/         - Format docs: PL5, ANM, map generation, weapons/items, viewport, Liberation
+  engine/     - Game engine: start_menu, combat, save_load, inventory, shop, puzzle,
+                droid_ui, terminal, map_gen, spawn, arcd_decoder, liberation_plotgen
+  game/       - Liberation runtime: city_nav, dialogue, shop, building_interact, combat,
+                npc_dialogue, save
+  render/     - Rendering: hud, holamap, captive_compositor, renderer, viewport,
+                liberation_viewport_3d
+  audio/      - Audio: music, midi_player, sfx, adlib_sfx, opl2_emu, sound
+  data/       - Data loading: data_vfs, sha256, gfx_loader, texture_atlas,
+                pl5/anm/rnc/ctv decoders, amiga_ofs/hunk/planar, adf_reader,
+                liberation_data/anim/vgm/x3g/img/fnt, i18n, iso9660, st_disk, mid_loader
+  custom/     - Custom features: replay, cross_save, debug_hud, automap, lighting,
+                minimap, audio_reverb, upscale_xbrz
+  platform/   - Platform-specific: macos_menu
+include/      - All public headers
+tests/        - 59 test source files (58 CTest targets)
+tools/        - 25 standalone utilities (hash_find, hash_extract, extractors, dumpers)
+docs/         - Technical documentation
+po/           - Translation files (19 languages)
+data/         - Bundled fonts
+assets/       - Icons (SVG, ICO, ICNS), Android/iOS assets
 gamedata/     - Original game data (gitignored)
 ```
 

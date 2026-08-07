@@ -221,6 +221,7 @@ void opl2_init(OPL2 *opl) {
     init_tables();
     memset(opl, 0, sizeof(*opl));
     opl->noise_rng = 1;
+    opl->sample_rate = OPL2_SAMPLE_RATE;
     for (int ch = 0; ch < OPL2_NUM_CHANNELS; ch++) {
         opl->channels[ch].op[0].env_level = 0x1FF;
         opl->channels[ch].op[1].env_level = 0x1FF;
@@ -256,6 +257,7 @@ void opl2_write(OPL2 *opl, uint8_t reg, uint8_t val) {
 
 void opl2_render(OPL2 *opl, int16_t *buffer, int num_samples) {
     if (!opl || !buffer || num_samples <= 0) return;
+    int rate = opl->sample_rate > 0 ? opl->sample_rate : OPL2_SAMPLE_RATE;
     for (int s = 0; s < num_samples; s++) {
         int32_t output = 0;
 
@@ -271,16 +273,18 @@ void opl2_render(OPL2 *opl, int16_t *buffer, int num_samples) {
             update_envelope(&c->op[0], c->key_on, ksr_val);
             update_envelope(&c->op[1], c->key_on, ksr_val);
 
-            /* Advance phases */
-            uint32_t op0_freq = freq * c->op[0].mult;
-            uint32_t op1_freq = freq * c->op[1].mult;
+            /* Advance phases, scaled to actual sample rate */
+            uint64_t op0_freq = (uint64_t)freq * c->op[0].mult;
+            uint64_t op1_freq = (uint64_t)freq * c->op[1].mult;
             if (c->op[0].mult == 1 && (opl->regs[0x20 + ch_to_op[ch]] & 0x0F) == 0)
                 op0_freq >>= 1;
             if (c->op[1].mult == 1 && (opl->regs[0x20 + ch_to_op[ch] + 3] & 0x0F) == 0)
                 op1_freq >>= 1;
+            op0_freq = op0_freq * OPL2_SAMPLE_RATE / (uint64_t)rate;
+            op1_freq = op1_freq * OPL2_SAMPLE_RATE / (uint64_t)rate;
 
-            c->op[0].phase += op0_freq;
-            c->op[1].phase += op1_freq;
+            c->op[0].phase += (uint32_t)op0_freq;
+            c->op[1].phase += (uint32_t)op1_freq;
 
             /* Operator 0 output with feedback */
             int32_t fb_mod = 0;

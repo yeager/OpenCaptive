@@ -59,6 +59,7 @@ int main(int argc, char *argv[]) {
 
     if (result > 0) {
         f = fopen(argv[2], "wb");
+        if (!f) { fprintf(stderr, "Cannot open %s for writing\n", argv[2]); free(output); free(data); return 1; }
         fwrite(output, 1, result, f);
         fclose(f);
         printf("Wrote %s\n", argv[2]);

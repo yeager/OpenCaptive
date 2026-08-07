@@ -36,6 +36,9 @@ typedef struct {
     bool enabled;
     bool reverb_enabled;
     uint32_t sample_rate;
+    int16_t *aux_buf[4];
+    bool    *aux_pending[4];
+    int      aux_count;
 } SoundSystem;
 
 bool sound_init(SoundSystem *snd, uint32_t sample_rate);
@@ -48,6 +51,7 @@ void sound_stop_all(SoundSystem *snd);
 void sound_set_enabled(SoundSystem *snd, bool enabled);
 void sound_set_volume(SoundSystem *snd, float volume);
 void sound_set_reverb(SoundSystem *snd, bool enabled, float amount);
+void sound_register_aux(SoundSystem *snd, int16_t *buf, bool *pending);
 void sound_mix(SoundSystem *snd);
 
 #endif

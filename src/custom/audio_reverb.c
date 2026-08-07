@@ -11,6 +11,11 @@
 static int16_t delay_buf[REVERB_BUFFER_SIZE];
 static int delay_pos = 0;
 
+void reverb_reset(void) {
+    memset(delay_buf, 0, sizeof(delay_buf));
+    delay_pos = 0;
+}
+
 void reverb_process(int16_t *buffer, int num_samples, float amount) {
     if (!buffer || num_samples <= 0 || !isfinite(amount) || amount <= 0.0f) return;
     if (amount > 1.0f) amount = 1.0f;

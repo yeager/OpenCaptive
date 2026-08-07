@@ -8,9 +8,12 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <direct.h>
 #include <sys/stat.h>
 #define stat _stat64
+#define vfs_mkdir(p) _mkdir(p)
 #else
+#define vfs_mkdir(p) mkdir(p, 0755)
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -893,8 +896,8 @@ static void vfs_cache_write_negative(const char hash[65],
             (int)sizeof(parent) ||
         snprintf(path, sizeof(path), "%s/%s.miss", base, hash) >=
             (int)sizeof(path)) return;
-    (void)mkdir(parent, 0755);
-    (void)mkdir(base, 0755);
+    (void)vfs_mkdir(parent);
+    (void)vfs_mkdir(base);
     unsigned long process_id = cache_process_id();
     if (snprintf(temporary, sizeof(temporary), "%s.tmp.%lu", path,
                  process_id) >= (int)sizeof(temporary)) return;
@@ -921,8 +924,8 @@ static void vfs_cache_write(const char hash[65], const uint8_t *data, size_t siz
     snprintf(base, sizeof(base), "%s/.cache/opencaptive", home);
     char parent[1024];
     snprintf(parent, sizeof(parent), "%s/.cache", home);
-    (void)mkdir(parent, 0755);
-    (void)mkdir(base, 0755);
+    (void)vfs_mkdir(parent);
+    (void)vfs_mkdir(base);
     snprintf(meta, sizeof(meta), "%s/%s.meta", base, hash);
     snprintf(data_path, sizeof(data_path), "%s/%s.bin", base, hash);
     char data_tmp[1250], meta_tmp[1250];

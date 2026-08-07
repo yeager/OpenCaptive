@@ -48,10 +48,13 @@ int main(int argc, char *argv[]) {
     FILE *f = fopen(argv[1], "rb");
     if (!f) return 1;
     uint8_t *data = malloc(40000);
+    if (!data) { fclose(f); return 1; }
+    memset(data, 0, 40000);
     fread(data, 1, 40000, f);
     fclose(f);
 
     uint8_t *pixels = calloc(W * H, 1);
+    if (!pixels) { free(data); return 1; }
     const char *base = argc > 2 ? argv[2] : "test";
     char path[256];
 

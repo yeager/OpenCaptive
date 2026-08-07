@@ -29,12 +29,13 @@ bool sfx_init(SfxSystem *sfx, SoundSystem *snd) {
     sfx->sound = snd;
     sfx->enabled = true;
 
-    int rate = 22050;
+    int rate = (snd && snd->sample_rate > 0) ? (int)snd->sample_rate : 22050;
     adlib_sfx_init(&sfx->adlib, rate);
 
     for (int i = 0; i < SFX_COUNT; i++)
         sfx->sfx_map[i] = sfx_sequence_map[i];
 
+    if (snd) sound_register_aux(snd, sfx->mix_buf, &sfx->mix_pending);
     return true;
 }
 
@@ -47,14 +48,10 @@ void sfx_play(SfxSystem *sfx, SfxType type) {
 
 void sfx_update(SfxSystem *sfx) {
     if (!sfx || !sfx->enabled || !sfx->sound) return;
-    if (!adlib_sfx_is_playing(&sfx->adlib)) return;
+    if (!adlib_sfx_is_playing(&sfx->adlib)) { sfx->mix_pending = false; return; }
 
-    int16_t buffer[1024];
-    adlib_sfx_render(&sfx->adlib, buffer, 1024);
-
-    if (sfx->sound->stream) {
-        SDL_PutAudioStreamData(sfx->sound->stream, buffer, sizeof(buffer));
-    }
+    adlib_sfx_render(&sfx->adlib, sfx->mix_buf, 1024);
+    sfx->mix_pending = true;
 }
 
 void sfx_set_enabled(SfxSystem *sfx, bool enabled) {

@@ -256,7 +256,7 @@ static bool valid_creature_runtime_state(const Creature *c) {
     return c && c->speed >= 0 && c->speed <= 60 && c->range >= 0 &&
            c->range <= 7 && c->cooldown >= 0 && c->cooldown <= 60 &&
            c->respawn_timer >= 0 && c->respawn_timer <= 600 &&
-           ((!c->active && c->hp == 0 && c->respawn_timer > 0) ||
+           ((!c->active && c->hp == 0) ||
             (c->active && c->hp > 0));
 }
 
@@ -488,7 +488,8 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
         hdr.party_x < 0 || hdr.party_x >= MAP_WIDTH ||
         hdr.party_y < 0 || hdr.party_y >= MAP_HEIGHT ||
         hdr.party_dir > DIR_WEST || hdr.current_level < 0 ||
-        hdr.current_level >= MAX_LEVELS || hdr.num_levels < 1 ||
+        hdr.current_level >= MAX_LEVELS ||
+        hdr.current_level >= hdr.num_levels || hdr.num_levels < 1 ||
         hdr.num_levels > MAX_LEVELS || hdr.generators_total < 0 ||
         hdr.generators_destroyed < 0 ||
         hdr.generators_destroyed > hdr.generators_total ||
