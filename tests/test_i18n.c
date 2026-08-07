@@ -72,6 +72,15 @@ static void test_holomap_strings_are_catalogued(void) {
     i18n_free();
 }
 
+static void test_droid_ui_strings_are_catalogued(void) {
+    i18n_init("sv");
+    assert(strcmp(_("EQUIPMENT"), "UTRUSTNING") == 0);
+    assert(strcmp(_("EMPTY"), "TOM") == 0);
+    assert(strcmp(_("TAB:SWITCH ENTER:EQUIP/USE ESC:CLOSE"),
+                  "TAB:BYT ENTER:UTRUSTA/ANVAND ESC:STANG") == 0);
+    i18n_free();
+}
+
 int main(void) {
     printf("i18n tests:\n");
     TEST(test_english_passthrough);
@@ -82,6 +91,7 @@ int main(void) {
     TEST(test_get_lang);
     TEST(test_macro_works);
     TEST(test_holomap_strings_are_catalogued);
+    TEST(test_droid_ui_strings_are_catalogued);
     printf("%d tests passed\n", tests_run);
     return 0;
 }

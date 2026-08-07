@@ -671,6 +671,15 @@ msgstr ""
 #: src/main.c:3208 src/main.c:3278
 msgid "ALL MISSIONS COMPLETE"
 msgstr ""
+\n+#: src/engine/droid_ui.c
+msgid "EQUIPMENT"
+msgstr "UTSTYR"
+\n+#: src/engine/droid_ui.c
+msgid "EMPTY"
+msgstr "TOM"
+\n+#: src/engine/droid_ui.c
+msgid "TAB:SWITCH ENTER:EQUIP/USE ESC:CLOSE"
+msgstr "TAB:BYTT ENTER:UTSTYR/BRUK ESC:LUKK"
 \n+#: src/main.c
 msgid "MISSION COMPLETE!"
 msgstr "OPPDRAG FULLFORT!"

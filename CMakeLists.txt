@@ -457,8 +457,9 @@ add_test(NAME item_price COMMAND test_item_price)
 
 add_executable(test_droid_ui tests/test_droid_ui.c
     src/engine/droid_ui.c src/engine/inventory.c src/engine/captive_data.c
-    src/engine/xp_level.c)
+    src/engine/xp_level.c src/data/i18n.c)
 target_include_directories(test_droid_ui PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_droid_ui PRIVATE SDL3::SDL3)
 add_test(NAME droid_ui COMMAND test_droid_ui)
 
 add_executable(test_terminal tests/test_terminal.c src/engine/terminal.c

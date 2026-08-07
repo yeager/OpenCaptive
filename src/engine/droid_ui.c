@@ -1,4 +1,5 @@
 #include "droid_ui.h"
+#include "i18n.h"
 #include "xp_level.h"
 #include <limits.h>
 #include <string.h>
@@ -103,7 +104,7 @@ void droid_ui_render(const DroidUIState *ui, const GameState *gs,
     draw_txt(pixels, width, height, px + 8, py + 14, buf, 0xFFAAAAFF);
 
     // Equipment section
-    draw_txt(pixels, width, height, px + 8, py + 28, "EQUIPMENT", 0xFF88FF88);
+    draw_txt(pixels, width, height, px + 8, py + 28, _("EQUIPMENT"), 0xFF88FF88);
 
     // Body parts
     for (int i = 0; i < 6; i++) {
@@ -114,7 +115,7 @@ void droid_ui_render(const DroidUIState *ui, const GameState *gs,
         const Item *item = d->body_parts[i] ? item_db_get(db, d->body_parts[i]) : NULL;
         int pct = d->body_part_hp[i] * 100 / 255;
         snprintf(buf, sizeof(buf), "%s: %s %d%%", body_part_names[i],
-                 item ? item->name : "EMPTY", pct);
+                 item ? item->name : _("EMPTY"), pct);
         uint32_t color = sel ? 0xFFFFFF00 : (pct > 50 ? 0xFFCCCCCC :
                           (pct > 20 ? 0xFFAAAA00 : 0xFFFF4444));
         draw_txt(pixels, width, height, px + 8, iy, buf, color);
@@ -128,13 +129,13 @@ void droid_ui_render(const DroidUIState *ui, const GameState *gs,
 
         const Item *item = d->weapons[i] ? item_db_get(db, d->weapons[i]) : NULL;
         snprintf(buf, sizeof(buf), "%s HAND: %s", i == 0 ? "L" : "R",
-                 item ? item->name : "EMPTY");
+                 item ? item->name : _("EMPTY"));
         draw_txt(pixels, width, height, px + 8, iy, buf,
                  sel ? 0xFFFFFF00 : 0xFFCCCCCC);
     }
 
     // Inventory section (right side)
-    draw_txt(pixels, width, height, px + pw/2 + 8, py + 28, "INVENTORY", 0xFF88FF88);
+    draw_txt(pixels, width, height, px + pw/2 + 8, py + 28, _("INVENTORY"), 0xFF88FF88);
 
     for (int i = 0; i < 10; i++) {
         int iy = py + 38 + i * 10;
@@ -149,7 +150,7 @@ void droid_ui_render(const DroidUIState *ui, const GameState *gs,
 
     // Help text
     draw_txt(pixels, width, height, px + 8, py + ph - 12,
-             "TAB:SWITCH ENTER:EQUIP/USE ESC:CLOSE", 0xFF666688);
+             _("TAB:SWITCH ENTER:EQUIP/USE ESC:CLOSE"), 0xFF666688);
 }
 
 void droid_recalc_weapon_damage(Droid *d, const ItemDatabase *db) {

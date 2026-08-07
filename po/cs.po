@@ -672,6 +672,15 @@ msgstr ""
 #: src/main.c:3208 src/main.c:3278
 msgid "ALL MISSIONS COMPLETE"
 msgstr ""
+\n+#: src/engine/droid_ui.c
+msgid "EQUIPMENT"
+msgstr "VYBAVENI"
+\n+#: src/engine/droid_ui.c
+msgid "EMPTY"
+msgstr "PRAZDNE"
+\n+#: src/engine/droid_ui.c
+msgid "TAB:SWITCH ENTER:EQUIP/USE ESC:CLOSE"
+msgstr "TAB:PREPINAT ENTER:VYBAVIT/POUZIT ESC:ZAVRIT"
 \n+#: src/main.c
 msgid "MISSION COMPLETE!"
 msgstr "MISE DOKONCENA!"
