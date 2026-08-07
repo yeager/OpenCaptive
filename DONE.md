@@ -3790,3 +3790,11 @@
 - Ett viewport-regressionsprov verifierar att intilliggande celler börjar
   med samma sampling när deras golv- och takdata är identiska.
 - Hela Werror-sviten passerar: 58/58 tester.
+
+# 2026-08-07 — Captive synlig reservkontroll
+
+- Reservspaken som skapas på mycket små eller helt öppna kartor får nu också
+  sitt panelornament. Den länkade dörren kan därför inte längre kräva en
+  osynlig interaktion.
+- Ett regressionsprov täcker den platta kartlayout där reservgrenen används.
+- Hela testsviten passerar: 58/58 tester.

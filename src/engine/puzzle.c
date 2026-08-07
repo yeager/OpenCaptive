@@ -173,6 +173,11 @@ static bool puzzle_add_reachable_door_control(PuzzleList *pl,
             p->target_x = target_x;
             p->target_y = target_y;
             p->solved = false;
+            /* Keep the last-resort control visible as well as interactive.
+             * This branch is used for tiny/flat layouts without a reachable
+             * floor cell next to a wall; omitting the ornament made the
+             * generated door solvable only through invisible state. */
+            lvl->cells[y][x].ornament[DIR_NORTH] = ORNAMENT_PANEL;
             return true;
         }
     }

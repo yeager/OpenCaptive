@@ -303,6 +303,32 @@ static void test_generated_electric_traps_face_walls(void) {
     assert(found_electric);
 }
 
+static void test_fallback_door_control_remains_visible(void) {
+    DungeonLevel level;
+    PuzzleList puzzles;
+    memset(&level, 0, sizeof(level));
+    memset(&puzzles, 0, sizeof(puzzles));
+
+    /* A completely open map has no reachable floor cell next to a wall, so
+     * puzzle_generate() must use its last-resort linked-door control. */
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            level.cells[y][x].type = CELL_FLOOR;
+    level.cells[10][10].type = CELL_DOOR_LOCKED;
+
+    puzzle_generate(&puzzles, &level, 0, 17);
+    bool found = false;
+    for (int i = 0; i < puzzles.num_puzzles; i++) {
+        const Puzzle *p = &puzzles.puzzles[i];
+        if (p->type != PUZZLE_LEVER || p->target_x != 10 ||
+            p->target_y != 10) continue;
+        assert(level.cells[p->y][p->x].ornament[DIR_NORTH] == ORNAMENT_PANEL);
+        found = true;
+        break;
+    }
+    assert(found);
+}
+
 static void test_generated_buttons_face_walls(void) {
     static const int dx[] = {0, 1, 0, -1};
     static const int dy[] = {-1, 0, 1, 0};
@@ -1145,6 +1171,7 @@ int main(void) {
     test_generated_teleporters_target_floor();
     test_generated_power_socket_has_no_stale_target();
     test_generated_electric_traps_face_walls();
+    test_fallback_door_control_remains_visible();
     test_generated_buttons_face_walls();
     test_generated_puzzles_do_not_overlap();
     test_lethal_puzzle_hazards_enter_game_over();
