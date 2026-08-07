@@ -616,8 +616,34 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
     int creature_count = cl->num_creatures;
     if (creature_count < 0) creature_count = 0;
     if (creature_count > MAX_CREATURES) creature_count = MAX_CREATURES;
+    /* Painter's order matters when projected sprites overlap.  Captive's
+     * original panel compositor is back-to-front, so sort only the active
+     * current-level creatures by forward distance before drawing them.  Keep
+     * list order for equal depths to retain deterministic behaviour. */
+    int render_order[MAX_CREATURES];
+    int render_forward[MAX_CREATURES];
+    int render_count = 0;
     for (int i = 0; i < creature_count; i++) {
         const Creature *c = &cl->creatures[i];
+        if (!c->active || c->level != gs->current_level ||
+            c->x < 0 || c->x >= MAP_WIDTH || c->y < 0 || c->y >= MAP_HEIGHT)
+            continue;
+        int rel_x = c->x - gs->party_x;
+        int rel_y = c->y - gs->party_y;
+        int forward = rel_x * fwd_dx + rel_y * fwd_dy;
+        if (forward < 0 || forward > 4) continue;
+        int insert = render_count++;
+        while (insert > 0 && render_forward[insert - 1] < forward) {
+            render_order[insert] = render_order[insert - 1];
+            render_forward[insert] = render_forward[insert - 1];
+            --insert;
+        }
+        render_order[insert] = i;
+        render_forward[insert] = forward;
+    }
+
+    for (int order = 0; order < render_count; order++) {
+        const Creature *c = &cl->creatures[render_order[order]];
         if (!c->active || c->level != gs->current_level) continue;
         if (c->x < 0 || c->x >= MAP_WIDTH || c->y < 0 || c->y >= MAP_HEIGHT)
             continue;

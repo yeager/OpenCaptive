@@ -146,5 +146,35 @@ int main(void) {
                               CAPTIVE_ORIGINAL_WIDTH,
                               CAPTIVE_ORIGINAL_HEIGHT);
     assert(!viewport_changed(framebuffer));
+
+    /* Overlapping sprites must be depth-stable rather than dependent on the
+     * order in CreatureList.  The nearer creature is drawn last. */
+    for (int i = 0; i < 6; ++i) atlas.alien_sheets[i] = -1;
+    memset(&creatures, 0, sizeof(creatures));
+    creatures.num_creatures = 2;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .active = true, .level = 0,
+        .x = 10, .y = 8
+    }; /* far, green fallback */
+    creatures.creatures[1] = (Creature){
+        .type = CREATURE_ALIEN2, .active = true, .level = 0,
+        .x = 10, .y = 9
+    }; /* near, blue fallback */
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render_creatures(&gs, &creatures, &atlas, framebuffer,
+                              CAPTIVE_ORIGINAL_WIDTH,
+                              CAPTIVE_ORIGINAL_HEIGHT);
+    uint32_t depth_sorted[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
+    memcpy(depth_sorted, framebuffer, sizeof(depth_sorted));
+    Creature far = creatures.creatures[0];
+    creatures.creatures[0] = creatures.creatures[1];
+    creatures.creatures[1] = far;
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render_creatures(&gs, &creatures, &atlas, framebuffer,
+                              CAPTIVE_ORIGINAL_WIDTH,
+                              CAPTIVE_ORIGINAL_HEIGHT);
+    assert(memcmp(depth_sorted, framebuffer, sizeof(depth_sorted)) == 0);
     return 0;
 }

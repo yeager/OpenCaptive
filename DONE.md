@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive creature-djupsortering)
+
+- Creature-sprites i Captive sorteras nu från längst bort till närmast innan
+  de ritas. Överlappande fiender kan inte längre få felaktig listordning att
+  skriva den närmare spriten över den längre bort.
+- Regressionstestet renderar samma två fiender i omvänd listordning och kräver
+  identisk bild.
+
 ## 2026-08-07 (Captive spelbarhet i Original-läge)
 
 - Original-läget använder nu den källbaserade kompatibilitetsrenderaren tills
