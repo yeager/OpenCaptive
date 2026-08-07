@@ -361,6 +361,13 @@ void combat_tick(CreatureList *cl, GameState *gs) {
 }
 
 bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
+    /* These flags describe the current attack, not the last successful one.
+     * Clear them before validation so callers cannot observe a stale kill or
+     * level-up event after a miss or a non-lethal shot. */
+    if (cl) {
+        cl->creature_killed = false;
+        cl->level_up_occurred = false;
+    }
     if (!gs || !cl || droid_idx < 0 || droid_idx >= 4 ||
         gs->current_level < 0 || gs->current_level >= gs->num_levels ||
         gs->current_level >= MAX_LEVELS ||

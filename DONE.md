@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive combat-händelser)
+
+- `creature_killed` och `level_up_occurred` beskriver nu alltid det aktuella
+  droidskottet. Tidigare kunde flaggor från ett föregående skott ligga kvar
+  efter en miss eller en icke-dödande träff.
+- Regressionstestet verifierar ett dödande skott följt av ett icke-dödande
+  skott.
+- Fullt lokalt testpaket: 58 av 58 tester godkända.
+
 ## 2026-08-07 (Captive encounter density)
 
 - Captive skapar nu `3 + nivå * 2` encounter-grupper per dungeon-nivå.
