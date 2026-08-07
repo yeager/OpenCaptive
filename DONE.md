@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive spelbarhet i Original-läge)
+
+- Original-läget använder nu den källbaserade kompatibilitetsrenderaren tills
+  den fullständiga DOS-panelkompositorn är återställd. Captive blir därmed inte
+  längre en tom HUD i standardläget.
+- Enhanced-läget behåller sina extra moderna HUD-/presentationseffekter.
+  Dokumentationen skiljer uttryckligen detta från pixelparitet.
+
 ## 2026-08-07 (Captive renderläge)
 
 - F10:s Original/Enhanced-gräns är nu verklig i Captive. Den ännu ej

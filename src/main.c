@@ -2510,7 +2510,7 @@ int main(int argc, char *argv[]) {
                 gs.mode = STATE_DROID_CONFIG;
                 droid_config_cursor = 0;
             }
-            printf("Starting Captive original presentation (dungeon compositor pending)\n");
+            printf("Starting Captive original presentation (compatibility viewport; dungeon compositor pending)\n");
         }
     } else if (start_directly && requested_game == GAME_LIBERATION) {
         if (!liberation_data_open(&liberation_data, &vfs)) {
@@ -3582,10 +3582,10 @@ int main(int argc, char *argv[]) {
                                CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
                     }
                     /* The original DOS panel compositor is still being
-                     * recovered. Never present the generated perspective
-                     * fallback as original-mode Captive graphics; F10 must
-                     * make the presentation-mode boundary real. */
-                    if (config.render_mode == CAPTIVE_RENDER_ENHANCED) {
+                     * recovered. Keep Original mode playable with the same
+                     * source-backed compatibility viewport as Enhanced mode;
+                     * this is not pixel-identical original rendering. */
+                    {
                         CaptiveViewWindow view_window;
                         captive_view_window_build(&gs, &view_window);
                         viewport_render(&view_window, &atlas, framebuffer,
@@ -3595,6 +3595,8 @@ int main(int argc, char *argv[]) {
                                                   framebuffer,
                                                   CAPTIVE_ORIGINAL_WIDTH,
                                                   CAPTIVE_ORIGINAL_HEIGHT);
+                    }
+                    if (config.render_mode == CAPTIVE_RENDER_ENHANCED) {
                         hud_render(&gs, framebuffer,
                                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                     }

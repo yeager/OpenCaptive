@@ -68,8 +68,10 @@ interaktiv uppstart.
 Captive-fångsten kan jämföras med den hashidentifierade HUD-resursen utanför
 spelvyn, men detta är inte en fullständig spelbildsjämförelse. En riktig
 spelframe ändrar även delar av monitorerna, kontrollerna och statusytan.
-I standardläget lämnas den dynamiska rektangeln `(32,55,144,112)` orörd tills
-originalrenderingen är återställd; den fylls alltså inte med syntetisk grafik.
+Den fullständiga DOS-panelkompositorn är ännu inte återställd. Under tiden
+fylls den dynamiska rektangeln `(32,55,144,112)` av den källbaserade
+kompatibilitetsrenderaren i båda lägena så att Captive förblir spelbart. Det är
+inte ett påstående om pixelparitet.
 
 En DOSBox-dump från ett ägt original kan göras till en reproducerbar referens
 utan att spelmedia läggs i källträdet. Verktyget accepterar exakt den 1 MiB
