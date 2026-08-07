@@ -219,14 +219,16 @@ static void test_generated_teleporters_target_floor(void) {
     GameState gs;
     PuzzleList puzzles = {0};
     game_state_init(&gs, GAME_CAPTIVE, 1);
-    game_state_new_mission(&gs, 1);
-    puzzle_generate(&puzzles, &gs.levels[5], 5, 0x12345678);
+    game_state_new_mission(&gs, 3);
+    assert(gs.num_levels >= 2);
+    int lvl = gs.num_levels - 1;
+    puzzle_generate(&puzzles, &gs.levels[lvl], lvl, 0x12345678);
     for (int i = 0; i < puzzles.num_puzzles; i++) {
         const Puzzle *p = &puzzles.puzzles[i];
         if (p->type != PUZZLE_TELEPORTER_TRAP) continue;
         assert(p->target_x >= 0 && p->target_x < MAP_WIDTH);
         assert(p->target_y >= 0 && p->target_y < MAP_HEIGHT);
-        assert(gs.levels[5].cells[p->target_y][p->target_x].type == CELL_FLOOR);
+        assert(gs.levels[lvl].cells[p->target_y][p->target_x].type == CELL_FLOOR);
     }
 }
 

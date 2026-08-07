@@ -203,9 +203,11 @@ bool lib_save_read(LibSaveData *data, const char *path) {
      * require the count byte here; the per-item bytes are checked while
      * decoding the declared count below. */
     long long shared_inventory_size = ver >= LIB_SAVE_SHARED_INVENTORY_VERSION ? 1LL : 0LL;
+    long long reputation_size = ver >= LIB_SAVE_REPUTATION_VERSION ? 2LL : 0LL;
     long long required_end = (long long)payload_start +
                              (long long)data->num_droids * droid_record_size +
-                             shared_inventory_size + LIB_SAVE_MAX_MISSIONS / 8 + 4LL;
+                             shared_inventory_size + LIB_SAVE_MAX_MISSIONS / 8 + 4LL +
+                             reputation_size;
     if (file_end < 0 || (long long)file_end < required_end ||
         fseek(f, payload_start, SEEK_SET) != 0) {
         fclose(f);

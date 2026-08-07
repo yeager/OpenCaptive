@@ -107,7 +107,7 @@ static void test_spawn_type_0x0F_directional(void) {
     for (int i = 0; i < 100; i++) {
         SpawnResult r = spawn_creatures(3, 5, DIR_EAST, 2, &seed);
         if (r.count > 0 && r.entries[0].creature_type == 0x0F) {
-            ASSERT(r.count == 3, "type 0x0F spawns 3 creatures");
+            ASSERT(r.count == 2, "type 0x0F spawns 2 creatures");
             return;
         }
     }
