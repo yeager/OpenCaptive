@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive version popup mouse selection)
+
+- Fixed mouse selection in the version popup when only one non-first source is
+  available. The visible row is now mapped through the filtered source list,
+  matching keyboard selection behavior.
+- Added a regression test for selecting the Captive Amiga row with the mouse.
+- The targeted start-menu test passes.
+
 ## 2026-08-07 (Liberation bar inventory handling)
 
 - Bar drinks are consumed at purchase time and are no longer transferred into

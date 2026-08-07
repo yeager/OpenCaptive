@@ -16,6 +16,9 @@ used.
 
 ### Changed
 
+- Captive version selection now maps mouse clicks to the filtered rows shown
+  in the popup, so a single remaining source can be selected reliably even
+  when it is not the first platform candidate.
 - Bar drinks are now consumed at purchase time instead of being copied into
   the shared inventory with non-runtime item IDs. Buying drinks still charges
   gold and performs the documented bar-fight roll.

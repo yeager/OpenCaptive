@@ -746,7 +746,14 @@ MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
         int pw = 700, ph = 300;
         int px = (MENU_WIDTH - pw) / 2, py = (MENU_HEIGHT - ph) / 2;
         if (x >= px + 80 && x < px + pw - 80 && y >= py + 110 && y < py + 205) {
-            menu->version_popup_selection = (y >= py + 165) ? 1 : 0;
+            /* Selection indexes are rows in the filtered list, not the
+             * platform enum.  A source mask may contain only the second
+             * candidate (for example Amiga), which is rendered on row zero.
+             * Mapping by the physical source enum made that row impossible
+             * to select with the mouse even though keyboard selection worked. */
+            int row = (y >= py + 165) ? 1 : 0;
+            if (version_popup_source_at(menu, row) >= 0)
+                menu->version_popup_selection = row;
             return MENU_RESULT_NONE;
         }
         if (x >= px && x < px + pw && y >= py && y < py + ph) {

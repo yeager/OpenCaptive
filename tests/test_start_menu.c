@@ -124,6 +124,17 @@ int main(void) {
     assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_START_CAPTIVE);
     assert(menu.platform == CAPTIVE_PLATFORM_AMIGA);
 
+    /* Mouse selection uses visible popup rows.  With only the second source
+       available, Amiga is rendered on row zero and must remain selectable. */
+    menu.show_version_popup = true;
+    menu.version_popup_game = GAME_CAPTIVE;
+    menu.version_popup_selection = 0;
+    menu.captive_source_mask = (1U << CAPTIVE_PLATFORM_AMIGA);
+    assert(start_menu_handle_click(&menu, 480.0f, 250.0f) == MENU_RESULT_NONE);
+    assert(menu.version_popup_selection == 0);
+    assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_START_CAPTIVE);
+    assert(menu.platform == CAPTIVE_PLATFORM_AMIGA);
+
     /* The non-popup path must also retain a concrete Liberation source when
        exactly one source is available.  The data scanner uses this same
        preference when it finishes an incremental scan. */
