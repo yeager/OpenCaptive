@@ -2058,6 +2058,7 @@ int main(int argc, char *argv[]) {
     const char *lang_override = NULL;
     const char *verify_data = NULL;
     const char *capture_frame_path = NULL;
+    bool capture_failed = false;
     const char *dos_vga_dump_path = NULL;
     const char *dos_vga_output_path = NULL;
     const char *expected_frame_path = NULL;
@@ -2490,11 +2491,13 @@ int main(int argc, char *argv[]) {
     if (start_directly && requested_game == GAME_CAPTIVE) {
         if (!validate_data_path(&vfs)) {
             show_missing_data_dialog(config.data_path);
+            capture_failed = capture_frame_path != NULL;
         } else if (!textures_loaded) {
             /* The startup hash set is a fast identity gate.  The renderer
              * still needs every decoded PL5 surface; do not enter the game
              * with a verified but unusable partial atlas. */
             show_missing_data_dialog(config.data_path);
+            capture_failed = capture_frame_path != NULL;
         } else {
             gs.game_type = GAME_CAPTIVE;
             music_play(&music_sys, MUSIC_BASE);
@@ -2524,6 +2527,7 @@ int main(int argc, char *argv[]) {
     } else if (start_directly && requested_game == GAME_LIBERATION) {
         if (!liberation_data_open(&liberation_data, &vfs)) {
             show_missing_liberation_data_dialog(config.data_path);
+            capture_failed = capture_frame_path != NULL;
         } else {
             load_liberation_mission_menu();
             lib_city_generated = false;
@@ -2541,6 +2545,10 @@ int main(int argc, char *argv[]) {
         SDL_SetWindowRelativeMouseMode(renderer.window, true);
 
     bool running = true;
+    if (capture_failed) {
+        running = false;
+        exit_status = 1;
+    }
     SDL_Event event;
 
     while (running) {

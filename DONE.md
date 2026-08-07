@@ -8,6 +8,15 @@
 - Verifierat med den lokala `.opencaptive`-datan: resultatet är en 320×200
   spelbild och inte startmenyn. Relevanta tester samt Werror-bygget passerar.
 
+## 2026-08-07 (Captive frame capture och feldata)
+
+- Ett frame-capture med saknad eller ogiltig Captive-/Liberation-data skriver
+  inte längre en missvisande startmenybild.
+- Kommandot avslutas nu med status 1 utan att skapa någon capture-fil, så
+  automatiserade verifieringar kan skilja ett riktigt spelcapture från ett
+  datafel.
+- Verifierat med dummy-video och dummy-ljud samt lokala startflödestester.
+
 ## 2026-08-07 (Captive sidoväggstexturer)
 
 - Sidoväggar i kompatibilitetsvyn använder nu den intilliggande väggcellens
