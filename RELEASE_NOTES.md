@@ -16,6 +16,8 @@ used.
 
 ### Changed
 
+- Captive ANM frame and command offsets are now documented and regression
+  tested as little-endian values, matching the verified decoder behavior.
 - Captive version selection now maps mouse clicks to the filtered rows shown
   in the popup, so a single remaining source can be selected reliably even
   when it is not the first platform candidate.

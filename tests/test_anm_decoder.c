@@ -41,10 +41,29 @@ static void test_palette_parse(void) {
     }
 }
 
+static void test_little_endian_frame_layout(void) {
+    /* One frame: command byte 1 changes pixel zero, followed by the
+       little-endian size word 4 (two payload bytes plus the size word). */
+    uint8_t data[ANM_PALETTE_SIZE + 6] = {0};
+    data[768] = (uint8_t)(ANM_PALETTE_SIZE + 2);
+    data[769] = (uint8_t)((ANM_PALETTE_SIZE + 2) >> 8);
+    data[770] = 1;
+    data[771] = 0;
+    data[772] = 4;
+    data[773] = 0;
+
+    ANMAnimation anim;
+    assert(anm_decode(data, sizeof(data), &anim));
+    assert(anim.frame_count == 1);
+    assert(anim.frames[0][0] == 1);
+    anm_free(&anim);
+}
+
 int main(void) {
     test_null_input();
     test_too_small();
     test_palette_parse();
+    test_little_endian_frame_layout();
     printf("All ANM decoder tests passed\n");
     return 0;
 }

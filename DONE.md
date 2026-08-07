@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive ANM endian contract)
+
+- Corrected the ANM decoder comments to match the verified little-endian
+  command-offset and frame-size layout.
+- Added a regression test that decodes a one-pixel frame using the actual
+  little-endian framing contract.
+- The targeted ANM decoder test passes.
+
 ## 2026-08-07 (Captive version popup mouse selection)
 
 - Fixed mouse selection in the version popup when only one non-first source is

@@ -7,12 +7,13 @@
 
 // ANM file layout:
 //   [0..767]   768-byte VGA palette (256 colors, 6-bit RGB)
-//   [768..769]  Big-endian word: offset past commands section
+//   [768..769]  Little-endian word: offset past commands section
 //   [770..cmd_end-1] Commands data
 //   [cmd_end..EOF] Frames stored backwards from end of file
 //
 // Frame storage (read from end of file backwards):
-//   Last 2 bytes: big-endian word = size of last frame's packed data
+//   Last 2 bytes: little-endian word = total size of the packed frame data
+//                    plus this size word
 //   Preceding 'size' bytes: packed frame data
 //   Repeat for each frame until reaching cmd_end
 //
