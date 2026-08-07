@@ -7,6 +7,8 @@
   svarta index 16 och 18 raderas inte längre av RGB-baserad filtrering.
 - Testtexturen i viewport-regressionstestet innehåller nu också ett indexplan.
   Hela testsviten passerar 58/58.
+- Compositorn kan nu köra verifierade DOS-descriptorpaneler med flagga `0x01`
+  för horisontell spegling och `0x04` för index-noll-maskning.
 
 ## 2026-08-07 (Captive viewport descriptor-layout)
 

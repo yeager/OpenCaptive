@@ -3,6 +3,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "captive_dos_descriptor.h"
+
+#define CAPTIVE_COMPOSITOR_PALETTE_SIZE 32
 
 /*
  * The original Captive view is not a texture-mapped scene.  It is a sequence
@@ -35,5 +38,15 @@ bool captive_compositor_blit(uint32_t *view, int stride,
 bool captive_compositor_blit_all(uint32_t *view, int stride,
                                  const CaptivePanelBlit *panels,
                                  int panel_count);
+
+/* Execute a decoded DOS descriptor panel. Flags are the original CAPPO
+ * flags: 0x01 mirrors source pixels horizontally and 0x04 treats palette
+ * index zero as transparent. destination_offset uses the 160-byte DOS view
+ * work-buffer layout. */
+bool captive_compositor_blit_indices(
+    uint32_t *view, int stride, const uint8_t *indices,
+    int source_width, int source_height,
+    const uint32_t palette[CAPTIVE_COMPOSITOR_PALETTE_SIZE],
+    uint16_t destination_offset, uint8_t flags);
 
 #endif

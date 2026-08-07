@@ -28,6 +28,8 @@ descriptor order and panel masks are being recovered.
 PL5 panel and sprite transparency is likewise index-based: palette index 0
 is transparent, while black indices 16 and 18 remain visible. The renderer
 uses the retained PL5 index plane instead of inferring transparency from RGB.
+The shared compositor also applies the recovered DOS descriptor flags for
+horizontal mirroring and index-zero masking in the 160-byte work buffer.
 
 ## Draw order
 

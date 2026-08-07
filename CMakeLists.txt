@@ -201,7 +201,8 @@ target_include_directories(test_captive_view_window PRIVATE ${CMAKE_SOURCE_DIR}/
 add_test(NAME captive_view_window COMMAND test_captive_view_window)
 
 add_executable(test_captive_compositor tests/test_captive_compositor.c
-    src/render/captive_compositor.c)
+    src/render/captive_compositor.c
+    src/data/captive_dos_descriptor.c)
 target_include_directories(test_captive_compositor PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME captive_compositor COMMAND test_captive_compositor)
 
