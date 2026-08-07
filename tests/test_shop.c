@@ -141,6 +141,15 @@ static void test_shop_navigation_stops_at_visible_item_limit(void) {
     assert(shop_next_selection(&shop) == 0);
 }
 
+static void test_shop_stock_matches_visible_list(void) {
+    ItemDatabase db;
+    ShopState shop;
+    item_db_init(&db);
+    shop_init(&shop, &db, 99, 0x12345678U);
+    assert(shop.num_items >= 0);
+    assert(shop.num_items <= SHOP_VISIBLE_ITEMS);
+}
+
 int main(void) {
     test_shop_clamps_corrupt_definition_count();
     test_shop_rejects_negative_definition_count();
@@ -152,5 +161,6 @@ int main(void) {
     test_inactive_shop_cannot_sell();
     test_shop_rejects_corrupt_item_count();
     test_shop_navigation_stops_at_visible_item_limit();
+    test_shop_stock_matches_visible_list();
     return 0;
 }

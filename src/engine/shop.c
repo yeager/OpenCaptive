@@ -39,7 +39,10 @@ void shop_init(ShopState *shop, const ItemDatabase *db, int level, uint32_t seed
     int def_count = db->num_defs;
     if (def_count < 0) def_count = 0;
     if (def_count > MAX_ITEM_DEFS) def_count = MAX_ITEM_DEFS;
-    for (int i = 0; i < def_count && shop->num_items < SHOP_MAX_ITEMS; i++) {
+    /* The Captive shop renderer and keyboard navigation expose only the
+     * visible list. Do not generate hidden stock that the player can never
+     * select until a scrolling UI exists. */
+    for (int i = 0; i < def_count && shop->num_items < SHOP_VISIBLE_ITEMS; i++) {
         if (db->defs[i].tier <= max_tier && captive_prng(&shop_seed) % 3 == 0) {
             shop->item_ids[shop->num_items++] = db->defs[i].id;
         }
