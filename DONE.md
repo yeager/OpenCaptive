@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive vapenräckvidd)
+
+- Sprayvapen respekterar nu sin dokumenterade räckvidd 4. Tidigare behandlade
+  stridskoden alla distansvapen som räckvidd 6.
+- Testet verifierar att ett sprayvapen inte träffar på avstånd 5.
+- Combat-dokumentationen beskriver nu den faktiska räckviddsskillnaden.
+
 ## 2026-08-07 (Captive shop-översikt)
 
 - Shop-menyn visar nu varje varunamn tillsammans med priset. Tidigare syntes

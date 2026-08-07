@@ -175,12 +175,17 @@ static bool blocks_movement_or_sight(CellType cell) {
     return cell == CELL_WALL || cell == CELL_DOOR || cell == CELL_DOOR_LOCKED;
 }
 
-static bool combat_is_ranged_weapon_id(uint8_t item_id) {
-    /* Inventory IDs 13-17 are melee weapons and 18-38 are ranged weapons.
-     * Do not classify arbitrary non-weapon IDs as ranged merely because they
-     * fall outside the melee interval: these values can survive in a legacy
-     * or damaged save and must not silently extend attack reach. */
-    return item_id >= 18 && item_id <= 38;
+static int combat_weapon_range(uint8_t item_id) {
+    /* CAPPO's item table gives spray weapons (IDs 33-35) a shorter range
+     * than handguns, rifles and the other ranged weapons.  Keep this small
+     * lookup aligned with inventory.c until combat receives an ItemDatabase
+     * parameter; treating every ranged weapon as range six lets sprays hit
+     * targets outside their documented reach. */
+    if (item_id >= 13 && item_id <= 17) return 1;
+    if (item_id >= 33 && item_id <= 35) return 4;
+    if ((item_id >= 18 && item_id <= 32) ||
+        (item_id >= 36 && item_id <= 38)) return 6;
+    return 0;
 }
 
 static bool combat_is_weapon_id(uint8_t item_id) {
@@ -376,20 +381,16 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     int fwd_x = (int[]){0,1,0,-1}[gs->party_dir];
     int fwd_y = (int[]){-1,0,1,0}[gs->party_dir];
 
-    /* A droid may carry one weapon in each hand.  The damage field stores
-     * the strongest equipped weapon, while the old range check only looked
-     * at the first non-empty hand.  That made a melee weapon in hand 0 hide
-     * a ranged weapon in hand 1 and prevented attacks beyond one tile. */
-    bool has_ranged_weapon = false;
+    /* A droid may carry one weapon in each hand.  Use the longest actual
+     * equipped range, while still allowing a melee weapon in hand 0 to
+     * coexist with a ranged weapon in hand 1. */
+    int attack_range = 0;
     for (int w = 0; w < 2; w++) {
         uint8_t wid = d->weapons[w];
-        if (combat_is_ranged_weapon_id(wid)) {
-            has_ranged_weapon = true;
-            break;
-        }
+        int weapon_range = combat_weapon_range(wid);
+        if (weapon_range > attack_range) attack_range = weapon_range;
     }
-    bool is_melee = !has_ranged_weapon;
-    int attack_range = is_melee ? 1 : 6;
+    if (attack_range == 0) return false;
 
     Creature *target = NULL;
     int best_dist = 9999;

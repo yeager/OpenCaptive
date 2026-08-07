@@ -39,7 +39,9 @@ AI ticks occur every 4 game ticks (combat_tick). Movement uses Manhattan distanc
 - Attack key (Space) fires selected droid's equipped weapon
 - Damage = weapon base damage + random range + skill bonus
 - Defense reduces damage: `effective = max(1, damage - target.defense)`
-- Range check: weapon range vs Manhattan distance to nearest creature
+- Range check: the equipped weapon's range versus Manhattan distance to the
+  nearest creature; spray weapons use range 4 while the other ranged weapons
+  use range 6
 - Cooldown between attacks based on weapon speed
 
 ## Experience and Leveling
