@@ -317,30 +317,30 @@
 - [ ] Implement story scroll (prisoner backstory, probe activation)
 
 ### Shields and advanced weapons
-- [ ] Implement shield items with damage absorption (equippable, absorbs before HP)
-- [ ] Implement spray weapons hitting multiple targets in an arc (IDs 33-35)
+- [x] Implement shield items with damage absorption (equippable, absorbs before HP)
+- [x] Implement spray weapons hitting multiple targets in an arc (IDs 33-35)
 - [ ] Implement grenade/explosive weapons with area damage
 
 ### Weight and movement
-- [ ] Implement droid speed affected by carried weight and body part damage
+- [x] Implement droid speed affected by carried weight and body part damage
 
 ### Creature AI (advanced)
-- [ ] Implement wall-aware pathfinding for creature movement (not just move-toward-party)
-- [ ] Implement creature special attacks: poison (damage over time), stun (skip turns), energy drain
-- [ ] Implement boss creatures with unique behaviour per mission
+- [x] Implement wall-aware pathfinding for creature movement (not just move-toward-party)
+- [x] Implement creature special attacks: poison (damage over time), stun (skip turns), energy drain
+- [x] Implement boss creatures with unique behaviour per mission
 
 ### Score and ranking
-- [ ] Implement score tracking during gameplay
-- [ ] Implement ranking system at mission completion
+- [x] Implement score tracking during gameplay
+- [x] Implement ranking system at mission completion
 
 ### Save system
-- [ ] Implement multiple save slots (original supported several)
+- [x] Implement multiple save slots (original supported several)
 
 ### Audio (ambient)
 - [ ] Implement ambient dungeon sounds (dripping, wind, electrical hum)
 
 ### HUD
-- [ ] Implement message log scrollback (review past messages)
+- [x] Implement message log scrollback (review past messages)
 
 ### Input
 - [ ] Implement mouse-driven inventory management
@@ -353,7 +353,7 @@
 - [ ] Implement demo/attract mode (idle gameplay showcase)
 
 ### Screen transitions
-- [ ] Implement fade in/out transitions between game states
+- [x] Implement fade in/out transitions between game states
 
 ## Liberation parity — missing features
 

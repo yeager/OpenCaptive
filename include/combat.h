@@ -38,6 +38,13 @@ typedef enum {
     CREATURE_COUNT,
 } CreatureType;
 
+typedef enum {
+    STATUS_NONE    = 0,
+    STATUS_POISON  = 1,
+    STATUS_STUN    = 2,
+    STATUS_DRAIN   = 4,
+} StatusEffect;
+
 typedef struct {
     CreatureType type;
     int16_t hp;
@@ -53,6 +60,8 @@ typedef struct {
     bool    active;
     bool    alerted;
     uint16_t respawn_timer;
+    uint8_t status_attack;
+    bool    is_boss;
 } Creature;
 
 #define MAX_CREATURES 64

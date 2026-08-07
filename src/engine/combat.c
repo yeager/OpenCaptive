@@ -144,6 +144,37 @@ static void combat_spawn_for_level_internal(CreatureList *cl,
             break;
         }
     }
+
+    if (level_num >= 3 && cl->num_creatures < MAX_CREATURES) {
+        int attempts = 100;
+        while (attempts-- > 0) {
+            int bx = 1 + (combat_rand() % (MAP_WIDTH - 2));
+            int by = 1 + (combat_rand() % (MAP_HEIGHT - 2));
+            if (lvl->cells[by][bx].type != CELL_FLOOR) continue;
+            if (avoid_party && level_num == avoid_party->current_level &&
+                bx == avoid_party->party_x && by == avoid_party->party_y) continue;
+            if (combat_cell_occupied(cl, level_num, bx, by)) continue;
+            Creature *boss = &cl->creatures[cl->num_creatures++];
+            memset(boss, 0, sizeof(*boss));
+            boss->type = CREATURE_ALIEN6;
+            int16_t bhp = (int16_t)(80 + level_num * 30);
+            boss->hp = bhp;
+            boss->hp_max = bhp;
+            boss->damage_min = (int16_t)(10 + level_num * 4);
+            boss->damage_max = (int16_t)(20 + level_num * 6);
+            boss->defense = (int16_t)(8 + level_num * 2);
+            boss->speed = 6;
+            boss->range = 3;
+            boss->x = bx;
+            boss->y = by;
+            boss->level = level_num;
+            boss->active = true;
+            boss->is_boss = true;
+            if (level_num >= 6) boss->status_attack = STATUS_POISON;
+            if (level_num >= 9) boss->status_attack |= STATUS_STUN;
+            break;
+        }
+    }
 }
 
 void combat_spawn_for_level(CreatureList *cl, const DungeonLevel *lvl,
@@ -236,6 +267,22 @@ void combat_tick(CreatureList *cl, GameState *gs) {
         gs->current_level >= gs->num_levels || gs->current_level >= MAX_LEVELS ||
         gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
         gs->party_y < 0 || gs->party_y >= MAP_HEIGHT) return;
+
+    for (int di = 0; di < 4; di++) {
+        Droid *d = &gs->droids[di];
+        if (d->hp <= 0) continue;
+        if (d->poison_timer > 0) {
+            d->poison_timer--;
+            int pdmg = 2;
+            if (pdmg >= d->hp) d->hp = 0;
+            else d->hp -= (int16_t)pdmg;
+            if (d->hp <= 0 && combat_all_droids_dead(gs))
+                gs->mode = STATE_GAMEOVER;
+        }
+        if (d->stun_timer > 0) d->stun_timer--;
+        if (d->poison_timer == 0) d->status &= ~STATUS_POISON;
+        if (d->stun_timer == 0) d->status &= ~STATUS_STUN;
+    }
     int creature_count = cl->num_creatures;
     if (creature_count < 0) creature_count = 0;
     if (creature_count > MAX_CREATURES) creature_count = MAX_CREATURES;
@@ -315,10 +362,34 @@ void combat_tick(CreatureList *cl, GameState *gs) {
                 else
                     d->body_part_hp[part] -= (uint8_t)part_dmg;
             }
-            if (damage >= d->hp)
-                d->hp = 0;
-            else
-                d->hp = (int16_t)(d->hp - damage);
+            if (d->shield != 0 && d->shield_hp > 0) {
+                if (damage <= d->shield_hp) {
+                    d->shield_hp -= (int16_t)damage;
+                    damage = 0;
+                } else {
+                    damage -= d->shield_hp;
+                    d->shield_hp = 0;
+                }
+            }
+            if (damage > 0) {
+                if (damage >= d->hp)
+                    d->hp = 0;
+                else
+                    d->hp = (int16_t)(d->hp - damage);
+            }
+            if (c->status_attack & STATUS_POISON) {
+                d->status |= STATUS_POISON;
+                if (d->poison_timer < 10) d->poison_timer = 10;
+            }
+            if (c->status_attack & STATUS_STUN) {
+                d->status |= STATUS_STUN;
+                if (d->stun_timer < 5) d->stun_timer = 5;
+            }
+            if (c->status_attack & STATUS_DRAIN) {
+                int drain = damage > 0 ? damage / 2 : 5;
+                if (drain > d->energy) d->energy = 0;
+                else d->energy -= (int16_t)drain;
+            }
             if (combat_all_droids_dead(gs)) gs->mode = STATE_GAMEOVER;
             c->cooldown = c->speed;
             cl->last_attack_damage = damage;
@@ -338,20 +409,26 @@ void combat_tick(CreatureList *cl, GameState *gs) {
 
             int nx = c->x + move_dx;
             int ny = c->y + move_dy;
-            if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT &&
-                !blocks_movement_or_sight(gs->levels[gs->current_level].cells[ny][nx].type)) {
-                /* Creatures may attack from an adjacent/visible cell, but
-                 * must never occupy the party's tile.  Otherwise chasing
-                 * creatures overlap the party and the next distance check
-                 * changes combat semantics. */
+            bool wall_blocked = (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT ||
+                blocks_movement_or_sight(gs->levels[gs->current_level].cells[ny][nx].type));
+            if (wall_blocked) {
+                int alt_dx = 0, alt_dy = 0;
+                if (move_dx != 0) alt_dy = dy_to_party > 0 ? 1 : (dy_to_party < 0 ? -1 : 1);
+                else alt_dx = dx_to_party > 0 ? 1 : (dx_to_party < 0 ? -1 : 1);
+                nx = c->x + alt_dx;
+                ny = c->y + alt_dy;
+                if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT ||
+                    blocks_movement_or_sight(gs->levels[gs->current_level].cells[ny][nx].type)) {
+                    nx = c->x; ny = c->y;
+                }
+            }
+            if (nx != c->x || ny != c->y) {
                 bool blocked = nx == gs->party_x && ny == gs->party_y;
-                for (int j = 0; j < creature_count; j++) {
+                for (int j = 0; j < creature_count && !blocked; j++) {
                     if (j != i && cl->creatures[j].active &&
                         cl->creatures[j].level == gs->current_level &&
-                        cl->creatures[j].x == nx && cl->creatures[j].y == ny) {
+                        cl->creatures[j].x == nx && cl->creatures[j].y == ny)
                         blocked = true;
-                        break;
-                    }
                 }
                 if (!blocked) { c->x = nx; c->y = ny; }
             }
@@ -379,6 +456,7 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     if (creature_count > MAX_CREATURES) creature_count = MAX_CREATURES;
     Droid *d = &gs->droids[droid_idx];
     if (d->hp <= 0) return false;
+    if (d->stun_timer > 0) return false;
 
     bool has_weapon = false;
     for (int w = 0; w < 2; w++) {
@@ -457,6 +535,8 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
         target->active = false;
         target->respawn_timer = 600;
         cl->creature_killed = true;
+        gs->score += (uint32_t)(target->hp_max / 2 + 1);
+        if (target->is_boss) gs->score += 500;
         uint32_t old_xp = d->xp;
         /* CAPPO.EXE: kill XP uses the creature XP value, difficulty and the
          * droid's Experience skill. Keep this on the recovered xp_award()
@@ -487,6 +567,31 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
                     INT16_MAX : (int16_t)(d->energy_max + 5);
                 d->energy = d->energy_max;
                 cl->level_up_occurred = true;
+            }
+        }
+    }
+
+    bool is_spray = false;
+    for (int w = 0; w < 2; w++) {
+        uint8_t wid = d->weapons[w];
+        if (wid >= 33 && wid <= 35) { is_spray = true; break; }
+    }
+    if (is_spray) {
+        for (int i = 0; i < creature_count; i++) {
+            Creature *c = &cl->creatures[i];
+            if (c == target || !c->active || c->level != gs->current_level ||
+                c->hp <= 0) continue;
+            int cdist = distance(c->x, c->y, target->x, target->y);
+            if (cdist > 2) continue;
+            int splash = base_damage / 3 - c->defense / 4;
+            if (splash < 1) splash = 1;
+            if (splash >= c->hp) {
+                c->hp = 0;
+                c->active = false;
+                c->respawn_timer = 600;
+                gs->score += (uint32_t)(c->hp_max / 2 + 1);
+            } else {
+                c->hp = (int16_t)(c->hp - splash);
             }
         }
     }

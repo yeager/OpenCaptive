@@ -81,6 +81,11 @@ typedef struct {
     uint8_t body_parts[6];   // head, torso, l_arm, r_arm, l_leg, r_leg (item ID)
     uint8_t body_part_hp[6]; // condition per part (0=destroyed, 255=perfect)
     uint8_t weapons[2];      // left/right hand weapon ID
+    uint8_t shield;          // equipped shield item ID (0 = none)
+    int16_t shield_hp;       // shield durability (absorbs damage first)
+    uint8_t status;          // active status effects (StatusEffect bitmask)
+    uint8_t poison_timer;    // ticks remaining for poison damage
+    uint8_t stun_timer;      // ticks remaining for stun
     uint8_t items[10];       // inventory slots
     uint8_t skill_levels[10]; // per-skill level (0x00-0xFF)
     uint32_t xp;              // 32-bit XP accumulator (max 0xF8FFFFFF)
@@ -150,6 +155,9 @@ typedef struct {
     int         reputation; // -100 to +100, starts at 0
     uint8_t     lib_mission_complete[LIBERATION_MISSION_BITMAP_BYTES];
 
+    // Score
+    uint32_t    score;
+
     // Space navigation
     float       space_x, space_y;
     float       space_vx, space_vy;
@@ -157,6 +165,9 @@ typedef struct {
     float       space_target_x, space_target_y;
     float       orbit_angle;
     int         landing_tick;
+
+    // Movement
+    uint32_t    move_cooldown;   // ticks until next movement allowed
 
     // UI state
     int         selected_droid;  // 0-3

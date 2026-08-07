@@ -46,6 +46,9 @@
 #include <SDL3/SDL_main.h>
 
 static int quicksave_slot = 0;
+static int fade_alpha = 0;
+static int fade_direction = 0;
+static GameStateMode fade_target = STATE_GAME;
 /* Captive can open the same shop from active gameplay or from the mission
  * Holomap.  Keep the caller state so Escape never drops the player into the
  * previous mission after shopping from the Holomap. */
@@ -609,17 +612,34 @@ static void generate_captive_encounters(const GameState *gs) {
 
 #define MSG_LOG_SIZE 4
 #define MSG_LOG_TTL  180
+#define MSG_HISTORY_SIZE 64
 static struct {
     char text[64];
     uint32_t color;
     int ttl;
 } msg_log[MSG_LOG_SIZE];
+static struct {
+    char text[64];
+    uint32_t color;
+} msg_history[MSG_HISTORY_SIZE];
+static int msg_history_count;
+static int msg_scroll_offset;
 
 static void msg_push(const char *text, uint32_t color) {
     for (int i = MSG_LOG_SIZE - 1; i > 0; i--) msg_log[i] = msg_log[i-1];
     snprintf(msg_log[0].text, sizeof(msg_log[0].text), "%s", text);
     msg_log[0].color = color;
     msg_log[0].ttl = MSG_LOG_TTL;
+    if (msg_history_count < MSG_HISTORY_SIZE) {
+        snprintf(msg_history[msg_history_count].text, 64, "%s", text);
+        msg_history[msg_history_count].color = color;
+        msg_history_count++;
+    } else {
+        for (int i = 0; i < MSG_HISTORY_SIZE - 1; i++) msg_history[i] = msg_history[i+1];
+        snprintf(msg_history[MSG_HISTORY_SIZE-1].text, 64, "%s", text);
+        msg_history[MSG_HISTORY_SIZE-1].color = color;
+    }
+    msg_scroll_offset = 0;
 }
 
 static int damage_flash_ttl;
@@ -1968,8 +1988,17 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_H:
             gs->mode = STATE_HELP;
             return;
+        case SDLK_PAGEUP:
+            if (msg_scroll_offset < msg_history_count - MSG_LOG_SIZE)
+                msg_scroll_offset++;
+            return;
+        case SDLK_PAGEDOWN:
+            if (msg_scroll_offset > 0) msg_scroll_offset--;
+            return;
         default: return;
     }
+
+    if (gs->move_cooldown > 0) return;
 
     // Try to move
     int nx = gs->party_x + dx;
@@ -1982,9 +2011,23 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             int pre_move_y = gs->party_y;
             gs->party_x = nx;
             gs->party_y = ny;
-            for (int di = 0; di < 4; di++) {
-                if (gs->droids[di].hp > 0 && gs->droids[di].energy > 0)
-                    gs->droids[di].energy--;
+            {
+                int total_weight = 0;
+                int leg_damage = 0;
+                for (int di = 0; di < 4; di++) {
+                    Droid *dd = &gs->droids[di];
+                    if (dd->hp <= 0) continue;
+                    if (dd->energy > 0) dd->energy--;
+                    for (int si = 0; si < 10; si++)
+                        if (dd->items[si] != 0) total_weight += 2;
+                    for (int w = 0; w < 2; w++)
+                        if (dd->weapons[w] != 0) total_weight += 3;
+                    if (dd->body_part_hp[4] < 128) leg_damage++;
+                    if (dd->body_part_hp[5] < 128) leg_damage++;
+                }
+                uint32_t cd = 2 + (uint32_t)(total_weight / 20) + (uint32_t)(leg_damage / 2);
+                if (cd > 8) cd = 8;
+                gs->move_cooldown = cd;
             }
             puzzle_check_step(&puzzles, gs, nx, ny);
             if (gs->mode == STATE_GAMEOVER) return;
@@ -3691,6 +3734,7 @@ int main(int argc, char *argv[]) {
                         }
                     }
                     gs.tick++;
+                    if (gs.move_cooldown > 0) gs.move_cooldown--;
                     if (gs.tick % 300 == 0) {
                         for (int di = 0; di < 4; di++) {
                             if (gs.droids[di].hp > 0) {
@@ -3753,6 +3797,29 @@ int main(int argc, char *argv[]) {
                     if (config.render_mode == CAPTIVE_RENDER_ENHANCED) {
                         hud_render(&gs, framebuffer,
                                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                    }
+                    if (msg_scroll_offset > 0) {
+                        int start = msg_history_count - MSG_LOG_SIZE - msg_scroll_offset;
+                        if (start < 0) start = 0;
+                        for (int mi = 0; mi < MSG_LOG_SIZE; mi++) {
+                            int idx = start + mi;
+                            if (idx < 0 || idx >= msg_history_count) continue;
+                            draw_simple_text(framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                                CAPTIVE_ORIGINAL_HEIGHT, 4, 170 + mi * 8,
+                                msg_history[idx].text, msg_history[idx].color, 1);
+                        }
+                    } else {
+                        for (int mi = 0; mi < MSG_LOG_SIZE; mi++) {
+                            if (msg_log[mi].ttl <= 0) continue;
+                            uint32_t mc = msg_log[mi].color;
+                            if (msg_log[mi].ttl < 30) {
+                                uint8_t a = (uint8_t)(msg_log[mi].ttl * 255 / 30);
+                                mc = (mc & 0x00FFFFFF) | ((uint32_t)a << 24);
+                            }
+                            draw_simple_text(framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                                CAPTIVE_ORIGINAL_HEIGHT, 4, 170 + mi * 8,
+                                msg_log[mi].text, mc, 1);
+                        }
                     }
                 }
                 break;
@@ -3914,8 +3981,24 @@ int main(int argc, char *argv[]) {
                               80, _("ALL MISSIONS COMPLETE"), 0xFFFFFF44, 2);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                               120, _("YOU HAVE ESCAPED!"), 0xFFAAAAFF, 1);
+                {
+                    char score_buf[48];
+                    snprintf(score_buf, sizeof(score_buf), _("SCORE: %u"), gs.score);
+                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                  145, score_buf, 0xFFFFFFFF, 1);
+                    const char *rank;
+                    if (gs.score >= 50000) rank = _("LEGENDARY");
+                    else if (gs.score >= 20000) rank = _("ELITE");
+                    else if (gs.score >= 10000) rank = _("VETERAN");
+                    else if (gs.score >= 5000) rank = _("SKILLED");
+                    else rank = _("ROOKIE");
+                    char rank_buf[48];
+                    snprintf(rank_buf, sizeof(rank_buf), _("RANK: %s"), rank);
+                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                  165, rank_buf, 0xFFFFCC44, 1);
+                }
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              150, _("PRESS ESCAPE"), 0xFF888888, 1);
+                              185, _("PRESS ESCAPE"), 0xFF888888, 1);
                 break;
 
             case STATE_HELP: {
@@ -4102,6 +4185,20 @@ int main(int argc, char *argv[]) {
         music_update(&music_sys);
         sfx_update(&sfx);
         sound_mix(&sound_sys);
+        if (fade_direction != 0) {
+            fade_alpha += fade_direction * 17;
+            if (fade_alpha >= 255) { fade_alpha = 255; fade_direction = -1; gs.mode = fade_target; }
+            if (fade_alpha <= 0) { fade_alpha = 0; fade_direction = 0; }
+            uint32_t mask = ((uint32_t)(255 - fade_alpha) << 24);
+            int pix_count = CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT;
+            for (int pi = 0; pi < pix_count; pi++) {
+                uint32_t c = framebuffer[pi];
+                uint8_t r = (uint8_t)(((c >> 16) & 0xFF) * (255 - fade_alpha) / 255);
+                uint8_t g2 = (uint8_t)(((c >> 8) & 0xFF) * (255 - fade_alpha) / 255);
+                uint8_t b = (uint8_t)((c & 0xFF) * (255 - fade_alpha) / 255);
+                framebuffer[pi] = (mask & 0xFF000000) | ((uint32_t)r << 16) | ((uint32_t)g2 << 8) | b;
+            }
+        }
         renderer_present(&renderer, framebuffer);
         if (config.fps_limit > 0 || custom.speed_control) {
             uint64_t elapsed = SDL_GetTicks() - frame_started;
