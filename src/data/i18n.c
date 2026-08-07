@@ -164,8 +164,20 @@ void i18n_init(const char *lang_override) {
     snprintf(path, sizeof(path), "po/%s.po", lang);
     load_po(path);
     if (table.count == 0) {
+        /* CMake's out-of-tree debug builds keep the catalog beside the build
+         * directory rather than beside the test executable. */
+        snprintf(path, sizeof(path), "../po/%s.po", lang);
+        load_po(path);
+    }
+    if (table.count == 0) {
         snprintf(path, sizeof(path), "/usr/share/opencaptive/po/%s.po", lang);
         load_po(path);
+    }
+    if (table.count == 0) {
+        /* Text lookup already falls back to msgid when a catalog is missing.
+         * Keep the reported language in sync with that behavior so the
+         * launcher cannot display an unavailable locale as selected. */
+        snprintf(table.lang, sizeof(table.lang), "en");
     }
 }
 

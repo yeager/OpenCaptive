@@ -3662,3 +3662,8 @@
 
 - Fixade enkel-källa-fallet där en verifierad Liberation-installation kunde
   skickas vidare med `LIBERATION_SOURCE_NONE` i stället för CD32 eller ADF.
+
+# 2026-08-07 — L10n-fallback
+
+- Okända eller saknade språk katalogiseras nu som engelska även i rapporterad
+  språkstatus, inte bara i själva texten.

@@ -23,6 +23,7 @@ static void test_null_returns_empty(void) {
 
 static void test_unknown_lang_passthrough(void) {
     i18n_init("xx");
+    assert(strcmp(i18n_get_lang(), "en") == 0);
     assert(strcmp(i18n_get("SETTINGS"), "SETTINGS") == 0);
     i18n_free();
 }
