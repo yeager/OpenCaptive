@@ -3762,6 +3762,13 @@
 - Okända eller saknade språk katalogiseras nu som engelska även i rapporterad
   språkstatus, inte bara i själva texten.
 
+# 2026-08-07 — Captive exakt validering av droidrustning
+
+- Sparfiler accepterar nu bara rustningsdelen som hör till den faktiska
+  kroppsdelsplatsen. Ett regressionstest avvisar till exempel HAND i HEAD.
+- Lokalt bygge och hela testsviten passerar: 58/58 tester.
+- GitHub Actions är grön på macOS, Windows och Linux.
+
 # 2026-08-07 — Captive sparning av lösta dörrpussel
 
 - Lade till ett integrationsprov för en spak som öppnar en låst dörr före
