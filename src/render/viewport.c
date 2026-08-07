@@ -68,9 +68,9 @@ static void blit_object_scaled(const TextureAtlas *atlas, int frame_idx,
             if (sx >= tex->width) continue;
             int px = dst_x + dx;
             if (px < 0 || px >= fb_w) continue;
+            if (tex->indices[sy * tex->width + sx] == 0) continue;
             uint32_t c = tex->pixels[sy * tex->width + sx];
-            if ((c >> 24) > 0x80)
-                fb[py * fb_w + px] = c;
+            fb[py * fb_w + px] = c;
         }
     }
 }
@@ -83,6 +83,16 @@ static uint32_t sample_sheet(const TextureAtlas *atlas, int sheet,
     if (!tex || sx < 0 || sx >= tex->width || sy < 0 || sy >= tex->height)
         return 0xFF000000;
     return tex->pixels[sy * tex->width + sx];
+}
+
+/* PL5 transparency is an index property, not an RGB property. Indices 16
+ * and 18 are both opaque black in the Captive palette. */
+static uint8_t sample_sheet_index(const TextureAtlas *atlas, int sheet,
+                                  int sx, int sy) {
+    const Texture *tex = atlas ? gfx_get(&atlas->gfx, sheet) : NULL;
+    if (!tex || sx < 0 || sx >= tex->width || sy < 0 || sy >= tex->height)
+        return 0;
+    return tex->indices[sy * tex->width + sx];
 }
 
 /* Per-range perspective parameters for the 19-cell trapezoid.
@@ -139,13 +149,13 @@ static void draw_floor_ceiling(uint32_t *fb, int fb_w, int fb_h,
             int sy_ceil = 40 - y - range * 8;
             if (sy_floor >= 0 && sy_floor < 200) {
                 uint32_t c = sample_sheet(atlas, sheet, sx, sy_floor);
-                if ((c & 0x00FFFFFF) != 0)
+                if (sample_sheet_index(atlas, sheet, sx, sy_floor) != 0)
                     put_pixel_vp(fb, fb_w, fb_h,
                                  vp_x + x, vp_y + floor_y + y, c);
             }
             if (sy_ceil >= 0 && sy_ceil < 200) {
                 uint32_t c = sample_sheet(atlas, sheet, sx, sy_ceil);
-                if ((c & 0x00FFFFFF) != 0)
+                if (sample_sheet_index(atlas, sheet, sx, sy_ceil) != 0)
                     put_pixel_vp(fb, fb_w, fb_h,
                                  vp_x + x, vp_y + ceil_y - y, c);
             }
@@ -173,7 +183,7 @@ static void draw_wall(uint32_t *fb, int fb_w, int fb_h,
             int sx = src_base_x + (x * 80) / wall_w;
             if (sx >= 320) sx = 319;
             uint32_t c = sample_sheet(atlas, sheet, sx, sy);
-            if ((c & 0x00FFFFFF) != 0)
+            if (sample_sheet_index(atlas, sheet, sx, sy) != 0)
                 put_pixel_vp(fb, fb_w, fb_h,
                              vp_x + wall_x + x, vp_y + wall_y + y, c);
         }
@@ -195,7 +205,7 @@ static void draw_door(uint32_t *fb, int fb_w, int fb_h,
             int sx = (x * 64) / door_w;
             if (sx >= 320) sx = 319;
             uint32_t c = sample_sheet(atlas, sheet, sx, sy);
-            if ((c & 0x00FFFFFF) != 0)
+            if (sample_sheet_index(atlas, sheet, sx, sy) != 0)
                 put_pixel_vp(fb, fb_w, fb_h,
                              vp_x + door_x + x, vp_y + door_y + y, c);
         }
@@ -222,7 +232,7 @@ static void draw_ornament(uint32_t *fb, int fb_w, int fb_h,
             int sx = src_x + (x * 32) / ow;
             if (sx >= 320) sx = 319;
             uint32_t c = sample_sheet(atlas, sheet, sx, sy);
-            if ((c & 0x00FFFFFF) != 0)
+            if (sample_sheet_index(atlas, sheet, sx, sy) != 0)
                 put_pixel_vp(fb, fb_w, fb_h,
                              vp_x + ox + x, vp_y + oy + y, c);
         }
@@ -656,11 +666,12 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
             /* Blit from PL5 sheet — front-facing frame at (0,0), 64×100 region */
             int src_w = 64, src_h = 100;
             for (int py = 0; py < sprite_h; py++) {
-                int src_y = py * src_h / sprite_h;
+                    int src_y = py * src_h / sprite_h;
                 for (int px = 0; px < sprite_w; px++) {
                     int src_x = px * src_w / sprite_w;
                     uint32_t pixel = sample_sheet(atlas, sheet, src_x, src_y);
-                    if ((pixel & 0x00FFFFFF) == 0) continue;
+                    if (sample_sheet_index(atlas, sheet, src_x, src_y) == 0)
+                        continue;
                     put_pixel_vp(framebuffer, fb_width, fb_height,
                                  vp_x + sx + px, vp_y + sy + py, pixel);
                 }

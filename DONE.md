@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive PL5-transparens)
+
+- Captive viewportens panel-, ornament-, objekt- och creature-blit använder nu
+  PL5:s indexplan för transparens. Endast index 0 är transparent; giltiga
+  svarta index 16 och 18 raderas inte längre av RGB-baserad filtrering.
+- Testtexturen i viewport-regressionstestet innehåller nu också ett indexplan.
+  Hela testsviten passerar 58/58.
+
 ## 2026-08-07 (Captive viewport descriptor-layout)
 
 - Dokumenterade och testade CAPPO:s 160×112 viewport-arbetsyta. Descriptorernas

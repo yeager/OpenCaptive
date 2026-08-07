@@ -26,18 +26,24 @@ static bool viewport_changed(const uint32_t *framebuffer) {
 
 int main(void) {
     static uint32_t texture_pixels[320 * 200];
+    static uint8_t texture_indices[320 * 200];
     static uint32_t framebuffer[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
     static GameState gs;
     static CreatureList creatures;
     for (size_t i = 0; i < sizeof(texture_pixels) / sizeof(texture_pixels[0]); i++)
         texture_pixels[i] = 0xFF101010;
-    for (int y = 0; y < 32; y++)
-        for (int x = 0; x < 32; x++)
+    memset(texture_indices, 1, sizeof(texture_indices));
+    for (int y = 0; y < 32; y++) {
+        for (int x = 0; x < 32; x++) {
             texture_pixels[y * 320 + x] = 0xFFFF0000;
+            texture_indices[y * 320 + x] = 2;
+        }
+    }
     memset(&gs, 0, sizeof(gs));
     memset(&creatures, 0, sizeof(creatures));
 
     test_texture.pixels = texture_pixels;
+    test_texture.indices = texture_indices;
     test_texture.width = 320;
     test_texture.height = 200;
     test_texture.loaded = true;
