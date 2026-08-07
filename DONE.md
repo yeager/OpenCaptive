@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive seedade save-load)
+
+- Captive laddar nu om uppdrag med det auktoritativa `mission_seed`-värdet från
+  sparfilen. Tidigare kunde giltiga sparningar från seedade uppdrag avvisas när
+  seedet inte gick att härleda från `base_id`.
+- Regressionstestet sparar på en inre nivå, laddar sparningen och verifierar
+  nivåövergångar både mellan basnivåer och tillbaka till landningszonen.
+- Fullt lokalt testpaket: 58 av 58 tester godkända. Captive-datan i
+  `~/.opencaptive` verifierar både DOS- och Amiga-källan.
+
 ## 2026-08-07 (Captive vapenräckvidd)
 
 - Sprayvapen respekterar nu sin dokumenterade räckvidd 4. Tidigare behandlade

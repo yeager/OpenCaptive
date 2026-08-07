@@ -514,7 +514,12 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
 #define LOAD_FAIL() do { fclose(f); free(restored); return false; } while (0)
     game_state_init(restored, GAME_CAPTIVE, (int)hdr.mission);
     restored->base_id = (int)hdr.base_id;
-    if (!game_state_new_mission(restored, (int)hdr.mission)) LOAD_FAIL();
+    /* The save stores the authoritative mission seed.  Rebuilding through
+     * game_state_new_mission() would derive a different seed for missions
+     * created with game_state_new_mission_seeded(), making valid saves fail
+     * validation before their level state can be restored. */
+    if (!game_state_new_mission_seeded(restored, (int)hdr.mission,
+                                       hdr.mission_seed)) LOAD_FAIL();
     if (restored->mission_seed != hdr.mission_seed ||
         restored->num_levels != hdr.num_levels ||
         hdr.current_level >= restored->num_levels)

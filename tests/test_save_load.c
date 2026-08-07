@@ -117,6 +117,57 @@ static void test_solved_lever_and_door_survive_round_trip(void) {
     assert(loaded.levels[0].cells[10][11].ornament[DIR_EAST] == ORNAMENT_PANEL);
 }
 
+static void test_round_trip_preserves_inner_floor_transitions(void) {
+    GameState saved, loaded;
+    CreatureList creatures = {0}, loaded_creatures = {0};
+    PuzzleList puzzles = {0}, loaded_puzzles = {0};
+    game_state_init(&saved, GAME_CAPTIVE, 1);
+    assert(game_state_new_mission_seeded(&saved, 1, 17));
+    assert(saved.num_levels > 2);
+
+    int down_x = -1, down_y = -1;
+    for (int y = 0; y < MAP_HEIGHT && down_x < 0; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (saved.levels[1].cells[y][x].type == CELL_STAIRS_DOWN) {
+                down_x = x;
+                down_y = y;
+                break;
+            }
+        }
+    }
+    assert(down_x >= 0 && down_y >= 0);
+    saved.current_level = 1;
+    saved.party_x = down_x;
+    saved.party_y = down_y;
+    assert(save_game(&saved, &creatures, &puzzles, save_path));
+
+    assert(load_game(&loaded, &loaded_creatures, &loaded_puzzles, save_path));
+    assert(loaded.current_level == 1);
+    assert(loaded.party_x == down_x && loaded.party_y == down_y);
+    assert(game_state_change_floor(&loaded, 1));
+    assert(loaded.current_level == 2);
+    assert(game_state_change_floor(&loaded, -1));
+    assert(loaded.current_level == 1);
+
+    int up_x = -1, up_y = -1;
+    for (int y = 0; y < MAP_HEIGHT && up_x < 0; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (loaded.levels[1].cells[y][x].type == CELL_STAIRS_UP) {
+                up_x = x;
+                up_y = y;
+                break;
+            }
+        }
+    }
+    assert(up_x >= 0 && up_y >= 0);
+    loaded.party_x = up_x;
+    loaded.party_y = up_y;
+    assert(game_state_change_floor(&loaded, -1));
+    assert(loaded.current_level == 0);
+    assert(game_state_change_floor(&loaded, 1));
+    assert(loaded.current_level == 1);
+}
+
 static void test_corrupt_save_preserves_state(void) {
     static GameState before, target;
     static CreatureList creatures, target_creatures;
@@ -532,6 +583,7 @@ static void test_binary_lever_hint_uses_bit_zero(void) {
 int main(void) {
     test_round_trip();
     test_solved_lever_and_door_survive_round_trip();
+    test_round_trip_preserves_inner_floor_transitions();
     test_corrupt_save_preserves_state();
     test_load_recomputes_derived_weapon_damage();
     test_trailing_save_bytes_rejected();
