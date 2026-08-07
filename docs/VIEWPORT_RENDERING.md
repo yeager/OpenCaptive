@@ -19,6 +19,12 @@ not specified here until they are measured from a verified original frame.
 - Extends 4 cells forward, 2 cells left to 2 right
 - All 4 facing directions normalized to "facing north" before rendering
 
+The recovered DOS compositor builds a 160×112 work buffer. Its descriptor
+destination fields are byte offsets in that buffer; the final screen copy
+shows the first 144 pixels of every row. OpenCaptive keeps this distinction
+explicit in `captive_dos_descriptor_destination_xy()` while the remaining
+descriptor order and panel masks are being recovered.
+
 ## Draw order
 
 Back-to-front:

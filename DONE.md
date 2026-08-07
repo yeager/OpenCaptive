@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive viewport descriptor-layout)
+
+- Dokumenterade och testade CAPPO:s 160×112 viewport-arbetsyta. Descriptorernas
+  destination är nu uttryckligen översatt från byteoffset till `(x, y)` med
+  originalets 160-byte radsträcka; den slutliga skärmkopian visar 144 pixlar.
+- Uppdaterade viewport-dokumentationen utan att påstå pixelparitet innan
+  descriptorordning och panelmasker är helt återvunna.
+
 ## 2026-08-07 (Captive XP-belöning)
 
 - Captive-striden använder nu den återvunna CAPPO-formeln för XP-belöning vid

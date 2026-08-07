@@ -15,6 +15,16 @@ static uint16_t read_le16(const uint8_t *bytes) {
     return (uint16_t)(bytes[0] | ((uint16_t)bytes[1] << 8));
 }
 
+bool captive_dos_descriptor_destination_xy(uint16_t destination_offset,
+                                           int *x, int *y) {
+    if (!x || !y || destination_offset >=
+        CAPTIVE_DOS_VIEW_STRIDE * CAPTIVE_DOS_VIEW_HEIGHT)
+        return false;
+    *x = (int)(destination_offset % CAPTIVE_DOS_VIEW_STRIDE);
+    *y = (int)(destination_offset / CAPTIVE_DOS_VIEW_STRIDE);
+    return true;
+}
+
 bool captive_dos_descriptor_read(const uint8_t *memory, size_t memory_size,
                                  uint16_t descriptor_segment,
                                  uint16_t source_bank_table_segment,

@@ -20,6 +20,15 @@ typedef struct {
 } CaptiveDosDescriptor;
 
 #define CAPTIVE_DOS_PACKED_SOURCE_STRIDE 200U
+#define CAPTIVE_DOS_VIEW_STRIDE 160U
+#define CAPTIVE_DOS_VIEW_HEIGHT 112U
+
+/* The DOS renderer builds the active view in a 160-byte row buffer.  The
+ * display copy exposes only the first 144 pixels of each row.  Descriptor
+ * destination offsets are byte offsets in that work buffer (CAPPO.EXE:
+ * 0x2db4-0x2dc0), not packed viewport coordinates. */
+bool captive_dos_descriptor_destination_xy(uint16_t destination_offset,
+                                           int *x, int *y);
 
 /* Decode one original descriptor from a physical one-megabyte DOS memory
  * image. `descriptor_segment` and `source_bank_table_segment` are the

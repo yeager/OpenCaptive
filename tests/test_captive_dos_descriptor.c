@@ -30,6 +30,15 @@ int main(void) {
     assert(result.source_offset == 0x6662 && result.destination_offset == 0x1720);
     assert(result.width_bytes == 6 && result.height == 49 && result.flags == 6);
     assert(result.source_bank == 2 && result.source_segment == 0x55cf);
+    int destination_x = -1;
+    int destination_y = -1;
+    assert(captive_dos_descriptor_destination_xy(result.destination_offset,
+                                                  &destination_x,
+                                                  &destination_y));
+    assert(destination_x == 0 && destination_y == 37);
+    assert(!captive_dos_descriptor_destination_xy(
+        CAPTIVE_DOS_VIEW_STRIDE * CAPTIVE_DOS_VIEW_HEIGHT, &destination_x,
+        &destination_y));
     uint8_t *source = memory + ((size_t)result.source_segment << 4) + result.source_offset;
     const uint8_t packed[] = { 0xe1, 0x42, 0x38, 0xa4, 0x1d };
     memcpy(source, packed, sizeof(packed));

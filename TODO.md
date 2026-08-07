@@ -6,6 +6,7 @@
 - [x] Preserve the verified original `GAME SCRN` HUD shell at its native position
 - [x] Recover 19-cell sampling and ordered visibility cleanup for analysis
 - [x] Recover the static DOS descriptor record layout and source-bank indirection
+- [x] Encode and test the DOS compositor's 160×112 destination-offset layout
 - [ ] Recover the complete original per-cell descriptor sequence, destination bases and draw order
 - [ ] Reproduce original planar mask, mirror and overwrite behaviour in the active viewport
 - [ ] Verify a playable Captive viewport pixel-for-pixel against original DOS captures
