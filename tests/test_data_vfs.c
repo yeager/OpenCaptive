@@ -248,11 +248,17 @@ static void test_finds_hash_in_extracted_tree(void) {
     free(result);
 
     /* Replacing a loose file must invalidate the metadata-backed cache; an
-       old payload must never satisfy a hash lookup after the source changes. */
+       old payload must never satisfy a hash lookup after the source changes.
+       Use a new file identity, matching the atomic replacement path used by
+       installers and archive extractors on Windows. */
     const unsigned char replacement[] = { 5, 6, 7, 8 };
-    f = fopen(test_file, "wb");
+    const char *replacement_file =
+        "test-vfs-loose-dir/test-vfs-loose.bin.new";
+    f = fopen(replacement_file, "wb");
     assert(f && fwrite(replacement, 1, sizeof(replacement), f) == sizeof(replacement));
     assert(fclose(f) == 0);
+    assert(remove(test_file) == 0);
+    assert(rename(replacement_file, test_file) == 0);
     result = vfs_find_sha256(&vfs,
         "63d987d1c6d69751c17297f410f5b3547a65d096a8993b35bcb4f9cad054f176", &size);
     assert(result == NULL);
