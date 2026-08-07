@@ -1,6 +1,6 @@
 # OpenCaptive
 
-**Current release: v1.1.82**
+**Current release: v1.1.83**
 
 A modern C/SDL3 reimplementation of **Captive** (1990) and **Liberation: Captive 2** (1993) by Antony Crowther, published by Mindscape.
 
@@ -11,7 +11,7 @@ runtime paths are still under development.
 
 ## Downloads
 
-Pre-built packages for all platforms are available on the [Releases](https://github.com/yeager/OpenCaptive/releases) page. Maintainers can also run the **Release** GitHub Actions workflow manually with a version such as `1.1.82`; tag-based releases remain supported.
+Pre-built packages for all platforms are available on the [Releases](https://github.com/yeager/OpenCaptive/releases) page. Maintainers can also run the **Release** GitHub Actions workflow manually with a version such as `1.1.83`; tag-based releases remain supported.
 
 | Platform | Package |
 |----------|---------|
@@ -243,6 +243,9 @@ The following components have been cross-referenced against the original binarie
 Full documentation is available on the [wiki](https://github.com/yeager/OpenCaptive/wiki):
 
 - [User Guide](https://github.com/yeager/OpenCaptive/wiki/User-Guide) — Building, running, controls, settings
+- [Controls](https://github.com/yeager/OpenCaptive/wiki/Controls) — Complete keyboard and mouse reference
+- [CLI Reference](https://github.com/yeager/OpenCaptive/wiki/CLI-Reference) — All command-line options with examples
+- [Custom Features](https://github.com/yeager/OpenCaptive/wiki/Custom-Features) — Optional enhancements beyond original parity
 - [Developer Guide](https://github.com/yeager/OpenCaptive/wiki/Developer-Guide) — Code layout, architecture, contribution
 - [Captive Technical](https://github.com/yeager/OpenCaptive/wiki/Captive-Technical) — DOS engine analysis, viewport, combat, MapGen
 - [Liberation Technical](https://github.com/yeager/OpenCaptive/wiki/Liberation-Technical) — CD32 engine, CityGen, 3D rendering

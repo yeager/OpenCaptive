@@ -9,10 +9,19 @@ used.
 
 ## Unreleased
 
+None.
+
+## v1.1.83 (2026-08-07)
+
 ### Added
 
 - Regression coverage for Liberation bar purchases with a full shared
   inventory.
+- New wiki pages: per-platform installation guides (Linux, macOS, Windows,
+  iOS, Android), Internationalization, Energy and Body Parts, Mission Flow,
+  Save and Load, Start Menu, Captive and Liberation disassembly notes.
+- Comprehensive project documentation with 22 wiki pages and 11 technical
+  reference documents.
 
 ### Changed
 
@@ -25,15 +34,32 @@ used.
   the shared inventory with non-runtime item IDs. Buying drinks still charges
   gold and performs the documented bar-fight roll.
 - A full shared inventory no longer blocks bar purchases.
+- SHOP1/SHOP2/KEYBOARD PL5 sheets are now wired into the texture atlas,
+  replacing synthetic placeholder graphics.
+- Replaced synthetic Captive screens with real GAMESCRN.PL5 background when
+  verified game data is present.
+- Updated all 19 language catalogs with droid configuration screen strings.
 
 ### Removed
 
-- None.
+- Removed dead `citygen_connect_roads` declaration from Liberation header.
 
 ### Technical details
 
-- Liberation shop interaction now records pending purchases only for ordinary
-  shops; bar purchases remain transient and cannot become unusable equipment.
+- Comprehensive code review (5 iterations, ~80 source files, 76 headers, 25
+  tools): fixed ~60 bugs total across three review rounds.
+- Fixed unchecked malloc/calloc in 7 tool programs (rnc_decode, dump_pge,
+  anm_extract, pl5_to_bmp, pl5_analyze, liberation_presentation_capture,
+  liberation_presentation_inventory).
+- Fixed integer overflow in rnc_decode (unp_size + 4096 wraparound) and two
+  liberation_presentation tools (packed_size > INT_MAX - 12).
+- Fixed file handle leak in visual_compare on fwrite failure.
+- Fixed Liberation save preflight missing reputation_size in bounds check.
+- Fixed test_game_state using invalid level index for mission 5.
+- Fixed test_spawn asserting type 0x0F spawns 3 creatures (correct: 2).
+- Fixed shop gold overflow with INT_MAX guard on large costs.
+- Fixed MIDI voice stealing to always send note-off before reuse.
+- All 58 CTest tests passing on macOS, Linux, and Windows.
 
 ## v1.1.80 (2026-08-07)
 

@@ -1,6 +1,6 @@
 # Captive technical notes
 
-> Documentation baseline: v1.1.82. Runtime parity claims remain scoped to the verified boundaries described below.
+> Documentation baseline: v1.1.83. Runtime parity claims remain scoped to the verified boundaries described below.
 
 ## Runtime model
 
