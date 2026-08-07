@@ -36,6 +36,9 @@ typedef enum {
     ITEM_EXPLOSIVE,
     ITEM_SHIELD,
     ITEM_GRENADE,
+    ITEM_TOOL,
+    ITEM_DISGUISE,
+    ITEM_CITY_ITEM,
     ITEM_CATEGORY_COUNT,
 } ItemCategory;
 

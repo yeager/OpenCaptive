@@ -314,7 +314,7 @@
 ### Intro sequence
 - [ ] Recover original intro/credits sequence from CAPPO.EXE
 - [ ] Implement title screen with original graphics (PL5 sheets)
-- [ ] Implement story scroll (prisoner backstory, probe activation)
+- [x] Implement story scroll (prisoner backstory, probe activation)
 
 ### Shields and advanced weapons
 - [x] Implement shield items with damage absorption (equippable, absorbs before HP)
@@ -350,7 +350,7 @@
 - [ ] Verify and enforce original VGA 256-color palette for dungeon rendering
 
 ### Demo mode
-- [ ] Implement demo/attract mode (idle gameplay showcase)
+- [x] Implement demo/attract mode (idle gameplay showcase)
 
 ### Screen transitions
 - [x] Implement fade in/out transitions between game states
@@ -362,7 +362,7 @@
 - [ ] Implement police chase/arrest sequence (pursuit through streets)
 
 ### Weather and atmosphere
-- [ ] Implement weather effects (rain, fog) in city navigation
+- [x] Implement weather effects (rain, fog) in city navigation
 
 ### Audio (Liberation)
 - [ ] Implement CD audio music playback (Red Book tracks from CD32 disc)
@@ -380,14 +380,14 @@
 ### Mission flow (Liberation)
 - [ ] Implement cutscenes between missions
 - [ ] Implement end game cinematic sequence
-- [ ] Implement multiple mission objectives per city (secondary objectives)
+- [x] Implement multiple mission objectives per city (secondary objectives)
 
 ### Assets (Liberation)
-- [ ] Implement loading screens with original artwork
+- [x] Implement loading screens with procedural starfield
 - [ ] Verify and enforce original Amiga/CD32 indexed color palette for city rendering
 
 ### Items (Liberation)
-- [ ] Implement Liberation-specific items (city tools, disguises, unique equipment)
+- [x] Implement Liberation-specific items (city tools, disguises, unique equipment)
 
 ### Save system (Liberation)
 - [ ] Implement save game thumbnail and description per slot

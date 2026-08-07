@@ -50,6 +50,13 @@ static int cmd_difficulty = 1;
 static int fade_alpha = 0;
 static int fade_direction = 0;
 static GameStateMode fade_target = STATE_GAME;
+static uint32_t menu_idle_ticks;
+static int demo_tick;
+static int story_scroll_y;
+static int loading_frames;
+static GameState demo_gs;
+static bool demo_gs_ready = false;
+static GameStateMode post_story_mode = STATE_DROID_CONFIG;
 /* Captive can open the same shop from active gameplay or from the mission
  * Holomap.  Keep the caller state so Escape never drops the player into the
  * previous mission after shopping from the Holomap. */
@@ -1311,6 +1318,7 @@ static void start_liberation_session(GameState *gs_ptr) {
         lib_combat_init(&lib_combat);
         lib_in_combat = false;
         lib_city_generated = true;
+        gs_ptr->weather = (uint8_t)(seed % 3);
 
         plotgen_init(&lib_plot, seed);
         plotgen_generate_buildings(&lib_plot);
@@ -2690,6 +2698,7 @@ int main(int argc, char *argv[]) {
 
             switch (gs.mode) {
                 case STATE_MENU: {
+                    menu_idle_ticks = 0;
                     MenuResult result;
                     if (event.type == SDL_EVENT_MOUSE_MOTION) {
                         float mx, my;
@@ -2754,6 +2763,13 @@ int main(int argc, char *argv[]) {
                                 gs.mode = STATE_DROID_CONFIG;
                                 droid_config_cursor = 0;
                             }
+                            /* Show the backstory scroll first; it hands off
+                             * to whichever mode was just computed above
+                             * (the intro cutscene, or droid config directly
+                             * when no intro animation could be loaded). */
+                            post_story_mode = gs.mode;
+                            gs.mode = STATE_STORY;
+                            story_scroll_y = 0;
                             break;
                         case MENU_RESULT_START_LIBERATION:
                             /* A fresh Liberation game must not inherit the
@@ -2782,6 +2798,9 @@ int main(int argc, char *argv[]) {
                             load_liberation_mission_menu();
                             lib_city_generated = false;
                             start_liberation_session(&gs);
+                            fade_target = gs.mode;
+                            gs.mode = STATE_LOADING;
+                            loading_frames = 0;
                             break;
                         case MENU_RESULT_CONTINUE_CAPTIVE:
                             gs.game_type = GAME_CAPTIVE;
@@ -2869,6 +2888,9 @@ int main(int argc, char *argv[]) {
                                     lib_city_generated = false;
                                     start_liberation_session(&gs);
                                 }
+                                fade_target = gs.mode;
+                                gs.mode = STATE_LOADING;
+                                loading_frames = 0;
                             }
                             break;
                         case MENU_RESULT_QUIT:
@@ -2958,7 +2980,9 @@ int main(int argc, char *argv[]) {
                                         break;
                                     }
                                 }
-                                gs.mode = STATE_GAME;
+                                fade_target = STATE_GAME;
+                                gs.mode = STATE_LOADING;
+                                loading_frames = 0;
                             }
                         }
                     }
@@ -3355,6 +3379,22 @@ int main(int argc, char *argv[]) {
                         gs.mode = STATE_GAME;
                     }
                     break;
+                case STATE_DEMO:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        gs.mode = STATE_MENU;
+                        start_menu_reinit(&menu);
+                        demo_gs_ready = false;
+                    }
+                    break;
+                case STATE_STORY:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        gs.mode = post_story_mode;
+                        if (post_story_mode == STATE_DROID_CONFIG)
+                            droid_config_cursor = 0;
+                    }
+                    break;
+                case STATE_LOADING:
+                    break;
                 case STATE_PAUSE:
                     if (event.type == SDL_EVENT_MOUSE_MOTION) {
                         int canvas_height = (gs.game_type == GAME_LIBERATION && !lib_in_dungeon)
@@ -3528,6 +3568,12 @@ int main(int argc, char *argv[]) {
 
         switch (gs.mode) {
             case STATE_MENU:
+                menu_idle_ticks++;
+                if (menu_idle_ticks > 1800) {
+                    gs.mode = STATE_DEMO;
+                    demo_tick = 0;
+                    menu_idle_ticks = 0;
+                }
                 start_menu_render(&menu, framebuffer, MENU_WIDTH, MENU_HEIGHT);
                 break;
 
@@ -3659,6 +3705,25 @@ int main(int argc, char *argv[]) {
                                 int sx = dx * LIB3D_VP_WIDTH / LIBERATION_SCREEN_WIDTH;
                                 framebuffer[dy * LIBERATION_SCREEN_WIDTH + dx] =
                                     lib_render.framebuffer[sy * LIB3D_VP_WIDTH + sx];
+                            }
+                        }
+                        if (gs.weather == 1) {
+                            uint32_t rs = gs.tick * 0x5E5;
+                            for (int ri = 0; ri < 80; ri++) {
+                                rs = rs * 1103515245 + 12345;
+                                int rx = (int)(rs % LIBERATION_SCREEN_WIDTH);
+                                rs = rs * 1103515245 + 12345;
+                                int ry = (int)(rs % (LIBERATION_SCREEN_HEIGHT - 40));
+                                for (int rr = 0; rr < 4 && ry + rr < LIBERATION_SCREEN_HEIGHT - 40; rr++)
+                                    framebuffer[(ry+rr) * LIBERATION_SCREEN_WIDTH + rx] = 0xFF8888CC;
+                            }
+                        } else if (gs.weather == 2) {
+                            for (int i = 0; i < LIBERATION_SCREEN_WIDTH * (LIBERATION_SCREEN_HEIGHT - 40); i++) {
+                                uint32_t c = framebuffer[i];
+                                uint8_t r = (uint8_t)(((c>>16)&0xFF)*3/4 + 32);
+                                uint8_t g2 = (uint8_t)(((c>>8)&0xFF)*3/4 + 32);
+                                uint8_t b = (uint8_t)((c&0xFF)*3/4 + 40);
+                                framebuffer[i] = 0xFF000000 | ((uint32_t)r<<16) | ((uint32_t)g2<<8) | b;
                             }
                         }
                         if (taxi_flash_ttl > 0) {
@@ -4189,6 +4254,136 @@ int main(int argc, char *argv[]) {
                 draw_centered(framebuffer, mw, mh, mh - 15, _("ANY KEY: RETURN"), 0xFF666666, 1);
                 break;
             }
+
+            case STATE_DEMO:
+                memset(framebuffer, 0, sizeof(framebuffer));
+                demo_tick++;
+                if (!demo_gs_ready) {
+                    /* Attract-mode dungeon is generated once from a fixed
+                     * seed and driven independently of the real session
+                     * (gs), so idling at the menu never disturbs a paused
+                     * game underneath. */
+                    game_state_init(&demo_gs, GAME_CAPTIVE, 1);
+                    if (!game_state_new_mission_seeded(&demo_gs, 1, 0xD3D0CAFE))
+                        game_state_new_mission(&demo_gs, 1);
+                    demo_gs_ready = true;
+                }
+                if (demo_gs_ready && demo_gs.num_levels > 0 && (demo_tick % 20) == 0) {
+                    /* Scripted walkthrough: advance if the cell ahead is
+                     * open floor, otherwise turn to face a new direction. */
+                    static const int ddx[4] = {0, 1, 0, -1};
+                    static const int ddy[4] = {-1, 0, 1, 0};
+                    int nx = demo_gs.party_x + ddx[demo_gs.party_dir];
+                    int ny = demo_gs.party_y + ddy[demo_gs.party_dir];
+                    MapCell *ahead = NULL;
+                    if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT)
+                        ahead = &demo_gs.levels[demo_gs.current_level].cells[ny][nx];
+                    if (ahead && (ahead->type == CELL_FLOOR || ahead->type == CELL_DOOR)) {
+                        demo_gs.party_x = nx;
+                        demo_gs.party_y = ny;
+                        /* Auto-"combat": a creature standing in the cell we
+                         * just entered would trigger an encounter in real
+                         * play. This is a no-op stub for the attract mode. */
+                        if (ahead->creature_id != 0) {
+                            (void)0; /* stub: real combat is not simulated in demo mode */
+                        }
+                    } else {
+                        demo_gs.party_dir = (Direction)((demo_gs.party_dir + 1) % 4);
+                    }
+                }
+                {
+                    uint32_t ds = (uint32_t)demo_tick * 0x5E5 + 7;
+                    for (int si = 0; si < 40; si++) {
+                        ds = ds * 1103515245 + 12345;
+                        int sx = (int)(ds % CAPTIVE_ORIGINAL_WIDTH);
+                        ds = ds * 1103515245 + 12345;
+                        int sy = (int)(ds % CAPTIVE_ORIGINAL_HEIGHT);
+                        if (sx >= 0 && sx < CAPTIVE_ORIGINAL_WIDTH &&
+                            sy >= 0 && sy < CAPTIVE_ORIGINAL_HEIGHT)
+                            framebuffer[sy * CAPTIVE_ORIGINAL_WIDTH + sx] = 0xFFCCCCCC;
+                    }
+                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                  80, _("CAPTIVE"), 0xFF44AAFF, 3);
+                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                  120, _("DEMO MODE"), 0xFFAAAAAA, 1);
+                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                  150, _("PRESS ANY KEY"), 0xFF666666, 1);
+                    if (demo_gs_ready) {
+                        char pos[32];
+                        snprintf(pos, sizeof(pos), "LEVEL %d  X:%d Y:%d",
+                                 demo_gs.current_level + 1, demo_gs.party_x,
+                                 demo_gs.party_y);
+                        draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                                      CAPTIVE_ORIGINAL_HEIGHT, 170, pos, 0xFF66CC66, 1);
+                    }
+                }
+                if (demo_tick > 900) {
+                    gs.mode = STATE_MENU;
+                    start_menu_reinit(&menu);
+                    demo_gs_ready = false;
+                }
+                break;
+
+            case STATE_STORY:
+                memset(framebuffer, 0, sizeof(framebuffer));
+                story_scroll_y--;
+                {
+                    const char *story[] = {
+                        "C A P T I V E",
+                        "",
+                        "You are a prisoner aboard",
+                        "a space station.",
+                        "",
+                        "Your captors have left you",
+                        "alone with a computer terminal.",
+                        "",
+                        "Using it, you discover how to",
+                        "remote-control four service",
+                        "droids stored in the station.",
+                        "",
+                        "You must guide them through",
+                        "hostile bases on nearby planets",
+                        "to find and destroy the power",
+                        "generators that maintain your",
+                        "prison cell's force field.",
+                        "",
+                        "Only then can you escape...",
+                    };
+                    int nlines = (int)(sizeof(story) / sizeof(story[0]));
+                    for (int i = 0; i < nlines; i++) {
+                        int ty = story_scroll_y + i * 12 + CAPTIVE_ORIGINAL_HEIGHT;
+                        if (ty >= -10 && ty < CAPTIVE_ORIGINAL_HEIGHT)
+                            draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                                          CAPTIVE_ORIGINAL_HEIGHT, ty, story[i],
+                                          i == 0 ? 0xFF44AAFF : 0xFFCCCCCC, i == 0 ? 2 : 1);
+                    }
+                    if (story_scroll_y + nlines * 12 + CAPTIVE_ORIGINAL_HEIGHT < 0) {
+                        gs.mode = post_story_mode;
+                        if (post_story_mode == STATE_DROID_CONFIG)
+                            droid_config_cursor = 0;
+                    }
+                }
+                break;
+
+            case STATE_LOADING:
+                memset(framebuffer, 0, sizeof(framebuffer));
+                loading_frames++;
+                {
+                    uint32_t ls = (uint32_t)loading_frames * 0x1337;
+                    for (int si = 0; si < 60; si++) {
+                        ls = ls * 1103515245 + 12345;
+                        int sx = (int)(ls % CAPTIVE_ORIGINAL_WIDTH);
+                        ls = ls * 1103515245 + 12345;
+                        int sy = (int)(ls % CAPTIVE_ORIGINAL_HEIGHT);
+                        if (sx >= 0 && sx < CAPTIVE_ORIGINAL_WIDTH &&
+                            sy >= 0 && sy < CAPTIVE_ORIGINAL_HEIGHT)
+                            framebuffer[sy * CAPTIVE_ORIGINAL_WIDTH + sx] = 0xFF888888;
+                    }
+                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                  90, _("LOADING..."), 0xFFFFFFFF, 2);
+                }
+                if (loading_frames > 30) gs.mode = fade_target;
+                break;
 
             default: break;
         }

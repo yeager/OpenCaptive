@@ -114,6 +114,9 @@ typedef enum {
     STATE_SPACE_FLIGHT,
     STATE_ORBIT,
     STATE_LANDING,
+    STATE_DEMO,
+    STATE_STORY,
+    STATE_LOADING,
 } GameStateMode;
 
 typedef struct {
@@ -158,6 +161,11 @@ typedef struct {
     // Difficulty (0=easy, 1=normal, 2=hard)
     uint8_t     difficulty;
 
+    // Secondary objectives
+    uint8_t     secondary_obj_type;  // 0=none, 1=collect, 2=no-damage, 3=speed
+    uint8_t     secondary_obj_done;
+    uint16_t    secondary_obj_param; // target count or tick limit
+
     // Score
     uint32_t    score;
 
@@ -168,6 +176,9 @@ typedef struct {
     float       space_target_x, space_target_y;
     float       orbit_angle;
     int         landing_tick;
+
+    // Weather (Liberation city: 0=clear, 1=rain, 2=fog)
+    uint8_t     weather;
 
     // Movement
     uint32_t    move_cooldown;   // ticks until next movement allowed

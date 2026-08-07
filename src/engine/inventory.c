@@ -95,6 +95,13 @@ static const Item item_defs[] = {
     {59, ITEM_SHIELD,    "SHIELD MK2",         0x27, 0,  0,  30, 0, 0, 0, 0,  300, 2.0f, 0},
     {60, ITEM_GRENADE,   "GRENADE",            0x60, 20, 40,  0, 3, 0, 1, 1,  100, 0.5f, 0},
     {61, ITEM_GRENADE,   "FRAG GRENADE",       0x60, 30, 60,  0, 3, 0, 1, 1,  200, 0.5f, 0},
+    {62, ITEM_TOOL,      "LOCKPICK",           0x00, 0,  0,   0, 0, 0, 0, 0,  150, 0.2f, 0},
+    {63, ITEM_TOOL,      "TOOLKIT",            0x00, 0,  0,   0, 0, 0, 0, 0,  250, 0.5f, 0},
+    {64, ITEM_DISGUISE,  "GUARD UNIFORM",      0x27, 0,  0,   5, 0, 0, 0, 0,  500, 1.0f, 0},
+    {65, ITEM_DISGUISE,  "WORKER COVERALL",    0x27, 0,  0,   2, 0, 0, 0, 0,  200, 0.8f, 0},
+    {66, ITEM_CITY_ITEM, "CITY MAP",           0x00, 0,  0,   0, 0, 0, 0, 0,  100, 0.2f, 0},
+    {67, ITEM_CITY_ITEM, "COMM LINK",          0x00, 0,  0,   0, 0, 0, 0, 0,  300, 0.3f, 0},
+    {68, ITEM_CITY_ITEM, "GRAPPLE HOOK",       0x00, 0,  0,   0, 0, 0, 0, 0,  400, 1.5f, 0},
 };
 
 const UpgradeTier upgrade_tiers[UPGRADE_TIER_COUNT] = {
