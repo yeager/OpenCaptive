@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive XP-belöning)
+
+- Captive-striden använder nu den återvunna CAPPO-formeln för XP-belöning vid
+  dödade fiender i stället för den gamla `hp_max / 10`-approximationen.
+- Belöningen använder fiendens återvunna XP-värde, aktuell svårighetsgrad och
+  droidens Experience-skill. Regressionstestet täcker både belöningen och
+  nivåökningen.
+
 ## 2026-08-07 (Windows CI-bygg)
 
 - Windows-jobbets OpenCaptive-bygg använder nu två parallella byggtrådar.

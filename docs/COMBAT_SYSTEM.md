@@ -44,9 +44,12 @@ AI ticks occur every 4 game ticks (combat_tick). Movement uses Manhattan distanc
 
 ## Experience and Leveling
 
-- XP awarded per kill: `creature.hp_max / 2`
-- Level up threshold: `level * 100`
-- On level up: HP+10, energy+5, damage+1
+- XP per kill follows the recovered CAPPO formula:
+  `skill_level * (creature_xp + 3 + difficulty) * 12`
+- Captive uses the creature's recovered speed/XP value and the droid's
+  `Experience` skill for this calculation.
+- Display level is `xp >> 10`; crossing a display level restores HP and
+  energy and increases their maximums.
 
 ## Spawning
 

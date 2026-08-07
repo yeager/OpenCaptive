@@ -1,6 +1,7 @@
 #include "game_state.h"
 #include "combat.h"
 #include "puzzle.h"
+#include "xp_level.h"
 #include <assert.h>
 #include <limits.h>
 #include <stdio.h>
@@ -547,7 +548,8 @@ static void test_combat_level_up_uses_pre_attack_xp(void) {
     gs.party_x = 1;
     gs.party_y = 1;
     gs.party_dir = DIR_EAST;
-    gs.droids[0].xp = 0;
+    gs.droids[0].xp = 900;
+    gs.droids[0].skill_levels[XP_SKILL_COUNT - 1] = 1;
     gs.droids[0].weapons[0] = 13;
     gs.droids[0].weapon_damage = 0xFFFF;
 
@@ -557,11 +559,11 @@ static void test_combat_level_up_uses_pre_attack_xp(void) {
 
     creatures.num_creatures = 1;
     creatures.creatures[0] = (Creature){
-        .type = CREATURE_ALIEN1, .hp = 1, .hp_max = 32760,
+        .type = CREATURE_ALIEN1, .hp = 1, .hp_max = 32760, .speed = 30,
         .x = 2, .y = 1, .active = true,
     };
     assert(combat_droid_attack(&gs, &creatures, 0));
-    assert(gs.droids[0].xp == 3276);
+    assert(gs.droids[0].xp == 1296);
     assert(gs.droids[0].hp_max == 110);
 }
 

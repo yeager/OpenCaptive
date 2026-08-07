@@ -446,7 +446,11 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
         target->respawn_timer = 600;
         cl->creature_killed = true;
         uint32_t old_xp = d->xp;
-        uint32_t xp_reward = (uint32_t)(target->hp_max / 10);
+        /* CAPPO.EXE: kill XP uses the creature XP value, difficulty and the
+         * droid's Experience skill. Keep this on the recovered xp_award()
+         * path instead of the old hp_max/10 approximation. */
+        uint32_t xp_reward = xp_award((int)target->speed, target->level,
+                                      d->skill_levels[XP_SKILL_COUNT - 1]);
         d->xp = xp_add(old_xp, xp_reward);
         int reward = target->hp_max / 5 + 1;
         if (reward > 0 && gs->gold <= INT_MAX - reward)
