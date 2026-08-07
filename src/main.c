@@ -3714,7 +3714,16 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_GAMEOVER:
-                memset(framebuffer, 0, sizeof(framebuffer));
+                if (gs.game_type == GAME_CAPTIVE && hud_bg) {
+                    memcpy(framebuffer, hud_bg,
+                           CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                    /* Darken the GAMESCRN background */
+                    for (int i = 0; i < CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT; i++)
+                        framebuffer[i] = (framebuffer[i] & 0xFF000000)
+                            | ((framebuffer[i] & 0xFEFEFE) >> 1);
+                } else {
+                    memset(framebuffer, 0, sizeof(framebuffer));
+                }
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                               60, _("GAME OVER"), 0xFFFF2222, 3);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
@@ -3724,7 +3733,12 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_HOLAMAP: {
-                memset(framebuffer, 0, sizeof(framebuffer));
+                if (hud_bg) {
+                    memcpy(framebuffer, hud_bg,
+                           CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                } else {
+                    memset(framebuffer, 0, sizeof(framebuffer));
+                }
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                               30, _("MISSION COMPLETE!"), 0xFF44FF44, 2);
                 char mission_str[64];
@@ -3746,7 +3760,12 @@ int main(int argc, char *argv[]) {
             }
 
             case STATE_VICTORY:
-                memset(framebuffer, 0, sizeof(framebuffer));
+                if (gs.game_type == GAME_CAPTIVE && hud_bg) {
+                    memcpy(framebuffer, hud_bg,
+                           CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                } else {
+                    memset(framebuffer, 0, sizeof(framebuffer));
+                }
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                               40, _("VICTORY!"), 0xFF44FF44, 3);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
@@ -3762,7 +3781,14 @@ int main(int argc, char *argv[]) {
                     ? LIBERATION_SCREEN_WIDTH : CAPTIVE_ORIGINAL_WIDTH;
                 int ph = (gs.game_type == GAME_LIBERATION && !lib_in_dungeon)
                     ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
-                memset(framebuffer, 0, (size_t)pw * ph * sizeof(uint32_t));
+                if (gs.game_type == GAME_CAPTIVE && hud_bg) {
+                    memcpy(framebuffer, hud_bg, (size_t)pw * ph * sizeof(uint32_t));
+                    for (int i = 0; i < pw * ph; i++)
+                        framebuffer[i] = (framebuffer[i] & 0xFF000000)
+                            | ((framebuffer[i] & 0xFEFEFE) >> 1);
+                } else {
+                    memset(framebuffer, 0, (size_t)pw * ph * sizeof(uint32_t));
+                }
                 draw_centered(framebuffer, pw, ph, 5, _("CONTROLS"), 0xFFFFFF44, 2);
                 const char *help[] = {
                     _("W/UP: Move forward"),
@@ -3813,37 +3839,37 @@ int main(int argc, char *argv[]) {
             case STATE_DROID_CONFIG: {
                 int cw = CAPTIVE_ORIGINAL_WIDTH;
                 int ch = CAPTIVE_ORIGINAL_HEIGHT;
-                for (int i = 0; i < cw * ch; i++)
-                    framebuffer[i] = 0xFF000000;
-                draw_centered(framebuffer, cw, ch, 10, _("DROID CONFIGURATION"), 0xFF00FF00, 2);
+                if (hud_bg) {
+                    memcpy(framebuffer, hud_bg, cw * ch * sizeof(uint32_t));
+                } else {
+                    for (int i = 0; i < cw * ch; i++)
+                        framebuffer[i] = 0xFF000000;
+                }
+                int panel_y = CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT + 4;
+                int panel_w = 72;
                 for (int d = 0; d < 4; d++) {
-                    /* Keep the fourth droid's condition row clear of the
-                     * bottom action hints. The previous 35-pixel stride put
-                     * that row at y=162, directly under the rename hint at
-                     * y=165 on the native 320x200 canvas. */
-                    int yy = 35 + d * 28;
-                    uint32_t col = (d == droid_config_cursor) ? 0xFFFFFF44 : 0xFF888888;
-                    char line[80];
-                    snprintf(line, sizeof(line), _("%s %s  HP:%d  EN:%d"),
-                             (d == droid_config_cursor) ? ">" : " ",
-                             gs.droids[d].name, gs.droids[d].hp, gs.droids[d].energy);
-                    draw_simple_text(framebuffer, cw, ch, 10, yy, line, col, 1);
-                    char parts[64];
-                    snprintf(parts, sizeof(parts), _("  Parts: %d %d %d %d %d %d"),
-                             gs.droids[d].body_part_hp[0], gs.droids[d].body_part_hp[1],
-                             gs.droids[d].body_part_hp[2], gs.droids[d].body_part_hp[3],
-                             gs.droids[d].body_part_hp[4], gs.droids[d].body_part_hp[5]);
-                    draw_simple_text(framebuffer, cw, ch, 10, yy + 10, parts, 0xFF666666, 1);
+                    int px = 8 + d * (panel_w + 4);
+                    int py = panel_y;
+                    uint32_t col = (d == droid_config_cursor) ? 0xFFFFFF00 : 0xFFAAAAAA;
+                    draw_simple_text(framebuffer, cw, ch, px + 2, py + 2,
+                                     gs.droids[d].name, col, 1);
+                    char hp_buf[16];
+                    snprintf(hp_buf, sizeof(hp_buf), _("HP %d"), gs.droids[d].hp);
+                    draw_simple_text(framebuffer, cw, ch, px + 2, py + 12,
+                                     hp_buf, 0xFF00AA00, 1);
+                    char en_buf[16];
+                    snprintf(en_buf, sizeof(en_buf), _("EN %d"), gs.droids[d].energy);
+                    draw_simple_text(framebuffer, cw, ch, px + 2, py + 22,
+                                     en_buf, 0xFF4444FF, 1);
                 }
                 if (droid_config_renaming) {
                     char ren[48];
                     snprintf(ren, sizeof(ren), _("RENAME: %s_"), gs.droids[droid_config_cursor].name);
-                    draw_centered(framebuffer, cw, ch, ch - 35, ren, 0xFFFFFF00, 1);
+                    draw_centered(framebuffer, cw, ch, ch - 18, ren, 0xFFFFFF00, 1);
                 } else {
-                    draw_simple_text(framebuffer, cw, ch, 10, ch - 35,
-                                     _("R:RENAME  S:SWAP WEAPONS"), 0xFF666666, 1);
+                    draw_simple_text(framebuffer, cw, ch, 8, ch - 18,
+                                     _("R:RENAME  S:SWAP  ENTER:START"), 0xFFAAAAAA, 1);
                 }
-                draw_centered(framebuffer, cw, ch, ch - 20, _("ENTER: START MISSION"), 0xFF00CC00, 1);
                 break;
             }
 

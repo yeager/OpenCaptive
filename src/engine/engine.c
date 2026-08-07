@@ -16,7 +16,7 @@ void game_state_init(GameState *gs, GameType type, int mission) {
     gs->party_dir = DIR_NORTH;
     gs->gold = 100;
 
-    uint32_t name_seed = 42;
+    uint32_t name_seed = 0;
     for (int i = 0; i < 4; i++) {
         captive_generate_name(&name_seed, gs->droids[i].name,
                               sizeof(gs->droids[i].name));
@@ -32,10 +32,6 @@ void game_state_init(GameState *gs, GameType type, int mission) {
         gs->droids[i].weapons[0] = 13;
         gs->droids[i].weapon_damage = 0x2104;
         for (int p = 0; p < 6; p++) {
-            /* The six slots use the six distinct CAPPO item records:
-             * HEAD, CHEST, ARM, LEG, FOOT and HAND.  Repeating HEAD here
-             * made a fresh droid look fully equipped while all other armor
-             * slots displayed the wrong item. */
             gs->droids[i].body_parts[p] = (uint8_t)(p + 1);
             gs->droids[i].body_part_hp[p] = 255;
         }
