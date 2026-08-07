@@ -145,31 +145,28 @@ static void draw_small_text(uint32_t *pixels, int w, int h,
 }
 
 void shop_render(const ShopState *shop, const ItemDatabase *db,
-                 uint32_t *pixels, int width, int height) {
+                 uint32_t *pixels, int width, int height,
+                 const uint32_t *shop_bg) {
     if (!shop || !db || !pixels || width <= 0 || height <= 0) return;
-    // Dark overlay
     size_t pixel_count = (size_t)width * (size_t)height;
-    for (size_t i = 0; i < pixel_count; i++)
-        pixels[i] = (pixels[i] & 0xFF000000) | ((pixels[i] & 0xFEFEFE) >> 1);
-
-    // Shop panel
     int px = 30, py = 20, pw = 260, ph = 160;
-    fill_rect_s(pixels, width, height, px, py, pw, ph, 0xFF111133);
-
-    // Border
-    for (int x = px; x < px + pw; x++) {
-        put_pixel_s(pixels, width, height, x, py, 0xFF5555AA);
-        put_pixel_s(pixels, width, height, x, py + ph - 1, 0xFF5555AA);
+    if (shop_bg) {
+        memcpy(pixels, shop_bg, pixel_count * sizeof(uint32_t));
+    } else {
+        for (size_t i = 0; i < pixel_count; i++)
+            pixels[i] = (pixels[i] & 0xFF000000) | ((pixels[i] & 0xFEFEFE) >> 1);
+        fill_rect_s(pixels, width, height, px, py, pw, ph, 0xFF111133);
+        for (int x = px; x < px + pw; x++) {
+            put_pixel_s(pixels, width, height, x, py, 0xFF5555AA);
+            put_pixel_s(pixels, width, height, x, py + ph - 1, 0xFF5555AA);
+        }
+        for (int y = py; y < py + ph; y++) {
+            put_pixel_s(pixels, width, height, px, y, 0xFF5555AA);
+            put_pixel_s(pixels, width, height, px + pw - 1, y, 0xFF5555AA);
+        }
+        fill_rect_s(pixels, width, height, px + pw/2 - 12, py + 4, 24, 8, 0xFFFFAA00);
     }
-    for (int y = py; y < py + ph; y++) {
-        put_pixel_s(pixels, width, height, px, y, 0xFF5555AA);
-        put_pixel_s(pixels, width, height, px + pw - 1, y, 0xFF5555AA);
-    }
 
-    // Title "SHOP"
-    fill_rect_s(pixels, width, height, px + pw/2 - 12, py + 4, 24, 8, 0xFFFFAA00);
-
-    // Item list
     int list_y = py + 16;
     int item_count = shop->num_items;
     if (item_count < 0) item_count = 0;

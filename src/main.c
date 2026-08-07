@@ -444,13 +444,16 @@ static bool load_intro_anm(const DataVFS *vfs, ANMAnimation *anim) {
 }
 
 static bool reload_captive_assets(TextureAtlas *atlas, const DataVFS *vfs,
-                                  uint32_t **hud_bg) {
+                                  uint32_t **hud_bg, uint32_t **shop_bg) {
     texture_atlas_free(atlas);
     *hud_bg = NULL;
+    *shop_bg = NULL;
     if (!texture_atlas_load(atlas, vfs)) return false;
 
     const Texture *screen = gfx_get(&atlas->gfx, atlas->gamescrn_sheet);
     if (screen) *hud_bg = screen->pixels;
+    const Texture *shop1 = gfx_get(&atlas->gfx, atlas->shop1_sheet);
+    if (shop1) *shop_bg = shop1->pixels;
     printf("Loaded texture atlas\n");
     return true;
 }
@@ -2476,9 +2479,10 @@ int main(int argc, char *argv[]) {
     // Texture atlas
     TextureAtlas atlas = {0};
     uint32_t *hud_bg = NULL;
+    uint32_t *shop_bg = NULL;
     bool textures_loaded = false;
     if (config.data_path) {
-        textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg);
+        textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg, &shop_bg);
     }
 
     // Intro animation (loaded on demand)
@@ -2632,7 +2636,7 @@ int main(int argc, char *argv[]) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
-                            textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg);
+                            textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg, &shop_bg);
                             if (!textures_loaded) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
@@ -2698,7 +2702,7 @@ int main(int argc, char *argv[]) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
-                            textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg);
+                            textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg, &shop_bg);
                             if (!textures_loaded) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
@@ -3710,7 +3714,8 @@ int main(int argc, char *argv[]) {
 
             case STATE_SHOP:
                 shop_render(&shop, &item_db, framebuffer,
-                            CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                            CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                            shop_bg);
                 break;
 
             case STATE_GAMEOVER:

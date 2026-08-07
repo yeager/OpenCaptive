@@ -167,9 +167,9 @@ static void test_shop_render_includes_item_name(void) {
     db.defs[1].id = 2;
     db.defs[1].name[0] = 'B';
     shop.item_ids[0] = 1;
-    shop_render(&shop, &db, first, 320, 200);
+    shop_render(&shop, &db, first, 320, 200, NULL);
     shop.item_ids[0] = 2;
-    shop_render(&shop, &db, second, 320, 200);
+    shop_render(&shop, &db, second, 320, 200, NULL);
 
     bool label_differs = false;
     for (int y = 36; y < 43 && !label_differs; y++)

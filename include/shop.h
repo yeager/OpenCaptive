@@ -18,7 +18,8 @@ typedef struct {
 void shop_init(ShopState *shop, const ItemDatabase *db, int level, uint32_t seed);
 int shop_next_selection(const ShopState *shop);
 void shop_render(const ShopState *shop, const ItemDatabase *db,
-                 uint32_t *pixels, int width, int height);
+                 uint32_t *pixels, int width, int height,
+                 const uint32_t *shop_bg);
 bool shop_buy(ShopState *shop, const ItemDatabase *db, GameState *gs);
 bool shop_repair(ShopState *shop, GameState *gs, int droid_idx);
 

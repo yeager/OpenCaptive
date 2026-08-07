@@ -21,6 +21,9 @@ bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs) {
     atlas->icon_sheet = -1;
     atlas->object_sheet = -1;
     atlas->gamescrn_sheet = -1;
+    atlas->shop1_sheet = -1;
+    atlas->shop2_sheet = -1;
+    atlas->keyboard_sheet = -1;
     for (int i = 0; i < 6; i++) atlas->alien_sheets[i] = -1;
 
     if (!gfx_init(&atlas->gfx, vfs)) return false;
@@ -35,6 +38,9 @@ bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs) {
     atlas->icon_sheet = atlas->view_sheets[19];
     atlas->object_sheet = atlas->view_sheets[17];
     atlas->gamescrn_sheet = atlas->view_sheets[18];
+    atlas->keyboard_sheet = atlas->view_sheets[20];
+    atlas->shop1_sheet = atlas->view_sheets[21];
+    atlas->shop2_sheet = atlas->view_sheets[22];
 
     for (int i = 0; i < 6; ++i)
         atlas->alien_sheets[i] = gfx_load_pl5_hash(&atlas->gfx, alien_hashes[i]);

@@ -20,6 +20,9 @@ typedef struct {
     int     object_sheet;     // OBJECTS texture id
     int     gamescrn_sheet;   // GAMESCRN texture id
     int     alien_sheets[6];  // ALIEN1-6 creature sprites
+    int     shop1_sheet;      // SHOP1 background
+    int     shop2_sheet;      // SHOP2 background
+    int     keyboard_sheet;   // KEYBOARD overlay
     bool    loaded;
 } TextureAtlas;
 
