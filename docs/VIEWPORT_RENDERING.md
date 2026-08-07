@@ -25,6 +25,11 @@ shows the first 144 pixels of every row. OpenCaptive keeps this distinction
 explicit in `captive_dos_descriptor_destination_xy()` while the remaining
 descriptor order and panel masks are being recovered.
 
+Until that compositor is wired into the game loop, Original mode leaves the
+dynamic viewport supplied by the verified GAME SCRN shell untouched. The
+current generated perspective renderer, including creature sprites, is used
+only by Enhanced mode and is not presented as original Captive output.
+
 PL5 panel and sprite transparency is likewise index-based: palette index 0
 is transparent, while black indices 16 and 18 remain visible. The renderer
 uses the retained PL5 index plane instead of inferring transparency from RGB.

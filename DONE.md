@@ -1,5 +1,17 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive renderläge)
+
+- F10:s Original/Enhanced-gräns är nu verklig i Captive. Den ännu ej
+  återställda procedurvyn och dess creatures ritas endast i Enhanced-läge;
+  Original-läge lämnar den verifierade GAME SCRN-bakgrunden orörd.
+
+## 2026-08-07 (Captive frame capture)
+
+- `--game captive --capture-frame` initierar nu mission, dungeon, pussel och
+  encounters innan den enda bilden skrivs. Capture-verktyget sparar därmed en
+  faktisk spelbild i stället för droidkonfigurationsskärmen.
+
 ## 2026-08-07 (Captive PL5-transparens)
 
 - Captive viewportens panel-, ornament-, objekt- och creature-blit använder nu

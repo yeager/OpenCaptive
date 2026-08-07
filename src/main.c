@@ -2493,8 +2493,23 @@ int main(int argc, char *argv[]) {
              * launch must make the same state transition as selecting
              * Captive in the menu; without this the prepared mission was
              * hidden behind the start screen. */
-            gs.mode = STATE_DROID_CONFIG;
-            droid_config_cursor = 0;
+            if (capture_frame_path) {
+                /* --capture-frame promises a complete native game frame,
+                 * not the intermediate droid-configuration screen. Mirror
+                 * the normal confirmation path before the one-frame render. */
+                bool mission_ready = game_state_new_mission(&gs, gs.mission);
+                if (mission_ready) {
+                    generate_captive_puzzles(&gs);
+                    generate_captive_encounters(&gs);
+                    gs.mode = STATE_GAME;
+                } else {
+                    fprintf(stderr, "Could not prepare Captive mission for capture\n");
+                    return 1;
+                }
+            } else {
+                gs.mode = STATE_DROID_CONFIG;
+                droid_config_cursor = 0;
+            }
             printf("Starting Captive original presentation (dungeon compositor pending)\n");
         }
     } else if (start_directly && requested_game == GAME_LIBERATION) {
@@ -3566,18 +3581,23 @@ int main(int argc, char *argv[]) {
                         memcpy(framebuffer, hud_bg,
                                CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
                     }
-                    CaptiveViewWindow view_window;
-                    captive_view_window_build(&gs, &view_window);
-                    viewport_render(&view_window, &atlas, framebuffer,
-                                    CAPTIVE_ORIGINAL_WIDTH,
-                                    CAPTIVE_ORIGINAL_HEIGHT);
-                    viewport_render_creatures(&gs, &creatures, &atlas,
-                                              framebuffer,
-                                              CAPTIVE_ORIGINAL_WIDTH,
-                                              CAPTIVE_ORIGINAL_HEIGHT);
-                    if (config.render_mode == CAPTIVE_RENDER_ENHANCED)
+                    /* The original DOS panel compositor is still being
+                     * recovered. Never present the generated perspective
+                     * fallback as original-mode Captive graphics; F10 must
+                     * make the presentation-mode boundary real. */
+                    if (config.render_mode == CAPTIVE_RENDER_ENHANCED) {
+                        CaptiveViewWindow view_window;
+                        captive_view_window_build(&gs, &view_window);
+                        viewport_render(&view_window, &atlas, framebuffer,
+                                        CAPTIVE_ORIGINAL_WIDTH,
+                                        CAPTIVE_ORIGINAL_HEIGHT);
+                        viewport_render_creatures(&gs, &creatures, &atlas,
+                                                  framebuffer,
+                                                  CAPTIVE_ORIGINAL_WIDTH,
+                                                  CAPTIVE_ORIGINAL_HEIGHT);
                         hud_render(&gs, framebuffer,
                                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                    }
                 }
                 break;
             }

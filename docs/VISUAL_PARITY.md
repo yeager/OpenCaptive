@@ -52,6 +52,10 @@ samma ändring.
 bildbufferten i spelens originalupplösning och avslutar sedan. Fångsten sker
 före fönsterskalning, systemets färghantering och externa överlägg:
 
+För Captive initieras en ny mission automatiskt i detta headless-läge, så att
+fångsten inte råkar bli droidkonfigurationsskärmen som visas vid normal
+interaktiv uppstart.
+
 ```sh
 ./build/opencaptive --game captive --data /path/to/media \
   --capture-frame /tmp/captive.ppm
