@@ -3657,3 +3657,8 @@
 - Verifierade mot CAPPO.EXE:s 24-entry-tabell att creature-typerna 16–24
   tidigare fick fel HP-modifierare via fallback till index 0.
 - Utökade spawn-tabellerna och lade till regressionstest för typerna 16–24.
+
+# 2026-08-07 — Liberation-källa i startmenyn
+
+- Fixade enkel-källa-fallet där en verifierad Liberation-installation kunde
+  skickas vidare med `LIBERATION_SOURCE_NONE` i stället för CD32 eller ADF.

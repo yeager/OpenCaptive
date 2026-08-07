@@ -4,6 +4,7 @@
 #include "game_state.h"
 #include "renderer.h"
 #include "data_vfs.h"
+#include "liberation_data.h"
 #include <SDL3/SDL.h>
 
 #define MENU_WIDTH  960
@@ -110,6 +111,9 @@ void start_menu_check_data(StartMenu *menu, const char *data_path);
 void start_menu_start_scan(StartMenu *menu, const char *data_path,
                            bool show_progress);
 void start_menu_check_saves(StartMenu *menu);
+/* Deterministic source choice used when a scan finds one or more Liberation
+ * sources and no popup selection is required. */
+LiberationSource start_menu_preferred_liberation_source(unsigned source_mask);
 /* Advance one bounded scanner operation without blocking menu rendering. */
 void start_menu_update(StartMenu *menu);
 MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event);

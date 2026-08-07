@@ -462,6 +462,13 @@ void start_menu_check_data(StartMenu *menu, const char *data_path) {
     menu->captive_source_choice = CAPTIVE_PLATFORM_DOS;
     menu->liberation_source_mask = liberation_data_available_sources(&vfs);
     menu->liberation_data_ok = menu->liberation_source_mask != 0U;
+    /* A single verified Liberation source does not open the version popup.
+       Keep the same deterministic preference as the incremental scanner so
+       the launch path never receives LIBERATION_SOURCE_NONE. */
+    if (menu->liberation_data_ok) {
+        menu->liberation_source_choice =
+            start_menu_preferred_liberation_source(menu->liberation_source_mask);
+    }
     vfs_free(&vfs);
 }
 
@@ -480,6 +487,13 @@ static MenuResult request_game_start(StartMenu *menu, int game) {
     }
     return game == GAME_LIBERATION ? MENU_RESULT_START_LIBERATION
                                    : MENU_RESULT_START_CAPTIVE;
+}
+
+LiberationSource start_menu_preferred_liberation_source(unsigned source_mask) {
+    return (source_mask & (1U << LIBERATION_SOURCE_CD32))
+        ? LIBERATION_SOURCE_CD32
+        : ((source_mask & (1U << LIBERATION_SOURCE_AMIGA_ADF))
+            ? LIBERATION_SOURCE_AMIGA_ADF : LIBERATION_SOURCE_NONE);
 }
 
 static unsigned version_popup_source_mask(const StartMenu *menu) {
@@ -659,9 +673,7 @@ void start_menu_update(StartMenu *menu) {
         menu->captive_source_choice = CAPTIVE_PLATFORM_DOS;
         menu->liberation_data_ok = menu->liberation_source_mask != 0U;
         menu->liberation_source_choice = menu->liberation_data_ok
-            ? ((menu->liberation_source_mask &
-                (1U << LIBERATION_SOURCE_CD32))
-                   ? LIBERATION_SOURCE_CD32 : LIBERATION_SOURCE_AMIGA_ADF)
+            ? start_menu_preferred_liberation_source(menu->liberation_source_mask)
             : LIBERATION_SOURCE_NONE;
         menu->scanner_background = false;
         stop_data_scanner(menu);

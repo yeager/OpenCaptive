@@ -124,6 +124,21 @@ int main(void) {
     assert(start_menu_handle_event(&menu, &event) == MENU_RESULT_START_CAPTIVE);
     assert(menu.platform == CAPTIVE_PLATFORM_AMIGA);
 
+    /* The non-popup path must also retain a concrete Liberation source when
+       exactly one source is available.  The data scanner uses this same
+       preference when it finishes an incremental scan. */
+    menu.liberation_source_mask = (1U << LIBERATION_SOURCE_AMIGA_ADF);
+    menu.liberation_data_ok = true;
+    menu.liberation_source_choice = LIBERATION_SOURCE_NONE;
+    menu.liberation_source_choice =
+        start_menu_preferred_liberation_source(menu.liberation_source_mask);
+    assert(menu.liberation_source_choice == LIBERATION_SOURCE_AMIGA_ADF);
+    assert(start_menu_preferred_liberation_source(
+               (1U << LIBERATION_SOURCE_CD32) |
+               (1U << LIBERATION_SOURCE_AMIGA_ADF)) == LIBERATION_SOURCE_CD32);
+    assert(start_menu_preferred_liberation_source(0U) ==
+           LIBERATION_SOURCE_NONE);
+
     /* item 4 = Settings */
     menu.selected_item = 4;
     event = key_event(SDLK_RETURN);
