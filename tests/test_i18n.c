@@ -58,6 +58,20 @@ static void test_macro_works(void) {
     i18n_free();
 }
 
+static void test_holomap_strings_are_catalogued(void) {
+    i18n_init("sv");
+    assert(strcmp(_("MISSION COMPLETE!"), "UPPDRAG KLART!") == 0);
+    assert(strcmp(_("Next: Mission %d of 10"),
+                  "Nasta: Uppdrag %d av 10") == 0);
+    assert(strcmp(_("ENTER: Launch    S: Shop"),
+                  "ENTER: Starta    S: Butik") == 0);
+    i18n_free();
+
+    i18n_init("fr");
+    assert(strcmp(_("MISSION COMPLETE!"), "MISSION TERMINEE !") == 0);
+    i18n_free();
+}
+
 int main(void) {
     printf("i18n tests:\n");
     TEST(test_english_passthrough);
@@ -67,6 +81,7 @@ int main(void) {
     TEST(test_regional_language_is_normalized);
     TEST(test_get_lang);
     TEST(test_macro_works);
+    TEST(test_holomap_strings_are_catalogued);
     printf("%d tests passed\n", tests_run);
     return 0;
 }

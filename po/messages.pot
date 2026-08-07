@@ -1038,5 +1038,18 @@ msgid "Planet: %s"
 msgstr ""
 
 #: src/main.c
+msgid "MISSION COMPLETE!"
+msgstr ""
+
+#: src/main.c
+#, c-format
+msgid "Next: Mission %d of 10"
+msgstr ""
+
+#: src/main.c
+msgid "ENTER: Launch    S: Shop"
+msgstr ""
+
+#: src/main.c
 msgid "ANY KEY: RETURN"
 msgstr ""

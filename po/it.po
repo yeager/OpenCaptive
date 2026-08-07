@@ -674,6 +674,16 @@ msgstr ""
 #: src/main.c:3208 src/main.c:3278
 msgid "ALL MISSIONS COMPLETE"
 msgstr ""
+\n+#: src/main.c
+msgid "MISSION COMPLETE!"
+msgstr "MISSIONE COMPLETATA!"
+\n+#: src/main.c
+#, c-format
+msgid "Next: Mission %d of 10"
+msgstr "Prossima: Missione %d di 10"
+\n+#: src/main.c
+msgid "ENTER: Launch    S: Shop"
+msgstr "ENTER: Avvia    S: Negozio"
 
 #: src/main.c:3210 src/main.c:3280
 msgid "YOU HAVE ESCAPED!"

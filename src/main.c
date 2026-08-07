@@ -3712,10 +3712,10 @@ int main(int argc, char *argv[]) {
             case STATE_HOLAMAP: {
                 memset(framebuffer, 0, sizeof(framebuffer));
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              30, "MISSION COMPLETE!", 0xFF44FF44, 2);
+                              30, _("MISSION COMPLETE!"), 0xFF44FF44, 2);
                 char mission_str[64];
                 snprintf(mission_str, sizeof(mission_str),
-                         "Next: Mission %d of 10", gs.mission + 1);
+                         _("Next: Mission %d of 10"), gs.mission + 1);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                               70, mission_str, 0xFFFFFF44, 1);
                 char planet_name[32];
@@ -3727,7 +3727,7 @@ int main(int argc, char *argv[]) {
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                               90, planet_str, 0xFFCCCCFF, 1);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              120, "ENTER: Launch    S: Shop", 0xFF888888, 1);
+                              120, _("ENTER: Launch    S: Shop"), 0xFF888888, 1);
                 break;
             }
 
