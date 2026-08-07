@@ -95,6 +95,16 @@ static uint8_t sample_sheet_index(const TextureAtlas *atlas, int sheet,
     return tex->indices[sy * tex->width + sx];
 }
 
+/* The compatibility renderer treats each verified 320x200 panel as a
+ * 4-by-4 collection of 80x50 source regions.  Keep the same addressing for
+ * floor and ceiling fields as draw_wall() uses for wall_tex. */
+static void panel_tile_position(uint8_t texture, int local_x, int local_y,
+                                int *sx, int *sy) {
+    if (!sx || !sy) return;
+    *sx = ((int)(texture % 4) * 80) + (local_x % 80);
+    *sy = ((int)(texture / 4) * 50) + (local_y % 50);
+}
+
 /* Per-range perspective parameters for the 19-cell trapezoid.
  * These define how large each cell appears and where its walls are drawn. */
 typedef struct {
@@ -132,6 +142,7 @@ static void draw_floor_ceiling(uint32_t *fb, int fb_w, int fb_h,
                                 const TextureAtlas *atlas,
                                 int range, int lateral,
                                 int cell_left, int cell_right,
+                                uint8_t floor_tex, uint8_t ceil_tex,
                                 int vp_x, int vp_y) {
     (void)lateral;
     const RangeParams *rp = &range_params[range];
@@ -144,18 +155,22 @@ static void draw_floor_ceiling(uint32_t *fb, int fb_w, int fb_h,
 
     for (int y = 0; y < strip_h; y++) {
         for (int x = cell_left; x <= cell_right; x++) {
-            int sx = (x * 64 / (cell_right - cell_left + 1)) % 320;
+            int local_x = x * 64 / (cell_right - cell_left + 1);
             int sy_floor = 160 + y + range * 8;
             int sy_ceil = 40 - y - range * 8;
             if (sy_floor >= 0 && sy_floor < 200) {
-                uint32_t c = sample_sheet(atlas, sheet, sx, sy_floor);
-                if (sample_sheet_index(atlas, sheet, sx, sy_floor) != 0)
+                int sx, sy;
+                panel_tile_position(floor_tex, local_x, sy_floor, &sx, &sy);
+                uint32_t c = sample_sheet(atlas, sheet, sx, sy);
+                if (sample_sheet_index(atlas, sheet, sx, sy) != 0)
                     put_pixel_vp(fb, fb_w, fb_h,
                                  vp_x + x, vp_y + floor_y + y, c);
             }
             if (sy_ceil >= 0 && sy_ceil < 200) {
-                uint32_t c = sample_sheet(atlas, sheet, sx, sy_ceil);
-                if (sample_sheet_index(atlas, sheet, sx, sy_ceil) != 0)
+                int sx, sy;
+                panel_tile_position(ceil_tex, local_x, sy_ceil, &sx, &sy);
+                uint32_t c = sample_sheet(atlas, sheet, sx, sy);
+                if (sample_sheet_index(atlas, sheet, sx, sy) != 0)
                     put_pixel_vp(fb, fb_w, fb_h,
                                  vp_x + x, vp_y + ceil_y - y, c);
             }
@@ -372,6 +387,7 @@ void viewport_render(const CaptiveViewWindow *window,
             /* Floor/corridor cell — draw floor and ceiling */
             draw_floor_ceiling(framebuffer, fb_width, fb_height, atlas,
                                range, lateral, cell_left, cell_right,
+                               cell->floor_tex, cell->ceil_tex,
                                vp_x, vp_y);
 
             /* Left side wall if the cell to our left is a wall or edge */

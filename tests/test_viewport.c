@@ -151,6 +151,35 @@ int main(void) {
     assert(memcmp(left_wall_from_neighbor, framebuffer,
                   sizeof(left_wall_from_neighbor)) != 0);
 
+    /* Floor and ceiling texture selectors must affect their own source
+     * regions.  They are serialized map data and must not be ignored by the
+     * compatibility viewport. */
+    for (int y = 0; y < MAP_HEIGHT; ++y)
+        for (int x = 0; x < MAP_WIDTH; ++x) {
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+            gs.levels[0].cells[y][x].floor_tex = 0;
+            gs.levels[0].cells[y][x].ceil_tex = 0;
+        }
+    gs.levels[0].cells[10][10].floor_tex = 1;
+    gs.levels[0].cells[10][10].ceil_tex = 2;
+    captive_view_window_build(&gs, &window);
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render(&window, &atlas, framebuffer,
+                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+    uint32_t floor_ceiling_textures[
+        CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
+    memcpy(floor_ceiling_textures, framebuffer, sizeof(floor_ceiling_textures));
+    gs.levels[0].cells[10][10].floor_tex = 0;
+    gs.levels[0].cells[10][10].ceil_tex = 0;
+    captive_view_window_build(&gs, &window);
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render(&window, &atlas, framebuffer,
+                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+    assert(memcmp(floor_ceiling_textures, framebuffer,
+                  sizeof(floor_ceiling_textures)) != 0);
+
     gs.levels[0].cells[10][9].type = CELL_FLOOR;
     gs.levels[0].cells[9][10].type = CELL_WALL;
     gs.party_dir = DIR_NORTH;

@@ -7,6 +7,14 @@
   ersätta kartans sidovägg med standardtextur.
 - Ett regressionstest skiljer på väggcellens och golvcellens textur.
 
+## 2026-08-07 (Captive golv- och taktexturer)
+
+- Kompatibilitetsvyn använder nu `floor_tex` och `ceil_tex` från den synliga
+  kartcellen när den väljer panelområde. Tidigare ignorerades fälten helt,
+  trots att de sparas i kartdata och cross-save.
+- Ett regressionstest verifierar att ändrade golv- och taktexturer påverkar
+  den renderade bilden.
+
 ## 2026-08-07 (Captive creature-djupsortering)
 
 - Creature-sprites i Captive sorteras nu från längst bort till närmast innan
