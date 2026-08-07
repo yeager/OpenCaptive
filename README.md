@@ -45,7 +45,7 @@ The sequel expands into a cyberpunk city setting with hundreds of interactive bu
 - Original-resolution presentation paths; full gameplay parity remains under verification
 - OPL2 FM synthesis (AdLib emulation) for music and sound effects
 - Optional HQ MIDI output filter (`--hq-midi`)
-- 19 languages (English, Svenska, Deutsch, Francais, Espanol, Italiano, and 13 more)
+- 19 languages (English, Swedish, German, French, Spanish, Italian, and 13 more)
 - Save/load with multiple slots
 - Optional display enhancements: scanlines, CRT curvature, bilinear filtering, integer scaling
 - Optional xBRZ framebuffer upscaling at 2x, 3x or 4x (`--hd-upscale`)

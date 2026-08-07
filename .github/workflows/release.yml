@@ -731,7 +731,7 @@ jobs:
             }
           ' RELEASE_NOTES.md > release-notes.md
           test -s release-notes.md
-          for heading in Tillagt Ändrat Borttaget; do
+          for heading in Added Changed Removed; do
             if ! grep -Fqx "### $heading" release-notes.md; then
               echo "Release notes for v$VERSION must contain: ### $heading" >&2
               exit 1
