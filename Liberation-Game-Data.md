@@ -126,7 +126,7 @@ NPCs offer context-dependent dialogue:
 | --- | --- |
 | Trade | Opens buy/sell interface (merchants only) |
 | Ask around | Provides hints about mission objectives, building locations, or gossip |
-| Buy drinks | Available in bars; 25% chance triggers a bar fight |
+| Buy drinks | Available in bars; consumed immediately; 25% chance triggers a bar fight |
 | Leave | Exit conversation |
 
 ### Bar fights

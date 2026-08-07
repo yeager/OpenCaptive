@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Liberation bar inventory handling)
+
+- Bar drinks are consumed at purchase time and are no longer transferred into
+  the shared inventory with invalid runtime item IDs.
+- A full shared inventory no longer prevents buying drinks or performing the
+  documented bar-fight roll.
+- Added a regression test covering purchase cost, transient drinks, and the
+  full-inventory case.
+- The targeted Liberation dialogue/shop test passes.
+
 ## 2026-08-07 (Captive combat-händelser)
 
 - `creature_killed` och `level_up_occurred` beskriver nu alltid det aktuella

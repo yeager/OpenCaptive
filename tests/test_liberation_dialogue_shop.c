@@ -528,6 +528,34 @@ static void test_bar_fight_uses_seeded_quarter_chance(void) {
     assert(occurred > 0 && did_not_occur > 0);
 }
 
+static void test_bar_drinks_are_consumed_not_stored(void) {
+    CityGrid bg;
+    memset(&bg, 0, sizeof(bg));
+    bg.total_buildings = 1;
+    bg.buildings[0].type = BUILDING_BAR;
+    strcpy(bg.buildings[0].name, "Full Inventory Bar");
+
+    CityGridState grid;
+    memset(&grid, 0, sizeof(grid));
+    grid.building_ids[0] = 1;
+
+    BuildingInteraction bi;
+    building_interact_init(&bi);
+    int gold = 10000;
+    assert(building_interact_enter(&bi, &grid, &bg, 0, 0, &gold));
+    bi.shop.prng_seed = 1;
+    uint16_t price = bi.shop.items[0].price;
+    assert(building_interact_buy(&bi, 0));
+    assert(gold == 10000 - price);
+    assert(bi.purchased_count == 0);
+    assert(bi.shop.items[0].item_type >= 100);
+
+    /* A full shared inventory must not prevent buying another drink. */
+    bi.purchased_count = 20;
+    assert(building_interact_buy(&bi, 0));
+    assert(bi.purchased_count == 20);
+}
+
 static void test_reputation_shop_rules(void) {
     CityGrid bg;
     memset(&bg, 0, sizeof(bg));
@@ -650,6 +678,7 @@ int main(void) {
     test_special_building_requires_investigate();
     test_building_interact_buy();
     test_bar_fight_uses_seeded_quarter_chance();
+    test_bar_drinks_are_consumed_not_stored();
     test_reputation_shop_rules();
     test_building_interact_rejects_corrupt_choice_count();
     test_building_interact_empty_catalog();

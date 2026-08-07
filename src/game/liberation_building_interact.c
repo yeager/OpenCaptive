@@ -274,7 +274,11 @@ bool building_interact_buy(BuildingInteraction *bi, unsigned item_idx) {
     if (!bi || !bi->active || !bi->player_gold) return false;
     if (bi->type != INTERACT_SHOP && bi->type != INTERACT_BAR) return false;
     if (bi->type == INTERACT_SHOP && bi->reputation <= -50) return false;
-    if (bi->purchased_count < 0 || bi->purchased_count >= 20) return false;
+    /* Drinks are consumed at the bar: they trigger the bar-fight roll but are
+     * not Captive inventory items. Only shop purchases need a pending-item
+     * slot, because those are transferred to the shared inventory on exit. */
+    if (bi->type == INTERACT_SHOP &&
+        (bi->purchased_count < 0 || bi->purchased_count >= 20)) return false;
     if (bi->shop.item_count > LIB_SHOP_MAX_ITEMS ||
         item_idx >= bi->shop.item_count || item_idx >= LIB_SHOP_MAX_ITEMS) return false;
     const LibShopItem *item = &bi->shop.items[item_idx];
@@ -282,7 +286,7 @@ bool building_interact_buy(BuildingInteraction *bi, unsigned item_idx) {
     uint32_t gold = (uint32_t)*bi->player_gold;
     if (!lib_shop_buy_item(&bi->shop, item_idx, &gold)) return false;
     *bi->player_gold = gold > (uint32_t)INT_MAX ? INT_MAX : (int)gold;
-    if (bi->purchased_count < 20) {
+    if (bi->type == INTERACT_SHOP && bi->purchased_count < 20) {
         snprintf(bi->purchased[bi->purchased_count].name,
                  sizeof(bi->purchased[0].name), "%s", item->name);
         bi->purchased[bi->purchased_count].item_type = item->item_type;

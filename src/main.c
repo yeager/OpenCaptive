@@ -1417,11 +1417,12 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                          (lib_interact.type == INTERACT_SHOP ||
                           lib_interact.type == INTERACT_BAR) &&
                          idx < lib_interact.shop.item_count) {
-                    bool inventory_full = gs->lib_inventory_count < 0 ||
-                        gs->lib_inventory_count >= 40 ||
-                        lib_interact.purchased_count < 0 ||
-                        lib_interact.purchased_count >= 20 ||
-                        gs->lib_inventory_count + lib_interact.purchased_count >= 40;
+                    bool inventory_full = lib_interact.type == INTERACT_SHOP &&
+                        (gs->lib_inventory_count < 0 ||
+                         gs->lib_inventory_count >= 40 ||
+                         lib_interact.purchased_count < 0 ||
+                         lib_interact.purchased_count >= 20 ||
+                         gs->lib_inventory_count + lib_interact.purchased_count >= 40);
                     if (inventory_full) {
                         msg_push(_("Shared inventory is full."), 0xFFFF8844);
                     } else if (building_interact_buy(&lib_interact, idx)) {
