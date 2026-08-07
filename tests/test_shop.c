@@ -150,6 +150,37 @@ static void test_shop_stock_matches_visible_list(void) {
     assert(shop.num_items <= SHOP_VISIBLE_ITEMS);
 }
 
+static void test_shop_render_includes_item_name(void) {
+    ItemDatabase db = {0};
+    ShopState shop = {.active = true, .num_items = 1, .selected = 0,
+                      .gold = 100};
+    uint32_t first[320 * 200] = {0};
+    uint32_t second[320 * 200] = {0};
+
+    db.num_defs = 2;
+    db.defs[0].id = 1;
+    db.defs[0].name[0] = 'A';
+    db.defs[0].name[1] = 'A';
+    db.defs[0].name[2] = 'A';
+    db.defs[0].price = 100;
+    db.defs[1] = db.defs[0];
+    db.defs[1].id = 2;
+    db.defs[1].name[0] = 'B';
+    shop.item_ids[0] = 1;
+    shop_render(&shop, &db, first, 320, 200);
+    shop.item_ids[0] = 2;
+    shop_render(&shop, &db, second, 320, 200);
+
+    bool label_differs = false;
+    for (int y = 36; y < 43 && !label_differs; y++)
+        for (int x = 40; x < 56; x++)
+            if (first[y * 320 + x] != second[y * 320 + x]) {
+                label_differs = true;
+                break;
+            }
+    assert(label_differs);
+}
+
 int main(void) {
     test_shop_clamps_corrupt_definition_count();
     test_shop_rejects_negative_definition_count();
@@ -162,5 +193,6 @@ int main(void) {
     test_shop_rejects_corrupt_item_count();
     test_shop_navigation_stops_at_visible_item_limit();
     test_shop_stock_matches_visible_list();
+    test_shop_render_includes_item_name();
     return 0;
 }

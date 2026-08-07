@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive shop-översikt)
+
+- Shop-menyn visar nu varje varunamn tillsammans med priset. Tidigare syntes
+  bara pris och markering, vilket gjorde varorna omöjliga att skilja åt.
+- Regressionstestet säkerställer att olika varunamn ger olika synlig shoptext.
+- Riktat shop-test: godkänt.
+
 ## 2026-08-07 (Captive hjälpruta och l10n)
 
 - Hjälprutan visar nu `I: Inventory`, vilket stämmer med den faktiska
