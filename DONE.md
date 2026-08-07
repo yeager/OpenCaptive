@@ -3794,7 +3794,8 @@
 # 2026-08-07 — Captive synlig reservkontroll
 
 - Reservspaken som skapas på mycket små eller helt öppna kartor får nu också
-  sitt panelornament. Den länkade dörren kan därför inte längre kräva en
-  osynlig interaktion.
-- Ett regressionsprov täcker den platta kartlayout där reservgrenen används.
+  sitt panelornament. Renderaren visar panelen på golvytan när ingen
+  bakvägg finns, utan att ändra kartans gångbara celler.
+- Regressionstester täcker både den platta kartlayout där reservgrenen används
+  och den wall-less panelrenderingen.
 - Hela testsviten passerar: 58/58 tester.

@@ -322,6 +322,8 @@ static void test_fallback_door_control_remains_visible(void) {
         const Puzzle *p = &puzzles.puzzles[i];
         if (p->type != PUZZLE_LEVER || p->target_x != 10 ||
             p->target_y != 10) continue;
+        assert(p->face == DIR_NORTH);
+        assert(level.cells[p->y - 1][p->x].type == CELL_FLOOR);
         assert(level.cells[p->y][p->x].ornament[DIR_NORTH] == ORNAMENT_PANEL);
         found = true;
         break;

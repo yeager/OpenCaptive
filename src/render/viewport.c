@@ -463,6 +463,27 @@ void viewport_render(const CaptiveViewWindow *window,
             }
 
             /* Door */
+            /* A last-resort puzzle control may live on a completely open
+             * floor cell.  Wall-backed ornaments are drawn from the wall
+             * branch above; render this wall-less north-facing panel on the
+             * floor surface instead of leaving the interaction invisible. */
+            if (forward == 0 && lateral == 0 &&
+                cell->ornament[window->facing] != ORNAMENT_NONE) {
+                const MapCell *front = visible_cell_at(window, 1, 0);
+                if (!front || front->type != CELL_WALL) {
+                    int orn_w = cell_w / 3;
+                    int orn_h = rp->wall_height / 5;
+                    if (orn_w < 4) orn_w = 4;
+                    if (orn_h < 4) orn_h = 4;
+                    draw_ornament(framebuffer, fb_width, fb_height,
+                                  atlas,
+                                  cell_left + (cell_w - orn_w) / 2,
+                                  rp->bottom_y - orn_h - 2,
+                                  orn_w, orn_h, vp_x, vp_y,
+                                  cell->ornament[window->facing]);
+                }
+            }
+
             if (cell->type == CELL_DOOR || cell->type == CELL_DOOR_LOCKED) {
                 int door_w = cell_w * 2 / 3;
                 int door_h = rp->wall_height * 3 / 4;

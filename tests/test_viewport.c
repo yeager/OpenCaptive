@@ -89,6 +89,25 @@ int main(void) {
                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
     assert(memcmp(without_ornament, framebuffer, sizeof(framebuffer)) != 0);
 
+    /* Wall-less fallback controls are rendered on the floor surface. */
+    gs.levels[0].cells[9][10].type = CELL_FLOOR;
+    gs.levels[0].cells[10][10].ornament[DIR_NORTH] = ORNAMENT_PANEL;
+    captive_view_window_build(&gs, &window);
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render(&window, &atlas, framebuffer,
+                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+    uint32_t wall_less_panel[
+        CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
+    memcpy(wall_less_panel, framebuffer, sizeof(wall_less_panel));
+    gs.levels[0].cells[10][10].ornament[DIR_NORTH] = ORNAMENT_NONE;
+    captive_view_window_build(&gs, &window);
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render(&window, &atlas, framebuffer,
+                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+    assert(memcmp(wall_less_panel, framebuffer, sizeof(framebuffer)) != 0);
+
     /* Directional wall textures must rotate with the player.  The fixture
      * uses a distinct source panel for each absolute map direction; a fixed
      * [0]/[1]/[3] lookup would render the same wall after turning. */
