@@ -3762,6 +3762,11 @@
 - Okända eller saknade språk katalogiseras nu som engelska även i rapporterad
   språkstatus, inte bara i själva texten.
 
+# 2026-08-07 — Dokumentationens testantal synkroniserat
+
+- README och Developer Guide anger nu verifierbara siffror: 58 CTest-mål och
+  59 testkällor, där en källa är i18n-stubben som delas av testbygget.
+
 # 2026-08-07 — Captive cross-save med exakta rustningsplatser
 
 - Captives portabla cross-save-format validerar nu varje rustning mot den

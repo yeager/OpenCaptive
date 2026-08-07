@@ -108,7 +108,7 @@ ninja -C build
 ctest --test-dir build -j4 --output-on-failure
 ```
 
-56 tests covering format decoders, game logic, combat, save/load, map generation, audio, rendering, UI, and release-version consistency.
+58 tests covering format decoders, game logic, combat, save/load, map generation, audio, rendering, UI, and release-version consistency.
 
 ## Running
 
@@ -211,7 +211,7 @@ src/
               x3g, Img, FNT), VFS, SHA-256, i18n, ISO9660, ADF
   custom/     Optional features (replay, cross-save)
 include/      Public headers
-tests/        55 test files
+tests/        59 test source files (58 CTest targets)
 docs/         Format documentation, disassembly notes
 po/           Translation files (19 languages)
 data/         Bundled fonts (DejaVu Sans Mono Bold)
