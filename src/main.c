@@ -781,6 +781,7 @@ static int pause_cursor;
 static int droid_config_cursor;
 static bool droid_config_renaming;
 static int droid_config_name_pos;
+static char droid_config_original_name[16];
 static int taxi_flash_ttl;
 
 static void release_liberation_session_assets(void) {
@@ -2791,8 +2792,12 @@ int main(int argc, char *argv[]) {
                         if (droid_config_renaming) {
                             SDL_Keycode k = event.key.key;
                             Droid *rd = &gs.droids[droid_config_cursor];
-                            if (k == SDLK_RETURN || k == SDLK_KP_ENTER ||
-                                k == SDLK_ESCAPE) {
+                            if (k == SDLK_RETURN || k == SDLK_KP_ENTER) {
+                                droid_config_renaming = false;
+                            } else if (k == SDLK_ESCAPE) {
+                                snprintf(rd->name, sizeof(rd->name), "%s",
+                                         droid_config_original_name);
+                                droid_config_name_pos = (int)strlen(rd->name);
                                 droid_config_renaming = false;
                             } else if (k == SDLK_BACKSPACE && droid_config_name_pos > 0) {
                                 rd->name[--droid_config_name_pos] = '\0';
@@ -2816,6 +2821,9 @@ int main(int argc, char *argv[]) {
                                 droid_config_cursor++;
                             else if (event.key.key == SDLK_R) {
                                 droid_config_renaming = true;
+                                snprintf(droid_config_original_name,
+                                         sizeof(droid_config_original_name), "%s",
+                                         gs.droids[droid_config_cursor].name);
                                 droid_config_name_pos = (int)strlen(gs.droids[droid_config_cursor].name);
                             } else if (event.key.key == SDLK_S) {
                                 // Swap weapons between selected droid and next
