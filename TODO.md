@@ -316,6 +316,85 @@
 - [ ] Implement title screen with original graphics (PL5 sheets)
 - [ ] Implement story scroll (prisoner backstory, probe activation)
 
+### Shields and advanced weapons
+- [ ] Implement shield items with damage absorption (equippable, absorbs before HP)
+- [ ] Implement spray weapons hitting multiple targets in an arc (IDs 33-35)
+- [ ] Implement grenade/explosive weapons with area damage
+
+### Weight and movement
+- [ ] Implement droid speed affected by carried weight and body part damage
+
+### Creature AI (advanced)
+- [ ] Implement wall-aware pathfinding for creature movement (not just move-toward-party)
+- [ ] Implement creature special attacks: poison (damage over time), stun (skip turns), energy drain
+- [ ] Implement boss creatures with unique behaviour per mission
+
+### Score and ranking
+- [ ] Implement score tracking during gameplay
+- [ ] Implement ranking system at mission completion
+
+### Save system
+- [ ] Implement multiple save slots (original supported several)
+
+### Audio (ambient)
+- [ ] Implement ambient dungeon sounds (dripping, wind, electrical hum)
+
+### HUD
+- [ ] Implement message log scrollback (review past messages)
+
+### Input
+- [ ] Implement mouse-driven inventory management
+- [ ] Implement drag-and-drop equipment between droids
+
+### Palette accuracy
+- [ ] Verify and enforce original VGA 256-color palette for dungeon rendering
+
+### Demo mode
+- [ ] Implement demo/attract mode (idle gameplay showcase)
+
+### Screen transitions
+- [ ] Implement fade in/out transitions between game states
+
+## Liberation parity — missing features
+
+### City NPCs
+- [ ] Implement animated NPC sprites walking city streets (pedestrians, police)
+- [ ] Implement police chase/arrest sequence (pursuit through streets)
+
+### Weather and atmosphere
+- [ ] Implement weather effects (rain, fog) in city navigation
+
+### Audio (Liberation)
+- [ ] Implement CD audio music playback (Red Book tracks from CD32 disc)
+- [ ] Implement speech/voice sample playback
+
+### Building interaction
+- [ ] Implement animated building entrance sequences
+- [ ] Implement shop inventory varying by city and mission
+- [ ] Implement bar mini-games and interactive conversations
+
+### Crime system
+- [ ] Implement crime system: breaking into buildings, stealing items
+- [ ] Implement city destruction/damage from combat
+
+### Mission flow (Liberation)
+- [ ] Implement cutscenes between missions
+- [ ] Implement end game cinematic sequence
+- [ ] Implement multiple mission objectives per city (secondary objectives)
+
+### Assets (Liberation)
+- [ ] Implement loading screens with original artwork
+- [ ] Verify and enforce original Amiga/CD32 indexed color palette for city rendering
+
+### Items (Liberation)
+- [ ] Implement Liberation-specific items (city tools, disguises, unique equipment)
+
+### Save system (Liberation)
+- [ ] Implement save game thumbnail and description per slot
+
+### Difficulty
+- [ ] Implement player-selectable difficulty levels
+
 ## Start menu enhancements
 
 - [x] Game data status indicators (checkmark/cross per game, SHA-256 verified)
