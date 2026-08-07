@@ -1,6 +1,6 @@
 # Liberation: Captive 2 Data Formats
 
-> Updated for v1.1.83. Data remains player-supplied and hash-verified.
+> Updated for v1.1.89. Data remains player-supplied and hash-verified.
 
 ## Amiga floppy version
 

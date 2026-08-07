@@ -1,10 +1,12 @@
 # Audio System
 
-> Updated for v1.1.83. The release includes the SDL mixer, OPL2/MIDI paths, and optional reverb configuration covered by the audio tests.
+> Updated for v1.1.89. The release includes the SDL mixer, OPL2/MIDI paths, and optional reverb configuration covered by the audio tests.
 
 ## Overview
 
-OpenCaptive has three audio subsystems: sound effects (SFX), 8SVX sample playback, and MIDI music synthesis.
+OpenCaptive has five audio subsystems: sound effects (SFX), 8SVX sample
+playback, MIDI music synthesis, CD audio (CDDA) playback, and speech/voice
+samples.
 
 The start-menu audio setting offers 22,050, 44,100 and 48,000 Hz. The selected
 rate is applied when the audio device is created, and is shared by SFX mixing
@@ -71,3 +73,22 @@ path or filename.
 | MUSIC_ESCAPE | `2ddacc25ece9e3e6bdd13e3f1e7f926bfce2e180daf0fce8d57a3beb5ec30d1a` | Victory/escape |
 | MUSIC_FINAL | `d8cb990243dcdb885881f09a0bbe0788caee3c7b6ec9f62ed5d70c4c1d411587` | Final mission |
 | MUSIC_TRAPPED | `8c1ad7905a95dacb8a57d9f34d97beeb8eb42a4f38a2188909d6c769ebdbab2d` | Game over |
+
+## CD Audio (CDDA)
+
+Liberation: Captive 2 on CD32 includes 10 Red Book audio tracks (tracks 02-11
+on the disc). The CDDA player loads individual track .bin files extracted from
+the multi-file CUE disc image and plays them through a dedicated SDL3 stereo
+audio stream at 44,100 Hz, 16-bit signed, 2 channels.
+
+The player supports per-track file loading (`cdda_load_track_file`), raw PCM
+buffer loading (`cdda_load_track_raw`), and single-file BIN/CUE parsing
+(`cdda_load_bin_cue`). Volume is controlled independently from the main sound
+system. Playback supports looping.
+
+## Speech/Voice Samples
+
+The speech system loads voice samples via the existing 8SVX decoder and plays
+them through the main sound system. Each sample is identified by a content
+hash pair (hash_hi, hash_lo) for verification. Up to 64 samples can be loaded
+simultaneously.

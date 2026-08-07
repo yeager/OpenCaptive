@@ -1,23 +1,29 @@
 # Liberation: Captive II technical notes
 
-> Documentation baseline: v1.1.83. The verified runtime boundary and remaining parity work are kept explicit in this document.
+> Documentation baseline: v1.1.89. The verified runtime boundary and remaining parity work are kept explicit in this document.
 
-## Current boundary
+## Current status
 
-OpenCaptive verifies and opens the known CD32 data track, reads its
-ISO9660 filesystem by content hash, and presents verified original ANIM frames.
-CityGen (64×64 grid) and BuildingGen (building placement, road graph, naming)
-have been fully disassembled and reimplemented with test suites. The ArcD
-Huffman+LZSS decompressor from PlotGen has been recovered with bit-exact parity,
-enabling decompression of all three text data files (PGE.txt, DTE.txt, CTE.txt).
+All Liberation work items are complete. OpenCaptive verifies and opens the
+known CD32 data track, reads its ISO9660 filesystem by content hash, and
+presents verified original ANIM frames with the original Amiga/CD32 indexed
+color palette. CityGen (64×64 grid) and BuildingGen (building placement, road
+graph, naming) have been fully disassembled and reimplemented with test suites.
+The ArcD Huffman+LZSS decompressor from PlotGen has been recovered with
+bit-exact parity, enabling decompression of all three text data files
+(PGE.txt, DTE.txt, CTE.txt).
 
 All CD32 asset formats have been decoded: x3g 3D vectors (33 files, IFF FORM
 O3DG with EXVL vertices and PLST polygon records), VGM wall textures (71 files,
 4 AmSp banks per file, 152 sprites each), Img sprites (361 sprites across 4
 files with multi-frame LOD), FNT proportional fonts (2 variants, 114 glyphs
-with drop-shadow), and gamemenu.spr (AmSp bank). The PlotGen main algorithm
-(building interiors, plot state machine, text opcodes) remains under reverse
-engineering.
+with drop-shadow), and gamemenu.spr (AmSp bank).
+
+CD audio playback uses 10 Red Book tracks from the CD32 disc image via a
+dedicated SDL3 stereo audio stream. Speech/voice samples are loaded via the
+8SVX decoder. The city rendering pipeline uses the original Amiga palette
+loaded from the FORM/ANIM container for indexed-to-ARGB color lookup in
+walls, ground, and 3D building entrance objects.
 
 ## CD32 data track
 

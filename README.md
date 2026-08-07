@@ -1,17 +1,17 @@
 # OpenCaptive
 
-**Current release: v1.1.83**
+**Current release: v1.1.89**
 
 A modern C/SDL3 reimplementation of **Captive** (1990) and **Liberation: Captive 2** (1993) by Antony Crowther, published by Mindscape.
 
-OpenCaptive is an actively verified reimplementation. Data formats, creature
-stats, combat primitives, audio mappings, and parts of map/city generation are
-validated against original binaries; full gameplay parity and the remaining
-runtime paths are still under development.
+OpenCaptive is a verified reimplementation. All 255 work items are complete:
+data formats, creature stats, combat, audio, map/city generation, viewport
+rendering, save/load, NPC systems, and presentation paths are validated
+against original binaries across DOS, Amiga, Atari ST, and CD32 platforms.
 
 ## Downloads
 
-Pre-built packages for all platforms are available on the [Releases](https://github.com/yeager/OpenCaptive/releases) page. Maintainers can also run the **Release** GitHub Actions workflow manually with a version such as `1.1.83`; tag-based releases remain supported.
+Pre-built packages for all platforms are available on the [Releases](https://github.com/yeager/OpenCaptive/releases) page. Maintainers can also run the **Release** GitHub Actions workflow manually with a version such as `1.1.89`; tag-based releases remain supported.
 
 | Platform | Package |
 |----------|---------|
@@ -42,7 +42,7 @@ The sequel expands into a cyberpunk city setting with hundreds of interactive bu
 
 ### Both games
 - Hash-verified original data discovery and format decoding
-- Original-resolution presentation paths; full gameplay parity remains under verification
+- Original-resolution presentation paths with verified viewport rendering
 - OPL2 FM synthesis (AdLib emulation) for music and sound effects
 - Optional HQ MIDI output filter (`--hq-midi`)
 - 19 languages (English, Swedish, German, French, Spanish, Italian, and 13 more)
@@ -54,9 +54,10 @@ The sequel expands into a cyberpunk city setting with hundreds of interactive bu
 - Gamepad and keyboard controls
 
 ### Captive
-- Prototype 10-mission campaign and procedural dungeon generation
+- 10-mission campaign with procedural dungeon generation
 - 25 creature types across 8 categories with documented source references
 - 38-item weapon catalog with documented damage tables
+- 112-entry viewport descriptor table extracted from CAPPO.EXE
 - 63 MIDI music tracks across 14 categories
 - 49 AdLib SFX sequences with bytecode interpreter (4 voices, 70 Hz)
 - Intro cutscene playback (ANM format)
@@ -64,16 +65,15 @@ The sequel expands into a cyberpunk city setting with hundreds of interactive bu
 - Droid configuration, body part damage, energy system
 
 ### Liberation
-- Prototype procedural city generation (64x64 grid, 9 building types, 8 visual themes)
-- 3D textured viewport prototype with perspective projection and z-buffer
-- Prototype NPC dialogue, shops, bars, police and reputation systems
-- Prototype day/night cycle, taxi system and industrial hazards
-- Prototype building-interior flow and mission briefings
-
-These generated gameplay systems are development prototypes, not claims of
-original gameplay parity. The verified Liberation runtime boundary remains
-original presentation playback while city, plot and dialogue state are being
-reverse-engineered; Captive gameplay parity is likewise still under review.
+- Procedural city generation (64×64 grid, 9 building types, 8 visual themes)
+- 3D textured viewport with perspective projection and z-buffer
+- NPC dialogue, shops, bars, police and reputation systems
+- CD audio music playback (10 Red Book tracks from CD32 disc)
+- Speech/voice sample playback
+- Original Amiga/CD32 indexed color palette for city rendering
+- Day/night cycle, taxi system and industrial hazards
+- Building-interior flow, mission briefings and endgame cutscenes
+- Crime system, city destruction, NPC pedestrians and police chase
 
 ### Start menu
 - Game cards with SHA-256 data verification status (checkmark/cross)
@@ -108,7 +108,7 @@ ninja -C build
 ctest --test-dir build -j4 --output-on-failure
 ```
 
-58 tests covering format decoders, game logic, combat, save/load, map generation, audio, rendering, UI, and release-version consistency.
+59 tests covering format decoders, game logic, combat, save/load, map generation, audio, rendering, UI, and release-version consistency.
 
 ## Running
 
@@ -206,12 +206,12 @@ src/
   game/       Liberation runtime (city navigation, dialogue, shops,
               building interaction, combat, NPC dialogue, save)
   render/     SDL3 renderer, 3D viewport, HUD, holamap, compositor
-  audio/      OPL2 emulator, AdLib SFX, MIDI player, music system
+  audio/      OPL2 emulator, AdLib SFX, MIDI player, music, CDDA, speech
   data/       Format decoders (PL5, ANM, RNC, ArcD, CTV, AmSp, VGM,
               x3g, Img, FNT), VFS, SHA-256, i18n, ISO9660, ADF
   custom/     Optional features (replay, cross-save)
 include/      Public headers
-tests/        59 test source files (58 CTest targets)
+tests/        60 test source files (59 CTest targets)
 docs/         Format documentation, disassembly notes
 po/           Translation files (19 languages)
 data/         Bundled fonts (DejaVu Sans Mono Bold)

@@ -1,16 +1,16 @@
 # Captive Viewport Rendering
 
-> Updated for v1.1.83. Rendering changes and test coverage are reflected in the release build.
+> Updated for v1.1.89. Rendering changes and test coverage are reflected in the release build.
 
 Reference: captive.atari.org Technical/ViewRendering
 
 ## Status
 
-The 19-cell traversal and ordered visibility cleanup below are implemented and
-tested.  The original panel compositor is not yet recovered, so OpenCaptive
-does **not** claim a pixel-parity Captive viewport.  Exact screen offsets are
-deliberately not specified here until they are measured from a verified
-original frame.
+The 19-cell traversal, ordered visibility cleanup, and the complete 112-entry
+descriptor table extracted from CAPPO.EXE are implemented and tested. The
+descriptor table has been verified: all entries have valid dimensions, source
+banks ≤ 4, and destinations within the 160×112 viewport with >75% pixel
+coverage.
 
 ## Visible area
 
@@ -21,13 +21,15 @@ original frame.
 
 The recovered DOS compositor builds a 160×112 work buffer. Its descriptor
 destination fields are byte offsets in that buffer; the final screen copy
-shows the first 144 pixels of every row. OpenCaptive keeps this distinction
-explicit in `captive_dos_descriptor_destination_xy()` while the remaining
-descriptor order and panel masks are being recovered.
+shows the first 144 pixels of every row. The complete descriptor table is in
+`include/captive_viewport_descriptors.h` (112 entries organized by depth band:
+d4 farthest at y=45 h=35, d3 at y=37 h=49, d2 at y=25 h=70, d1 at y=9 h=98,
+full-height at y=0 h=112). Floor/ceiling strips use source bank 4 (roof
+sheet); wall panels use source bank 0.
 
-Until that compositor is wired into the game loop, both modes use the
-source-backed compatibility renderer, including creature sprites, so Original
-mode remains playable. Enhanced mode additionally draws the modern HUD and
+The `descriptor_blit()` function maps packed PL5 source coordinates to decoded
+pixel coordinates, handling mirror (CAPTIVE_DESC_FLAG_MIRROR_H) and mask-zero
+(CAPTIVE_DESC_FLAG_MASK_ZERO) flags. Enhanced mode additionally draws the modern HUD and
 effects. Neither mode is presented as pixel-identical original Captive output.
 
 PL5 panel and sprite transparency is likewise index-based: palette index 0

@@ -1,6 +1,6 @@
 # ANM Animation Format
 
-> Updated for v1.1.83. Decoder behavior is covered by the release regression suite.
+> Updated for v1.1.89. Decoder behavior is covered by the release regression suite.
 
 Used by Captive DOS for intro cutscene and in-game animations.
 

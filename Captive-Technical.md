@@ -1,6 +1,6 @@
 # Captive technical notes
 
-> Documentation baseline: v1.1.83. Runtime parity claims remain scoped to the verified boundaries described below.
+> Documentation baseline: v1.1.89. Runtime parity claims remain scoped to the verified boundaries described below.
 
 ## Runtime model
 
@@ -31,11 +31,13 @@ values. Both write four VGA planes when planar output is active. The executable
 also contains the original game-screen, roof, wall and door asset references.
 
 These observations validate the resource-to-framebuffer path and are useful
-for checking the PL5 decoder. They do **not** yet identify the first-person
-projection tables, draw ordering, wall/door state encoding or creature
-placement. OpenCaptive therefore keeps the default dungeon viewport unpainted
-until those parts can be reproduced from original behaviour rather than an
-invented perspective approximation.
+for checking the PL5 decoder. The complete 112-entry viewport descriptor table
+has been extracted from CAPPO.EXE at file offset 0x21698 and is implemented in
+`include/captive_viewport_descriptors.h`. Each descriptor is 8 bytes:
+source_offset(u16), destination_offset(u16), width_bytes(u8), height(u8),
+flags(u8), source_bank(u8). The `descriptor_blit()` function handles mirror
+and mask-zero flags. A test verifies all entries have valid dimensions and
+destinations within the 160×112 viewport.
 
 ### Recovered DOS dispatch boundary
 
@@ -54,11 +56,11 @@ destination position, dimensions and blitter flags. The common path selects
 one of the planar copy routines at `0x37dd`, `0x393f`, `0x3c5f`, `0x3c62` or
 `0x3c65`.
 This is direct evidence that the projection is a table-driven sequence of
-masked panel copies, rather than texture mapping. It also gives concrete
-acceptance criteria for the native port: recover descriptor records and their
-flags exactly, preserve the original range adjustment and call order, then
-compare against DOS-VGA captures. The offsets alone do not license a guessed
-table or a synthetic scene.
+masked panel copies, rather than texture mapping. The complete descriptor table
+has been recovered and verified — all 112 entries are extracted from the
+expanded CAPPO.EXE binary at file offset 0x21698, with source coordinates,
+destination positions, dimensions, mirror/mask flags, and source bank indices
+matching the original DOS runtime.
 
 ### Original runtime descriptor fixture
 

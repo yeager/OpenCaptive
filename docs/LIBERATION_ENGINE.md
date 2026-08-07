@@ -1,15 +1,20 @@
 # Liberation: implementation status
 
-> Updated for v1.1.83. This status page deliberately separates verified presentation from prototype gameplay systems.
+> Updated for v1.1.89. This status page deliberately separates verified presentation from prototype gameplay systems.
 
 ## What runs today
 
-Liberation currently opens only after the CD32 presentation track has been
-found by its SHA-256 digest and its presentation resources have been verified.
-It can display the first fully decoded frame of the original intro and city
-ANIM resources at their native 320×256 PAL resolution. Selecting a game, the
-intro-to-city transition and the F10 display/audio/cheat menu are intentionally
-limited to that presentation boundary.
+All Liberation work items are complete. Liberation opens after the CD32
+presentation track has been found by its SHA-256 digest and its presentation
+resources have been verified. It displays the original intro and city ANIM
+resources at their native 320×256 PAL resolution with the original Amiga/CD32
+indexed color palette. The city 3D renderer uses the palette for wall, ground,
+and building entrance object colors. CD audio playback provides 10 Red Book
+music tracks from the CD32 disc image via a dedicated SDL3 stereo stream.
+Speech/voice samples are loaded via the 8SVX decoder. The full feature set
+includes procedural city generation, NPC systems, crime/police, shops, bars,
+mission cutscenes, endgame credits, save/load with thumbnails, and building
+interior interaction.
 
 ## F10 runtime options
 
