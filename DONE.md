@@ -3743,3 +3743,14 @@
   sparning. Provet verifierar att spakens lösning, dörrens öppna tillstånd,
   målkoordinaterna och panelornamentet återställs efter laddning.
 - Hela Werror-sviten passerar: 58/58 tester.
+
+# 2026-08-07 — Captive nåbar progression bakom låsta dörrar
+
+- Kartgeneratorn väljer nu i första hand låsta dörrar som inte delar av en
+  hel våning. På små Architect-plan används en säker alternativ cell när en
+  strikt choke point annars skulle isolera missionsinnehåll.
+- Pusselgeneratorn filtrerar vanliga spakar till entréns nåbara område och
+  lägger vid behov till en nåbar spak för den första låsta dörren. Därmed kan
+  generatorn inte hamna bakom en dörr vars alla kontroller ligger på fel sida.
+- Regressionstestet simulerar dörrar som blockeringar och pussel som
+  upplåsningar över 256 missionsfrön. Hela sviten passerar: 58/58 tester.

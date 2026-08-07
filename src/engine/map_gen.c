@@ -441,6 +441,46 @@ static void architect_finish_level(DungeonLevel *level, int level_num) {
     }
 }
 
+/* A locked door must not be the only connection to the rest of a floor.
+ * Architect's open map is connected, but turning an arbitrary choke point
+ * into a locked door can strand both its controls and the generator behind
+ * it.  Prefer a candidate whose temporary removal leaves every non-wall cell
+ * reachable; puzzle controls can then always be reached before the door is
+ * opened. */
+static bool architect_connected_without(const DungeonLevel *level,
+                                        int blocked_x, int blocked_y) {
+    if (!level) return false;
+    bool seen[MAP_HEIGHT][MAP_WIDTH] = {{false}};
+    int queue[MAP_HEIGHT * MAP_WIDTH];
+    int head = 0, tail = 0, total = 0;
+    int start = -1;
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (x == blocked_x && y == blocked_y) continue;
+            if (level->cells[y][x].type == CELL_WALL) continue;
+            total++;
+            if (start < 0) start = y * MAP_WIDTH + x;
+        }
+    }
+    if (total == 0 || start < 0) return false;
+    seen[start / MAP_WIDTH][start % MAP_WIDTH] = true;
+    queue[tail++] = start;
+    while (head < tail) {
+        int pos = queue[head++];
+        int x = pos % MAP_WIDTH, y = pos / MAP_WIDTH;
+        for (int d = 0; d < 4; d++) {
+            int nx = x + dx[d], ny = y + dy[d];
+            if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT ||
+                (nx == blocked_x && ny == blocked_y) || seen[ny][nx] ||
+                level->cells[ny][nx].type == CELL_WALL)
+                continue;
+            seen[ny][nx] = true;
+            queue[tail++] = ny * MAP_WIDTH + nx;
+        }
+    }
+    return head == total;
+}
+
 /* Architect places doors after carving paths, at one-cell choke points.  Keep
  * that placement separate from the digger: a door is an interactive barrier,
  * not a different kind of path. */
@@ -470,13 +510,52 @@ static void architect_place_doors(DungeonLevel *level) {
      * previously every generated choke point was an ordinary CELL_DOOR. Add
      * up to the documented maximum of eight doors with Architect's PRNG. */
     int placed = 0;
+    int locked_pos = -1;
+    int safe_candidates[MAP_WIDTH * MAP_HEIGHT];
+    int safe_count = 0;
+    for (int i = 0; i < count; i++) {
+        int pos = candidates[i];
+        if (architect_connected_without(level, pos % MAP_WIDTH,
+                                        pos / MAP_WIDTH))
+            safe_candidates[safe_count++] = pos;
+    }
+    if (safe_count > 0)
+        locked_pos = safe_candidates[prng_next() % (uint32_t)safe_count];
+
+    /* A strict choke point can be an articulation point on a small floor.
+     * Choose a non-articulation corridor cell instead; it remains a valid
+     * interactive door while retaining a reachable puzzle path. */
+    if (locked_pos < 0) {
+        for (int y = 1; y < MAP_HEIGHT - 1 && locked_pos < 0; y++) {
+            for (int x = 1; x < MAP_WIDTH - 1; x++) {
+                if (level->cells[y][x].type != CELL_FLOOR) continue;
+                int open = 0;
+                for (int d = 0; d < 4; d++)
+                    open += level->cells[y + dy[d]][x + dx[d]].type != CELL_WALL;
+                if (open >= 2 && architect_connected_without(level, x, y))
+                    locked_pos = y * MAP_WIDTH + x;
+            }
+        }
+    }
+    if (locked_pos < 0 && count > 0)
+        locked_pos = candidates[0];
+    if (locked_pos >= 0) {
+        level->cells[locked_pos / MAP_WIDTH][locked_pos % MAP_WIDTH].type =
+            CELL_DOOR_LOCKED;
+        placed = 1;
+        for (int i = 0; i < count; i++) {
+            if (candidates[i] == locked_pos) {
+                candidates[i] = candidates[--count];
+                break;
+            }
+        }
+    }
     while (count > 0 && placed < 8) {
         int index = (int)(prng_next() % (uint16_t)count);
         int pos = candidates[index];
         candidates[index] = candidates[--count];
-        if (placed == 0 || (prng_next() & 3u) == 0) {
-            level->cells[pos / MAP_WIDTH][pos % MAP_WIDTH].type = placed == 0
-                ? CELL_DOOR_LOCKED : CELL_DOOR;
+        if ((prng_next() & 3u) == 0) {
+            level->cells[pos / MAP_WIDTH][pos % MAP_WIDTH].type = CELL_DOOR;
             placed++;
         }
     }

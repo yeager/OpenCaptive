@@ -6,6 +6,8 @@
 #include <stdio.h>
 
 static uint32_t puzzle_seed;
+static const int dx[] = {0, 1, 0, -1};
+static const int dy[] = {-1, 0, 1, 0};
 
 static bool all_droids_dead(const GameState *gs) {
     if (!gs) return false;
@@ -55,13 +57,135 @@ static bool puzzle_cell_occupied(const PuzzleList *pl, int level,
     return false;
 }
 
+static void puzzle_build_reachable(const DungeonLevel *lvl, int level_num,
+                                   bool reachable[MAP_HEIGHT][MAP_WIDTH]) {
+    if (!lvl) return;
+    memset(reachable, 0, sizeof(bool) * MAP_HEIGHT * MAP_WIDTH);
+    int start_x = -1, start_y = -1;
+    for (int y = 0; y < MAP_HEIGHT && start_x < 0; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (level_num > 0 && lvl->cells[y][x].type != CELL_STAIRS_UP)
+                continue;
+            if (level_num == 0 && lvl->cells[y][x].type == CELL_WALL)
+                continue;
+            start_x = x;
+            start_y = y;
+            break;
+        }
+    }
+    if (start_x < 0) {
+        for (int y = 0; y < MAP_HEIGHT && start_x < 0; y++)
+            for (int x = 0; x < MAP_WIDTH; x++)
+                if (lvl->cells[y][x].type != CELL_WALL) {
+                    start_x = x;
+                    start_y = y;
+                    break;
+                }
+    }
+    if (start_x < 0 || lvl->cells[start_y][start_x].type == CELL_DOOR_LOCKED)
+        return;
+
+    int queue[MAP_HEIGHT * MAP_WIDTH];
+    int head = 0, tail = 0;
+    reachable[start_y][start_x] = true;
+    queue[tail++] = start_y * MAP_WIDTH + start_x;
+    while (head < tail) {
+        int pos = queue[head++];
+        int x = pos % MAP_WIDTH, y = pos / MAP_WIDTH;
+        for (int d = 0; d < 4; d++) {
+            int nx = x + dx[d], ny = y + dy[d];
+            if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT ||
+                reachable[ny][nx] || lvl->cells[ny][nx].type == CELL_WALL ||
+                lvl->cells[ny][nx].type == CELL_DOOR_LOCKED)
+                continue;
+            reachable[ny][nx] = true;
+            queue[tail++] = ny * MAP_WIDTH + nx;
+        }
+    }
+}
+
+static bool puzzle_add_reachable_door_control(PuzzleList *pl,
+                                              DungeonLevel *lvl,
+                                              int level_num,
+                                              bool reachable[MAP_HEIGHT][MAP_WIDTH]) {
+    if (!pl || !lvl || pl->num_puzzles >= MAX_PUZZLES) return false;
+    int target_x = -1, target_y = -1;
+    for (int y = 1; y < MAP_HEIGHT - 1 && target_x < 0; y++)
+        for (int x = 1; x < MAP_WIDTH - 1; x++)
+            if (lvl->cells[y][x].type == CELL_DOOR_LOCKED) {
+                target_x = x;
+                target_y = y;
+                break;
+            }
+    if (target_x < 0) return false;
+
+    for (int i = 0; i < pl->num_puzzles; i++) {
+        const Puzzle *p = &pl->puzzles[i];
+        if (p->target_x == target_x && p->target_y == target_y &&
+            p->level == level_num && p->x >= 0 && p->x < MAP_WIDTH &&
+            p->y >= 0 && p->y < MAP_HEIGHT && reachable[p->y][p->x])
+            return true;
+    }
+
+    for (int y = 1; y < MAP_HEIGHT - 1; y++) {
+        for (int x = 1; x < MAP_WIDTH - 1; x++) {
+            if (!reachable[y][x] || lvl->cells[y][x].type != CELL_FLOOR ||
+                puzzle_cell_occupied(pl, level_num, x, y)) continue;
+            for (int d = 0; d < 4; d++) {
+                int wx = x + dx[d], wy = y + dy[d];
+                if (lvl->cells[wy][wx].type != CELL_WALL) continue;
+                Puzzle *p = puzzle_append(pl);
+                if (!p) return false;
+                p->type = PUZZLE_LEVER;
+                p->x = x;
+                p->y = y;
+                p->level = level_num;
+                p->face = d;
+                p->state = 0;
+                p->solution = (uint8_t)(captive_prng(&puzzle_seed) & 1U);
+                p->target_x = target_x;
+                p->target_y = target_y;
+                p->solved = false;
+                lvl->cells[y][x].ornament[d] = ORNAMENT_PANEL;
+                return true;
+            }
+        }
+    }
+    /* Tiny Architect sections may have no reachable floor cell directly
+     * against a wall.  The interaction state is still valid on an open cell;
+     * use it as a last-resort control so the linked door cannot deadlock the
+     * mission. */
+    for (int y = 1; y < MAP_HEIGHT - 1; y++) {
+        for (int x = 1; x < MAP_WIDTH - 1; x++) {
+            if (!reachable[y][x] ||
+                (lvl->cells[y][x].type != CELL_FLOOR &&
+                 lvl->cells[y][x].type != CELL_STAIRS_UP) ||
+                puzzle_cell_occupied(pl, level_num, x, y)) continue;
+            Puzzle *p = puzzle_append(pl);
+            if (!p) return false;
+            p->type = PUZZLE_LEVER;
+            p->x = x;
+            p->y = y;
+            p->level = level_num;
+            p->face = DIR_NORTH;
+            p->state = 0;
+            p->solution = (uint8_t)(captive_prng(&puzzle_seed) & 1U);
+            p->target_x = target_x;
+            p->target_y = target_y;
+            p->solved = false;
+            return true;
+        }
+    }
+    return false;
+}
+
 void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t seed) {
     if (!pl || !lvl || pl->num_puzzles < 0 || pl->num_puzzles > MAX_PUZZLES ||
         level_num < 0 || level_num >= MAX_LEVELS) return;
     puzzle_seed = seed + level_num * 4217;
 
-    static const int dx[] = {0, 1, 0, -1};
-    static const int dy[] = {-1, 0, 1, 0};
+    bool reachable[MAP_HEIGHT][MAP_WIDTH];
+    puzzle_build_reachable(lvl, level_num, reachable);
 
     // Place buttons near doors
     for (int y = 1; y < MAP_HEIGHT - 1; y++) {
@@ -117,6 +241,7 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
             int rx = 2 + captive_prng(&puzzle_seed) % (MAP_WIDTH - 4);
             int ry = 2 + captive_prng(&puzzle_seed) % (MAP_HEIGHT - 4);
             if (lvl->cells[ry][rx].type != CELL_FLOOR) continue;
+            if (!reachable[ry][rx]) continue;
             if (puzzle_cell_occupied(pl, level_num, rx, ry)) continue;
 
             // Check adjacent wall
@@ -162,6 +287,11 @@ void puzzle_generate(PuzzleList *pl, DungeonLevel *lvl, int level_num, uint32_t 
             if (placed) break;
         }
     }
+
+    /* A locked door can split a generated floor.  Keep at least one lever on
+     * the entrance side so the player can open the first linked door instead
+     * of finding every generated control behind it. */
+    puzzle_add_reachable_door_control(pl, lvl, level_num, reachable);
 
     // Place bars puzzles (number-matching, from level 3+)
     if (level_num >= 3) {

@@ -72,6 +72,95 @@ static void test_generated_missions_link_puzzles_to_locked_doors(void) {
     }
 }
 
+static bool captive_test_cell_reachable(const DungeonLevel *level,
+                                        bool opened[MAP_HEIGHT][MAP_WIDTH],
+                                        int x, int y) {
+    return x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT &&
+           level->cells[y][x].type != CELL_WALL &&
+           (level->cells[y][x].type != CELL_DOOR_LOCKED || opened[y][x]);
+}
+
+static void captive_test_reachability(const DungeonLevel *level,
+                                      bool opened[MAP_HEIGHT][MAP_WIDTH],
+                                      int start_x, int start_y,
+                                      bool reachable[MAP_HEIGHT][MAP_WIDTH]) {
+    int queue[MAP_HEIGHT * MAP_WIDTH];
+    int head = 0, tail = 0;
+    memset(reachable, 0, sizeof(bool) * MAP_HEIGHT * MAP_WIDTH);
+    if (!captive_test_cell_reachable(level, opened, start_x, start_y)) return;
+    reachable[start_y][start_x] = true;
+    queue[tail++] = start_y * MAP_WIDTH + start_x;
+    while (head < tail) {
+        int pos = queue[head++];
+        int x = pos % MAP_WIDTH;
+        int y = pos / MAP_WIDTH;
+        static const int dx[] = {0, 1, 0, -1};
+        static const int dy[] = {-1, 0, 1, 0};
+        for (int d = 0; d < 4; d++) {
+            int nx = x + dx[d], ny = y + dy[d];
+            if (!captive_test_cell_reachable(level, opened, nx, ny) ||
+                reachable[ny][nx]) continue;
+            reachable[ny][nx] = true;
+            queue[tail++] = ny * MAP_WIDTH + nx;
+        }
+    }
+}
+
+static void test_generated_mission_progression_reaches_generators(void) {
+    for (uint32_t seed = 0; seed < 256; seed++) {
+        GameState gs;
+        PuzzleList puzzles;
+        game_state_init(&gs, GAME_CAPTIVE, 1);
+        assert(game_state_new_mission_seeded(&gs, 1, seed));
+        puzzle_init(&puzzles);
+        for (int level = 0; level < gs.num_levels; level++)
+            puzzle_generate(&puzzles, &gs.levels[level], level, seed);
+
+        for (int level = 0; level < gs.num_levels; level++) {
+            bool opened[MAP_HEIGHT][MAP_WIDTH] = {{false}};
+            bool reachable[MAP_HEIGHT][MAP_WIDTH];
+            int start_x = gs.party_x;
+            int start_y = gs.party_y;
+            if (level > 0) {
+                start_x = start_y = -1;
+                for (int y = 0; y < MAP_HEIGHT && start_x < 0; y++)
+                    for (int x = 0; x < MAP_WIDTH; x++)
+                        if (gs.levels[level].cells[y][x].type == CELL_STAIRS_UP) {
+                            start_x = x;
+                            start_y = y;
+                            break;
+                        }
+                assert(start_x >= 0 && start_y >= 0);
+            }
+
+            bool changed;
+            do {
+                changed = false;
+                captive_test_reachability(&gs.levels[level], opened,
+                                           start_x, start_y, reachable);
+                for (int i = 0; i < puzzles.num_puzzles; i++) {
+                    const Puzzle *p = &puzzles.puzzles[i];
+                    if (p->level != level || p->target_x < 0 ||
+                        p->target_y < 0 || !reachable[p->y][p->x]) continue;
+                    if (gs.levels[level].cells[p->target_y][p->target_x].type ==
+                            CELL_DOOR_LOCKED &&
+                        !opened[p->target_y][p->target_x]) {
+                        opened[p->target_y][p->target_x] = true;
+                        changed = true;
+                    }
+                }
+            } while (changed);
+
+            captive_test_reachability(&gs.levels[level], opened,
+                                      start_x, start_y, reachable);
+            for (int y = 0; y < MAP_HEIGHT; y++)
+                for (int x = 0; x < MAP_WIDTH; x++)
+                    if (gs.levels[level].cells[y][x].type == CELL_GENERATOR)
+                        assert(reachable[y][x]);
+        }
+    }
+}
+
 static void test_button_combo_solution_is_reachable(void) {
     GameState gs;
     PuzzleList puzzles = {0};
@@ -1045,6 +1134,7 @@ static void test_init_normalizes_invalid_mission(void) {
 int main(void) {
     test_new_mission_rejects_null_state();
     test_generated_missions_link_puzzles_to_locked_doors();
+    test_generated_mission_progression_reaches_generators();
     test_init_normalizes_invalid_mission();
     test_puzzle_rejects_invalid_level();
     test_button_combo_solution_is_reachable();
