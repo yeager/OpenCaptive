@@ -300,15 +300,15 @@
 - [x] Unicode/extended character support in bitmap font renderer (UTF-8 decode, lowercase a-z, accented→base mapping for all 19 languages)
 
 ### Space navigation (pre-dungeon)
+- [x] Implement space flight (starfield rendering, directional thrust, fuel consumption)
+- [x] Implement cockpit HUD (fuel gauge, speed, distance, heading)
+- [x] Implement planet approach and orbit entry (auto-transition at arrival distance)
+- [x] Implement orbit view with planet terrain from holamap, probe marker, landing cursor
+- [x] Implement landing sequence (descent animation with altitude readout → droid config)
+- [x] Wire space navigation into mission flow: holamap → space flight → orbit → landing → droid config → dungeon
 - [ ] Recover spaceship cockpit layout from CAPPO.EXE (instrument panel, viewport, status displays)
 - [ ] Implement probe launch sequence (mission briefing → launch animation)
-- [ ] Implement space flight (starfield rendering, directional thrust, fuel consumption)
-- [ ] Implement planet approach and orbit entry
-- [ ] Implement landing site selection (orbit view, surface scan)
-- [ ] Implement landing sequence (descent animation → holamap transition)
-- [ ] Wire space navigation into mission flow: briefing → launch → fly → orbit → land → dungeon
 - [ ] Recover navigation computer UI (coordinate entry, planet database)
-- [ ] Recover fuel/energy mechanics for space travel
 - [ ] Recover original starfield rendering (parallax star layers, planet sprites)
 
 ### Intro sequence

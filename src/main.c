@@ -38,6 +38,7 @@
 #include "liberation_plotgen.h"
 #include "amos_sprite.h"
 #include "dos_vga_reference.h"
+#include "captive_space_nav.h"
 #include "frame_compare.h"
 #include "custom_features.h"
 #include "i18n.h"
@@ -637,6 +638,8 @@ static DroidUIState droid_ui;
 static TerminalState terminal;
 static SfxSystem sfx;
 static LiberationData liberation_data;
+static Starfield starfield;
+static Holamap space_holamap;
 static bool liberation_intro_active;
 static bool liberation_mission_menu_active;
 static bool skip_liberation_intro_requested;
@@ -3140,12 +3143,12 @@ int main(int argc, char *argv[]) {
                         switch (event.key.key) {
                             case SDLK_RETURN:
                             case SDLK_KP_ENTER:
-                                if (game_state_new_mission(&gs, gs.mission + 1)) {
-                                    generate_captive_puzzles(&gs);
-                                    generate_captive_encounters(&gs);
-                                    gs.mode = STATE_GAME;
-                                    music_play(&music_sys, MUSIC_BASE);
-                                }
+                                space_flight_init(&gs);
+                                starfield_init(&starfield,
+                                               gs.mission_seed + (uint32_t)gs.mission);
+                                holamap_init(&space_holamap,
+                                             gs.mission_seed + (uint32_t)(gs.mission + 1));
+                                gs.mode = STATE_SPACE_FLIGHT;
                                 break;
                             case SDLK_S:
                                 shop_return_mode = STATE_HOLAMAP;
@@ -3163,6 +3166,79 @@ int main(int argc, char *argv[]) {
                                 break;
                             default: break;
                         }
+                    }
+                    break;
+                case STATE_SPACE_FLIGHT:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        switch (event.key.key) {
+                            case SDLK_UP: case SDLK_W:
+                                if (gs.space_fuel > 0) {
+                                    gs.space_vy -= SPACE_THRUST;
+                                    gs.space_fuel -= 1.0f;
+                                }
+                                break;
+                            case SDLK_DOWN: case SDLK_S:
+                                if (gs.space_fuel > 0) {
+                                    gs.space_vy += SPACE_THRUST;
+                                    gs.space_fuel -= 1.0f;
+                                }
+                                break;
+                            case SDLK_LEFT: case SDLK_A:
+                                if (gs.space_fuel > 0) {
+                                    gs.space_vx -= SPACE_THRUST;
+                                    gs.space_fuel -= 1.0f;
+                                }
+                                break;
+                            case SDLK_RIGHT: case SDLK_D:
+                                if (gs.space_fuel > 0) {
+                                    gs.space_vx += SPACE_THRUST;
+                                    gs.space_fuel -= 1.0f;
+                                }
+                                break;
+                            case SDLK_SPACE:
+                                if (gs.space_fuel >= 10.0f) {
+                                    float dx = gs.space_target_x - gs.space_x;
+                                    float dy = gs.space_target_y - gs.space_y;
+                                    float d = sqrtf(dx * dx + dy * dy);
+                                    if (d > 0.01f) {
+                                        gs.space_vx += (dx / d) * SPACE_THRUST * 5;
+                                        gs.space_vy += (dy / d) * SPACE_THRUST * 5;
+                                    }
+                                    gs.space_fuel -= 10.0f;
+                                }
+                                break;
+                            case SDLK_ESCAPE:
+                                gs.mode = STATE_HOLAMAP;
+                                break;
+                            default: break;
+                        }
+                    }
+                    break;
+                case STATE_ORBIT:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        switch (event.key.key) {
+                            case SDLK_LEFT: case SDLK_A:
+                                gs.orbit_angle -= ORBIT_SPEED * 10;
+                                break;
+                            case SDLK_RIGHT: case SDLK_D:
+                                gs.orbit_angle += ORBIT_SPEED * 10;
+                                break;
+                            case SDLK_RETURN:
+                            case SDLK_KP_ENTER:
+                                gs.landing_tick = 0;
+                                gs.mode = STATE_LANDING;
+                                break;
+                            case SDLK_ESCAPE:
+                                gs.mode = STATE_HOLAMAP;
+                                break;
+                            default: break;
+                        }
+                    }
+                    break;
+                case STATE_LANDING:
+                    if (event.type == SDL_EVENT_KEY_DOWN &&
+                        event.key.key == SDLK_ESCAPE) {
+                        gs.mode = STATE_ORBIT;
                     }
                     break;
                 case STATE_GAMEOVER:
@@ -3331,6 +3407,31 @@ int main(int argc, char *argv[]) {
 
         if (gs.mode == STATE_MENU)
             start_menu_update(&menu);
+
+        if (gs.mode == STATE_SPACE_FLIGHT) {
+            space_flight_update(&gs);
+            float dx = gs.space_target_x - gs.space_x;
+            float dy = gs.space_target_y - gs.space_y;
+            if (sqrtf(dx * dx + dy * dy) < SPACE_ARRIVAL_DIST) {
+                gs.mode = STATE_ORBIT;
+                gs.orbit_angle = 0.0f;
+            }
+        }
+        if (gs.mode == STATE_ORBIT) {
+            gs.orbit_angle += ORBIT_SPEED;
+        }
+        if (gs.mode == STATE_LANDING) {
+            gs.landing_tick++;
+            if (gs.landing_tick >= LANDING_TICKS) {
+                if (game_state_new_mission(&gs, gs.mission + 1)) {
+                    generate_captive_puzzles(&gs);
+                    generate_captive_encounters(&gs);
+                    gs.mode = STATE_DROID_CONFIG;
+                    droid_config_cursor = 0;
+                    music_play(&music_sys, MUSIC_BASE);
+                }
+            }
+        }
 
         switch (gs.mode) {
             case STATE_MENU:
@@ -3781,6 +3882,24 @@ int main(int argc, char *argv[]) {
                               120, _("ENTER: Launch    S: Shop"), 0xFF888888, 1);
                 break;
             }
+
+            case STATE_SPACE_FLIGHT:
+                space_flight_render(&gs, &starfield, framebuffer,
+                                    CAPTIVE_ORIGINAL_WIDTH,
+                                    CAPTIVE_ORIGINAL_HEIGHT);
+                break;
+
+            case STATE_ORBIT:
+                orbit_render(&gs, &space_holamap, framebuffer,
+                             CAPTIVE_ORIGINAL_WIDTH,
+                             CAPTIVE_ORIGINAL_HEIGHT);
+                break;
+
+            case STATE_LANDING:
+                landing_render(&gs, framebuffer,
+                               CAPTIVE_ORIGINAL_WIDTH,
+                               CAPTIVE_ORIGINAL_HEIGHT);
+                break;
 
             case STATE_VICTORY:
                 if (gs.game_type == GAME_CAPTIVE && hud_bg) {

@@ -106,6 +106,9 @@ typedef enum {
     STATE_HELP,
     STATE_DROID_CONFIG,
     STATE_CITY_MAP,
+    STATE_SPACE_FLIGHT,
+    STATE_ORBIT,
+    STATE_LANDING,
 } GameStateMode;
 
 typedef struct {
@@ -146,6 +149,14 @@ typedef struct {
     // Reputation (Liberation)
     int         reputation; // -100 to +100, starts at 0
     uint8_t     lib_mission_complete[LIBERATION_MISSION_BITMAP_BYTES];
+
+    // Space navigation
+    float       space_x, space_y;
+    float       space_vx, space_vy;
+    float       space_fuel;
+    float       space_target_x, space_target_y;
+    float       orbit_angle;
+    int         landing_tick;
 
     // UI state
     int         selected_droid;  // 0-3
