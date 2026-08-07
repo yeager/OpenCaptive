@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive encounter density)
+
+- Captive skapar nu `3 + nivå * 2` encounter-grupper per dungeon-nivå.
+  Den tidigare `3 + nivå`-formeln gjorde senare nivåer underbemannade.
+- Regressionstestet verifierar att nivå 1 producerar fler encounters än nivå 0
+  över 128 deterministiska seed.
+- Fullt lokalt testpaket: 58 av 58 tester godkända.
+
 ## 2026-08-07 (Captive combatdokumentation)
 
 - `docs/COMBAT_SYSTEM.md` beskriver nu den faktiska combat-prototypen:

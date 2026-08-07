@@ -67,7 +67,11 @@ static void combat_spawn_for_level_internal(CreatureList *cl,
 
     int difficulty = level_num;
     if (difficulty > 8) difficulty = 8;
-    int num_groups = 3 + level_num;
+    /* Captive increases encounter density by two groups per dungeon level.
+     * Keeping this as 3 + level_num silently made the later floors under-
+     * populated even though the recovered progression contract is
+     * documented as 3 + (level * 2). */
+    int num_groups = 3 + level_num * 2;
     if (num_groups > 12) num_groups = 12;
 
     for (int g = 0; g < num_groups; g++) {

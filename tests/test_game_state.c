@@ -482,6 +482,28 @@ static void test_combat_spawn_never_overlaps_active_creatures(void) {
     }
 }
 
+static void test_combat_spawn_density_advances_by_two_groups_per_level(void) {
+    DungeonLevel level;
+    memset(&level, 0, sizeof(level));
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            level.cells[y][x].type = CELL_FLOOR;
+
+    int level_zero_total = 0;
+    int level_one_total = 0;
+    for (uint32_t seed = 0; seed < 128; seed++) {
+        CreatureList low;
+        CreatureList high;
+        combat_init(&low);
+        combat_init(&high);
+        combat_spawn_for_level(&low, &level, 0, seed);
+        combat_spawn_for_level(&high, &level, 1, seed);
+        level_zero_total += low.num_creatures;
+        level_one_total += high.num_creatures;
+    }
+    assert(level_one_total > level_zero_total);
+}
+
 static void test_combat_spawn_avoids_party_cell(void) {
     GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
@@ -1215,6 +1237,7 @@ int main(void) {
     test_lethal_puzzle_hazards_enter_game_over();
     test_generated_triple_levers_use_all_eight_states();
     test_combat_spawn_never_overlaps_active_creatures();
+    test_combat_spawn_density_advances_by_two_groups_per_level();
     test_first_mission_uses_architect_seed_zero();
     test_completed_captive_mission_enters_holomap();
     test_extreme_mission_seed_is_defined();
