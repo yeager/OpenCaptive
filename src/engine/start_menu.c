@@ -4,6 +4,7 @@
 #include "sha256.h"
 #include "liberation_data.h"
 #include "captive_scene_assets.h"
+#include "save_thumbnail.h"
 #include "i18n.h"
 #include <stdlib.h>
 #include <string.h>
@@ -1533,6 +1534,38 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
             int tw2 = 0; if (body) TTF_GetStringSize(body, cont_cap, 0, &tw2, NULL);
             ttf_text(pixels, width, height, cx0 + (card_w - tw2) / 2, continue_y, cont_cap,
                      small, sel2 ? 0xFFFFFF00 : 0xFF88AA88);
+
+            /* Save slot preview: a small blit of the screen as it looked
+             * the last time this slot was saved. Cached and only reloaded
+             * when the slot on disk changes, so the menu is not re-reading
+             * and decoding a save file on every frame. */
+            static uint32_t cached_thumb[SAVE_THUMB_PIXELS];
+            static bool cached_thumb_ok = false;
+            static int cached_thumb_slot = -2;
+            if (menu->captive_save_slot != cached_thumb_slot) {
+                cached_thumb_slot = menu->captive_save_slot;
+                char thumb_path[64];
+                if (cached_thumb_slot >= 0)
+                    snprintf(thumb_path, sizeof(thumb_path),
+                             "opencaptive_slot%d.sav", cached_thumb_slot);
+                else
+                    snprintf(thumb_path, sizeof(thumb_path), "opencaptive.sav");
+                cached_thumb_ok = save_read_thumbnail(thumb_path, cached_thumb);
+            }
+            if (cached_thumb_ok) {
+                int th_w = 64, th_h = 40;
+                int th_x = cx0 + (card_w - th_w) / 2;
+                int th_y = continue_y + 26;
+                for (int ty = 0; ty < th_h; ty++) {
+                    int sy = ty * SAVE_THUMB_H / th_h;
+                    for (int tx = 0; tx < th_w; tx++) {
+                        int sx = tx * SAVE_THUMB_W / th_w;
+                        int px = th_x + tx, py = th_y + ty;
+                        if (px >= 0 && px < width && py >= 0 && py < height)
+                            pixels[py * width + px] = cached_thumb[sy * SAVE_THUMB_W + sx];
+                    }
+                }
+            }
         }
         if (cont_lib[0]) {
             if (sel3) draw_rect(pixels, width, height, cx1, continue_y - 2, card_w, 24, 0xFF333366);

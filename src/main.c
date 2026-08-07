@@ -1931,6 +1931,10 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 snprintf(path, sizeof(path), "opencaptive_slot%d.sav", quicksave_slot);
                 if (!save_game(gs, &creatures, &puzzles, path))
                     fprintf(stderr, "Could not write Captive save: %s\n", path);
+                else
+                    save_game_write_thumbnail(path, framebuffer,
+                                              CAPTIVE_ORIGINAL_WIDTH,
+                                              CAPTIVE_ORIGINAL_HEIGHT);
                 if (custom_feat_ptr->cross_save) {
                     char cross_path[64];
                     snprintf(cross_path, sizeof(cross_path),
@@ -1941,6 +1945,10 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
             } else {
                 if (!save_game(gs, &creatures, &puzzles, "opencaptive.sav"))
                     fprintf(stderr, "Could not write Captive save: opencaptive.sav\n");
+                else
+                    save_game_write_thumbnail("opencaptive.sav", framebuffer,
+                                              CAPTIVE_ORIGINAL_WIDTH,
+                                              CAPTIVE_ORIGINAL_HEIGHT);
                 if (custom_feat_ptr && custom_feat_ptr->cross_save)
                     if (!cross_save_export(gs, "opencaptive.ocsv"))
                         fprintf(stderr, "Could not write cross-save: opencaptive.ocsv\n");
@@ -3265,7 +3273,9 @@ int main(int argc, char *argv[]) {
                                                gs.mission_seed + (uint32_t)gs.mission);
                                 holamap_init(&space_holamap,
                                              gs.mission_seed + (uint32_t)(gs.mission + 1));
-                                gs.mode = STATE_SPACE_FLIGHT;
+                                loading_frames = 0;
+                                fade_target = STATE_SPACE_FLIGHT;
+                                gs.mode = STATE_LOADING;
                                 break;
                             case SDLK_S:
                                 shop_return_mode = STATE_HOLAMAP;
@@ -4379,8 +4389,17 @@ int main(int argc, char *argv[]) {
                             sy >= 0 && sy < CAPTIVE_ORIGINAL_HEIGHT)
                             framebuffer[sy * CAPTIVE_ORIGINAL_WIDTH + sx] = 0xFF888888;
                     }
-                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                                  90, _("LOADING..."), 0xFFFFFFFF, 2);
+                    if (fade_target == STATE_SPACE_FLIGHT) {
+                        char probe_msg[48];
+                        snprintf(probe_msg, sizeof(probe_msg), _("LAUNCHING PROBE - MISSION %d"), gs.mission);
+                        draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                      80, probe_msg, 0xFF44AAFF, 1);
+                        draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                      100, _("ENGAGING THRUSTERS..."), 0xFFAAAAFF, 1);
+                    } else {
+                        draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                      90, _("LOADING..."), 0xFFFFFFFF, 2);
+                    }
                 }
                 if (loading_frames > 30) gs.mode = fade_target;
                 break;

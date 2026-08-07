@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.86 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.87 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -40,6 +40,7 @@ set(OPENCAPTIVE_SOURCES
     src/engine/start_menu.c
     src/engine/combat.c
     src/engine/save_load.c
+    src/engine/save_thumbnail.c
     src/engine/inventory.c
     src/engine/shop.c
     src/engine/puzzle.c
@@ -373,7 +374,7 @@ add_executable(test_custom_features tests/test_custom_features.c
 target_include_directories(test_custom_features PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME custom_features COMMAND test_custom_features)
 
-add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c src/data/i18n.c src/data/stb_image_impl.c src/data/data_vfs.c src/data/sha256.c src/data/amiga_ofs.c src/data/captive_amiga_data.c src/data/captive_scene_assets.c src/data/amiga_hunk.c src/data/amiga_planar.c src/data/liberation_data.c src/data/liberation_string_tables.c src/data/rnc_decoder.c src/data/iso9660_reader.c src/data/liberation_anim.c)
+add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c src/engine/save_thumbnail.c src/data/i18n.c src/data/stb_image_impl.c src/data/data_vfs.c src/data/sha256.c src/data/amiga_ofs.c src/data/captive_amiga_data.c src/data/captive_scene_assets.c src/data/amiga_hunk.c src/data/amiga_planar.c src/data/liberation_data.c src/data/liberation_string_tables.c src/data/rnc_decoder.c src/data/iso9660_reader.c src/data/liberation_anim.c)
 target_include_directories(test_start_menu PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_start_menu PRIVATE SDL3::SDL3 ${SDL3_TTF_TARGET} ${MATH_LIBRARY} ZLIB::ZLIB)
 add_test(NAME start_menu COMMAND test_start_menu)
@@ -392,7 +393,7 @@ target_include_directories(test_ctv_decoder PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME ctv_decoder COMMAND test_ctv_decoder)
 
 add_executable(test_save_load tests/test_save_load.c
-    src/engine/save_load.c src/engine/engine.c src/engine/map_gen.c
+    src/engine/save_load.c src/engine/save_thumbnail.c src/engine/engine.c src/engine/map_gen.c
     src/engine/combat.c src/engine/puzzle.c src/engine/captive_data.c
     src/engine/xp_level.c src/engine/inventory.c
     src/engine/mapgen_ca.c src/engine/spawn.c src/engine/creature_stats.c

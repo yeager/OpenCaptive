@@ -1,18 +1,28 @@
 #include "save_load.h"
+#include "save_thumbnail.h"
 #include "inventory.h"
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #define SAVE_MAGIC 0x4F435356  // "OCSV" - OpenCaptive Save
 #define SAVE_VERSION 5
 #define SAVE_VERSION_RAW 4
 #define SAVE_VERSION_LEGACY 3
+
+/* Optional trailer appended after the v3/4/5 payload: a small preview of
+ * the screen at the moment of saving, shown next to a save slot in menu
+ * UI. It is intentionally NOT a member of SaveHeader -- that struct is
+ * `fread` directly into for legacy version 3/4 files
+ * (`(uint8_t *)hdr + 8`), and growing it by 16000 bytes would make that
+ * raw copy read far past the end of an old, smaller save file. Keeping
+ * the thumbnail as a distinct, self-describing trailer (written/read by
+ * save_thumbnail.c) means saves without one (every file written before
+ * this feature) still load unmodified: load_game() accepts either zero
+ * trailing bytes or exactly one well-formed thumbnail block. */
+#define SAVE_THUMB_MAGIC 0x424D5443u /* "CTMB", matches save_thumbnail.c */
+#define SAVE_THUMB_BLOCK_SIZE (4 + (long)SAVE_THUMB_PIXELS * 4)
 
 typedef struct {
     uint32_t magic;
@@ -628,15 +638,27 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
      * visible interaction as well as the puzzle state. */
     restore_puzzle_ornaments(restored, &restored_puzzles);
 
-    /* The format has no extension area.  Reject trailing bytes so a
-     * concatenated or mismatched save cannot be accepted as valid state. */
+    /* The only extension area is an optional thumbnail trailer.  Reject
+     * anything else so a concatenated or mismatched save cannot be
+     * accepted as valid state. */
     long payload_end = ftell(f);
     if (payload_end < 0 || fseek(f, 0, SEEK_END) != 0) {
         LOAD_FAIL();
     }
     long file_end = ftell(f);
-    if (file_end < 0 || payload_end != file_end) {
+    if (file_end < 0) {
         LOAD_FAIL();
+    }
+    long trailing = file_end - payload_end;
+    if (trailing != 0 && trailing != SAVE_THUMB_BLOCK_SIZE) {
+        LOAD_FAIL();
+    }
+    if (trailing == SAVE_THUMB_BLOCK_SIZE) {
+        uint32_t thumb_magic;
+        if (fseek(f, payload_end, SEEK_SET) != 0 ||
+            !read_u32_le(f, &thumb_magic) || thumb_magic != SAVE_THUMB_MAGIC) {
+            LOAD_FAIL();
+        }
     }
     if (fclose(f) != 0) {
         free(restored);
@@ -651,3 +673,8 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
 #undef LOAD_FAIL
     return true;
 }
+
+/* save_game_write_thumbnail() and save_read_thumbnail() are implemented in
+ * save_thumbnail.c, a dependency-free translation unit shared with the
+ * start menu (which previews a save slot without linking the rest of the
+ * engine). Declared for callers via save_load.h -> save_thumbnail.h. */

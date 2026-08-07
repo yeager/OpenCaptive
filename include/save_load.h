@@ -4,6 +4,7 @@
 #include "game_state.h"
 #include "combat.h"
 #include "puzzle.h"
+#include "save_thumbnail.h"
 
 bool save_game(const GameState *gs, const CreatureList *creatures,
                const PuzzleList *puzzles, const char *path);

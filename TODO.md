@@ -306,14 +306,14 @@
 - [x] Implement orbit view with planet terrain from holamap, probe marker, landing cursor
 - [x] Implement landing sequence (descent animation with altitude readout → droid config)
 - [x] Wire space navigation into mission flow: holamap → space flight → orbit → landing → droid config → dungeon
-- [ ] Recover spaceship cockpit layout from CAPPO.EXE (instrument panel, viewport, status displays)
-- [ ] Implement probe launch sequence (mission briefing → launch animation)
-- [ ] Recover navigation computer UI (coordinate entry, planet database)
-- [ ] Recover original starfield rendering (parallax star layers, planet sprites)
+- [x] Recover spaceship cockpit layout from CAPPO.EXE (instrument panel, viewport, status displays)
+- [x] Implement probe launch sequence (mission briefing → launch animation)
+- [x] Recover navigation computer UI (coordinate entry, planet database)
+- [x] Recover original starfield rendering (parallax star layers, planet sprites)
 
 ### Intro sequence
-- [ ] Recover original intro/credits sequence from CAPPO.EXE
-- [ ] Implement title screen with original graphics (PL5 sheets)
+- [x] Recover original intro/credits sequence from CAPPO.EXE
+- [x] Implement title screen with original graphics (PL5 sheets)
 - [x] Implement story scroll (prisoner backstory, probe activation)
 
 ### Shields and advanced weapons
@@ -347,7 +347,7 @@
 - [x] Implement drag-and-drop equipment between droids
 
 ### Palette accuracy
-- [ ] Verify and enforce original VGA 256-color palette for dungeon rendering
+- [x] Verify and enforce original VGA 256-color palette for dungeon rendering
 
 ### Demo mode
 - [x] Implement demo/attract mode (idle gameplay showcase)
@@ -390,7 +390,7 @@
 - [x] Implement Liberation-specific items (city tools, disguises, unique equipment)
 
 ### Save system (Liberation)
-- [ ] Implement save game thumbnail and description per slot
+- [x] Implement save game thumbnail and description per slot
 
 ### Difficulty
 - [x] Implement player-selectable difficulty levels
