@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -18,8 +19,14 @@ int main(int argc, char *argv[]) {
     fseek(f, 0, SEEK_END);
     long size = ftell(f);
     fseek(f, 0, SEEK_SET);
-    uint8_t *data = malloc(size);
-    fread(data, 1, size, f);
+    if (size <= 0 || size > INT_MAX) {
+        fprintf(stderr, "File too large or empty\n");
+        fclose(f);
+        return 1;
+    }
+    uint8_t *data = malloc((size_t)size);
+    if (!data) { fprintf(stderr, "malloc failed\n"); fclose(f); return 1; }
+    fread(data, 1, (size_t)size, f);
     fclose(f);
 
     if (size < 18 || data[0] != 'R' || data[1] != 'N' || data[2] != 'C') {
@@ -53,7 +60,13 @@ int main(int argc, char *argv[]) {
     printf("RNC method %d, compressed %u -> uncompressed %u\n", data[3],
            packed_size, unp_size);
 
+    if (unp_size > (uint32_t)INT_MAX - 4096U) {
+        fprintf(stderr, "Claimed uncompressed size too large\n");
+        free(data);
+        return 1;
+    }
     uint8_t *output = calloc(unp_size + 4096, 1);
+    if (!output) { fprintf(stderr, "calloc failed\n"); free(data); return 1; }
     int result = rnc_decode(data, (int)size, output, (int)unp_size);
     printf("Decoded %d bytes\n", result);
 
