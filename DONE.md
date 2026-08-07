@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive spawn-difficulty)
+
+- Captive-fiender använder nu det nollbaserade dungeon-level-värdet direkt i
+  HP-beräkningen. Tidigare minskades värdet en extra gång, vilket gav nivå 0
+  och nivå 1 samma svårighetsgrad och gjorde den sista nivån ett steg för lätt.
+- Regressionstestet jämför identiska spawn-seed över två intilliggande nivåer.
+- Fullt lokalt testpaket: 58 av 58 tester godkända.
+
 ## 2026-08-07 (Captive startmeny – källval)
 
 - Startmenyn synkroniserar nu vald Captive-plattform med den senaste

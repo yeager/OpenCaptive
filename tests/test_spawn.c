@@ -61,6 +61,25 @@ static void test_hp_computation(void) {
     ASSERT(type1 < type2, "type 1 uses the first creature stat entry");
 }
 
+static void test_spawn_difficulty_is_zero_based(void) {
+    bool saw_increase = false;
+    for (uint32_t seed = 0; seed < 256; seed++) {
+        uint32_t low_seed = seed;
+        uint32_t high_seed = seed;
+        SpawnResult low = spawn_creatures(0, 0, DIR_NORTH, 0, &low_seed);
+        SpawnResult high = spawn_creatures(0, 1, DIR_NORTH, 0, &high_seed);
+        ASSERT(low.count == high.count, "difficulty does not change spawn shape");
+        if (low.count == 0 || high.count == 0) continue;
+        ASSERT(low.entries[0].creature_type == high.entries[0].creature_type,
+               "same PRNG seed selects same creature at adjacent difficulties");
+        ASSERT(high.entries[0].hp >= low.entries[0].hp,
+               "higher dungeon difficulty does not reduce creature HP");
+        if (high.entries[0].hp > low.entries[0].hp)
+            saw_increase = true;
+    }
+    ASSERT(saw_increase, "level 1 spawn has a higher HP difficulty than level 0");
+}
+
 static void test_spawn_single(void) {
     uint32_t seed = 0xACE1;
     SpawnResult r = spawn_creatures(1, 3, DIR_NORTH, 0, &seed);
@@ -121,6 +140,7 @@ int main(void) {
     test_subcell_tables();
     test_subcell_from_direction();
     test_hp_computation();
+    test_spawn_difficulty_is_zero_based();
     test_spawn_single();
     test_spawn_rejects_null_prng();
     test_spawn_rejects_invalid_direction();

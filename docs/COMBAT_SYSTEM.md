@@ -24,6 +24,9 @@ Uses the same lo*hi byte encoding as weapon damage (formula at 0x97F2: `mul ah`,
 
 Defense scales with category and level: `category * 2 + level`.
 Range: categories 0-3 are melee (1-2), categories 4-7 are ranged (4-7).
+The spawn API uses the zero-based dungeon level as its difficulty input, so
+level 0 uses the minimum HP difficulty and each later level advances the
+formula by one step (capped at the recovered eight-step scale).
 
 ## AI Behavior
 

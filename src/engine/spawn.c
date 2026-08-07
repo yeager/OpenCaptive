@@ -79,9 +79,12 @@ SpawnResult spawn_creatures(int category, int difficulty, uint8_t direction,
                             uint8_t position, uint32_t *prng) {
     SpawnResult result = {{{0}}, 0};
     if (!prng || direction > 3) return result;
-    if (difficulty > 8) difficulty = 8;
-    difficulty--;
+    /* Callers use the zero-based dungeon level as difficulty.  The previous
+     * implementation decremented it here as if the API accepted a one-based
+     * level, so level 0 and level 1 generated identical HP and the final
+     * dungeon level was always one difficulty step too weak. */
     if (difficulty < 0) difficulty = 0;
+    if (difficulty > 8) difficulty = 8;
 
     uint8_t type = spawn_select_type(category, difficulty, prng);
     if (type == 0xFF) return result;
