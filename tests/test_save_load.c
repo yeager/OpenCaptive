@@ -207,6 +207,9 @@ static void test_droid_slots_use_matching_item_categories(void) {
     gs.droids[0].body_parts[0] = 18; /* handgun cannot occupy armor slot */
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
     gs.droids[0].body_parts[0] = 1;
+    gs.droids[0].body_parts[0] = 6; /* hand armor cannot occupy head slot */
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    gs.droids[0].body_parts[0] = 1;
     gs.droids[0].weapons[0] = 2; /* chest armor cannot occupy weapon slot */
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
 }
