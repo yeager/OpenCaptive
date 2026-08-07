@@ -152,6 +152,24 @@ static void test_architect_base_layout(void) {
     assert(doors > 0);
 }
 
+static void test_locked_door_exists_on_supported_base_seeds(void) {
+    for (uint32_t seed = 0; seed < 32; seed++) {
+        DungeonLevel levels[MAX_LEVELS];
+        int count = 0;
+        map_generate_base(levels, &count, seed);
+        for (int level = 0; level < count; level++) {
+            bool found_locked = false;
+            for (int y = 0; y < MAP_HEIGHT && !found_locked; y++)
+                for (int x = 0; x < MAP_WIDTH; x++)
+                    if (levels[level].cells[y][x].type == CELL_DOOR_LOCKED) {
+                        found_locked = true;
+                        break;
+                    }
+            assert(found_locked);
+        }
+    }
+}
+
 static void test_base_levels_store_their_logical_level(void) {
     DungeonLevel levels[MAX_LEVELS];
     int count = 0;
@@ -431,6 +449,7 @@ int main(void) {
     test_first_base_start_matches_architect_special_case();
     test_implementation_prng_regression();
     test_architect_base_layout();
+    test_locked_door_exists_on_supported_base_seeds();
     test_base_levels_store_their_logical_level();
     test_logical_floors_are_connected();
     test_architect_seed_range();
