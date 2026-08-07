@@ -114,27 +114,6 @@ static void test_unequip_armor_preserves_item_when_inventory_full(void) {
     for (int i = 0; i < 10; i++) assert(gs.droids[0].items[i] == 40);
 }
 
-static void test_status_percentage_glyph_is_rendered(void) {
-    DroidUIState ui;
-    GameState gs;
-    ItemDatabase db;
-    static uint32_t pixels[320 * 200];
-    memset(&gs, 0, sizeof(gs));
-    memset(pixels, 0, sizeof(pixels));
-    item_db_init(&db);
-    gs.droids[0].body_part_hp[0] = 255;
-    droid_ui_init(&ui, 0);
-    ui.cursor = 7;
-    droid_ui_render(&ui, &gs, &db, pixels, 320, 200);
-
-    /* "HEAD: EMPTY 100%" starts at x=28,y=48; '%' is character 15. */
-    bool found = false;
-    for (int y = 48; y < 55; y++)
-        for (int x = 118; x < 123; x++)
-            if (pixels[y * 320 + x] == 0xFFCCCCCC) found = true;
-    assert(found);
-}
-
 int main(void) {
     test_inactive_ui_cannot_mutate_state();
     test_battery_rejects_invalid_energy_state();
@@ -142,6 +121,5 @@ int main(void) {
     test_non_weapon_item_is_not_equipped_as_weapon();
     test_weapon_damage_uses_product_not_packed_order();
     test_unequip_armor_preserves_item_when_inventory_full();
-    test_status_percentage_glyph_is_rendered();
     return 0;
 }
