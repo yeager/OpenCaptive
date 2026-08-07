@@ -253,8 +253,9 @@ static bool valid_runtime_position(const GameState *gs, int level,
 }
 
 static bool valid_creature_runtime_state(const Creature *c) {
-    return c && c->speed <= 60 && c->range <= 7 && c->cooldown <= 60 &&
-           c->respawn_timer <= 600 &&
+    return c && c->speed >= 0 && c->speed <= 60 && c->range >= 0 &&
+           c->range <= 7 && c->cooldown >= 0 && c->cooldown <= 60 &&
+           c->respawn_timer >= 0 && c->respawn_timer <= 600 &&
            ((!c->active && c->hp == 0 && c->respawn_timer > 0) ||
             (c->active && c->hp > 0));
 }

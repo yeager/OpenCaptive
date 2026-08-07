@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive creature-state-validering)
+
+- Captive-sparningar avvisar nu även negativa creature-värden för hastighet,
+  räckvidd, cooldown och respawn-timer. Tidigare kontrollerades bara
+  maxgränserna, vilket kunde ge korrupt AI-beteende efter en manipulerad
+  sparning.
+- Regressionstestet täcker samtliga fyra negativa fält.
+
 ## 2026-08-07 (Captive CLI-frame capture)
 
 - `--capture-frame` utan ett separat `--game`-argument startar nu Captive

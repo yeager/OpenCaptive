@@ -337,15 +337,24 @@ static void test_save_rejects_invalid_creature_runtime_fields(void) {
         .speed = 61
     };
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    creatures.creatures[0].speed = -1;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
     creatures.creatures[0].speed = 0;
     creatures.creatures[0].range = 8;
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    creatures.creatures[0].range = -1;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
     creatures.creatures[0].range = 0;
+    creatures.creatures[0].cooldown = -1;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    creatures.creatures[0].cooldown = 0;
     creatures.creatures[0].active = false;
     creatures.creatures[0].hp = 10;
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
     creatures.creatures[0].hp = 0;
     creatures.creatures[0].respawn_timer = 0;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    creatures.creatures[0].respawn_timer = -1;
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
 }
 
