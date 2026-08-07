@@ -3769,7 +3769,7 @@ int main(int argc, char *argv[]) {
                     _("A/LEFT: Turn left"),
                     _("D/RIGHT: Turn right"),
                     _("F/ENTER: Interact"),
-                    _("TAB: Inventory"),
+                    _("I: Inventory"),
                     _("1-4: Select droid"),
                     _("SPACE: Attack"),
                     _(".: Stairs down"),

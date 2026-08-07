@@ -978,7 +978,7 @@ msgid "F/ENTER: Interact"
 msgstr ""
 
 #: src/main.c
-msgid "TAB: Inventory"
+msgid "I: Inventory"
 msgstr ""
 
 #: src/main.c

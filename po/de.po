@@ -675,23 +675,23 @@ msgstr ""
 #: src/main.c:3208 src/main.c:3278
 msgid "ALL MISSIONS COMPLETE"
 msgstr ""
-\n+#: src/engine/droid_ui.c
+#: src/engine/droid_ui.c
 msgid "EQUIPMENT"
 msgstr "AUSRUESTUNG"
-\n+#: src/engine/droid_ui.c
+#: src/engine/droid_ui.c
 msgid "EMPTY"
 msgstr "LEER"
-\n+#: src/engine/droid_ui.c
+#: src/engine/droid_ui.c
 msgid "TAB:SWITCH ENTER:EQUIP/USE ESC:CLOSE"
 msgstr "TAB:WECHSELN ENTER:AUSRUESTEN/NUTZEN ESC:SCHLIESSEN"
-\n+#: src/main.c
+#: src/main.c
 msgid "MISSION COMPLETE!"
 msgstr "MISSION ABGESCHLOSSEN!"
-\n+#: src/main.c
+#: src/main.c
 #, c-format
 msgid "Next: Mission %d of 10"
 msgstr "Naechste: Mission %d von 10"
-\n+#: src/main.c
+#: src/main.c
 msgid "ENTER: Launch    S: Shop"
 msgstr "ENTER: Starten    S: Laden"
 
@@ -982,6 +982,9 @@ msgstr ""
 #: src/main.c:3087
 msgid "VERIFIED LIBERATION PRESENTATION DATA REQUIRED"
 msgstr ""
+
+msgid "I: Inventory"
+msgstr "I: Inventar"
 
 #~ msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
 #~ msgstr "PFEILE: AUSWÄHLEN  ENTER: START  D: DATEN SCANNEN  F1: STEUERUNG"

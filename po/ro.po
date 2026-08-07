@@ -676,23 +676,23 @@ msgstr ""
 #: src/main.c:3208 src/main.c:3278
 msgid "ALL MISSIONS COMPLETE"
 msgstr ""
-\n+#: src/engine/droid_ui.c
+#: src/engine/droid_ui.c
 msgid "EQUIPMENT"
 msgstr "ECHIPAMENT"
-\n+#: src/engine/droid_ui.c
+#: src/engine/droid_ui.c
 msgid "EMPTY"
 msgstr "GOL"
-\n+#: src/engine/droid_ui.c
+#: src/engine/droid_ui.c
 msgid "TAB:SWITCH ENTER:EQUIP/USE ESC:CLOSE"
 msgstr "TAB:SCHIMBA ENTER:ECHIPEAZA/FOLOSESTE ESC:INCHIDE"
-\n+#: src/main.c
+#: src/main.c
 msgid "MISSION COMPLETE!"
 msgstr "MISIUNE FINALIZATA!"
-\n+#: src/main.c
+#: src/main.c
 #, c-format
 msgid "Next: Mission %d of 10"
 msgstr "Urmatoarea: Misiunea %d din 10"
-\n+#: src/main.c
+#: src/main.c
 msgid "ENTER: Launch    S: Shop"
 msgstr "ENTER: Porneste    S: Magazin"
 
@@ -981,6 +981,9 @@ msgstr ""
 #: src/main.c:3087
 msgid "VERIFIED LIBERATION PRESENTATION DATA REQUIRED"
 msgstr ""
+
+msgid "I: Inventory"
+msgstr "I: Inventar"
 
 #~ msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
 #~ msgstr "SĂGEȚI: SELECTARE  ENTER: START  D: SCANARE DATE  F1: COMENZI"

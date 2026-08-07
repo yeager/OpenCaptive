@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive hjälpruta och l10n)
+
+- Hjälprutan visar nu `I: Inventory`, vilket stämmer med den faktiska
+  tangentbindningen för inventory i både Captive och Liberation.
+- Den nya hjälprutesträngen finns i alla 19 språkfiler.
+- Samtliga PO-kataloger valideras nu korrekt av `msgfmt`; äldre bokstavliga
+  `\n+`-rader i de aktiva katalogerna har rensats.
+- Fullt lokalt testpaket: 58 av 58 tester godkända.
+
 ## 2026-08-07 (Captive creature-state-validering)
 
 - Captive-sparningar avvisar nu även negativa creature-värden för hastighet,
