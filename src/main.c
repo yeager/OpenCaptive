@@ -16,6 +16,8 @@
 #include "captive_view_window.h"
 #include "captive_data.h"
 #include "music.h"
+#include "cdda_player.h"
+#include "speech.h"
 #include "puzzle.h"
 #include "sound.h"
 #include "shop.h"
@@ -660,6 +662,8 @@ static int fire_flash_ttl;
 static int creature_death_flash_ttl;
 static SoundSystem sound_sys;
 static MusicSystem music_sys;
+static CDDAPlayer cdda_player;
+static SpeechSystem speech_sys;
 static ItemDatabase item_db;
 static ShopState shop;
 static DroidUIState droid_ui;
@@ -756,6 +760,7 @@ static bool liberation_dynamic_lighting;
 static BuildingInteraction lib_interact;
 static bool lib_city_generated;
 static bool lib_in_building;
+static int lib_entrance_anim;
 /* A bar fight is resolved after leaving the bar, but its police fine is
  * offered during a later visit to a police station.  Keep that consequence
  * outside the short-lived BuildingInteraction instance. */
@@ -1687,9 +1692,67 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                                                         lib_bar_fight_pending);
                     building_interact_set_reputation(&lib_interact, gs->reputation);
                     lib_in_building = true;
+                    lib_entrance_anim = 20;
                 }
             }
             lib_interact_done:
+            break;
+        }
+        case SDLK_B: {
+            /* Crime system: break into a non-shop building */
+            if (city_nav_is_building_entrance(&lib_grid,
+                    lib_nav.cell_x, lib_nav.cell_y)) {
+                int off = lib_nav.cell_y * 64 + lib_nav.cell_x;
+                uint8_t raw_bid = lib_grid.building_ids[off];
+                bool is_shop = false;
+                if (raw_bid != 0 && raw_bid != 0xFF) {
+                    uint8_t bid = raw_bid & 0x7F;
+                    if (bid > 0 && lib_buildings.total_buildings > 0 &&
+                        lib_buildings.total_buildings <= CITYGEN_MAX_BUILDINGS) {
+                        int bg = (bid - 1) % lib_buildings.total_buildings;
+                        if (lib_buildings.buildings[bg].type == 8)
+                            is_shop = true;
+                    }
+                }
+                if (!is_shop) {
+                    gs->crime_level++;
+                    if (gs->crime_level > 5) gs->crime_level = 5;
+                    gs->wanted = 1;
+                    /* Add a random item to liberation inventory */
+                    if (gs->lib_inventory_count < 40) {
+                        uint16_t item_type = (uint16_t)(1 + (gs->tick % 20));
+                        snprintf(gs->lib_inventory[gs->lib_inventory_count].name,
+                                 24, "STOLEN-%u", (unsigned)item_type);
+                        gs->lib_inventory[gs->lib_inventory_count].item_type = item_type;
+                        gs->lib_inventory_count++;
+                    }
+                    msg_push(_("BROKE INTO BUILDING - ITEM FOUND"), 0xFFFF4444);
+                    if (gs->crime_level >= 3) {
+                        msg_push(_("Police pursuit started!"), 0xFFFF0000);
+                    }
+                }
+            }
+            break;
+        }
+        case SDLK_E: {
+            /* Enter bar mini-game at shop building entrance */
+            if (city_nav_is_building_entrance(&lib_grid,
+                    lib_nav.cell_x, lib_nav.cell_y)) {
+                int off = lib_nav.cell_y * 64 + lib_nav.cell_x;
+                uint8_t raw_bid = lib_grid.building_ids[off];
+                if (raw_bid != 0 && raw_bid != 0xFF) {
+                    uint8_t bid = raw_bid & 0x7F;
+                    if (bid > 0 && lib_buildings.total_buildings > 0 &&
+                        lib_buildings.total_buildings <= CITYGEN_MAX_BUILDINGS) {
+                        int bg = (bid - 1) % lib_buildings.total_buildings;
+                        if (lib_buildings.buildings[bg].type == 8) {
+                            gs->bar_number = (uint8_t)(1 + (gs->tick % 10));
+                            gs->bar_guesses = 3;
+                            gs->mode = STATE_BAR;
+                        }
+                    }
+                }
+            }
             break;
         }
         case SDLK_F5: {
@@ -2586,6 +2649,8 @@ int main(int argc, char *argv[]) {
     music_init(&music_sys, &sound_sys, &vfs, custom.audio_sample_rate,
                custom.hq_midi);
     apply_menu_audio(&menu);
+    cdda_init(&cdda_player, &sound_sys);
+    speech_init(&speech_sys, &sound_sys);
 
     // Items and SFX
     item_db_init(&item_db);
@@ -2657,6 +2722,20 @@ int main(int argc, char *argv[]) {
                 liberation_mission_menu_active = liberation_mission_menu_pixels != NULL;
             }
             printf("Starting verified Liberation presentation\n");
+
+            {
+                unsigned cdda_loaded = 0;
+                for (unsigned ti = 2; ti <= 11; ti++) {
+                    char tpath[512];
+                    snprintf(tpath, sizeof(tpath),
+                             "%s/Liberation - Captive II (Europe) (Rev 3) (Track %02u).bin",
+                             config.data_path, ti);
+                    if (cdda_load_track_file(&cdda_player, ti - 2, tpath))
+                        cdda_loaded++;
+                }
+                if (cdda_loaded > 0)
+                    printf("CDDA: loaded %u audio tracks from CD32 disc image\n", cdda_loaded);
+            }
         }
     }
 
@@ -3084,6 +3163,55 @@ int main(int argc, char *argv[]) {
                         popup_apply_cheats(&gs);
                         if (gs.mode == STATE_HOLAMAP)
                             music_play(&music_sys, MUSIC_HOLOMAP);
+                    }
+                    break;
+                case STATE_BAR:
+                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                        if (event.key.key == SDLK_ESCAPE) {
+                            gs.mode = STATE_GAME;
+                        } else if (event.key.key >= SDLK_1 && event.key.key <= SDLK_9) {
+                            int guess = (int)(event.key.key - SDLK_1) + 1;
+                            if (guess == gs.bar_number) {
+                                int reward = 100 + (int)(gs.tick % 401);
+                                gs.gold += reward;
+                                char bmsg[64];
+                                snprintf(bmsg, sizeof(bmsg), _("Correct! Won %d gold!"), reward);
+                                msg_push(bmsg, 0xFF44FF44);
+                                gs.mode = STATE_GAME;
+                            } else {
+                                gs.bar_guesses--;
+                                if (gs.bar_guesses == 0) {
+                                    msg_push(_("No guesses left! Better luck next time."), 0xFFFF8844);
+                                    gs.mode = STATE_GAME;
+                                } else {
+                                    char bmsg[64];
+                                    snprintf(bmsg, sizeof(bmsg),
+                                             _("Wrong! %d guesses left."), gs.bar_guesses);
+                                    msg_push(bmsg, 0xFFFFAA00);
+                                }
+                            }
+                        } else if (event.key.key == SDLK_0) {
+                            /* Guess 10 */
+                            if (gs.bar_number == 10) {
+                                int reward = 100 + (int)(gs.tick % 401);
+                                gs.gold += reward;
+                                char bmsg[64];
+                                snprintf(bmsg, sizeof(bmsg), _("Correct! Won %d gold!"), reward);
+                                msg_push(bmsg, 0xFF44FF44);
+                                gs.mode = STATE_GAME;
+                            } else {
+                                gs.bar_guesses--;
+                                if (gs.bar_guesses == 0) {
+                                    msg_push(_("No guesses left! Better luck next time."), 0xFFFF8844);
+                                    gs.mode = STATE_GAME;
+                                } else {
+                                    char bmsg[64];
+                                    snprintf(bmsg, sizeof(bmsg),
+                                             _("Wrong! %d guesses left."), gs.bar_guesses);
+                                    msg_push(bmsg, 0xFFFFAA00);
+                                }
+                            }
+                        }
                     }
                     break;
                 case STATE_TERMINAL:
@@ -3707,8 +3835,11 @@ int main(int argc, char *argv[]) {
                                 lib_render.ground_color = 0xFF222211;
                             }
                         }
+                        lib_render.palette = liberation_data.city_frame.palette;
+                        lib_render.pal_size = 32;
                         city_nav_render(&lib_nav, &lib_grid, &lib_render,
-                                        NULL, NULL, 0);
+                                        NULL,
+                                        liberation_data.city_frame.palette, 32);
                         for (int dy = 0; dy < LIBERATION_SCREEN_HEIGHT - 40; dy++) {
                             int sy = dy * LIB3D_VP_HEIGHT / (LIBERATION_SCREEN_HEIGHT - 40);
                             for (int dx = 0; dx < LIBERATION_SCREEN_WIDTH; dx++) {
@@ -3788,6 +3919,20 @@ int main(int argc, char *argv[]) {
                                     0xFFFFFF00, 1);
                             }
                         } else if (lib_in_building) {
+                            if (lib_entrance_anim > 0) {
+                                float t = (float)lib_entrance_anim / 20.0f;
+                                int cx = LIBERATION_SCREEN_WIDTH / 2;
+                                int cy = LIBERATION_SCREEN_HEIGHT / 2;
+                                int radius = (int)((1.0f - t) * (LIBERATION_SCREEN_WIDTH / 2 + 40));
+                                for (int y = 0; y < LIBERATION_SCREEN_HEIGHT; y++) {
+                                    for (int x = 0; x < LIBERATION_SCREEN_WIDTH; x++) {
+                                        int dx = x - cx, dy = y - cy;
+                                        if (dx * dx + dy * dy > radius * radius)
+                                            framebuffer[y * LIBERATION_SCREEN_WIDTH + x] = 0xFF000000;
+                                    }
+                                }
+                                lib_entrance_anim--;
+                            }
                             const char *text = building_interact_text(&lib_interact);
                             if (text) {
                                 for (int y = LIBERATION_SCREEN_HEIGHT / 2;
@@ -3900,6 +4045,30 @@ int main(int argc, char *argv[]) {
                                 }
                             }
                         }
+                        /* Feature 3: city destruction from combat */
+                        if (gs.game_type == GAME_LIBERATION && !lib_in_dungeon &&
+                            creatures.attack_occurred && gs.tick % 5 == 0) {
+                            /* 20% chance: damage a random adjacent building cell */
+                            int dx_list[] = {0, 1, 0, -1};
+                            int dy_list[] = {-1, 0, 1, 0};
+                            int dir_pick = (int)(gs.tick % 4);
+                            int dmg_x = gs.party_x + dx_list[dir_pick];
+                            int dmg_y = gs.party_y + dy_list[dir_pick];
+                            if (dmg_x >= 0 && dmg_x < 64 && dmg_y >= 0 && dmg_y < 64) {
+                                int dmg_off = dmg_y * 64 + dmg_x;
+                                if (lib_grid.building_ids[dmg_off] != 0) {
+                                    lib_grid.building_ids[dmg_off] = 0;
+                                    msg_push(_("BUILDING DAMAGED BY COMBAT!"), 0xFFFF2222);
+                                }
+                            }
+                        }
+                    }
+                    /* Crime decay: reduce crime_level by 1 every 600 ticks */
+                    if (gs.game_type == GAME_LIBERATION && gs.tick % 600 == 0 &&
+                        gs.crime_level > 0) {
+                        gs.crime_level--;
+                        if (gs.crime_level == 0)
+                            gs.wanted = 0;
                     }
                     for (int mi = 0; mi < MSG_LOG_SIZE; mi++)
                         if (msg_log[mi].ttl > 0) msg_log[mi].ttl--;
@@ -4032,6 +4201,37 @@ int main(int argc, char *argv[]) {
                             CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                             shop_bg);
                 break;
+
+            case STATE_BAR: {
+                memset(framebuffer, 0, sizeof(framebuffer));
+                /* Dark bar interior */
+                for (int by = 20; by < CAPTIVE_ORIGINAL_HEIGHT - 20; by++)
+                    for (int bx = 20; bx < CAPTIVE_ORIGINAL_WIDTH - 20; bx++)
+                        framebuffer[by * CAPTIVE_ORIGINAL_WIDTH + bx] = 0xFF1A1020;
+                /* Counter */
+                for (int by = 120; by < 130; by++)
+                    for (int bx = 40; bx < CAPTIVE_ORIGINAL_WIDTH - 40; bx++)
+                        framebuffer[by * CAPTIVE_ORIGINAL_WIDTH + bx] = 0xFF553311;
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              30, _("CITY BAR"), 0xFFFFCC44, 2);
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              60, _("Guess my number (1-10)!"), 0xFFCCCCCC, 1);
+                char guess_str[48];
+                snprintf(guess_str, sizeof(guess_str),
+                         _("Guesses remaining: %d"), gs.bar_guesses);
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              80, guess_str, 0xFFAABBFF, 1);
+                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                              100, _("Press 1-0 to guess, ESC to leave"), 0xFF888888, 1);
+                /* Show messages */
+                for (int mi = 0; mi < MSG_LOG_SIZE; mi++) {
+                    if (msg_log[mi].ttl <= 0) continue;
+                    draw_simple_text(framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                        CAPTIVE_ORIGINAL_HEIGHT, 4, 170 + mi * 8,
+                        msg_log[mi].text, msg_log[mi].color, 1);
+                }
+                break;
+            }
 
             case STATE_GAMEOVER:
                 if (gs.game_type == GAME_CAPTIVE && hud_bg) {
@@ -4492,6 +4692,8 @@ int main(int argc, char *argv[]) {
     liberation_data_close(&liberation_data);
     free(liberation_mission_menu_pixels);
     music_shutdown(&music_sys);
+    cdda_shutdown(&cdda_player);
+    speech_shutdown(&speech_sys);
     sound_shutdown(&sound_sys);
     if (intro_loaded) anm_free(&intro_anim);
     if (textures_loaded) texture_atlas_free(&atlas);

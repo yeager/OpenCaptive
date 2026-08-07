@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.88 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.89 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -48,6 +48,8 @@ set(OPENCAPTIVE_SOURCES
     src/engine/terminal.c
     src/audio/midi_player.c
     src/audio/music.c
+    src/audio/cdda_player.c
+    src/audio/speech.c
     src/data/pl5_decoder.c
     src/data/anm_decoder.c
     src/data/rnc_decoder.c
@@ -106,6 +108,8 @@ set(OPENCAPTIVE_SOURCES
     src/engine/mapgen_ca.c
     src/engine/liberation_citygen.c
     src/engine/liberation_citygen_grid.c
+    src/engine/liberation_npc.c
+    src/engine/liberation_cutscene.c
     src/render/captive_compositor.c
     src/render/frame_compare.c
     src/render/viewport.c

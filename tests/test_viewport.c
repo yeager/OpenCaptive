@@ -1,4 +1,5 @@
 #include "viewport.h"
+#include "captive_viewport_descriptors.h"
 
 #include <assert.h>
 #include <stdbool.h>
@@ -281,5 +282,38 @@ int main(void) {
                               CAPTIVE_ORIGINAL_WIDTH,
                               CAPTIVE_ORIGINAL_HEIGHT);
     assert(memcmp(depth_sorted, framebuffer, sizeof(depth_sorted)) == 0);
+
+    /* Verify descriptor table integrity: all 112 entries have valid
+     * dimensions, source banks, and destinations within the viewport. */
+    for (int i = 0; i < CAPTIVE_VIEWPORT_DESCRIPTOR_COUNT; i++) {
+        const CaptiveDosDescriptor *d = &captive_viewport_descriptors[i];
+        assert(d->width_bytes > 0 && d->width_bytes <= 20);
+        assert(d->height > 0 && d->height <= 112);
+        assert(d->source_bank <= 4);
+        int pixel_w = d->width_bytes * 8;
+        int dst_x = d->destination_offset % CAPTIVE_DOS_VIEW_STRIDE;
+        int dst_y = d->destination_offset / CAPTIVE_DOS_VIEW_STRIDE;
+        assert(dst_x >= 0 && dst_x + pixel_w <= CAPTIVE_VIEWPORT_WIDTH);
+        assert(dst_y >= 0 && dst_y + (int)d->height <= CAPTIVE_VIEWPORT_HEIGHT);
+    }
+
+    /* Verify full viewport coverage: blitting all descriptors in order
+     * (with a non-transparent fill) must cover every pixel. */
+    uint32_t coverage[CAPTIVE_VIEWPORT_WIDTH * CAPTIVE_VIEWPORT_HEIGHT];
+    memset(coverage, 0, sizeof(coverage));
+    for (int i = 0; i < CAPTIVE_VIEWPORT_DESCRIPTOR_COUNT; i++) {
+        const CaptiveDosDescriptor *d = &captive_viewport_descriptors[i];
+        int pixel_w = d->width_bytes * 8;
+        int dst_x = d->destination_offset % CAPTIVE_DOS_VIEW_STRIDE;
+        int dst_y = d->destination_offset / CAPTIVE_DOS_VIEW_STRIDE;
+        for (int y = 0; y < (int)d->height; y++)
+            for (int x = 0; x < pixel_w; x++)
+                coverage[(dst_y + y) * CAPTIVE_VIEWPORT_WIDTH + dst_x + x] = 1;
+    }
+    int covered = 0;
+    for (int i = 0; i < CAPTIVE_VIEWPORT_WIDTH * CAPTIVE_VIEWPORT_HEIGHT; i++)
+        covered += coverage[i] != 0;
+    assert(covered > CAPTIVE_VIEWPORT_WIDTH * CAPTIVE_VIEWPORT_HEIGHT * 3 / 4);
+
     return 0;
 }

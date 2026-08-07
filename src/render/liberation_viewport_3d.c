@@ -172,8 +172,10 @@ static void fill_polygon(Lib3dState *state, const Lib3dVisPoly *poly,
 void lib3d_render_object(Lib3dState *state, const X3gObject *obj,
                          float obj_x, float obj_y, float obj_z,
                          const uint32_t *palette, unsigned pal_size) {
-    (void)palette;
-    (void)pal_size;
+    if (palette && pal_size > 0) {
+        state->palette = palette;
+        state->pal_size = pal_size;
+    }
     if (!state || !obj || !obj->vertices || !obj->parsed_polys) return;
 
     unsigned base_idx = state->proj_count;
@@ -447,7 +449,10 @@ void lib3d_present(Lib3dState *state, uint32_t *dest, int dest_w, int dest_h,
         const Lib3dVisPoly *poly = &state->visible[i];
         uint32_t color;
         unsigned ci = poly->color & 0x3F;
-        color = 0xFF000000 | (ci * 4) | ((ci * 4) << 8) | ((63 - ci) * 4) << 16;
+        if (state->palette && ci < state->pal_size)
+            color = state->palette[ci];
+        else
+            color = 0xFF000000 | (ci * 4) | ((ci * 4) << 8) | ((63 - ci) * 4) << 16;
 
         float shade = 1.0f;
         if (poly->normal_x != 0 || poly->normal_y != 0) {

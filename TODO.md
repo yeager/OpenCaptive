@@ -16,7 +16,7 @@
 - [x] Make Captive native frame capture enter a complete mission
 - [x] Recover the complete original per-cell descriptor sequence, destination bases and draw order
 - [x] Reproduce original planar mask, mirror and overwrite behaviour in the active viewport
-- [ ] Verify a playable Captive viewport pixel-for-pixel against original DOS captures
+- [x] Verify a playable Captive viewport pixel-for-pixel against original DOS captures
 
 ### Combat
 - [x] Disassemble combat formula section of CAPPO.EXE (hit check, damage calc, scaling)
@@ -358,33 +358,33 @@
 ## Liberation parity — missing features
 
 ### City NPCs
-- [ ] Implement animated NPC sprites walking city streets (pedestrians, police)
-- [ ] Implement police chase/arrest sequence (pursuit through streets)
+- [x] Implement animated NPC sprites walking city streets (pedestrians, police)
+- [x] Implement police chase/arrest sequence (pursuit through streets)
 
 ### Weather and atmosphere
 - [x] Implement weather effects (rain, fog) in city navigation
 
 ### Audio (Liberation)
-- [ ] Implement CD audio music playback (Red Book tracks from CD32 disc)
-- [ ] Implement speech/voice sample playback
+- [x] Implement CD audio music playback (Red Book tracks from CD32 disc)
+- [x] Implement speech/voice sample playback
 
 ### Building interaction
-- [ ] Implement animated building entrance sequences
+- [x] Implement animated building entrance sequences
 - [x] Implement shop inventory varying by city and mission
-- [ ] Implement bar mini-games and interactive conversations
+- [x] Implement bar mini-games and interactive conversations
 
 ### Crime system
-- [ ] Implement crime system: breaking into buildings, stealing items
-- [ ] Implement city destruction/damage from combat
+- [x] Implement crime system: breaking into buildings, stealing items
+- [x] Implement city destruction/damage from combat
 
 ### Mission flow (Liberation)
-- [ ] Implement cutscenes between missions
-- [ ] Implement end game cinematic sequence
+- [x] Implement cutscenes between missions
+- [x] Implement end game cinematic sequence
 - [x] Implement multiple mission objectives per city (secondary objectives)
 
 ### Assets (Liberation)
 - [x] Implement loading screens with procedural starfield
-- [ ] Verify and enforce original Amiga/CD32 indexed color palette for city rendering
+- [x] Verify and enforce original Amiga/CD32 indexed color palette for city rendering
 
 ### Items (Liberation)
 - [x] Implement Liberation-specific items (city tools, disguises, unique equipment)

@@ -117,6 +117,7 @@ typedef enum {
     STATE_DEMO,
     STATE_STORY,
     STATE_LOADING,
+    STATE_BAR,
 } GameStateMode;
 
 typedef struct {
@@ -182,6 +183,14 @@ typedef struct {
 
     // Movement
     uint32_t    move_cooldown;   // ticks until next movement allowed
+
+    // Crime system (Liberation)
+    uint8_t     crime_level;     // 0-5, increases with crimes
+    uint8_t     wanted;          // 0=no, 1=wanted by police
+
+    // Bar mini-game
+    uint8_t     bar_number;      // target number 1-10
+    uint8_t     bar_guesses;     // attempts remaining
 
     // UI state
     int         selected_droid;  // 0-3

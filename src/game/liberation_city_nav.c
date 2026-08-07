@@ -190,7 +190,7 @@ static void render_ground_quad(Lib3dState *render,
     obj.parsed_polys = &poly;
     obj.polygon_count = 1;
 
-    lib3d_render_object(render, &obj, 0, 0, 0, NULL, 0);
+    lib3d_render_object(render, &obj, 0, 0, 0, render->palette, render->pal_size);
 }
 
 static void render_road_feature(Lib3dState *render, float cx, float cz,
@@ -229,7 +229,7 @@ static void render_road_feature(Lib3dState *render, float cx, float cz,
     obj.vertex_count = 8;
     obj.parsed_polys = faces;
     obj.polygon_count = 4;
-    lib3d_render_object(render, &obj, 0, 0, 0, NULL, 0);
+    lib3d_render_object(render, &obj, 0, 0, 0, render->palette, render->pal_size);
 }
 
 static void render_wall_quad(Lib3dState *render,
@@ -257,7 +257,7 @@ static void render_wall_quad(Lib3dState *render,
     obj.parsed_polys = &poly;
     obj.polygon_count = 1;
 
-    lib3d_render_object(render, &obj, 0, 0, 0, NULL, 0);
+    lib3d_render_object(render, &obj, 0, 0, 0, render->palette, render->pal_size);
 }
 
 void city_nav_render(CityNavState *nav, const CityGridState *grid,
@@ -328,7 +328,7 @@ void city_nav_render(CityNavState *nav, const CityGridState *grid,
                     float oz = gy * CITY_CELL_SIZE + CITY_CELL_SIZE * 0.5f;
                     unsigned obj_idx = ((unsigned)(gx + gy * 7)) % city_vectors->object_count;
                     lib3d_render_object(render, &city_vectors->objects[obj_idx],
-                                       ox, 0, oz, palette, pal_size);
+                                       ox, 0, oz, render->palette, render->pal_size);
                 }
             }
         }
@@ -422,7 +422,7 @@ void city_nav_render_textured(CityNavState *nav, const CityGridState *grid,
                     float oz = gy * CITY_CELL_SIZE + CITY_CELL_SIZE * 0.5f;
                     unsigned obj_idx = ((unsigned)(gx + gy * 7)) % city_vectors->object_count;
                     lib3d_render_object(render, &city_vectors->objects[obj_idx],
-                                       ox, 0, oz, palette, pal_size);
+                                       ox, 0, oz, render->palette, render->pal_size);
                 }
             }
         }

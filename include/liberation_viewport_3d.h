@@ -57,6 +57,8 @@ typedef struct {
     uint8_t  wall_color_base;
     bool     texture_filter;
     bool     dynamic_lighting;
+    const uint32_t *palette;
+    unsigned        pal_size;
 } Lib3dState;
 
 void lib3d_init(Lib3dState *state);
