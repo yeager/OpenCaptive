@@ -180,6 +180,34 @@ int main(void) {
     assert(memcmp(floor_ceiling_textures, framebuffer,
                   sizeof(floor_ceiling_textures)) != 0);
 
+    /* Floor/ceiling projection must restart sampling at each cell's local
+     * origin.  A viewport-relative source x made the left and center cells
+     * below begin at different texture phases despite identical map data. */
+    for (int y = 0; y < MAP_HEIGHT; ++y)
+        for (int x = 0; x < MAP_WIDTH; ++x) {
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+            gs.levels[0].cells[y][x].floor_tex = 0;
+            gs.levels[0].cells[y][x].ceil_tex = 0;
+        }
+    for (int x = 0; x < 80; ++x) {
+        texture_pixels[168 * 320 + x] = 0xFF000000 | (uint32_t)x;
+        texture_indices[168 * 320 + x] = 3;
+    }
+    gs.party_dir = DIR_NORTH;
+    captive_view_window_build(&gs, &window);
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render(&window, &atlas, framebuffer,
+                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+    const int floor_strip_y = CAPTIVE_VIEWPORT_Y + 98;
+    const uint32_t left_cell_first =
+        framebuffer[floor_strip_y * CAPTIVE_ORIGINAL_WIDTH +
+                    CAPTIVE_VIEWPORT_X + 18];
+    const uint32_t center_cell_first =
+        framebuffer[floor_strip_y * CAPTIVE_ORIGINAL_WIDTH +
+                    CAPTIVE_VIEWPORT_X + 54];
+    assert(left_cell_first == center_cell_first);
+
     gs.levels[0].cells[10][9].type = CELL_FLOOR;
     gs.levels[0].cells[9][10].type = CELL_WALL;
     gs.party_dir = DIR_NORTH;

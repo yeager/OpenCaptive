@@ -155,7 +155,12 @@ static void draw_floor_ceiling(uint32_t *fb, int fb_w, int fb_h,
 
     for (int y = 0; y < strip_h; y++) {
         for (int x = cell_left; x <= cell_right; x++) {
-            int local_x = x * 64 / (cell_right - cell_left + 1);
+            /* Project each cell from its own local origin.  Using the
+             * viewport-relative x coordinate here shifted the PL5 sample
+             * phase for lateral cells and produced visible floor/ceiling
+             * seams when otherwise identical cells were adjacent. */
+            int local_x = (x - cell_left) * 64 /
+                          (cell_right - cell_left + 1);
             int sy_floor = 160 + y + range * 8;
             int sy_ceil = 40 - y - range * 8;
             if (sy_floor >= 0 && sy_floor < 200) {

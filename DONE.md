@@ -3781,3 +3781,12 @@
   upplåsningar över 256 missionsfrön. Hela sviten passerar: 58/58 tester.
 - Samma regression verifierar dessutom att alla genererade pusselpositioner
   är nåbara efter upplåsningskedjan.
+
+# 2026-08-07 — Captive lokal texturfas
+
+- Golv- och takpaneler samplar nu PL5-texturen från varje cells lokala
+  x-origo. Lateral förskjutning i viewporten kan därför inte längre ge
+  felaktig texturfas eller synliga seams mellan identiska celler.
+- Ett viewport-regressionsprov verifierar att intilliggande celler börjar
+  med samma sampling när deras golv- och takdata är identiska.
+- Hela Werror-sviten passerar: 58/58 tester.
