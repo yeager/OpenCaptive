@@ -3762,6 +3762,14 @@
 - Okända eller saknade språk katalogiseras nu som engelska även i rapporterad
   språkstatus, inte bara i själva texten.
 
+# 2026-08-07 — Captive cross-save med exakta rustningsplatser
+
+- Captives portabla cross-save-format validerar nu varje rustning mot den
+  kroppsdelsplats där den sparas, i linje med det vanliga sparformatet.
+- Regressionstestet avvisar exempelvis HAND-rustning i HEAD-platsen.
+- Hela lokala sviten passerar: 58/58 tester. GitHub Actions är grön på
+  macOS, Windows och Linux.
+
 # 2026-08-07 — Captive exakt validering av droidrustning
 
 - Sparfiler accepterar nu bara rustningsdelen som hör till den faktiska
