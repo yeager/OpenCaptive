@@ -306,8 +306,11 @@ bool droid_ui_handle_click(DroidUIState *ui, GameState *gs, const ItemDatabase *
 
     if (mx >= px + 4 && mx < px + pw / 2) {
         ui->ui_mode = DROID_UI_EQUIP;
-        if (row <= 7) ui->cursor = row;
-        return droid_ui_handle_key(ui, gs, db, 0x0D);
+        if (row <= 7) {
+            ui->cursor = row;
+            return droid_ui_handle_key(ui, gs, db, 0x0D);
+        }
+        return false;
     } else if (mx >= px + pw / 2 + 4 && mx < px + pw - 4) {
         ui->ui_mode = DROID_UI_INVENTORY;
         if (row <= 9) ui->cursor = row;

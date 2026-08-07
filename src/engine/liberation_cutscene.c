@@ -105,7 +105,7 @@ static const char *mission_locations[] = {
 void cutscene_init(CutsceneState *cs, int mission, uint32_t seed) {
     if (!cs) return;
     memset(cs, 0, sizeof(*cs));
-    cs->mission = mission;
+    cs->mission = mission > 0 ? mission : 1;
     cs->seed = seed;
     cs->total_frames = 300;
     cs->done = false;

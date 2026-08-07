@@ -2,6 +2,7 @@
 #define CDDA_PLAYER_H
 
 #include "sound.h"
+#include <SDL3/SDL.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -21,6 +22,7 @@ typedef struct {
     bool looping;
     float volume;
     int stream_id;
+    SDL_AudioStream *cdda_stream;
 } CDDAPlayer;
 
 void cdda_init(CDDAPlayer *cd, SoundSystem *snd);

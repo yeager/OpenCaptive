@@ -41,11 +41,11 @@ static const char *generic_npc_for_type(InteractionType t) {
 
 static void build_generic_dialogue(BuildingInteraction *bi, const char *building_name) {
     const char *npc = generic_npc_for_type(bi->type);
-    DialogueTree tree;
-    dialogue_tree_init(&tree);
+    DialogueTree *tree = &bi->shop.dialogue;
+    dialogue_tree_init(tree);
 
     char greeting[DIALOGUE_MAX_TEXT];
-    unsigned exit_node = dialogue_tree_add_exit(&tree, _("You leave the building."));
+    unsigned exit_node = dialogue_tree_add_exit(tree, _("You leave the building."));
 
     switch (bi->type) {
         case INTERACT_LIBRARY: {
@@ -57,28 +57,28 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
                   "The target is in a special-class building. "
                   "Check the industrial and commercial districts."),
                 bi->building_index + 5);
-            unsigned info = dialogue_tree_add_text(&tree, npc, lib_info, exit_node);
-            unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
-            dialogue_tree_add_option(&tree, choice, _("Search archives"), info);
-            dialogue_tree_add_option(&tree, choice, _("Ask around"), info);
-            dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
+            unsigned info = dialogue_tree_add_text(tree, npc, lib_info, exit_node);
+            unsigned choice = dialogue_tree_add_choice(tree, npc, greeting);
+            dialogue_tree_add_option(tree, choice, _("Search archives"), info);
+            dialogue_tree_add_option(tree, choice, _("Ask around"), info);
+            dialogue_tree_add_option(tree, choice, _("Leave"), exit_node);
             break;
         }
         case INTERACT_POLICE: {
             snprintf(greeting, sizeof(greeting),
                      _("This is the %s police station. State your business."), building_name);
-            unsigned report = dialogue_tree_add_text(&tree, npc,
+            unsigned report = dialogue_tree_add_text(tree, npc,
                 _("We have reports of suspicious activity in the industrial district. "
                   "Stay alert out there."), exit_node);
-            unsigned fine_node = dialogue_tree_add_text(&tree, npc,
+            unsigned fine_node = dialogue_tree_add_text(tree, npc,
                 _("You have been fined 100 gold for disturbing the peace."), exit_node);
             bi->fine_node = (int)fine_node;
-            unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
-            dialogue_tree_add_option(&tree, choice, _("Ask for information"), report);
+            unsigned choice = dialogue_tree_add_choice(tree, npc, greeting);
+            dialogue_tree_add_option(tree, choice, _("Ask for information"), report);
             if (bi->bar_fight && bi->player_gold && *bi->player_gold >= 100) {
-                dialogue_tree_add_option(&tree, choice, _("Pay fine"), fine_node);
+                dialogue_tree_add_option(tree, choice, _("Pay fine"), fine_node);
             }
-            dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
+            dialogue_tree_add_option(tree, choice, _("Leave"), exit_node);
             break;
         }
         case INTERACT_RECORDS: {
@@ -89,62 +89,61 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
                 _("Building registry entry %d: %s. "
                   "Cross-reference with police reports for suspect locations."),
                 bi->building_index, building_name);
-            unsigned lookup = dialogue_tree_add_text(&tree, npc, rec_info, exit_node);
-            unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
-            dialogue_tree_add_option(&tree, choice, _("Look up records"), lookup);
-            dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
+            unsigned lookup = dialogue_tree_add_text(tree, npc, rec_info, exit_node);
+            unsigned choice = dialogue_tree_add_choice(tree, npc, greeting);
+            dialogue_tree_add_option(tree, choice, _("Look up records"), lookup);
+            dialogue_tree_add_option(tree, choice, _("Leave"), exit_node);
             break;
         }
         case INTERACT_RESIDENCE: {
             snprintf(greeting, sizeof(greeting),
                      "%s", _("This is a private residence. What do you want?"));
-            unsigned rumor = dialogue_tree_add_text(&tree, npc,
+            unsigned rumor = dialogue_tree_add_text(tree, npc,
                 _("I heard strange noises from the special building down the road. "
                   "Something's going on in there."), exit_node);
-            unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
-            dialogue_tree_add_option(&tree, choice, _("Ask around"), rumor);
-            dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
+            unsigned choice = dialogue_tree_add_choice(tree, npc, greeting);
+            dialogue_tree_add_option(tree, choice, _("Ask around"), rumor);
+            dialogue_tree_add_option(tree, choice, _("Leave"), exit_node);
             break;
         }
         case INTERACT_INDUSTRIAL: {
             snprintf(greeting, sizeof(greeting),
                      _("Welcome to %s. This area is restricted."), building_name);
-            unsigned hazard_node = dialogue_tree_add_text(&tree, npc,
+            unsigned hazard_node = dialogue_tree_add_text(tree, npc,
                 _("WARNING: Machinery malfunction! Electrical discharge hits your droids!"), exit_node);
-            unsigned explore = dialogue_tree_add_text(&tree, npc,
+            unsigned explore = dialogue_tree_add_text(tree, npc,
                 _("The machinery hums loudly. There might be useful equipment "
                   "stored in the back, but the foreman keeps it locked."), exit_node);
-            unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
+            unsigned choice = dialogue_tree_add_choice(tree, npc, greeting);
             if (bi->building_index % 3 == 0) {
-                dialogue_tree_add_option(&tree, choice, _("Look around"), hazard_node);
+                dialogue_tree_add_option(tree, choice, _("Look around"), hazard_node);
                 bi->industrial_hazard = true;
             } else {
-                dialogue_tree_add_option(&tree, choice, _("Look around"), explore);
+                dialogue_tree_add_option(tree, choice, _("Look around"), explore);
             }
-            dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
+            dialogue_tree_add_option(tree, choice, _("Leave"), exit_node);
             break;
         }
         case INTERACT_SPECIAL: {
             snprintf(greeting, sizeof(greeting),
                      _("%s. You shouldn't be here."), building_name);
-            unsigned investigate = dialogue_tree_add_text(&tree, npc,
+            unsigned investigate = dialogue_tree_add_text(tree, npc,
                 _("This location appears to be connected to your mission. "
                   "The generator control panel is somewhere inside."), exit_node);
-            unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
-            dialogue_tree_add_option(&tree, choice, _("Investigate"), investigate);
-            dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
+            unsigned choice = dialogue_tree_add_choice(tree, npc, greeting);
+            dialogue_tree_add_option(tree, choice, _("Investigate"), investigate);
+            dialogue_tree_add_option(tree, choice, _("Leave"), exit_node);
             break;
         }
         default: {
             snprintf(greeting, sizeof(greeting),
                      _("This is %s. We're not taking visitors right now."), building_name);
-            unsigned choice = dialogue_tree_add_choice(&tree, npc, greeting);
-            dialogue_tree_add_option(&tree, choice, _("Leave"), exit_node);
+            unsigned choice = dialogue_tree_add_choice(tree, npc, greeting);
+            dialogue_tree_add_option(tree, choice, _("Leave"), exit_node);
             break;
         }
     }
 
-    bi->shop.dialogue = tree;
     dialogue_state_init(&bi->dialogue, &bi->shop.dialogue);
     dialogue_state_start(&bi->dialogue);
     bi->dialogue.current_node = bi->shop.dialogue.node_count - 1;

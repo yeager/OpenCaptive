@@ -524,6 +524,7 @@ static void setup_building_connectivity(CityGridState *s) {
 /* sub_0A08: mask building records */
 static void cleanup_building_records(CityGridState *s) {
     int count = s->building_counter_a;
+    if (count > CITYGRID_MAX_BUILDINGS) count = CITYGRID_MAX_BUILDINGS;
     for (int i = 0; i < count; i++) {
         s->buildings[i].grid_offset &= 0x0FFF;
         s->buildings[i].connection &= 0xBF;

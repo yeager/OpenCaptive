@@ -172,11 +172,11 @@ static void fill_polygon(Lib3dState *state, const Lib3dVisPoly *poly,
 void lib3d_render_object(Lib3dState *state, const X3gObject *obj,
                          float obj_x, float obj_y, float obj_z,
                          const uint32_t *palette, unsigned pal_size) {
+    if (!state || !obj || !obj->vertices || !obj->parsed_polys) return;
     if (palette && pal_size > 0) {
         state->palette = palette;
         state->pal_size = pal_size;
     }
-    if (!state || !obj || !obj->vertices || !obj->parsed_polys) return;
 
     unsigned base_idx = state->proj_count;
 
