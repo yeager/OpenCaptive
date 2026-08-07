@@ -15,14 +15,16 @@ const SpawnCategory spawn_categories[SPAWN_CATEGORY_COUNT] = {
     {{22, 23, 24}},
 };
 
-const uint8_t spawn_difficulty_offset[16] = {
+const uint8_t spawn_difficulty_offset[SPAWN_TYPE_TABLE_COUNT] = {
     7, 0, 8, 16, 0, 8, 16, 0,
     8, 16, 0, 8, 16, 0, 8, 16,
+    0, 8, 16, 0, 8, 16, 0, 8, 16,
 };
 
-const uint8_t spawn_modifier[16] = {
+const uint8_t spawn_modifier[SPAWN_TYPE_TABLE_COUNT] = {
     2, 4, 12, 30, 23, 60, 110, 90,
     16, 18, 16, 12, 10, 12, 4, 0,
+    4, 8, 20, 8, 4, 2, 12, 4, 6,
 };
 
 const uint8_t spawn_subcell_table1[SPAWN_SUBCELL_COUNT] = {
@@ -84,7 +86,9 @@ SpawnResult spawn_creatures(int category, int difficulty, uint8_t direction,
     uint8_t type = spawn_select_type(category, difficulty, prng);
     if (type == 0xFF) return result;
 
-    uint8_t mod = spawn_modifier[type < 16 ? type : 0];
+    /* CAPPO.EXE keeps one table entry per creature ID. The old fallback to
+     * entry 0 made creature types 16-24 use the wrong HP modifier. */
+    uint8_t mod = type < SPAWN_TYPE_TABLE_COUNT ? spawn_modifier[type] : 0;
     uint8_t base_subcell = spawn_subcell_from_direction(direction, position);
 
     if (type < 0x0A) {

@@ -3652,3 +3652,8 @@
 - Framstegsindikatorn kan därför inte längre visa en färdig Captive-kontroll
   innan samma resurser som renderaren kräver är verifierade.
 - `build-werror` och hela testsviten (58/58) passerar.
+# 2026-08-07 — Captive spawnmodifierare för alla creature-typer
+
+- Verifierade mot CAPPO.EXE:s 24-entry-tabell att creature-typerna 16–24
+  tidigare fick fel HP-modifierare via fallback till index 0.
+- Utökade spawn-tabellerna och lade till regressionstest för typerna 16–24.

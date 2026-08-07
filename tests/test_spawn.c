@@ -103,6 +103,19 @@ static void test_spawn_count_bounds(void) {
     }
 }
 
+static void test_spawn_modifier_table_covers_all_creatures(void) {
+    /* CAPPO.EXE's modifier table is indexed by the 1-based creature ID;
+     * entries 16-24 used to fall through to entry 0 in OpenCaptive. */
+    ASSERT(spawn_modifier[1] == 4, "type 1 modifier");
+    ASSERT(spawn_modifier[15] == 0, "type 15 modifier");
+    ASSERT(spawn_modifier[16] == 4, "type 16 modifier");
+    ASSERT(spawn_modifier[17] == 8, "type 17 modifier");
+    ASSERT(spawn_modifier[18] == 20, "type 18 modifier");
+    ASSERT(spawn_modifier[22] == 12, "type 22 modifier");
+    ASSERT(spawn_modifier[23] == 4, "type 23 modifier");
+    ASSERT(spawn_modifier[24] == 6, "type 24 modifier");
+}
+
 int main(void) {
     test_category_table();
     test_subcell_tables();
@@ -113,6 +126,7 @@ int main(void) {
     test_spawn_rejects_invalid_direction();
     test_spawn_type_0x0F_directional();
     test_spawn_count_bounds();
+    test_spawn_modifier_table_covers_all_creatures();
     if (failures) {
         printf("%d test(s) FAILED\n", failures);
         return 1;
