@@ -1019,6 +1019,15 @@ static void test_first_mission_uses_architect_seed_zero(void) {
     assert(gs.num_levels > 0);
 }
 
+static void test_completed_captive_mission_enters_holomap(void) {
+    GameState gs;
+    game_state_init(&gs, GAME_CAPTIVE, 9);
+    assert(game_state_new_mission(&gs, 9));
+    gs.generators_destroyed = gs.generators_total;
+    assert(game_state_complete_mission(&gs));
+    assert(gs.mode == STATE_HOLAMAP);
+}
+
 static void test_extreme_mission_seed_is_defined(void) {
     GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
@@ -1180,6 +1189,7 @@ int main(void) {
     test_generated_triple_levers_use_all_eight_states();
     test_combat_spawn_never_overlaps_active_creatures();
     test_first_mission_uses_architect_seed_zero();
+    test_completed_captive_mission_enters_holomap();
     test_extreme_mission_seed_is_defined();
     test_combat_respects_closed_doors();
     test_combat_line_of_sight_respects_blocked_corners();

@@ -2939,6 +2939,8 @@ int main(int argc, char *argv[]) {
                          * shell and verified map path were loaded. */
                         game_handle_input(&gs, &event);
                         popup_apply_cheats(&gs);
+                        if (gs.mode == STATE_HOLAMAP)
+                            music_play(&music_sys, MUSIC_HOLOMAP);
                     }
                     break;
                 case STATE_TERMINAL:
@@ -3088,7 +3090,9 @@ int main(int argc, char *argv[]) {
                                 gs.gold = shop.gold;
                                 gs.mode = shop_return_mode;
                                 shop_return_mode = STATE_GAME;
-                                music_play(&music_sys, MUSIC_BASE);
+                                music_play(&music_sys,
+                                           gs.mode == STATE_HOLAMAP ?
+                                           MUSIC_HOLOMAP : MUSIC_BASE);
                                 break;
                             case SDLK_UP:
                                 if (shop.selected > 0) shop.selected--;
@@ -3124,6 +3128,7 @@ int main(int argc, char *argv[]) {
                                 gs.mode = STATE_SHOP;
                                 shop_init(&shop, &item_db, gs.mission, gs.mission_seed);
                                 shop.gold = gs.gold;
+                                music_play(&music_sys, MUSIC_SHOP);
                                 break;
                             case SDLK_ESCAPE:
                                 gs.mode = STATE_MENU;
