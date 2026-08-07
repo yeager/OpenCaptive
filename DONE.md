@@ -3736,3 +3736,10 @@
 
 - Okända eller saknade språk katalogiseras nu som engelska även i rapporterad
   språkstatus, inte bara i själva texten.
+
+# 2026-08-07 — Captive sparning av lösta dörrpussel
+
+- Lade till ett integrationsprov för en spak som öppnar en låst dörr före
+  sparning. Provet verifierar att spakens lösning, dörrens öppna tillstånd,
+  målkoordinaterna och panelornamentet återställs efter laddning.
+- Hela Werror-sviten passerar: 58/58 tester.

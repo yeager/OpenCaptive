@@ -82,6 +82,41 @@ static void test_round_trip(void) {
     assert(loaded.config.data_path == data_path);
 }
 
+static void test_solved_lever_and_door_survive_round_trip(void) {
+    GameState saved, loaded;
+    CreatureList creatures = {0}, loaded_creatures = {0};
+    PuzzleList puzzles = {0}, loaded_puzzles = {0};
+    game_state_init(&saved, GAME_CAPTIVE, 1);
+    game_state_new_mission(&saved, 23);
+    saved.current_level = 0;
+    saved.party_x = 10;
+    saved.party_y = 10;
+    saved.levels[0].cells[10][10].type = CELL_FLOOR;
+    saved.levels[0].cells[10][11].type = CELL_FLOOR;
+    saved.levels[0].cells[10][12].type = CELL_DOOR_LOCKED;
+
+    puzzles.num_puzzles = 1;
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_LEVER, .x = 11, .y = 10, .level = 0,
+        .face = DIR_EAST, .target_x = 12, .target_y = 10,
+        .solution = 1, .solved = false,
+    };
+    saved.levels[0].cells[10][11].ornament[DIR_EAST] = ORNAMENT_PANEL;
+
+    assert(puzzle_interact(&puzzles, &saved, 11, 10, DIR_EAST));
+    assert(puzzles.puzzles[0].solved);
+    assert(saved.levels[0].cells[10][12].type == CELL_DOOR);
+    assert(save_game(&saved, &creatures, &puzzles, save_path));
+
+    assert(load_game(&loaded, &loaded_creatures, &loaded_puzzles, save_path));
+    assert(loaded_puzzles.num_puzzles == 1);
+    assert(loaded_puzzles.puzzles[0].solved);
+    assert(loaded_puzzles.puzzles[0].target_x == 12);
+    assert(loaded_puzzles.puzzles[0].target_y == 10);
+    assert(loaded.levels[0].cells[10][12].type == CELL_DOOR);
+    assert(loaded.levels[0].cells[10][11].ornament[DIR_EAST] == ORNAMENT_PANEL);
+}
+
 static void test_corrupt_save_preserves_state(void) {
     static GameState before, target;
     static CreatureList creatures, target_creatures;
@@ -484,6 +519,7 @@ static void test_binary_lever_hint_uses_bit_zero(void) {
 
 int main(void) {
     test_round_trip();
+    test_solved_lever_and_door_survive_round_trip();
     test_corrupt_save_preserves_state();
     test_load_recomputes_derived_weapon_damage();
     test_trailing_save_bytes_rejected();
