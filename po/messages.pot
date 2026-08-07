@@ -689,12 +689,8 @@ msgid "ESC: RESUME"
 msgstr ""
 
 #: src/main.c:3273 src/main.c:3343
-msgid "DROID CONFIGURATION"
-msgstr ""
 
 #: src/main.c:3297 src/main.c:3367
-msgid "ENTER: START MISSION"
-msgstr ""
 
 #: src/main.c:3306 src/main.c:3376
 msgid "CITY MAP"
@@ -1015,13 +1011,9 @@ msgstr ""
 
 #: src/main.c
 #, c-format
-msgid "%s %s  HP:%d  EN:%d"
-msgstr ""
 
 #: src/main.c
 #, c-format
-msgid "  Parts: %d %d %d %d %d %d"
-msgstr ""
 
 #: src/main.c
 #, c-format
@@ -1029,8 +1021,6 @@ msgid "RENAME: %s_"
 msgstr ""
 
 #: src/main.c
-msgid "R:RENAME  S:SWAP WEAPONS"
-msgstr ""
 
 #: src/main.c
 #, c-format
@@ -1065,3 +1055,15 @@ msgstr ""
 #: src/main.c
 msgid "ANY KEY: RETURN"
 msgstr ""
+msgid "EN %d"
+msgstr ""
+
+msgid "HP %d"
+msgstr ""
+
+msgid "R:RENAME  S:SWAP  ENTER:START"
+msgstr ""
+
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS  F10: IN-GAME OPTIONS"
+msgstr ""
+

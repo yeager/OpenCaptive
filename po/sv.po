@@ -708,12 +708,8 @@ msgid "ESC: RESUME"
 msgstr ""
 
 #: src/main.c:3273 src/main.c:3343
-msgid "DROID CONFIGURATION"
-msgstr ""
 
 #: src/main.c:3297 src/main.c:3367
-msgid "ENTER: START MISSION"
-msgstr ""
 
 #: src/main.c:3306 src/main.c:3376
 msgid "CITY MAP"
@@ -1034,3 +1030,15 @@ msgstr "I: Utrustning"
 
 #~ msgid "VIEW RECONSTRUCTION"
 #~ msgstr "VISA REKONSTRUKTION"
+
+msgid "EN %d"
+msgstr "EN %d"
+
+msgid "HP %d"
+msgstr "HP %d"
+
+msgid "R:RENAME  S:SWAP  ENTER:START"
+msgstr "R:BYT NAMN  S:BYT VAPEN  ENTER:STARTA"
+
+msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS  F10: IN-GAME OPTIONS"
+msgstr "PILAR: VÄLJ  ENTER: STARTA  D: SKANNA DATA  F1: KONTROLLER  F10: ALTERNATIV I SPELET"
