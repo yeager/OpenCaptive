@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.89 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.90 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -415,7 +415,9 @@ add_executable(test_space_nav tests/test_space_nav.c
     src/engine/captive_space_nav.c src/engine/captive_data.c
     src/render/holamap.c)
 target_include_directories(test_space_nav PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(test_space_nav PRIVATE m)
+if(NOT WIN32)
+  target_link_libraries(test_space_nav PRIVATE m)
+endif()
 add_test(NAME space_nav COMMAND test_space_nav)
 
 add_executable(test_creature_sprite tests/test_creature_sprite.c

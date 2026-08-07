@@ -1,6 +1,9 @@
 #include "save_load.h"
 #include "save_thumbnail.h"
 #include "inventory.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
