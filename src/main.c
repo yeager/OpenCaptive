@@ -2354,6 +2354,15 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    /* A frame capture is a headless game operation, not a launcher screenshot.
+     * Keep the convenient `--capture-frame path` form equivalent to the
+     * explicit Captive invocation while preserving an explicit --game choice
+     * for Liberation captures. */
+    if (capture_frame_path && !start_directly) {
+        requested_game = GAME_CAPTIVE;
+        start_directly = true;
+    }
+
     if (dos_vga_dump_path)
         return write_dos_vga_reference(dos_vga_dump_path, dos_vga_output_path) ? 0 : 1;
     if (expected_frame_path)

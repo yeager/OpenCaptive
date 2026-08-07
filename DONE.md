@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive CLI-frame capture)
+
+- `--capture-frame` utan ett separat `--game`-argument startar nu Captive
+  direkt i stället för att skriva en bild av startmenyn. Ett lyckat capture
+  innehåller därmed den förberedda Captive-vyn även i det korta CLI-formatet.
+- Verifierat med den lokala `.opencaptive`-datan: resultatet är en 320×200
+  spelbild och inte startmenyn. Relevanta tester samt Werror-bygget passerar.
+
 ## 2026-08-07 (Captive sidoväggstexturer)
 
 - Sidoväggar i kompatibilitetsvyn använder nu den intilliggande väggcellens
