@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Windows CI-bygg)
+
+- Windows-jobbets OpenCaptive-bygg använder nu två parallella byggtrådar.
+  SDL-beroendena var redan färdigbyggda när den seriella projektbyggningen
+  fastnade i CI; detta använder runner-resurserna bättre och minskar
+  timeout-risken utan att ändra körkoden.
+
 ## 2026-08-07 (Captive holomap-l10n)
 
 - Captives planetnamn och återgångstext i holamap-skärmen går nu via i18n.

@@ -87,7 +87,7 @@ jobs:
       - name: Build
         run: |
           cmake -S . -B build -DCMAKE_PREFIX_PATH="${{ github.workspace }}/SDL3-install;${{ github.workspace }}/SDL3_ttf-install;${{ github.workspace }}/zlib-install"
-          cmake --build build --config Release
+          cmake --build build --config Release --parallel 2
       - name: Test
         run: |
           $env:PATH = "${{ github.workspace }}/SDL3-install/bin;${{ github.workspace }}/SDL3_ttf-install/bin;${{ github.workspace }}/zlib-install/bin;$env:PATH"
