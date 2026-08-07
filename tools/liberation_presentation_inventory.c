@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 /* This is the verified presentation bundle, not an ISO filename. */
 static const char presentation_bundle_sha256[] =
@@ -56,7 +57,8 @@ int main(int argc, char **argv) {
         uint32_t raw_size = read_be32(rnc + 4U);
         uint32_t packed_size = read_be32(rnc + 8U);
         if (!raw_size || raw_size > 16U * 1024U * 1024U ||
-            packed_size > bundle_size - offset - 12U) continue;
+            packed_size > bundle_size - offset - 12U ||
+            packed_size > (uint32_t)INT_MAX - 12U) continue;
 
         uint8_t *form = malloc(raw_size);
         if (!form) break;

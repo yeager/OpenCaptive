@@ -54,7 +54,8 @@ static int image_write(const char *path, const PpmImage *image) {
     FILE *file = fopen(path, "wb");
     size_t pixels = (size_t)image->width * (size_t)image->height;
     int ok = file && fprintf(file, "P6\n%d %d\n255\n", image->width, image->height) > 0 &&
-        fwrite(image->pixels, 3U, pixels, file) == pixels && fclose(file) == 0;
+        fwrite(image->pixels, 3U, pixels, file) == pixels;
+    if (file && (!ok || fclose(file) != 0)) { if (!ok) fclose(file); ok = 0; }
     if (!ok) fprintf(stderr, "could not write %s\n", path);
     return ok;
 }

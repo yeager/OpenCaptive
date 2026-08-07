@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
         fwrite(bin, 1, size, stdout);
     } else {
         uint8_t *dec = malloc(dec_size);
+        if (!dec) { fprintf(stderr, "malloc failed\n"); free(bin); liberation_data_close(&data); vfs_free(&vfs); return 1; }
         int result = arcd_decode(bin, size, dec, dec_size);
         if (result < 0) {
             fprintf(stderr, "ArcD decode failed\n");

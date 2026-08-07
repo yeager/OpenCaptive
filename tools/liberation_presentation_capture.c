@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 static const char presentation_bundle_sha256[] =
     "1d3a335d254c0eae919a712dd73bd41b24ed897bf145ed118ccf2277baa7a35f";
@@ -95,7 +96,8 @@ int main(int argc, char **argv) {
         uint32_t raw_size = read_be32(rnc + 4U);
         uint32_t packed_size = read_be32(rnc + 8U);
         if (!raw_size || raw_size > 16U * 1024U * 1024U ||
-            packed_size > bundle_size - offset - 12U) continue;
+            packed_size > bundle_size - offset - 12U ||
+            packed_size > (uint32_t)INT_MAX - 12U) continue;
         uint8_t *form = malloc(raw_size);
         if (!form) break;
         int decoded = rnc_decode(rnc, (int)(packed_size + 12U), form, (int)raw_size);
