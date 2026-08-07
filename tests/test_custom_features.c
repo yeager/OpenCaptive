@@ -392,6 +392,9 @@ static void test_cross_save(void) {
     gs.droids[0].body_parts[0] = 18; /* handgun in an armor slot */
     assert(!cross_save_export(&gs, path));
     gs.droids[0].body_parts[0] = 0;
+    gs.droids[0].body_parts[0] = 6; /* hand armor in the head slot */
+    assert(!cross_save_export(&gs, path));
+    gs.droids[0].body_parts[0] = 0;
     gs.droids[0].weapons[0] = 2; /* chest armor in a weapon slot */
     assert(!cross_save_export(&gs, path));
     gs.droids[0].weapons[0] = 0;
