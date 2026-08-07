@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-07 (Captive sidoväggstexturer)
+
+- Sidoväggar i kompatibilitetsvyn använder nu den intilliggande väggcellens
+  synliga väggsida. Tidigare lästes texturen från golvcellen, vilket kunde
+  ersätta kartans sidovägg med standardtextur.
+- Ett regressionstest skiljer på väggcellens och golvcellens textur.
+
 ## 2026-08-07 (Captive creature-djupsortering)
 
 - Creature-sprites i Captive sorteras nu från längst bort till närmast innan

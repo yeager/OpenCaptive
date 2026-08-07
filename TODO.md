@@ -11,6 +11,7 @@
 - [x] Apply recovered Captive descriptor mirror and transparency flags in compositor
 - [x] Keep Captive playable with a source-backed viewport fallback in both modes
 - [x] Draw Captive creature sprites back-to-front by forward depth
+- [x] Sample Captive side-wall textures from the adjacent wall face
 - [x] Make Captive native frame capture enter a complete mission
 - [ ] Recover the complete original per-cell descriptor sequence, destination bases and draw order
 - [ ] Reproduce original planar mask, mirror and overwrite behaviour in the active viewport

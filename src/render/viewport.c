@@ -388,10 +388,18 @@ void viewport_render(const CaptiveViewWindow *window,
                  window->visible[left_cell_idx].type == CELL_WALL)) {
                 int side_w = cell_w / 4;
                 if (side_w < 2) side_w = 2;
+                /* The visible face belongs to the adjacent wall cell, not
+                 * the floor cell being projected.  Facing north, for
+                 * example, a left wall exposes its east face. */
+                uint8_t side_wall_tex = cell->wall_tex[(window->facing + 3) & 3];
+                if (left_cell_idx >= 0 &&
+                    window->visible[left_cell_idx].type == CELL_WALL)
+                    side_wall_tex = window->visible[left_cell_idx].wall_tex[
+                        (window->facing + 1) & 3];
                 draw_wall(framebuffer, fb_width, fb_height, atlas,
                           cell_left, rp->top_y, side_w, rp->wall_height,
                           vp_x, vp_y,
-                          cell->wall_tex[(window->facing + 3) & 3], range);
+                          side_wall_tex, range);
                 if (cell->ornament[(window->facing + 3) & 3] != ORNAMENT_NONE)
                     draw_ornament(framebuffer, fb_width, fb_height, atlas,
                                   cell_left, rp->top_y + rp->wall_height / 3,
@@ -413,11 +421,18 @@ void viewport_render(const CaptiveViewWindow *window,
                  window->visible[right_cell_idx].type == CELL_WALL)) {
                 int side_w = cell_w / 4;
                 if (side_w < 2) side_w = 2;
+                /* The right wall exposes the opposite side of its own map
+                 * cell; use the floor cell only for a synthetic edge wall. */
+                uint8_t side_wall_tex = cell->wall_tex[(window->facing + 1) & 3];
+                if (right_cell_idx >= 0 &&
+                    window->visible[right_cell_idx].type == CELL_WALL)
+                    side_wall_tex = window->visible[right_cell_idx].wall_tex[
+                        (window->facing + 3) & 3];
                 draw_wall(framebuffer, fb_width, fb_height, atlas,
                           cell_right - side_w + 1, rp->top_y,
                           side_w, rp->wall_height,
                           vp_x, vp_y,
-                          cell->wall_tex[(window->facing + 1) & 3], range);
+                          side_wall_tex, range);
                 if (cell->ornament[(window->facing + 1) & 3] != ORNAMENT_NONE)
                     draw_ornament(framebuffer, fb_width, fb_height, atlas,
                                   cell_right - side_w + 1,
