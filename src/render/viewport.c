@@ -146,7 +146,7 @@ static void draw_floor_ceiling(uint32_t *fb, int fb_w, int fb_h,
                                 int vp_x, int vp_y) {
     (void)lateral;
     const RangeParams *rp = &range_params[range];
-    int sheet = atlas->wall_sheets[0];
+    int sheet = atlas->wall_sheets[range < 5 ? range : 4];
     if (sheet < 0) return;
 
     int floor_y = rp->bottom_y;
@@ -190,7 +190,7 @@ static void draw_wall(uint32_t *fb, int fb_w, int fb_h,
                        int wall_x, int wall_y, int wall_w, int wall_h,
                        int vp_x, int vp_y,
                        uint8_t wall_tex, int range) {
-    int sheet = atlas->wall_sheets[0];
+    int sheet = atlas->wall_sheets[range < 5 ? range : 4];
     if (sheet < 0) return;
 
     int src_base_x = (wall_tex % 4) * 80;
@@ -288,9 +288,8 @@ void viewport_render(const CaptiveViewWindow *window,
         for (int x = 0; x < vp_w; x++) {
             uint32_t c;
             if (roof_sheet >= 0) {
-                int rx = x;
-                int ry = y < vp_h / 2 ? y : vp_h - 1 - y;
-                c = sample_sheet(atlas, roof_sheet, 160 + (rx % 160), ry % 100);
+                int sy = y < vp_h / 2 ? y : y;
+                c = sample_sheet(atlas, roof_sheet, x % 320, sy % 200);
             } else {
                 c = y < vp_h / 2 ? 0xFF1A1A2E : 0xFF0A0A1A;
             }
@@ -661,8 +660,8 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
 
     int dx_table[] = {0, 1, 0, -1};
     int dy_table[] = {-1, 0, 1, 0};
-    int lx_table[] = {1, 0, -1, 0};
-    int ly_table[] = {0, 1, 0, -1};
+    int lx_table[] = {-1, 0, 1, 0};
+    int ly_table[] = {0, -1, 0, 1};
 
     int safe_dir = (gs->party_dir >= DIR_NORTH && gs->party_dir <= DIR_WEST)
         ? gs->party_dir : DIR_NORTH;
