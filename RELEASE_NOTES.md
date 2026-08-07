@@ -7,6 +7,45 @@ Varje ny version ska ha en handskriven versionssektion med **Tillagt**,
 GitHub-releasen publicerar exakt den sektionen; automatiskt genererade
 ändringsloggar används inte.
 
+## v1.1.80 (2026-08-07)
+
+### Tillagt
+
+- Captive-fiender spawnas nu med korrekt ökande encounter-densitet: tre
+  grupper på nivå 0 och två ytterligare grupper per efterföljande nivå,
+  begränsat av den återvunna åttastegsprofilen.
+- Captive-combat har regressionstester för nivådensitet, attackhändelser,
+  sprayvapens räckvidd, XP, respawn och nivåövergångar.
+- Shop-menyn visar nu varunamn tillsammans med pris och markering.
+- Captive-data verifieras mot både DOS- och Amiga-källan i releasekontrollen.
+
+### Ändrat
+
+- Creature-händelserna `creature_killed` och `level_up_occurred` är nu
+  per-attack och kan inte läcka från ett tidigare skott.
+- Captive-fiendens HP använder dungeon-nivån korrekt som nollbaserad
+  svårighetsgrad; nivå 0 och nivå 1 får inte längre samma HP-profil.
+- Sprayvapen använder räckvidd 4, medan övriga distansvapen använder
+  räckvidd 6.
+- Seedade Captive-sparningar återställer nu sitt auktoritativa mission-seed
+  och kan fortsätta nivåövergångar korrekt efter laddning.
+- Startmenyn synkroniserar versions- och plattformsval efter en ny skanning,
+  och nya launcher- och droidsträngar är lokaliserade i alla 19 språk.
+- Releaseworkflowen kräver nu att den begärda releaseversionen matchar
+  CMake-versionen innan artefakter publiceras.
+
+### Borttaget
+
+- Inget användarstöd har tagits bort i denna version.
+
+### Tekniska detaljer
+
+- Captive-sökning, sparning, puzzleprogression, viewport och combat har fått
+  bredare deterministiska regressionstester över flera seed.
+- Full lokal verifiering omfattar 58/58 CTest-tester.
+- GitHub Actions bygger och testar macOS, Linux och Windows innan releasejobbet
+  får skapa GitHub-releasen.
+
 ## v1.1.79 (2026-08-06)
 
 ### Tillagt

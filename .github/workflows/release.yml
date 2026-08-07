@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version without the leading v, for example 2.7.5'
+        description: 'Release version without the leading v, for example 1.1.80'
         required: true
         type: string
 
@@ -687,6 +687,17 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
+      - name: Verify release version matches CMake
+        shell: bash
+        run: |
+          set -euo pipefail
+          REQUESTED_VERSION="${RELEASE_VERSION#v}"
+          PROJECT_VERSION=$(sed -n 's/^project(OpenCaptive VERSION \([^ ]*\) LANGUAGES C).*/\1/p' CMakeLists.txt)
+          test -n "$PROJECT_VERSION"
+          if [ "$REQUESTED_VERSION" != "$PROJECT_VERSION" ]; then
+            echo "Release version $REQUESTED_VERSION does not match CMake version $PROJECT_VERSION" >&2
+            exit 1
+          fi
       - name: Verify release artifacts
         shell: bash
         run: |
