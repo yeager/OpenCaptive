@@ -299,6 +299,23 @@
 - [x] Add language selector to settings menu (left/right cycling through 19 languages)
 - [x] Unicode/extended character support in bitmap font renderer (UTF-8 decode, lowercase a-z, accented→base mapping for all 19 languages)
 
+### Space navigation (pre-dungeon)
+- [ ] Recover spaceship cockpit layout from CAPPO.EXE (instrument panel, viewport, status displays)
+- [ ] Implement probe launch sequence (mission briefing → launch animation)
+- [ ] Implement space flight (starfield rendering, directional thrust, fuel consumption)
+- [ ] Implement planet approach and orbit entry
+- [ ] Implement landing site selection (orbit view, surface scan)
+- [ ] Implement landing sequence (descent animation → holamap transition)
+- [ ] Wire space navigation into mission flow: briefing → launch → fly → orbit → land → dungeon
+- [ ] Recover navigation computer UI (coordinate entry, planet database)
+- [ ] Recover fuel/energy mechanics for space travel
+- [ ] Recover original starfield rendering (parallax star layers, planet sprites)
+
+### Intro sequence
+- [ ] Recover original intro/credits sequence from CAPPO.EXE
+- [ ] Implement title screen with original graphics (PL5 sheets)
+- [ ] Implement story scroll (prisoner backstory, probe activation)
+
 ## Start menu enhancements
 
 - [x] Game data status indicators (checkmark/cross per game, SHA-256 verified)
