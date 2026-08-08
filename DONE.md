@@ -4192,3 +4192,11 @@ Captive now rejects shield item records with negative durability before they can
 be equipped, preventing invalid runtime shield state. Added a regression test
 and corrected the README test-count documentation to the current 61 CTest
 targets.
+
+## 2026-08-08 (Captive safe creature respawn)
+
+Captive creature respawns now verify the original cell before becoming active.
+They wait and retry when the party or another active creature occupies that
+cell, preventing overlapping runtime entities while preserving the recovered
+600-tick respawn cadence. Added regression coverage for both retry and normal
+respawn.

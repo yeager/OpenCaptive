@@ -211,6 +211,33 @@ static bool blocks_movement_or_sight(CellType cell) {
     return cell == CELL_WALL || cell == CELL_DOOR || cell == CELL_DOOR_LOCKED;
 }
 
+static bool combat_respawn_cell_available(const CreatureList *cl,
+                                          const GameState *gs,
+                                          int creature_index) {
+    if (!cl || !gs || creature_index < 0 || creature_index >= cl->num_creatures)
+        return false;
+    const Creature *candidate = &cl->creatures[creature_index];
+    if (candidate->level < 0 || candidate->level >= gs->num_levels ||
+        candidate->level >= MAX_LEVELS || candidate->x < 0 ||
+        candidate->x >= MAP_WIDTH || candidate->y < 0 ||
+        candidate->y >= MAP_HEIGHT)
+        return false;
+    if (blocks_movement_or_sight(
+            gs->levels[candidate->level].cells[candidate->y][candidate->x].type))
+        return false;
+    if (candidate->level == gs->current_level &&
+        candidate->x == gs->party_x && candidate->y == gs->party_y)
+        return false;
+    for (int i = 0; i < cl->num_creatures && i < MAX_CREATURES; ++i) {
+        if (i == creature_index) continue;
+        const Creature *other = &cl->creatures[i];
+        if (other->active && other->level == candidate->level &&
+            other->x == candidate->x && other->y == candidate->y)
+            return false;
+    }
+    return true;
+}
+
 static int combat_weapon_range(uint8_t item_id) {
     /* Captive weapon tools list these class ranges: brawling 1, handguns 6,
      * rifles 15, automatics 12, lasers 30, cannons 50 and sprayguns 45.
@@ -467,11 +494,19 @@ void combat_tick(CreatureList *cl, GameState *gs) {
             if (c->respawn_timer > 0) {
                 c->respawn_timer--;
                 if (c->respawn_timer == 0) {
-                    if (c->hp_max > 0) {
+                    /* Keep the recovered 600-tick respawn cadence, but do not
+                     * materialize an alien inside the party or another active
+                     * creature.  A blocked original cell is retried on the
+                     * next world tick instead of creating an overlapping
+                     * runtime entity or losing the respawn permanently. */
+                    if (c->hp_max > 0 &&
+                        combat_respawn_cell_available(cl, gs, i)) {
                         c->hp = c->hp_max;
                         c->active = true;
                         c->alerted = false;
                         c->cooldown = 0;
+                    } else {
+                        c->respawn_timer = 1;
                     }
                 }
             }

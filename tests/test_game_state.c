@@ -714,6 +714,7 @@ static void test_combat_respawn_timer_runs_on_other_levels(void) {
     gs.current_level = 0;
     gs.party_x = 1;
     gs.party_y = 1;
+    gs.levels[1].cells[3][3].type = CELL_FLOOR;
     creatures.num_creatures = 1;
     creatures.creatures[0] = (Creature){
         .type = CREATURE_ALIEN1, .hp = 0, .hp_max = 20,
@@ -721,6 +722,34 @@ static void test_combat_respawn_timer_runs_on_other_levels(void) {
         .respawn_timer = 1,
     };
 
+    combat_tick(&creatures, &gs);
+    assert(creatures.creatures[0].active);
+    assert(creatures.creatures[0].hp == 20);
+    assert(creatures.creatures[0].respawn_timer == 0);
+}
+
+static void test_combat_respawn_waits_for_party_cell(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    assert(game_state_new_mission(&gs, 1));
+    gs.current_level = 1;
+    gs.party_x = 3;
+    gs.party_y = 3;
+    gs.levels[1].cells[3][3].type = CELL_FLOOR;
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 0, .hp_max = 20,
+        .x = 3, .y = 3, .level = 1, .active = false,
+        .respawn_timer = 1,
+    };
+
+    combat_tick(&creatures, &gs);
+    assert(!creatures.creatures[0].active);
+    assert(creatures.creatures[0].respawn_timer == 1);
+
+    gs.party_x = 1;
+    gs.party_y = 1;
     combat_tick(&creatures, &gs);
     assert(creatures.creatures[0].active);
     assert(creatures.creatures[0].hp == 20);
@@ -1649,6 +1678,7 @@ int main(void) {
     test_combat_creatures_move_cardinally();
     test_combat_creature_collision_ignores_other_levels();
     test_combat_respawn_timer_runs_on_other_levels();
+    test_combat_respawn_waits_for_party_cell();
     test_combat_gold_reward_saturates();
     test_combat_saturated_weapon_damage_stays_positive();
     test_combat_level_up_uses_pre_attack_xp();
