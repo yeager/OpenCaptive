@@ -727,6 +727,15 @@ Direction-based subcell lookup uses two 16-byte tables at DS:0x9BD8 and DS:0x9BE
 Table 1 (DS:0x9BD8): `00 06 08 02 02 00 06 08 06 08 02 00 08 02 00 06`
 Table 2 (DS:0x9BE8): `01 03 07 05 00 01 03 04 01 02 04 05 03 04 06 07`
 
+The placement writer at `0x53D1` does not convert this value into a second
+map-cell coordinate. It packs the low direction bits and the selected
+subcell into the creature record's byte at offset `+5`; the record is eight
+bytes wide (`+0` cell pointer/index, `+2` source type, `+4` count/flags,
+`+5` packed placement, `+6` HP/state word). The current compatibility runtime
+stores only cell coordinates, so applying `subcell` as an `x/y` offset would
+be incorrect. A future parity implementation must decode this packed record
+at the viewport/compositor boundary.
+
 ### Direction modifiers (0x99E9, 0x99F2)
 
 - Opposite: `direction XOR 2`
