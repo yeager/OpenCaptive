@@ -255,7 +255,7 @@ jobs:
           for fw in "$APP/Contents/Frameworks/"*.dylib; do
             bundle_dylib "$fw"
           done
-          touch "$APP/Contents/Info.plist"
+          printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>' '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' '<plist version="1.0"><dict></dict></plist>' > "$APP/Contents/Info.plist"
           /usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string OpenCaptive" "$APP/Contents/Info.plist"
           /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string se.danielnylander.opencaptive" "$APP/Contents/Info.plist"
           /usr/libexec/PlistBuddy -c "Add :CFBundleName string OpenCaptive" "$APP/Contents/Info.plist"
