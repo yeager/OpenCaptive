@@ -53,6 +53,7 @@ static void test_sprite_map(void) {
     assert(creature_sprite_map[7].graphic_id == 0x6a);
     assert(creature_sprite_map[16].graphic_id == 0x6b);
     assert(creature_sprite_map[25].graphic_id == 0x60);
+    assert(creature_sprite_map[25].frame_index == 0x20);
     assert(creature_sprite_sheet_index(1) == 0);
     assert(creature_sprite_sheet_index(7) == 1);
     assert(creature_sprite_sheet_index(16) == 2);
