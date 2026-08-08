@@ -137,6 +137,17 @@ void droid_ui_render(const DroidUIState *ui, const GameState *gs,
         draw_txt(pixels, width, height, px + 8, iy, buf,
                  sel ? 0xFFFFFF00 : 0xFFCCCCCC);
     }
+    {
+        int iy = py + 38 + 8 * 10;
+        bool sel = (ui->ui_mode == DROID_UI_EQUIP && ui->cursor == 8);
+        if (sel) fill(pixels, width, height, px + 4, iy - 1, pw/2 - 8, 10, 0xFF222266);
+        const Item *item = d->shield ? item_db_get(db, d->shield) : NULL;
+        snprintf(buf, sizeof(buf), "SHIELD: %s %d/%d",
+                 item ? item->name : _("EMPTY"), d->shield_hp,
+                 item ? item->defense : 0);
+        draw_txt(pixels, width, height, px + 8, iy, buf,
+                 sel ? 0xFFFFFF00 : 0xFFCCCCCC);
+    }
 
     // Inventory section (right side)
     draw_txt(pixels, width, height, px + pw/2 + 8, py + 28, _("INVENTORY"), 0xFF88FF88);
@@ -186,7 +197,7 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db
     if (!ui || !gs || !db || !ui->active || ui->droid_idx < 0 || ui->droid_idx >= 4 ||
         ui->cursor < 0 ||
         (ui->ui_mode != DROID_UI_EQUIP && ui->ui_mode != DROID_UI_INVENTORY)) return false;
-    int max_cursor = (ui->ui_mode == DROID_UI_EQUIP) ? 7 : 9;
+    int max_cursor = (ui->ui_mode == DROID_UI_EQUIP) ? 8 : 9;
     if (ui->cursor > max_cursor) return false;
 
     switch (key) {
@@ -229,6 +240,14 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db
                         return true;
                     }
                 }
+                if (use_item->category == ITEM_SHIELD) {
+                    uint8_t old = d->shield;
+                    d->shield = item_id;
+                    d->shield_hp = use_item->defense > INT16_MAX ? INT16_MAX :
+                                   use_item->defense;
+                    d->items[ui->cursor] = old;
+                    return true;
+                }
                 if (use_item->category < ITEM_WEAPON_MELEE ||
                     use_item->category > ITEM_WEAPON_SPRAY)
                     return false;
@@ -261,7 +280,7 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db
                 d->items[empty_slot] = item_id;
                 d->body_parts[ui->cursor] = 0;
                 return true;
-            } else {
+            } else if (ui->cursor < 8) {
                 int wi = ui->cursor - 6;
                 uint8_t item_id = d->weapons[wi];
                 if (item_id == 0) return true;
@@ -273,6 +292,17 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db
                         return true;
                     }
                 }
+            } else {
+                if (d->shield == 0) return true;
+                for (int i = 0; i < 10; i++) {
+                    if (d->items[i] == 0) {
+                        d->items[i] = d->shield;
+                        d->shield = 0;
+                        d->shield_hp = 0;
+                        return true;
+                    }
+                }
+                return false;
             }
             return true;
         }
@@ -306,7 +336,7 @@ bool droid_ui_handle_click(DroidUIState *ui, GameState *gs, const ItemDatabase *
 
     if (mx >= px + 4 && mx < px + pw / 2) {
         ui->ui_mode = DROID_UI_EQUIP;
-        if (row <= 7) {
+        if (row <= 8) {
             ui->cursor = row;
             return droid_ui_handle_key(ui, gs, db, 0x0D);
         }

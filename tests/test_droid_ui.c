@@ -114,6 +114,29 @@ static void test_unequip_armor_preserves_item_when_inventory_full(void) {
     for (int i = 0; i < 10; i++) assert(gs.droids[0].items[i] == 40);
 }
 
+static void test_shield_can_be_equipped_and_removed(void) {
+    DroidUIState ui;
+    GameState gs = {0};
+    ItemDatabase db;
+    item_db_init(&db);
+    gs.droids[0].items[0] = 58; /* SHIELD MK1, defense/durability 15 */
+    droid_ui_init(&ui, 0);
+    ui.ui_mode = DROID_UI_INVENTORY;
+    ui.cursor = 0;
+
+    assert(droid_ui_handle_key(&ui, &gs, &db, 0x0D));
+    assert(gs.droids[0].shield == 58);
+    assert(gs.droids[0].shield_hp == 15);
+    assert(gs.droids[0].items[0] == 0);
+
+    ui.ui_mode = DROID_UI_EQUIP;
+    ui.cursor = 8;
+    assert(droid_ui_handle_key(&ui, &gs, &db, 0x0D));
+    assert(gs.droids[0].shield == 0);
+    assert(gs.droids[0].shield_hp == 0);
+    assert(gs.droids[0].items[0] == 58);
+}
+
 int main(void) {
     test_inactive_ui_cannot_mutate_state();
     test_battery_rejects_invalid_energy_state();
@@ -121,5 +144,6 @@ int main(void) {
     test_non_weapon_item_is_not_equipped_as_weapon();
     test_weapon_damage_uses_product_not_packed_order();
     test_unequip_armor_preserves_item_when_inventory_full();
+    test_shield_can_be_equipped_and_removed();
     return 0;
 }

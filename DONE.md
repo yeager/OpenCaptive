@@ -4029,3 +4029,9 @@
   use v2 with the creature metadata.
 - Added round-trip regression assertions; local CTest remains 60/60 and real
   `.opencaptive` data verification passes for Captive and Liberation.
+# 2026-08-08 (Captive shield equipment UI)
+- Added the missing shield equipment slot to the droid UI, including display,
+  inventory equip/replace, and safe unequip when an inventory slot is free.
+- Shield durability now initializes from the verified item definition (MK1/MK2
+  defense values) and is preserved by the existing save state.
+- Added a UI regression test; local CTest remains 60/60.
