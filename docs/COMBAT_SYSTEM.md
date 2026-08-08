@@ -53,6 +53,9 @@ Manhattan distance pathfinding toward the player's position.
 - Spray splash damage uses the same kill bookkeeping as a direct hit: every
   killed creature is marked for respawn and contributes score, gold, possible
   item drops, and shared XP for living droids.
+- Grenades use the same shared kill bookkeeping through the alternate-weapon
+  path, so explosive kills also trigger respawn, score, gold, possible item
+  drops, shared XP, and the per-attack kill event.
 
 ## Experience and Leveling
 

@@ -2066,6 +2066,11 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 stair_flash_ttl = 6;
             return;
         case SDLK_G: {
+            /* Alternate weapon paths must publish the same per-attack events
+             * as combat_droid_attack.  In particular, grenade kills go
+             * through the shared CAPPO kill bookkeeping below. */
+            creatures.creature_killed = false;
+            creatures.level_up_occurred = false;
             Droid *gd = &gs->droids[gs->selected_droid];
             int grenade_slot = -1;
             for (int si = 0; si < 10; si++) {
@@ -2090,8 +2095,8 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 int dmg = gdmg - gc->defense / 3;
                 if (dmg < 1) dmg = 1;
                 if (dmg >= gc->hp) {
-                    gc->hp = 0; gc->active = false; gc->respawn_timer = 600;
-                    gs->score += (uint32_t)(gc->hp_max / 2 + 1);
+                    gc->hp = 0;
+                    combat_register_kill(gs, &creatures, gc);
                     msg_push(_("Creature destroyed!"), 0xFF44AAFF);
                 } else {
                     gc->hp = (int16_t)(gc->hp - dmg);

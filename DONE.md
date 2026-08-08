@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive grenade kill progression)
+
+- Routed grenade kills through the shared Captive kill finalization path so
+  explosive kills now update respawn state, score, gold, drops, shared XP, and
+  the per-attack kill event consistently with direct and spray kills.
+- Added regression coverage for alternate-weapon kill bookkeeping.
+
 ## 2026-08-08 (Captive spray kill progression)
 
 - Routed spray splash kills through the same kill finalization as direct

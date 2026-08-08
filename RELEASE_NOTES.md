@@ -16,6 +16,9 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
 
 ### Changed
 
+- **(Captive)** Grenade kills now use the shared CAPPO kill bookkeeping path,
+  so explosive kills correctly award score, gold, drops, shared XP, respawn
+  state, and the per-attack kill event.
 - **(Captive)** Spray splash kills now use the same reward and progression path
   as direct kills, including XP for living droids, score, gold, drops, respawn
   state, and the per-attack kill event.

@@ -254,8 +254,8 @@ static void combat_award_kill_xp(GameState *gs, CreatureList *cl,
     }
 }
 
-static void combat_finalize_kill(GameState *gs, CreatureList *cl,
-                                 Creature *target) {
+void combat_register_kill(GameState *gs, CreatureList *cl,
+                          Creature *target) {
     if (!gs || !cl || !target || target->hp > 0) return;
 
     /* Keep every kill source on the same recovered progression path.  The
@@ -603,7 +603,7 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     else
         target->hp = (int16_t)(target->hp - damage);
     if (target->hp <= 0) {
-        combat_finalize_kill(gs, cl, target);
+        combat_register_kill(gs, cl, target);
     }
 
     bool is_spray = false;
@@ -622,7 +622,7 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
             if (splash < 1) splash = 1;
             if (splash >= c->hp) {
                 c->hp = 0;
-                combat_finalize_kill(gs, cl, c);
+                combat_register_kill(gs, cl, c);
             } else {
                 c->hp = (int16_t)(c->hp - splash);
             }

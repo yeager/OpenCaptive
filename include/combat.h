@@ -93,6 +93,10 @@ bool combat_cell_occupied(const CreatureList *cl, int level, int x, int y);
 bool combat_change_floor_if_clear(GameState *gs, CreatureList *cl, int direction);
 void combat_tick(CreatureList *cl, GameState *gs);
 bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx);
+/* Register a kill performed by an alternate weapon path (for example a
+ * grenade).  This keeps score, respawn, drops, XP and event flags identical
+ * to the normal attack path.  The target must already have hp <= 0. */
+void combat_register_kill(GameState *gs, CreatureList *cl, Creature *target);
 void combat_interact(GameState *gs, const void *item_db);
 
 #endif
