@@ -226,7 +226,8 @@ add_test(NAME captive_compositor COMMAND test_captive_compositor)
 add_executable(test_viewport
     tests/test_viewport.c
     src/render/viewport.c
-    src/engine/captive_view_window.c)
+    src/engine/captive_view_window.c
+    src/engine/creature_stats.c)
 target_include_directories(test_viewport PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME viewport COMMAND test_viewport)
 

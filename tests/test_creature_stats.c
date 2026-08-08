@@ -52,6 +52,16 @@ static void test_sprite_map(void) {
     assert(creature_sprite_map[1].graphic_id == 0x67);
     assert(creature_sprite_map[7].graphic_id == 0x6a);
     assert(creature_sprite_map[16].graphic_id == 0x6b);
+    assert(creature_sprite_map[25].graphic_id == 0x60);
+    assert(creature_sprite_sheet_index(1) == 0);
+    assert(creature_sprite_sheet_index(7) == 1);
+    assert(creature_sprite_sheet_index(16) == 2);
+    assert(creature_sprite_sheet_index(19) == 3);
+    assert(creature_sprite_sheet_index(22) == 4);
+    assert(creature_sprite_sheet_index(24) == 5);
+    assert(creature_sprite_sheet_index(25) == -1);
+    assert(creature_sprite_frame_index(7) == 0x15);
+    assert(creature_sprite_sheet_index(0) == -1);
     printf("PASS: sprite_map\n");
 }
 

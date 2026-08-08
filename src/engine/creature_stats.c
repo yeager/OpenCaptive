@@ -55,7 +55,30 @@ const CreatureSpriteEntry creature_sprite_map[CREATURE_SPRITE_ENTRIES] = {
     {0x6d, 0x10},  /* type 22 */
     {0x6d, 0x10},  /* type 23 */
     {0x6e, 0x10},  /* type 24 */
+    {0x60, 0x00},  /* type 25: non-ALIEN graphic; no PL5 frame */
 };
+
+int creature_sprite_sheet_index(int creature_type) {
+    if (creature_type < 1 || creature_type > CREATURE_TYPE_COUNT)
+        return -1;
+
+    uint8_t graphic_id = creature_sprite_map[creature_type].graphic_id;
+    switch (graphic_id) {
+    case 0x67: return 0; /* ALIEN1.PL5 */
+    case 0x6A: return 1; /* ALIEN2.PL5 */
+    case 0x6B: return 2; /* ALIEN3.PL5 */
+    case 0x6C: return 3; /* ALIEN4.PL5 */
+    case 0x6D: return 4; /* ALIEN5.PL5 */
+    case 0x6E: return 5; /* ALIEN6.PL5 */
+    default:   return -1;
+    }
+}
+
+int creature_sprite_frame_index(int creature_type) {
+    if (creature_type < 1 || creature_type > CREATURE_TYPE_COUNT)
+        return -1;
+    return creature_sprite_map[creature_type].frame_index;
+}
 
 int creature_calc_hp(int creature_type, int difficulty, int modifier) {
     if (creature_type < 1 || creature_type > CREATURE_TYPE_COUNT)

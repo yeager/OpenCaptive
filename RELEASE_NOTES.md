@@ -18,6 +18,9 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
 
 - **(Liberation)** BuildingGen records now preserve the disassembly-documented
   building category bits in the flags byte while retaining connection counts.
+- **(Captive)** Creature rendering now resolves the disassembly's `DS:0xA16E`
+  graphic IDs to the correct ALIEN1–6 sheets instead of treating creature enum
+  values as direct sheet indexes.
 - **(Infrastructure)** CI now runs the complete 59-test suite on Windows,
   including large `GameState` fixtures, with portable temporary test paths.
 

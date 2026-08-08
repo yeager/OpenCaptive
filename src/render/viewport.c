@@ -2,6 +2,7 @@
 #include "opencaptive.h"
 #include "gfx_loader.h"
 #include "object_sprite.h"
+#include "creature_stats.h"
 #include "captive_viewport_descriptors.h"
 #include <string.h>
 
@@ -789,9 +790,12 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
                           c->type <= CREATURE_ALIEN6) ?
             creature_colors[c->type] : 0xFF22AA22;
 
-        int alien_idx = (c->type >= CREATURE_ALIEN1 && c->type <= CREATURE_ALIEN6)
-            ? c->type - CREATURE_ALIEN1 : 0;
-        int sheet = atlas ? atlas->alien_sheets[alien_idx] : -1;
+        /* ReDMCSB/CAPPO disassembly: DS:0xA16E stores a graphic_id per
+         * creature type.  The enum value is not the source-sheet selector;
+         * types 7..24 deliberately reuse ALIEN2-5 resources. */
+        int alien_idx = creature_sprite_sheet_index(c->type);
+        int sheet = (atlas && alien_idx >= 0 && alien_idx < 6)
+            ? atlas->alien_sheets[alien_idx] : -1;
 
         if (sheet >= 0) {
             /* Blit from PL5 sheet — front-facing frame at (0,0), 64×100 region */

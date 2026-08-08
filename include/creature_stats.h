@@ -28,7 +28,7 @@ extern const CreatureTypeDef creature_types[CREATURE_TYPE_COUNT];
 
 /* Sprite assignments from DS:0xA16E (file 0x1895E).
  * 2 bytes per entry: graphic_id, frame_index. */
-#define CREATURE_SPRITE_ENTRIES 25
+#define CREATURE_SPRITE_ENTRIES (CREATURE_TYPE_COUNT + 1)
 
 typedef struct {
     uint8_t graphic_id;
@@ -36,6 +36,12 @@ typedef struct {
 } CreatureSpriteEntry;
 
 extern const CreatureSpriteEntry creature_sprite_map[CREATURE_SPRITE_ENTRIES];
+
+/* Resolve the disassembly's graphic_id to the corresponding ALIEN1-6.PL5
+ * source sheet.  IDs outside the six creature sheets are intentionally
+ * reported as -1 so callers use their fallback renderer. */
+int creature_sprite_sheet_index(int creature_type);
+int creature_sprite_frame_index(int creature_type);
 
 int creature_calc_hp(int creature_type, int difficulty, int modifier);
 
