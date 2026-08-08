@@ -48,7 +48,9 @@ static void test_save_load(void) {
     f1.dynamic_lighting = true;
     f1.game_speed = 2.0f;
 
-    const char *path = "/tmp/test_opencaptive_features.cfg";
+    /* Keep the fixture portable: Windows has no /tmp directory, while the
+     * test's working directory is writable on every CI runner. */
+    const char *path = "test_opencaptive_features.cfg";
     assert(custom_features_save(&f1, path));
 
     custom_features_defaults(&f2);
