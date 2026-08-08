@@ -57,7 +57,9 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
 - **(Liberation)** NPC system (pedestrians, police, vendors), crime system,
   city destruction, bar mini-game, mission cutscenes, endgame credits.
 - **(Liberation)** Save game thumbnails (80×50, CTMB trailer format).
-- **(Both)** All 255 TODO items complete — project reaches 100% completion.
+- **(Documentation)** Public status now distinguishes verified data and runtime
+  slices from the remaining Captive viewport and Liberation campaign parity
+  work.
 
 ### Changed
 

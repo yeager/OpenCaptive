@@ -4,11 +4,12 @@
 
 ## Current status
 
-All Liberation work items are complete. OpenCaptive verifies and opens the
-known CD32 data track, reads its ISO9660 filesystem by content hash, and
-presents verified original ANIM frames with the original Amiga/CD32 indexed
-color palette. CityGen (64×64 grid) and BuildingGen (building placement, road
-graph, naming) have been fully disassembled and reimplemented with test suites.
+OpenCaptive currently verifies and opens the known CD32 data track, reads its
+ISO9660 filesystem by content hash, and presents verified original ANIM frames
+with the original Amiga/CD32 indexed color palette. CityGen (64×64 grid) and
+BuildingGen (building placement, road graph, naming) have been disassembled
+and implemented as independently tested system slices. The full Liberation
+campaign, original state formats, and end-to-end gameplay remain unfinished.
 The ArcD Huffman+LZSS decompressor from PlotGen has been recovered with
 bit-exact parity, enabling decompression of all three text data files
 (PGE.txt, DTE.txt, CTE.txt).

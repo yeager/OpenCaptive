@@ -7,10 +7,13 @@ Reference: captive.atari.org Technical/ViewRendering
 ## Status
 
 The 19-cell traversal, ordered visibility cleanup, and the complete 112-entry
-descriptor table extracted from CAPPO.EXE are implemented and tested. The
-descriptor table has been verified: all entries have valid dimensions, source
-banks ≤ 4, and destinations within the 160×112 viewport with >75% pixel
-coverage.
+descriptor table extracted from CAPPO.EXE are implemented and tested as
+recovery/compositor components. The descriptor table has been verified: all
+entries have valid dimensions, source banks ≤ 4, and destinations within the
+160×112 viewport with >75% pixel coverage. The active game path still uses a
+source-backed compatibility renderer; the original per-cell dispatch sequence
+and caller destination bases are not yet recovered, so playable pixel parity
+is not claimed.
 
 ## Visible area
 

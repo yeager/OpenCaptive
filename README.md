@@ -4,10 +4,13 @@
 
 A modern C/SDL3 reimplementation of **Captive** (1990) and **Liberation: Captive 2** (1993) by Antony Crowther, published by Mindscape.
 
-OpenCaptive is a verified reimplementation. All 255 work items are complete:
-data formats, creature stats, combat, audio, map/city generation, viewport
-rendering, save/load, NPC systems, and presentation paths are validated
-against original binaries across DOS, Amiga, Atari ST, and CD32 platforms.
+OpenCaptive is an actively developed, source-faithful reimplementation. Captive
+has a playable DOS-based compatibility runtime with verified data, combat,
+audio, map-generation, save/load, and presentation slices. Liberation has
+verified CD32 data, presentation, format, and city-system slices, while its
+full campaign and original gameplay parity remain active work. The project
+does not claim pixel-perfect parity until the corresponding runtime evidence
+and original-output comparisons exist.
 
 ## Downloads
 
@@ -42,7 +45,7 @@ The sequel expands into a cyberpunk city setting with hundreds of interactive bu
 
 ### Both games
 - Hash-verified original data discovery and format decoding
-- Original-resolution presentation paths with verified viewport rendering
+- Original-resolution presentation paths for verified runtime slices
 - OPL2 FM synthesis (AdLib emulation) for music and sound effects
 - Optional HQ MIDI output filter (`--hq-midi`)
 - 19 languages (English, Swedish, German, French, Spanish, Italian, and 13 more)

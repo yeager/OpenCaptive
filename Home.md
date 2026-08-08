@@ -4,7 +4,13 @@
 
 OpenCaptive is a C/SDL3 reimplementation of **Captive** (1990) and **Liberation: Captive 2** (1993) by Tony Crowther, originally published by Mindscape.
 
-OpenCaptive is a verified reimplementation. All 255 work items are complete: disassembly-verified data formats, formulas, audio mappings, rendering paths, and gameplay systems are documented and tested. No original game data is distributed: assets are loaded from the player's own media and verified by SHA-256 content identity.
+OpenCaptive is an actively developed, source-faithful reimplementation.
+Captive has a playable DOS-based compatibility runtime with verified data,
+combat, audio, map-generation, save/load, and presentation slices. Liberation
+has verified CD32 data, presentation, format, and city-system slices, while
+its full campaign and original gameplay parity remain active work. No original
+game data is distributed: assets are loaded from the player's own media and
+verified by SHA-256 content identity.
 
 ## For players
 
