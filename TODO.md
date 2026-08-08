@@ -34,7 +34,8 @@
 - [ ] Recover the CAPPO creature attack record and caller; do not treat the
       weapon bytecode around `0x5380` as proof of the creature damage formula.
 - [ ] Recover the complete difficulty-dependent creature candidate loop around
-      CAPPO `0x97B3`/`0x970D` before changing the category-table selection.
+      CAPPO `0x97B3`/`0x970D` before changing the category-table selection;
+      the verified `DS:0x9A5A` offset table is currently data-only in runtime.
 
 ### Map generation
 - [x] Recover cellular automaton rule types from 0x39CC-0x3C21 (maze/rooms/open/mixed)
