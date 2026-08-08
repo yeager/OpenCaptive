@@ -1,4 +1,5 @@
 #include "spawn.h"
+#include "creature_stats.h"
 #include "captive_data.h"
 #include <stdio.h>
 #include <string.h>
@@ -135,6 +136,18 @@ static void test_spawn_modifier_table_covers_all_creatures(void) {
     ASSERT(spawn_modifier[24] == 6, "type 24 modifier");
 }
 
+static void test_creature_sprite_table_matches_non_alien_record(void) {
+    /* CAPPO.EXE v1.06, file offset 0x1895E: type 25 is 0x60/0x20.
+     * 0x60 is intentionally unresolved to the six ALIEN PL5 sheets, but its
+     * original frame byte must not be discarded. */
+    ASSERT(creature_sprite_map[25].graphic_id == 0x60,
+           "type 25 source graphic");
+    ASSERT(creature_sprite_map[25].frame_index == 0x20,
+           "type 25 source frame");
+    ASSERT(creature_sprite_sheet_index(25) == -1,
+           "type 25 remains outside ALIEN sheets");
+}
+
 int main(void) {
     test_category_table();
     test_subcell_tables();
@@ -147,6 +160,7 @@ int main(void) {
     test_spawn_type_0x0F_directional();
     test_spawn_count_bounds();
     test_spawn_modifier_table_covers_all_creatures();
+    test_creature_sprite_table_matches_non_alien_record();
     if (failures) {
         printf("%d test(s) FAILED\n", failures);
         return 1;

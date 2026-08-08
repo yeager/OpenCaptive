@@ -55,7 +55,11 @@ const CreatureSpriteEntry creature_sprite_map[CREATURE_SPRITE_ENTRIES] = {
     {0x6d, 0x10},  /* type 22 */
     {0x6d, 0x10},  /* type 23 */
     {0x6e, 0x10},  /* type 24 */
-    {0x60, 0x00},  /* type 25: non-ALIEN graphic; no PL5 frame */
+    /* CAPPO.EXE v1.06 sprite table at file offset 0x1895E stores the
+     * non-ALIEN type as graphic 0x60, frame 0x20.  The graphic is not one of
+     * the six ALIEN sheets handled by creature_sprite_sheet_index(), but the
+     * frame index must still preserve the source record. */
+    {0x60, 0x20},  /* type 25: non-ALIEN graphic */
 };
 
 int creature_sprite_sheet_index(int creature_type) {
