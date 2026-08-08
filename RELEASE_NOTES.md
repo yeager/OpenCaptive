@@ -30,6 +30,8 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
   each cell's `wall_tex` value rather than incorrectly using view depth.
 - **(Captive)** Creature rendering now honors the disassembly `frame_index`
   from `DS:0xA16E` instead of always drawing ALIEN sheet frame zero.
+- **(Launcher)** Captive and Liberation card artwork now preserves its source
+  aspect ratio with centered letterboxing instead of stretching to the card.
 - **(Infrastructure)** CI now runs the complete 59-test suite on Windows,
   including large `GameState` fixtures, with portable temporary test paths.
 - **(Infrastructure)** Windows release packaging now includes the portable

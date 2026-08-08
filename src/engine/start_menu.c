@@ -189,6 +189,28 @@ static void draw_rect(uint32_t *pixels, int pw, int ph,
     }
 }
 
+/* Fit artwork inside a card without changing its aspect ratio.  Card artwork
+ * comes from repository assets and the two covers do not necessarily share
+ * the same dimensions, so stretching both to the card rectangle makes one
+ * of them visibly distorted. */
+static void blit_aspect_fit(uint32_t *dst, int dw, int dh,
+                            int dx, int dy, int tw, int th,
+                            const uint32_t *src, int sw, int sh) {
+    if (!dst || !src || dw <= 0 || dh <= 0 || tw <= 0 || th <= 0 ||
+        sw <= 0 || sh <= 0) return;
+    int draw_w = tw;
+    int draw_h = (int)((int64_t)sh * draw_w / sw);
+    if (draw_h > th) {
+        draw_h = th;
+        draw_w = (int)((int64_t)sw * draw_h / sh);
+    }
+    if (draw_w < 1 || draw_h < 1) return;
+    int draw_x = dx + (tw - draw_w) / 2;
+    int draw_y = dy + (th - draw_h) / 2;
+    blit_scaled(dst, dw, dh, draw_x, draw_y, draw_w, draw_h,
+                src, sw, sh);
+}
+
 static void draw_border(uint32_t *pixels, int pw, int ph,
                         int x, int y, int w, int h, uint32_t color, int t) {
     draw_rect(pixels, pw, ph, x, y, w, t, color);
@@ -1464,8 +1486,11 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
     int cx1 = cx0 + card_w + gap;
 
     if (menu->captive_img && menu->captive_img_w > 0 && menu->captive_img_h > 0) {
-        blit_scaled(pixels, width, height, cx0, card_y, card_w, card_h,
-                    menu->captive_img, menu->captive_img_w, menu->captive_img_h);
+        draw_rect(pixels, width, height, cx0, card_y, card_w, card_h,
+                  0xFF1A1020);
+        blit_aspect_fit(pixels, width, height, cx0, card_y, card_w, card_h,
+                        menu->captive_img, menu->captive_img_w,
+                        menu->captive_img_h);
     } else {
         draw_captive_card(pixels, width, height, cx0, card_y, card_w, card_h,
                           menu->selected_item == 0, menu->anim_tick);
@@ -1479,8 +1504,11 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
 
     if (menu->liberation_img && menu->liberation_img_w > 0 &&
         menu->liberation_img_h > 0) {
-        blit_scaled(pixels, width, height, cx1, card_y, card_w, card_h,
-                    menu->liberation_img, menu->liberation_img_w, menu->liberation_img_h);
+        draw_rect(pixels, width, height, cx1, card_y, card_w, card_h,
+                  0xFF0C1020);
+        blit_aspect_fit(pixels, width, height, cx1, card_y, card_w, card_h,
+                        menu->liberation_img, menu->liberation_img_w,
+                        menu->liberation_img_h);
     } else {
         draw_liberation_card(pixels, width, height, cx1, card_y, card_w, card_h,
                              menu->selected_item == 1, menu->anim_tick);

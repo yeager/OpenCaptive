@@ -199,6 +199,26 @@ int main(void) {
     menu.logo_img = NULL;
     menu.logo_img_w = menu.logo_img_h = 0;
 
+    /* Card artwork must be contained, not stretched to 390x280.  A 2:1
+       source should occupy 390x195 and leave equal letterbox bands. */
+    static uint32_t wide_card[2] = {0xFF0000FF, 0xFFFF0000};
+    static uint32_t menu_pixels[MENU_WIDTH * MENU_HEIGHT];
+    menu.captive_img = wide_card;
+    menu.captive_img_w = 2;
+    menu.captive_img_h = 1;
+    menu.liberation_img = NULL;
+    menu.liberation_img_w = menu.liberation_img_h = 0;
+    memset(menu_pixels, 0, sizeof(menu_pixels));
+    start_menu_render(&menu, menu_pixels, MENU_WIDTH, MENU_HEIGHT);
+    const int card_x = (MENU_WIDTH - (390 * 2 + 30)) / 2;
+    const int card_y = 45 + 18; /* no logo image is installed in this test */
+    assert(menu_pixels[(card_y + 4) * MENU_WIDTH + card_x + 100] ==
+           0xFF1A1020);
+    assert(menu_pixels[(card_y + 43) * MENU_WIDTH + card_x + 100] !=
+           0xFF1A1020);
+    menu.captive_img = NULL;
+    menu.captive_img_w = menu.captive_img_h = 0;
+
     snprintf(menu.data_path, sizeof(menu.data_path), ".");
 
     /* Automatic startup verification must share the bounded scanner without

@@ -3926,3 +3926,10 @@
 - Regressionstester täcker både den platta kartlayout där reservgrenen används
   och den wall-less panelrenderingen.
 - Hela testsviten passerar: 58/58 tester.
+## 2026-08-08 (Launcher card artwork aspect ratio)
+
+- Captive and Liberation cover artwork now uses centered aspect-fit scaling
+  inside the 390x280 launcher cards, with a solid letterbox background.
+- Added a start-menu regression test using a 2:1 fixture to prevent future
+  stretching regressions.
+- Full local test suite: 59/59 tests passed.
