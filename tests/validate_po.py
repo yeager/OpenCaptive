@@ -10,6 +10,16 @@ from pathlib import Path
 
 REQUIRED_MESSAGES = {
     "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS  F10: IN-GAME OPTIONS",
+    "UP-DOWN: SELECT  ENTER: START  ESC: QUIT",
+    "CAPTIVE DOS",
+    "CAPTIVE AMIGA",
+    "LIBERATION CD32",
+    "LIBERATION AMIGA",
+    "DATA SCANNER",
+    "Scanning Captive hashes...",
+    "Scanning Liberation data...",
+    "ZIP archives found: %d",
+    "Runtime options: graphics and cheats",
     "EN %d",
     "HP %d",
     "R:RENAME  S:SWAP  ENTER:START",
