@@ -272,8 +272,12 @@ static void test_architect_seed_range(void) {
     /* Cover the documented early-map section masks and a broad selection of
      * later mission/base seeds. */
     /* Include seeds outside the original smoke range; seed 161 previously
-     * produced an under-sized but nominally valid root floor. */
-    for (uint32_t seed = 0; seed < 10000; seed++)
+     * produced an under-sized but nominally valid root floor.  Keep this a
+     * bounded CI regression test: map_generate_base performs topology checks
+     * for every candidate door, so validating ten thousand seeds turns a
+     * useful smoke test into a multi-minute test without adding meaningful
+     * coverage. */
+    for (uint32_t seed = 0; seed < 256; seed++)
         assert_base_is_playable(seed);
 }
 

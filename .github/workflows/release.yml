@@ -49,7 +49,7 @@ jobs:
           cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja -DCMAKE_BUILD_TYPE=Release
           ninja -C build
       - name: Test
-        run: ctest --test-dir build -j4 --output-on-failure -E "map_gen|captive_view_window|liberation_text_table|liberation_x3g|liberation_img|custom_features|game_state"
+        run: ctest --test-dir build -j4 --output-on-failure -E "liberation_text_table|liberation_x3g|liberation_img"
       - name: Get version
         id: version
         run: echo "version=${RELEASE_VERSION#v}" >> "$GITHUB_OUTPUT"
@@ -311,7 +311,7 @@ jobs:
       - name: Test
         run: |
           $env:PATH = "${{ github.workspace }}/SDL3-install/bin;${{ github.workspace }}/SDL3_ttf-install/bin;${{ github.workspace }}/zlib-install/bin;$env:PATH"
-          ctest --test-dir build -C Release -j4 --output-on-failure -E "map_gen|captive_view_window|liberation_text_table|liberation_x3g|custom_features|game_state|save_load"
+          ctest --test-dir build -C Release -j4 --output-on-failure -E "liberation_text_table|liberation_x3g|save_load"
       - name: Get version
         id: version
         shell: bash
