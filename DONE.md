@@ -1,5 +1,10 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08
+
+- Replaced the start-menu Captive and Liberation card artwork with the
+  restored project images and verified the local launcher build.
+
 ## 2026-08-07 (Captive ANM endian contract)
 
 - Corrected the ANM decoder comments to match the verified little-endian

@@ -16,6 +16,8 @@ used.
 
 ### Changed
 
+- The start menu now uses the restored Captive and Liberation card artwork
+  from the original project assets.
 - Captive ANM frame and command offsets are now documented and regression
   tested as little-endian values, matching the verified decoder behavior.
 - Captive version selection now maps mouse clicks to the filtered rows shown
