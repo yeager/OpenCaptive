@@ -50,6 +50,9 @@ Manhattan distance pathfinding toward the player's position.
 - Each successful droid attack costs 3 energy. Creature cooldowns use the
   recovered creature speed; droid attacks currently have no separate weapon
   cooldown.
+- Spray splash damage uses the same kill bookkeeping as a direct hit: every
+  killed creature is marked for respawn and contributes score, gold, possible
+  item drops, and shared XP for living droids.
 
 ## Experience and Leveling
 

@@ -254,6 +254,43 @@ static void combat_award_kill_xp(GameState *gs, CreatureList *cl,
     }
 }
 
+static void combat_finalize_kill(GameState *gs, CreatureList *cl,
+                                 Creature *target) {
+    if (!gs || !cl || !target || target->hp > 0) return;
+
+    /* Keep every kill source on the same recovered progression path.  The
+     * primary target used to do this inline, while spray splash kills only
+     * flipped active=false and therefore lost all rewards and event state. */
+    target->active = false;
+    target->respawn_timer = 600;
+    cl->creature_killed = true;
+
+    uint32_t score_reward = (uint32_t)(target->hp_max / 2 + 1);
+    if (target->is_boss) score_reward += 500U;
+    if (UINT32_MAX - gs->score < score_reward)
+        gs->score = UINT32_MAX;
+    else
+        gs->score += score_reward;
+
+    int reward = target->hp_max / 5 + 1;
+    if (reward > 0) {
+        if (gs->gold > INT_MAX - reward)
+            gs->gold = INT_MAX;
+        else
+            gs->gold += reward;
+    }
+
+    if (target->level >= 0 && target->level < gs->num_levels &&
+        target->level < MAX_LEVELS && target->x >= 0 && target->x < MAP_WIDTH &&
+        target->y >= 0 && target->y < MAP_HEIGHT) {
+        MapCell *drop_cell = &gs->levels[target->level].cells[target->y][target->x];
+        if (drop_cell->item_id == 0 && (combat_rand() % 3) == 0)
+            drop_cell->item_id = (uint8_t)(1 + combat_rand() % 20);
+    }
+
+    combat_award_kill_xp(gs, cl, target);
+}
+
 static bool combat_is_weapon_id(uint8_t item_id) {
     return item_id >= 13 && item_id <= 38;
 }
@@ -566,24 +603,7 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     else
         target->hp = (int16_t)(target->hp - damage);
     if (target->hp <= 0) {
-        target->active = false;
-        target->respawn_timer = 600;
-        cl->creature_killed = true;
-        gs->score += (uint32_t)(target->hp_max / 2 + 1);
-        if (target->is_boss) gs->score += 500;
-        int reward = target->hp_max / 5 + 1;
-        if (reward > 0 && gs->gold <= INT_MAX - reward)
-            gs->gold += reward;
-        else if (reward > 0)
-            gs->gold = INT_MAX;
-        if (target->x >= 0 && target->x < MAP_WIDTH &&
-            target->y >= 0 && target->y < MAP_HEIGHT) {
-            MapCell *drop_cell = &gs->levels[gs->current_level].cells[target->y][target->x];
-            if (drop_cell->item_id == 0 && (combat_rand() % 3) == 0) {
-                drop_cell->item_id = (uint8_t)(1 + combat_rand() % 20);
-            }
-        }
-        combat_award_kill_xp(gs, cl, target);
+        combat_finalize_kill(gs, cl, target);
     }
 
     bool is_spray = false;
@@ -602,9 +622,7 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
             if (splash < 1) splash = 1;
             if (splash >= c->hp) {
                 c->hp = 0;
-                c->active = false;
-                c->respawn_timer = 600;
-                gs->score += (uint32_t)(c->hp_max / 2 + 1);
+                combat_finalize_kill(gs, cl, c);
             } else {
                 c->hp = (int16_t)(c->hp - splash);
             }

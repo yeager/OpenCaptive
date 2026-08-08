@@ -835,6 +835,41 @@ static void test_combat_respects_spray_weapon_range(void) {
     assert(gs.droids[0].energy == gs.droids[0].energy_max);
 }
 
+static void test_combat_spray_splash_awards_kill_progression(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    assert(game_state_new_mission(&gs, 1));
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+    gs.droids[0].weapons[0] = 33; /* spray weapon */
+    gs.droids[0].weapon_damage = 0x0505;
+    for (int i = 0; i < 4; ++i)
+        gs.droids[i].skill_levels[XP_SKILL_COUNT - 1] = 1;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    creatures.num_creatures = 2;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 1, .hp_max = 30,
+        .x = 2, .y = 1, .level = 0, .active = true,
+    };
+    creatures.creatures[1] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 50, .hp_max = 50,
+        .x = 2, .y = 2, .level = 0, .active = true,
+    };
+    uint32_t xp_before = gs.droids[0].xp;
+    assert(combat_droid_attack(&gs, &creatures, 0));
+    assert(!creatures.creatures[0].active);
+    assert(!creatures.creatures[1].active);
+    assert(creatures.creature_killed);
+    assert(gs.droids[0].xp > xp_before);
+    assert(gs.score > 0);
+}
+
 static void test_combat_melee_rejects_diagonal_target(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -1289,6 +1324,7 @@ int main(void) {
     test_combat_attack_events_are_per_attack();
     test_combat_uses_ranged_hand_when_melee_is_first();
     test_combat_respects_spray_weapon_range();
+    test_combat_spray_splash_awards_kill_progression();
     test_combat_melee_rejects_diagonal_target();
     test_combat_does_not_treat_non_weapon_as_ranged();
     test_combat_requires_equipped_weapon();

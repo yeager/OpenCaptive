@@ -16,6 +16,9 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
 
 ### Changed
 
+- **(Captive)** Spray splash kills now use the same reward and progression path
+  as direct kills, including XP for living droids, score, gold, drops, respawn
+  state, and the per-attack kill event.
 - **(Liberation)** The verified CD32 city presentation now decodes its real
   six-bitplane PACK frame. The previous defensive five-plane limit incorrectly
   hid the source-backed city frame during data verification.

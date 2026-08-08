@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive spray kill progression)
+
+- Routed spray splash kills through the same kill finalization as direct
+  attacks, including respawn state, score, gold, drops, shared XP, and the
+  per-attack kill event.
+- Added regression coverage for a spray attack killing both its primary and
+  splash targets.
+- Targeted game-state test: passed.
+
 ## 2026-08-08 (Liberation city presentation depth)
 
 - Restored support for the six planar bitplanes used by the hash-verified
