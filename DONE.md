@@ -4185,3 +4185,10 @@ Captive floor traps and wall-electric puzzles now use the shared environmental
 damage path, so equipped shields absorb their damage before droid HP is
 reduced. Regression coverage verifies both partial shield absorption and the
 existing lethal game-over behavior.
+
+## 2026-08-08 (Captive malformed shield durability)
+
+Captive now rejects shield item records with negative durability before they can
+be equipped, preventing invalid runtime shield state. Added a regression test
+and corrected the README test-count documentation to the current 61 CTest
+targets.

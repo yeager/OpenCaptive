@@ -241,10 +241,13 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db
                     }
                 }
                 if (use_item->category == ITEM_SHIELD) {
+                    /* Shield durability is signed in the runtime state; reject
+                     * malformed database records instead of equipping a shield
+                     * that starts with negative durability. */
+                    if (use_item->defense < 0) return false;
                     uint8_t old = d->shield;
                     d->shield = item_id;
-                    d->shield_hp = use_item->defense > INT16_MAX ? INT16_MAX :
-                                   use_item->defense;
+                    d->shield_hp = use_item->defense;
                     d->items[ui->cursor] = old;
                     return true;
                 }
