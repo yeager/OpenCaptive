@@ -1904,7 +1904,8 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_3: gs->selected_droid = 2; return;
         case SDLK_4: gs->selected_droid = 3; return;
         case SDLK_SPACE:
-            if (combat_droid_attack(gs, &creatures, gs->selected_droid)) {
+            if (combat_droid_attack_with_items(gs, &creatures,
+                                               gs->selected_droid, &item_db)) {
                 sfx_play(&sfx, SFX_SHOOT);
                 fire_flash_ttl = 3;
                 if (creatures.creature_killed) {

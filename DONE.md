@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive two-weapon range selection)
+
+- Captive now resolves damage from an equipped weapon that can actually reach
+  the selected target when the droid carries two weapons.
+- A spray weapon only creates splash damage when it is the weapon used for the
+  attack; carrying one in the other hand no longer changes unrelated attacks.
+- Added a regression test using the real item database for a melee-plus-handgun
+  loadout at handgun range.
+
 ## 2026-08-08 (Environmental damage respects shields)
 
 - Routed pit and Liberation industrial-hazard damage through a shared

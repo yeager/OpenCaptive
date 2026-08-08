@@ -836,6 +836,36 @@ static void test_combat_uses_ranged_hand_when_melee_is_first(void) {
     assert(combat_droid_attack(&gs, &creatures, 0));
 }
 
+static void test_combat_uses_damage_of_weapon_that_reaches_target(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    ItemDatabase db;
+    item_db_init(&db);
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    assert(game_state_new_mission(&gs, 1));
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+    gs.droids[0].weapons[0] = 13; /* melee: range 1 */
+    gs.droids[0].weapons[1] = 18; /* handgun: range 6 */
+
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    const Item *handgun = item_db_get(&db, 18);
+    assert(handgun != NULL);
+    int expected = handgun->damage_min * handgun->damage_max * 8;
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 32760, .hp_max = 32760,
+        .x = 7, .y = 1, .level = 0, .active = true,
+    };
+    assert(combat_droid_attack_with_items(&gs, &creatures, 0, &db));
+    assert(creatures.creatures[0].hp == 32760 - expected);
+}
+
 static void test_combat_respects_spray_weapon_range(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -1475,6 +1505,7 @@ int main(void) {
     test_combat_level_up_uses_pre_attack_xp();
     test_combat_attack_events_are_per_attack();
     test_combat_uses_ranged_hand_when_melee_is_first();
+    test_combat_uses_damage_of_weapon_that_reaches_target();
     test_combat_respects_spray_weapon_range();
     test_combat_uses_original_ranged_weapon_ranges();
     test_combat_spray_splash_awards_kill_progression();

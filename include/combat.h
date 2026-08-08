@@ -95,6 +95,11 @@ bool combat_cell_occupied(const CreatureList *cl, int level, int x, int y);
 bool combat_change_floor_if_clear(GameState *gs, CreatureList *cl, int direction);
 void combat_tick(CreatureList *cl, GameState *gs);
 bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx);
+/* Runtime entry point that resolves the equipped weapon whose range can reach
+ * the selected target.  The legacy wrapper above remains available for
+ * state-only callers and uses the cached damage value. */
+bool combat_droid_attack_with_items(GameState *gs, CreatureList *cl,
+                                    int droid_idx, const ItemDatabase *db);
 /* Register a kill performed by an alternate weapon path (for example a
  * grenade).  This keeps score, respawn, drops, XP and event flags identical
  * to the normal attack path.  The target must already have hp <= 0. */

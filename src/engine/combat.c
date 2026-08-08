@@ -582,7 +582,31 @@ void combat_tick(CreatureList *cl, GameState *gs) {
     }
 }
 
-bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
+typedef struct {
+    uint16_t encoded_damage;
+    int damage;
+    int range;
+    bool spray;
+} CombatWeaponChoice;
+
+static bool combat_item_weapon_choice(const ItemDatabase *db, uint8_t item_id,
+                                      CombatWeaponChoice *choice) {
+    if (!db || !choice || !combat_is_weapon_id(item_id)) return false;
+    const Item *item = item_db_get(db, item_id);
+    if (!item || item->damage_min < 0 || item->damage_min > UINT8_MAX ||
+        item->damage_max < 0 || item->damage_max > UINT8_MAX)
+        return false;
+    uint8_t lo = (uint8_t)item->damage_min;
+    uint8_t hi = (uint8_t)item->damage_max;
+    choice->encoded_damage = (uint16_t)lo | ((uint16_t)hi << 8);
+    choice->damage = (int)lo * (int)hi;
+    choice->range = combat_weapon_range(item_id);
+    choice->spray = item_id >= 33 && item_id <= 35;
+    return choice->range > 0;
+}
+
+bool combat_droid_attack_with_items(GameState *gs, CreatureList *cl,
+                                    int droid_idx, const ItemDatabase *db) {
     /* These flags describe the current attack, not the last successful one.
      * Clear them before validation so callers cannot observe a stale kill or
      * level-up event after a miss or a non-lethal shot. */
@@ -621,7 +645,9 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     int attack_range = 0;
     for (int w = 0; w < 2; w++) {
         uint8_t wid = d->weapons[w];
-        int weapon_range = combat_weapon_range(wid);
+        CombatWeaponChoice choice;
+        int weapon_range = combat_item_weapon_choice(db, wid, &choice) ?
+                            choice.range : combat_weapon_range(wid);
         if (weapon_range > attack_range) attack_range = weapon_range;
     }
     if (attack_range == 0) return false;
@@ -655,10 +681,28 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     if (d->energy < 3) return false;
     d->energy -= 3;
 
+    CombatWeaponChoice selected_weapon = {0};
+    if (db) {
+        bool found_weapon = false;
+        for (int w = 0; w < 2; w++) {
+            CombatWeaponChoice choice;
+            if (!combat_item_weapon_choice(db, d->weapons[w], &choice) ||
+                best_dist > choice.range)
+                continue;
+            if (!found_weapon || choice.damage > selected_weapon.damage ||
+                (choice.damage == selected_weapon.damage &&
+                 choice.encoded_damage > selected_weapon.encoded_damage)) {
+                selected_weapon = choice;
+                found_weapon = true;
+            }
+        }
+        if (!found_weapon) return false;
+    }
+
     /* Damage formula from CAPPO.EXE:
      * 0x9BF4: ax=[di+6]; mul ah → lo_byte × hi_byte = base damage
      * 0x9BFC: shl cx,1 up to 3 times (×8), cap at 0xFFFD on sign overflow */
-    uint16_t dmg_word = d->weapon_damage;
+    uint16_t dmg_word = db ? selected_weapon.encoded_damage : d->weapon_damage;
     uint8_t lo = dmg_word & 0xFF;
     uint8_t hi = (dmg_word >> 8) & 0xFF;
     int cx = (int)lo * (int)hi;
@@ -683,10 +727,12 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
         combat_register_kill(gs, cl, target);
     }
 
-    bool is_spray = false;
-    for (int w = 0; w < 2; w++) {
-        uint8_t wid = d->weapons[w];
-        if (wid >= 33 && wid <= 35) { is_spray = true; break; }
+    bool is_spray = db ? selected_weapon.spray : false;
+    if (!db) {
+        for (int w = 0; w < 2; w++) {
+            uint8_t wid = d->weapons[w];
+            if (wid >= 33 && wid <= 35) { is_spray = true; break; }
+        }
     }
     if (is_spray) {
         for (int i = 0; i < creature_count; i++) {
@@ -707,6 +753,10 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     }
 
     return true;
+}
+
+bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
+    return combat_droid_attack_with_items(gs, cl, droid_idx, NULL);
 }
 
 void combat_interact(GameState *gs, const void *item_db_ptr) {
