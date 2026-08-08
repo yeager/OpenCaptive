@@ -48,6 +48,8 @@ static void test_write_read_roundtrip(void) {
     out.droids[0].inventory[9] = 57;
     out.droids[0].body_part_hp[0] = 12;
     out.droids[0].body_part_hp[5] = 231;
+    out.droids[0].shield = 58;
+    out.droids[0].shield_hp = 11;
 
     snprintf(out.droids[1].name, 16, "BETA-3");
     out.droids[1].hp = 80;
@@ -105,6 +107,8 @@ static void test_write_read_roundtrip(void) {
     assert(in.droids[0].inventory[9] == 57);
     assert(in.droids[0].body_part_hp[0] == 12);
     assert(in.droids[0].body_part_hp[5] == 231);
+    assert(in.droids[0].shield == 58);
+    assert(in.droids[0].shield_hp == 11);
 
     /* A full-width on-disk name must still be a terminated C string. */
     memset(out.droids[0].name, 'X', sizeof(out.droids[0].name));
@@ -357,9 +361,10 @@ static void test_legacy_version_record_size_is_supported(void) {
     assert(fseek(f, 4, SEEK_SET) == 0);
     uint8_t version[2] = {0, LIB_SAVE_REPUTATION_VERSION};
     assert(fwrite(version, 1, sizeof(version), f) == sizeof(version));
-    /* Remove v7's two additional skill bytes and six body-part condition
-       bytes; v5 retains reputation but predates the durability field. */
-    assert(fseek(f, -8, SEEK_END) == 0);
+    /* Remove v8's shield extension, v7's two additional skill bytes, and
+       six body-part condition bytes; v5 retains reputation but predates
+       these fields. */
+    assert(fseek(f, -11, SEEK_END) == 0);
     long end = ftell(f);
     assert(end >= 0 && ftruncate(fileno(f), end) == 0);
     assert(fclose(f) == 0);

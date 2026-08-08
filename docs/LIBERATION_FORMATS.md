@@ -58,6 +58,14 @@ the mission-selection scene observed from the verified CD32 original. The
 runtime manifest verifies this bank by SHA-256; it never identifies the asset
 through an ISO or archive filename.
 
+## OpenCaptive save extension
+
+OpenCaptive's `liberation.sav` is a separate, versioned runtime save format;
+it is not presented as an original Liberation save. Version 8 adds the shared
+droid shield item ID and durability after the existing body-part condition
+fields. Versions 1–7 remain readable, with shield state defaulting to empty
+when those fields are absent.
+
 ## O3DG city objects
 
 The CD32 data track also contains `FORM O3DG` containers. They are not ILBM

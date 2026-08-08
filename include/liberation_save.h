@@ -9,11 +9,12 @@
 #include "liberation_city_nav.h"
 
 #define LIB_SAVE_MAGIC "LSAV"
-#define LIB_SAVE_VERSION 7
-#define LIB_SAVE_PREVIOUS_VERSION 6
+#define LIB_SAVE_VERSION 8
+#define LIB_SAVE_PREVIOUS_VERSION 7
 #define LIB_SAVE_REPUTATION_VERSION 5
 #define LIB_SAVE_BODY_PART_VERSION 6
 #define LIB_SAVE_SKILLS_VERSION 7
+#define LIB_SAVE_SHIELD_VERSION 8
 #define LIB_SAVE_XP_VERSION 3
 #define LIB_SAVE_SHARED_INVENTORY_VERSION 4
 #define LIB_SAVE_LEGACY_VERSION 1
@@ -32,6 +33,10 @@ typedef struct {
     uint16_t equipment[8];
     uint8_t inventory[10];
     uint8_t body_part_hp[6];
+    /* OpenCaptive extension: the original eight equipment fields do not
+       include the shared runtime shield slot. */
+    uint8_t shield;
+    int16_t shield_hp;
 } LibSaveDroid;
 
 typedef struct {

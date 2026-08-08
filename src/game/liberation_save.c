@@ -55,7 +55,8 @@ bool lib_save_write(const LibSaveData *data, const char *path) {
     for (int i = 0; i < data->num_droids; i++) {
         const LibSaveDroid *d = &data->droids[i];
         if (d->hp < 0 || d->hp_max < 0 || d->hp > d->hp_max ||
-            d->energy < 0 || d->energy_max < 0 || d->energy > d->energy_max)
+            d->energy < 0 || d->energy_max < 0 || d->energy > d->energy_max ||
+            d->shield_hp < 0)
             return false;
     }
     size_t path_length = strlen(path);
@@ -99,6 +100,10 @@ bool lib_save_write(const LibSaveData *data, const char *path) {
              sizeof(d->inventory) && ok;
         ok = fwrite(d->body_part_hp, 1, sizeof(d->body_part_hp), f) ==
              sizeof(d->body_part_hp) && ok;
+        if (LIB_SAVE_VERSION >= LIB_SAVE_SHIELD_VERSION) {
+            ok = fwrite(&d->shield, 1, 1, f) == 1 && ok;
+            ok = write_u16(f, (uint16_t)d->shield_hp) && ok;
+        }
     }
 
     ok = fwrite(&data->shared_inventory_count, 1, 1, f) == 1 && ok;
@@ -148,6 +153,7 @@ bool lib_save_read(LibSaveData *data, const char *path) {
     uint16_t ver;
     if (!read_u16(f, &ver) ||
         (ver != LIB_SAVE_VERSION && ver != LIB_SAVE_PREVIOUS_VERSION &&
+         ver != LIB_SAVE_BODY_PART_VERSION &&
          ver != LIB_SAVE_REPUTATION_VERSION &&
          ver != LIB_SAVE_XP_VERSION &&
          ver != LIB_SAVE_SHARED_INVENTORY_VERSION &&
@@ -196,7 +202,8 @@ bool lib_save_read(LibSaveData *data, const char *path) {
         return false;
     }
     long file_end = ftell(f);
-    long long droid_record_size = ver >= LIB_SAVE_SKILLS_VERSION ? 71LL :
+    long long droid_record_size = ver >= LIB_SAVE_SHIELD_VERSION ? 74LL :
+                                   ver >= LIB_SAVE_SKILLS_VERSION ? 71LL :
                                    ver >= LIB_SAVE_BODY_PART_VERSION ? 69LL :
                                    ver >= LIB_SAVE_XP_VERSION ? 63LL :
                                    ver == LIB_SAVE_OLD_INVENTORY_VERSION ? 59LL :
@@ -258,6 +265,15 @@ bool lib_save_read(LibSaveData *data, const char *path) {
             fclose(f);
             return false;
         }
+        if (ver >= LIB_SAVE_SHIELD_VERSION) {
+            uint16_t shield_hp;
+            if (fread(&d->shield, 1, 1, f) != 1 ||
+                !read_u16(f, &shield_hp)) {
+                fclose(f);
+                return false;
+            }
+            d->shield_hp = (int16_t)shield_hp;
+        }
     }
 
     if (ver >= LIB_SAVE_SHARED_INVENTORY_VERSION) {
@@ -284,7 +300,8 @@ bool lib_save_read(LibSaveData *data, const char *path) {
     for (int i = 0; i < data->num_droids; i++) {
         const LibSaveDroid *d = &data->droids[i];
         if (d->hp < 0 || d->hp_max < 0 || d->hp > d->hp_max ||
-            d->energy < 0 || d->energy_max < 0 || d->energy > d->energy_max) {
+            d->energy < 0 || d->energy_max < 0 || d->energy > d->energy_max ||
+            d->shield_hp < 0) {
             fclose(f);
             return false;
         }

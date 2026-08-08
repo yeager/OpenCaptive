@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Liberation shield save persistence)
+
+- Extended the OpenCaptive Liberation save stream to version 8 with the
+  shared droid shield ID and durability, so F5/F9 no longer silently removes
+  an equipped shield.
+- Older Liberation saves remain readable and restore with no shield when the
+  older format has no shield fields.
+- Added round-trip coverage; the complete local suite passes 60/60 tests.
+
 ## 2026-08-08 (Combat source-lock correction)
 
 - Corrected the combat documentation and source comments: CAPPO.EXE offset

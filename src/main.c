@@ -1231,6 +1231,16 @@ static void restore_liberation_save_state(GameState *gs_ptr,
         gs_ptr->droids[i].energy = save->droids[i].energy;
         gs_ptr->droids[i].energy_max = save->droids[i].energy_max;
         gs_ptr->droids[i].xp = save->droids[i].xp;
+        if (save->version >= LIB_SAVE_SHIELD_VERSION) {
+            uint8_t shield_id;
+            const Item *shield = item_db_get(&item_db, save->droids[i].shield);
+            if (save->droids[i].shield_hp >= 0 && shield &&
+                shield->category == ITEM_SHIELD) {
+                shield_id = save->droids[i].shield;
+                gs_ptr->droids[i].shield = shield_id;
+                gs_ptr->droids[i].shield_hp = save->droids[i].shield_hp;
+            }
+        }
         memset(gs_ptr->droids[i].skill_levels, 0,
                sizeof(gs_ptr->droids[i].skill_levels));
         memcpy(gs_ptr->droids[i].skill_levels, save->droids[i].skills, 8);
@@ -1777,6 +1787,8 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                        sizeof(sd[i].inventory));
                 memcpy(sd[i].body_part_hp, gs->droids[i].body_part_hp,
                        sizeof(sd[i].body_part_hp));
+                sd[i].shield = gs->droids[i].shield;
+                sd[i].shield_hp = gs->droids[i].shield_hp;
             }
             uint16_t seed = (uint16_t)(gs->mission_seed & 0xFFFF);
             uint16_t seed_hi = (uint16_t)((gs->mission_seed >> 16) & 0xFFFF);
