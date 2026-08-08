@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Liberation shield damage ordering)
+
+- Fixed the Liberation combat slice so enemy damage is absorbed by equipped
+  shield durability before droid HP is reduced.
+- Added regression coverage for a fully absorbing shield.
+- The full local suite passes 60/60 tests.
+
 ## 2026-08-08 (Captive shield damage ordering)
 
 - Fixed incoming combat damage so an equipped shield absorbs damage before

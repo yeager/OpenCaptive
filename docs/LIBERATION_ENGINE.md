@@ -16,6 +16,10 @@ include procedural city generation, NPC systems, crime/police, shops, bars,
 mission cutscene resources, save/load structures, and building interaction;
 these slices do not yet constitute a complete playable Liberation campaign.
 
+The shared Liberation combat slice also honors equipped droid shields: enemy
+damage is absorbed by shield durability before HP is reduced. This is a
+runtime consistency fix, not evidence of complete campaign parity.
+
 ## F10 runtime options
 
 During a game, F10 opens a localized popup. Arrow keys select an entry and

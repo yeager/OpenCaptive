@@ -213,6 +213,25 @@ static void test_extreme_damage_saturates_hp(void) {
     assert(living == 3);
 }
 
+static void test_enemy_damage_is_absorbed_by_shield_first(void) {
+    LibCombatState cs;
+    GameState *gs = &test_gs_storage;
+    init_test_gs(gs);
+    for (int i = 1; i < 4; ++i) gs->droids[i].hp = 0;
+    gs->droids[0].shield = 58;
+    gs->droids[0].shield_hp = 10;
+
+    lib_combat_init(&cs);
+    lib_combat_generate_encounter(&cs, 99, 1);
+    cs.enemy_count = 1;
+    cs.enemies[0].damage = 12; /* turn damage becomes 10 after the base reduction */
+    int hp_before = gs->droids[0].hp;
+    lib_combat_enemy_turn(&cs, gs);
+
+    assert(gs->droids[0].hp == hp_before);
+    assert(gs->droids[0].shield_hp == 0);
+}
+
 static void test_turn_counter_saturates(void) {
     LibCombatState cs;
     GameState *gs = &test_gs_storage;
@@ -259,6 +278,7 @@ int main(void) {
     test_xp_reward_saturates();
     test_target_advances_after_enemy_is_defeated();
     test_extreme_damage_saturates_hp();
+    test_enemy_damage_is_absorbed_by_shield_first();
     test_turn_counter_saturates();
     test_combat_full_round();
     printf("All liberation combat tests passed.\n");

@@ -121,6 +121,18 @@ void lib_combat_enemy_turn(LibCombatState *cs, GameState *gs) {
 
         int damage = e->damage - 2;
         if (damage < 1) damage = 1;
+        /* Liberation shares the droid runtime model with Captive.  A shield
+         * must therefore absorb incoming damage before the remaining damage
+         * reaches HP, even in this turn-based combat path. */
+        if (d->shield != 0 && d->shield_hp > 0) {
+            if (damage <= d->shield_hp) {
+                d->shield_hp -= (int16_t)damage;
+                damage = 0;
+            } else {
+                damage -= d->shield_hp;
+                d->shield_hp = 0;
+            }
+        }
         if (damage >= d->hp)
             d->hp = 0;
         else
