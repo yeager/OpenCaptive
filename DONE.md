@@ -4021,3 +4021,11 @@
 - Added validation and round-trip regression coverage for shield categories,
   status bitmasks, and runtime-state ranges. Local build and all 60 CTest
   tests pass.
+# 2026-08-08 (Captive creature combat save state)
+- Extended the Captive runtime trailer to preserve each creature's
+  `status_attack` and `is_boss` flags, preventing F9 from removing boss
+  rewards or poison/stun attack effects.
+- Added compatibility for the previous `OST1` v1 trailer while new saves
+  use v2 with the creature metadata.
+- Added round-trip regression assertions; local CTest remains 60/60 and real
+  `.opencaptive` data verification passes for Captive and Liberation.

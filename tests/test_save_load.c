@@ -39,7 +39,8 @@ static void test_round_trip(void) {
     saved_creatures.creatures[0] = (Creature){
         .type = CREATURE_ALIEN1, .hp = 0, .hp_max = 30,
         .x = 12, .y = 7, .level = 0, .active = false,
-        .respawn_timer = 600,
+        .respawn_timer = 600, .status_attack = STATUS_POISON,
+        .is_boss = true,
     };
     saved_puzzles.num_puzzles = 1;
     saved_puzzles.puzzles[0] = (Puzzle){
@@ -88,6 +89,8 @@ static void test_round_trip(void) {
     assert(loaded.generators_destroyed == 1);
     assert(loaded_creatures.num_creatures == 1);
     assert(!loaded_creatures.creatures[0].active);
+    assert(loaded_creatures.creatures[0].status_attack == STATUS_POISON);
+    assert(loaded_creatures.creatures[0].is_boss);
     assert(loaded_puzzles.num_puzzles == 1);
     assert(loaded_puzzles.puzzles[0].solved);
     assert(loaded.levels[0].cells[7][9].ornament[DIR_NORTH] == ORNAMENT_PANEL);
