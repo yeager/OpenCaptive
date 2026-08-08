@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive type 25 sprite record)
+
+- Corrected creature type 25's sprite frame from `0x60/0x00` to the real
+  CAPPO.EXE v1.06 record `0x60/0x20`.
+- Added regression coverage while keeping the unresolved `0x60` sheet outside
+  the six ALIEN runtime sheets.
+
 ## 2026-08-08 (Captive item-category validation)
 
 - Captive weapon and grenade actions now require the supplied item record to
