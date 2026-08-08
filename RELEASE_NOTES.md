@@ -16,6 +16,9 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
 
 ### Changed
 
+- **(Liberation)** The verified CD32 city presentation now decodes its real
+  six-bitplane PACK frame. The previous defensive five-plane limit incorrectly
+  hid the source-backed city frame during data verification.
 - **(Liberation)** BuildingGen records now preserve the disassembly-documented
   building category bits in the flags byte while retaining connection counts.
 - **(Captive)** Creature rendering now resolves the disassembly's `DS:0xA16E`

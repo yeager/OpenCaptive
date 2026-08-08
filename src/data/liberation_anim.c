@@ -325,7 +325,7 @@ static int decode_first_pack_frame(const uint8_t *pack, size_t pack_size,
         uint32_t raw_size = read_be32(all_records + 6U);
         uint64_t expected_size = (uint64_t)width_bytes * height * depth;
         if (width_bytes != 0U && width_bytes <= UINT16_MAX / 8U &&
-            height != 0U && depth != 0U && depth <= 5U &&
+            height != 0U && depth != 0U && depth <= 8U &&
             expected_size <= UINT32_MAX && raw_size == expected_size &&
             raw_size <= all_records_size - PACK_DESCRIPTOR_SIZE) {
             uint8_t *raw = malloc(raw_size);
@@ -360,7 +360,7 @@ static int decode_first_pack_frame(const uint8_t *pack, size_t pack_size,
     uint32_t raw_size = read_be32(pack + pos + 6U);
     uint64_t expected_size = (uint64_t)width_bytes * height * depth;
     if (width_bytes == 0U || width_bytes > UINT16_MAX / 8U || height == 0U ||
-        depth == 0U || depth > 5U ||
+        depth == 0U || depth > 8U ||
         expected_size > UINT32_MAX || raw_size != expected_size ||
         raw_size > pack_size - pos ||
         (uint64_t)record_size != (uint64_t)raw_size + PACK_DESCRIPTOR_SIZE) return 0;
@@ -443,7 +443,7 @@ int liberation_anim_decode_first_frame(const uint8_t *form, size_t form_size,
 void liberation_anim_blit(const LiberationAnimFrame *frame, uint32_t *dst,
                           int dst_width, int dst_height, int dst_x, int dst_y) {
     if (!frame || !frame->bitplanes || !dst || dst_width <= 0 || dst_height <= 0 ||
-        frame->depth == 0U || frame->depth > 5U || frame->width == 0U ||
+        frame->depth == 0U || frame->depth > 8U || frame->width == 0U ||
         frame->height == 0U) return;
     /* Public callers may construct a frame whose width is not a multiple of
      * eight.  Planar rows still need one partial byte for the final pixels;

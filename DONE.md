@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Liberation city presentation depth)
+
+- Restored support for the six planar bitplanes used by the hash-verified
+  Liberation CD32 city FORM/ANIM resource.
+- The real city frame from `.opencaptive` now decodes at 320×167 and matches
+  the independent first-frame pixel hash used by `--verify-data liberation`.
+- Added a container-level regression test for six-plane FORM/ANIM records.
+- Full local test suite: 59/59 tests passed.
+
 ## 2026-08-08 (Captive creature animation frame routing)
 
 - The active Captive viewport now uses the disassembly `frame_index` from

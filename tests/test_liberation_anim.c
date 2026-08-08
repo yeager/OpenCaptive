@@ -127,6 +127,36 @@ int main(void) {
     assert(!liberation_anim_script_record_at(&script, 1, &record));
     liberation_anim_script_free(&script);
 
+    /* The verified Liberation city FORM uses six planar bitplanes.  Keep a
+       small container-level regression here so a defensive depth limit cannot
+       make that real source frame disappear from the runtime again. */
+    uint8_t six_plane_form[12 + 8 + 64 + 8 + 32] = {0};
+    memcpy(six_plane_form, "FORM", 4);
+    write_be32(six_plane_form + 4, sizeof(six_plane_form) - 8U);
+    memcpy(six_plane_form + 8, "ANIM", 4);
+    memcpy(six_plane_form + 12, "PALL", 4);
+    write_be32(six_plane_form + 16, 64);
+    memcpy(six_plane_form + 84, "PACK", 4);
+    write_be32(six_plane_form + 88, 32);
+    write_be32(six_plane_form + 92, 1);
+    write_be32(six_plane_form + 96, 20);
+    write_be16(six_plane_form + 100, 1);
+    write_be16(six_plane_form + 102, 1);
+    six_plane_form[104] = 6;
+    write_be32(six_plane_form + 106, 6);
+    six_plane_form[114] = 5;
+    six_plane_form[115] = 0x01;
+    six_plane_form[116] = 0x02;
+    six_plane_form[117] = 0x04;
+    six_plane_form[118] = 0x08;
+    six_plane_form[119] = 0x10;
+    six_plane_form[120] = 0x20;
+    memset(&frame, 0, sizeof(frame));
+    assert(liberation_anim_decode_first_frame(six_plane_form,
+                                              sizeof(six_plane_form), &frame));
+    assert(frame.width == 8 && frame.height == 1 && frame.depth == 6);
+    liberation_anim_frame_free(&frame);
+
     /* Chunks beyond the declared FORM extent must not be considered part of
        the animation merely because the backing buffer contains more bytes. */
     write_be32(form + 4, 76U); /* FORM ends immediately after PALL */
