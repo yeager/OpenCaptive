@@ -48,7 +48,9 @@ uint8_t city_nav_get_cell(const CityGridState *grid, int x, int y) {
 
 bool city_nav_is_road(const CityGridState *grid, int x, int y) {
     uint8_t cell = city_nav_get_cell(grid, x, y);
-    return cell == CITYGRID_CELL_ROAD || cell == 0x0A || cell == 0x1F;
+    return cell == CITYGRID_CELL_ROAD || cell == 0x0A || cell == 0x1F ||
+           cell == 0x21 || cell == 0x22 || cell == 0x23 ||
+           cell == 0x0B || cell == 0x0E;
 }
 
 static bool is_road_feature_cell(uint8_t cell) {
@@ -60,8 +62,8 @@ static bool is_road_feature_cell(uint8_t cell) {
 bool city_nav_is_wall(const CityGridState *grid, int x, int y) {
     uint8_t cell = city_nav_get_cell(grid, x, y);
     /* Building cells carry type/ID bits in plane0 and are not encoded as
-     * CITYGRID_CELL_WALL.  They are nevertheless solid city geometry. Road
-     * feature cells are blocked too, but remain ground with a prop on top. */
+     * CITYGRID_CELL_WALL. They are nevertheless solid city geometry. Road
+     * feature cells remain traversable ground with a prop on top. */
     return !city_nav_is_road(grid, x, y) && !is_road_feature_cell(cell);
 }
 

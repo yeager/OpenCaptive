@@ -100,8 +100,15 @@ static void test_nonroad_building_cell_is_blocked(void) {
 static void test_road_feature_is_not_rendered_as_wall(void) {
     CityGridState grid = make_test_grid();
     grid.plane0[5 * CITYGRID_WIDTH + 7] = 0x0E; /* finalized post box */
-    assert(!city_nav_is_road(&grid, 7, 5));
+    assert(city_nav_is_road(&grid, 7, 5));
     assert(city_nav_is_wall(&grid, 7, 5) == false);
+
+    CityNavState nav;
+    city_nav_init(&nav, 6, 5, CITY_DIR_EAST);
+    assert(city_nav_can_move_forward(&nav, &grid));
+    city_nav_move_forward(&nav, &grid);
+    city_nav_update(&nav, 1.0f);
+    assert(nav.cell_x == 7 && nav.cell_y == 5);
 }
 
 static void test_turn(void) {

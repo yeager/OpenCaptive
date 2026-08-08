@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Liberation city road-feature navigation)
+
+- Made finalized road features such as phone boxes and post boxes traversable
+  in city movement, matching their rendered ground-cell representation.
+- Added regression coverage that walks onto a feature cell and keeps it out of
+  wall collision, restoring access to the associated city interactions.
+- Full local test suite: 60/60 tests passed.
+
 ## 2026-08-08 (Captive grenade actor validation)
 
 - Moved the Captive grenade action into the combat module so it shares the
