@@ -255,6 +255,7 @@ jobs:
           for fw in "$APP/Contents/Frameworks/"*.dylib; do
             bundle_dylib "$fw"
           done
+          touch "$APP/Contents/Info.plist"
           /usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string OpenCaptive" "$APP/Contents/Info.plist"
           /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string se.danielnylander.opencaptive" "$APP/Contents/Info.plist"
           /usr/libexec/PlistBuddy -c "Add :CFBundleName string OpenCaptive" "$APP/Contents/Info.plist"
@@ -286,6 +287,14 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v6
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          $inno = "C:\Program Files (x86)\Inno Setup 6"
+          if (-not (Test-Path "$inno\ISCC.exe")) {
+            choco install innosetup --no-progress -y
+          }
+          $inno | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Install zlib
         run: |
           git clone --depth 1 https://github.com/madler/zlib.git zlib-src
@@ -355,6 +364,7 @@ jobs:
           echo Source: "dist\zlib*.dll"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
           echo Source: "dist\data\*"; DestDir: "{app}\data"; Flags: ignoreversion
           echo Source: "dist\po\*"; DestDir: "{app}\po"; Flags: ignoreversion
+          echo Source: "dist\assets\*"; DestDir: "{app}\assets"; Flags: recursesubdirs ignoreversion
           echo Source: "dist\README.md"; DestDir: "{app}"; Flags: ignoreversion
           echo Source: "dist\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
           echo Source: "dist\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
