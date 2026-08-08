@@ -4,6 +4,8 @@
 
 - Replaced the start-menu Captive and Liberation card artwork with the
   restored project images and verified the local launcher build.
+- Updated start-menu artwork rendering to use aspect-fit scaling so the
+  restored card images are no longer stretched.
 
 ## 2026-08-07 (Captive ANM endian contract)
 

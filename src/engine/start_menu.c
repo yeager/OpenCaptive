@@ -114,6 +114,26 @@ static void blit_scaled(uint32_t *dst, int dw, int dh,
     }
 }
 
+/* Keep cover artwork undistorted while fitting it inside the card bounds. */
+static void blit_scaled_aspect_fit(uint32_t *dst, int dw, int dh,
+                                   int dx, int dy, int tw, int th,
+                                   const uint32_t *src, int sw, int sh) {
+    if (!dst || !src || dw <= 0 || dh <= 0 || tw <= 0 || th <= 0 ||
+        sw <= 0 || sh <= 0) return;
+
+    int fit_w = tw;
+    int fit_h = (int)((int64_t)th * sw / tw);
+    if (fit_h > th) {
+        fit_h = th;
+        fit_w = (int)((int64_t)th * sw / sh);
+    }
+    if (fit_w <= 0 || fit_h <= 0) return;
+
+    blit_scaled(dst, dw, dh,
+                dx + (tw - fit_w) / 2, dy + (th - fit_h) / 2,
+                fit_w, fit_h, src, sw, sh);
+}
+
 static void ttf_text(uint32_t *pixels, int pw, int ph,
                      int x, int y, const char *text,
                      TTF_Font *font, uint32_t color) {
@@ -1453,8 +1473,8 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
     int cx1 = cx0 + card_w + gap;
 
     if (menu->captive_img && menu->captive_img_w > 0 && menu->captive_img_h > 0) {
-        blit_scaled(pixels, width, height, cx0, card_y, card_w, card_h,
-                    menu->captive_img, menu->captive_img_w, menu->captive_img_h);
+        blit_scaled_aspect_fit(pixels, width, height, cx0, card_y, card_w, card_h,
+                               menu->captive_img, menu->captive_img_w, menu->captive_img_h);
     } else {
         draw_captive_card(pixels, width, height, cx0, card_y, card_w, card_h,
                           menu->selected_item == 0, menu->anim_tick);
@@ -1468,8 +1488,8 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
 
     if (menu->liberation_img && menu->liberation_img_w > 0 &&
         menu->liberation_img_h > 0) {
-        blit_scaled(pixels, width, height, cx1, card_y, card_w, card_h,
-                    menu->liberation_img, menu->liberation_img_w, menu->liberation_img_h);
+        blit_scaled_aspect_fit(pixels, width, height, cx1, card_y, card_w, card_h,
+                               menu->liberation_img, menu->liberation_img_w, menu->liberation_img_h);
     } else {
         draw_liberation_card(pixels, width, height, cx1, card_y, card_w, card_h,
                              menu->selected_item == 1, menu->anim_tick);
