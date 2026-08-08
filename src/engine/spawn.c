@@ -142,24 +142,9 @@ SpawnResult spawn_creatures(int category, int difficulty, uint8_t direction,
         e0->modifier = mod;
         e0->hp = spawn_compute_hp(type, difficulty, mod);
         }
-        uint8_t opp_dir = direction ^ 0x02;
-        uint8_t opp_sub = spawn_subcell_from_direction(opp_dir, position);
-        if (result.count < MAX_SPAWN_ENTRIES) {
-        SpawnEntry *e1 = &result.entries[result.count++];
-        e1->creature_type = type;
-        e1->subcell = opp_sub;
-        e1->modifier = mod;
-        e1->hp = spawn_compute_hp(type, difficulty, mod);
-        }
-        uint8_t perp_dir = (~direction) & 0x01;
-        uint8_t perp_sub = spawn_subcell_from_direction(perp_dir, position);
-        if (result.count < MAX_SPAWN_ENTRIES) {
-        SpawnEntry *e2 = &result.entries[result.count++];
-        e2->creature_type = type;
-        e2->subcell = perp_sub;
-        e2->modifier = mod;
-        e2->hp = spawn_compute_hp(type, difficulty, mod);
-        }
+        /* CAPPO 0x95DD calls the placement routine once for type 0x0F.
+         * The following 0x95E9/0x95F2 calls only derive its direction-based
+         * subcell; they do not create two additional creatures. */
     } else if (type == 0x15) {
         if (result.count < MAX_SPAWN_ENTRIES) {
         SpawnEntry *e0 = &result.entries[result.count++];

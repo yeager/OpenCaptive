@@ -713,7 +713,7 @@ into dungeon cells based on creature type, party direction, and cell position.
 | 0x0A–0x0B | Single `place_flagged()` (subcell OR 0x20) | 1 |
 | 0x0C | Two `place_flagged()` with increment | 2 |
 | 0x0D–0x0E | Three `place()` with increments | 3 |
-| 0x0F | `place()` + opposite direction + perpendicular direction | 3 |
+| 0x0F | One `place()`; following calls derive its direction/subcell | 1 |
 | 0x15 | `place()` + `place_flagged()` | 2 |
 | other | Single `place()` | 1 |
 
