@@ -25,7 +25,9 @@
 - [x] Recover real creature stat tables (DS:0xA1BF, 25 types, HP/category/speed/sprite)
 - [x] Implement damage formula: lo*hi byte encoding, shift-left scaling
 - [x] Recover real level-up and XP formulas
-- [x] Verify spawn placement algorithm against original
+- [ ] Route recovered spawn subcells through runtime placement and verify the
+      complete placement algorithm against CAPPO `0x9643`/`0x9699`; the current
+      combat loop still places entries using a compatibility grid offset.
 - [x] Reconstruct the original spawn-record modifier table (`[di+9]`) and
       feed all 24 creature-type entries into HP calculation; the previous
       implementation only covered entries 0-15.
