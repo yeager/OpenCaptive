@@ -115,6 +115,26 @@ static void blit_scaled(uint32_t *dst, int dw, int dh,
     }
 }
 
+/* Keep cover artwork undistorted while fitting it inside the card bounds. */
+static void blit_scaled_aspect_fit(uint32_t *dst, int dw, int dh,
+                                   int dx, int dy, int tw, int th,
+                                   const uint32_t *src, int sw, int sh) {
+    if (!dst || !src || dw <= 0 || dh <= 0 || tw <= 0 || th <= 0 ||
+        sw <= 0 || sh <= 0) return;
+
+    int fit_w = tw;
+    int fit_h = (int)((int64_t)th * sw / tw);
+    if (fit_h > th) {
+        fit_h = th;
+        fit_w = (int)((int64_t)th * sw / sh);
+    }
+    if (fit_w <= 0 || fit_h <= 0) return;
+
+    blit_scaled(dst, dw, dh,
+                dx + (tw - fit_w) / 2, dy + (th - fit_h) / 2,
+                fit_w, fit_h, src, sw, sh);
+}
+
 static void ttf_text(uint32_t *pixels, int pw, int ph,
                      int x, int y, const char *text,
                      TTF_Font *font, uint32_t color) {
