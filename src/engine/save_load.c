@@ -27,6 +27,12 @@
 #define SAVE_THUMB_MAGIC 0x424D5443u /* "CTMB", matches save_thumbnail.c */
 #define SAVE_THUMB_BLOCK_SIZE (4 + (long)SAVE_THUMB_PIXELS * 4)
 
+/* Captive runtime state was added as a self-describing trailer so the fixed
+ * v5 header and droid records remain readable on older installations. */
+#define SAVE_STATE_MAGIC 0x3154534Fu /* "OST1" */
+#define SAVE_STATE_VERSION 1u
+#define SAVE_STATE_BLOCK_SIZE 40L
+
 typedef struct {
     uint32_t magic;
     uint32_t version;
@@ -93,6 +99,60 @@ static bool read_i32_le(FILE *f, int32_t *value) {
     uint32_t raw;
     if (!read_u32_le(f, &raw)) return false;
     *value = (int32_t)raw;
+    return true;
+}
+
+static bool valid_droid_runtime_state(const ItemDatabase *db, const Droid *d) {
+    if (!db || !d || d->shield_hp < 0 ||
+        (d->status & ~(STATUS_POISON | STATUS_STUN | STATUS_DRAIN)) != 0)
+        return false;
+    if (d->shield == 0) return true;
+    const Item *shield = item_db_get(db, d->shield);
+    return shield && shield->category == ITEM_SHIELD;
+}
+
+static bool write_save_state_extension(FILE *f, const GameState *gs) {
+    if (!f || !gs || gs->secondary_obj_type > 3 ||
+        gs->secondary_obj_done > 1) return false;
+    if (!write_u32_le(f, SAVE_STATE_MAGIC) ||
+        !write_u16_le(f, (uint16_t)SAVE_STATE_VERSION) ||
+        !write_u16_le(f, (uint16_t)SAVE_STATE_BLOCK_SIZE) ||
+        !write_u32_le(f, gs->score) ||
+        fwrite(&gs->secondary_obj_type, 1, 1, f) != 1 ||
+        fwrite(&gs->secondary_obj_done, 1, 1, f) != 1 ||
+        !write_u16_le(f, gs->secondary_obj_param)) return false;
+    for (size_t i = 0; i < sizeof(gs->droids) / sizeof(gs->droids[0]); ++i) {
+        const Droid *d = &gs->droids[i];
+        if (fwrite(&d->shield, 1, 1, f) != 1 ||
+            !write_i16_le(f, d->shield_hp) ||
+            fwrite(&d->status, 1, 1, f) != 1 ||
+            fwrite(&d->poison_timer, 1, 1, f) != 1 ||
+            fwrite(&d->stun_timer, 1, 1, f) != 1) return false;
+    }
+    return true;
+}
+
+static bool read_save_state_extension(FILE *f, GameState *gs) {
+    uint32_t magic, score;
+    uint16_t version, size, secondary_param;
+    if (!f || !gs || !read_u32_le(f, &magic) ||
+        !read_u16_le(f, &version) || !read_u16_le(f, &size) ||
+        magic != SAVE_STATE_MAGIC || version != SAVE_STATE_VERSION ||
+        size != SAVE_STATE_BLOCK_SIZE || !read_u32_le(f, &score) ||
+        fread(&gs->secondary_obj_type, 1, 1, f) != 1 ||
+        fread(&gs->secondary_obj_done, 1, 1, f) != 1 ||
+        !read_u16_le(f, &secondary_param) || gs->secondary_obj_type > 3 ||
+        gs->secondary_obj_done > 1) return false;
+    gs->score = score;
+    gs->secondary_obj_param = secondary_param;
+    for (size_t i = 0; i < sizeof(gs->droids) / sizeof(gs->droids[0]); ++i) {
+        Droid *d = &gs->droids[i];
+        if (fread(&d->shield, 1, 1, f) != 1 ||
+            !read_i16_le(f, &d->shield_hp) ||
+            fread(&d->status, 1, 1, f) != 1 ||
+            fread(&d->poison_timer, 1, 1, f) != 1 ||
+            fread(&d->stun_timer, 1, 1, f) != 1) return false;
+    }
     return true;
 }
 
@@ -397,7 +457,8 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
         const Droid *d = &gs->droids[i];
         if (d->hp < 0 || d->hp_max < 0 || d->hp > d->hp_max ||
             d->energy < 0 || d->energy_max < 0 || d->energy > d->energy_max ||
-            !valid_droid_items(&item_db, d))
+            !valid_droid_items(&item_db, d) ||
+            !valid_droid_runtime_state(&item_db, d))
             return false;
     }
     for (int level = 0; level < gs->num_levels; level++) {
@@ -468,6 +529,7 @@ bool save_game(const GameState *gs, const CreatureList *creatures,
         ok = write_creature_v5(f, &creatures->creatures[i]);
     for (int i = 0; ok && i < puzzles->num_puzzles; ++i)
         ok = write_puzzle_v5(f, &puzzles->puzzles[i]);
+    if (ok) ok = write_save_state_extension(f, gs);
 
     if (fclose(f) != 0) ok = false;
     if (!ok) {
@@ -563,6 +625,7 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
             droid->energy > droid->energy_max || droid->energy_max < 0 ||
             !valid_droid_items(&item_db, droid))
             LOAD_FAIL();
+        if (!valid_droid_runtime_state(&item_db, droid)) LOAD_FAIL();
         /* weapon_damage is a derived combat cache, not authoritative save
          * state. Recompute it from validated weapon slots so a modified or
          * stale save cannot grant arbitrary damage after loading. */
@@ -641,9 +704,8 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
      * visible interaction as well as the puzzle state. */
     restore_puzzle_ornaments(restored, &restored_puzzles);
 
-    /* The only extension area is an optional thumbnail trailer.  Reject
-     * anything else so a concatenated or mismatched save cannot be
-     * accepted as valid state. */
+    /* v5 runtime state and the optional thumbnail are self-describing
+     * trailers. Older saves have neither trailer and remain loadable. */
     long payload_end = ftell(f);
     if (payload_end < 0 || fseek(f, 0, SEEK_END) != 0) {
         LOAD_FAIL();
@@ -653,12 +715,24 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
         LOAD_FAIL();
     }
     long trailing = file_end - payload_end;
-    if (trailing != 0 && trailing != SAVE_THUMB_BLOCK_SIZE) {
+    bool has_state = trailing == SAVE_STATE_BLOCK_SIZE ||
+                     trailing == SAVE_STATE_BLOCK_SIZE + SAVE_THUMB_BLOCK_SIZE;
+    bool has_thumb = trailing == SAVE_THUMB_BLOCK_SIZE ||
+                     trailing == SAVE_STATE_BLOCK_SIZE + SAVE_THUMB_BLOCK_SIZE;
+    if (trailing != 0 && !has_state && !has_thumb) {
         LOAD_FAIL();
     }
-    if (trailing == SAVE_THUMB_BLOCK_SIZE) {
+    if (has_state &&
+        (fseek(f, payload_end, SEEK_SET) != 0 ||
+         !read_save_state_extension(f, restored))) {
+        LOAD_FAIL();
+    }
+    for (size_t i = 0; i < sizeof(restored->droids) / sizeof(restored->droids[0]); ++i)
+        if (!valid_droid_runtime_state(&item_db, &restored->droids[i])) LOAD_FAIL();
+    if (has_thumb) {
         uint32_t thumb_magic;
-        if (fseek(f, payload_end, SEEK_SET) != 0 ||
+        long thumb_offset = payload_end + (has_state ? SAVE_STATE_BLOCK_SIZE : 0);
+        if (fseek(f, thumb_offset, SEEK_SET) != 0 ||
             !read_u32_le(f, &thumb_magic) || thumb_magic != SAVE_THUMB_MAGIC) {
             LOAD_FAIL();
         }

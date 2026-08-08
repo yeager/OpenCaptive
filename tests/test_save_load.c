@@ -21,6 +21,15 @@ static void test_round_trip(void) {
     saved.tick = 12345;
     saved.gold = 777;
     saved.droids[2].hp = 37;
+    saved.droids[0].shield = 58; /* SHIELD MK1 from the project item table */
+    saved.droids[0].shield_hp = 123;
+    saved.droids[0].status = STATUS_POISON | STATUS_STUN;
+    saved.droids[0].poison_timer = 7;
+    saved.droids[0].stun_timer = 3;
+    saved.score = 123456;
+    saved.secondary_obj_type = 2;
+    saved.secondary_obj_done = 1;
+    saved.secondary_obj_param = 777;
     memset(saved.droids[0].name, 'D', sizeof(saved.droids[0].name));
     saved.levels[0].cells[7][11].type = CELL_FLOOR;
     saved.levels[0].cells[7][12].type = CELL_FLOOR;
@@ -66,6 +75,12 @@ static void test_round_trip(void) {
     assert(loaded.party_x == 11 && loaded.party_y == 7);
     assert(loaded.party_dir == DIR_EAST && loaded.selected_droid == 2);
     assert(loaded.tick == 12345 && loaded.droids[2].hp == 37);
+    assert(loaded.droids[0].shield == 58 && loaded.droids[0].shield_hp == 123);
+    assert(loaded.droids[0].status == (STATUS_POISON | STATUS_STUN));
+    assert(loaded.droids[0].poison_timer == 7 && loaded.droids[0].stun_timer == 3);
+    assert(loaded.score == 123456);
+    assert(loaded.secondary_obj_type == 2 && loaded.secondary_obj_done);
+    assert(loaded.secondary_obj_param == 777);
     assert(loaded.droids[0].name[sizeof(loaded.droids[0].name) - 1] == '\0');
     assert(loaded.gold == 777);
     assert(loaded.levels[0].cells[7][12].type == CELL_FLOOR);
@@ -283,6 +298,23 @@ static void test_save_rejects_state_load_would_reject(void) {
         .type = CREATURE_ALIEN1, .x = 1, .y = 1, .level = 0,
         .hp = -1, .hp_max = 10
     };
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+}
+
+static void test_save_rejects_invalid_droid_runtime_state(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+
+    gs.droids[0].shield = 255;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    gs.droids[0].shield = 58;
+    gs.droids[0].shield_hp = -1;
+    assert(!save_game(&gs, &creatures, &puzzles, save_path));
+    gs.droids[0].shield_hp = 10;
+    gs.droids[0].status = 0x80;
     assert(!save_game(&gs, &creatures, &puzzles, save_path));
 }
 
@@ -590,6 +622,7 @@ int main(void) {
     test_unknown_item_id_rejected();
     test_droid_slots_use_matching_item_categories();
     test_save_rejects_state_load_would_reject();
+    test_save_rejects_invalid_droid_runtime_state();
     test_save_rejects_creature_overlap();
     test_save_rejects_invalid_identifiers();
     test_save_rejects_invalid_puzzle();

@@ -4012,3 +4012,12 @@
   XP award from CAPPO.EXE `0x9621`, not only the attacking droid.
 - Level-up stat restoration now applies independently to each recipient.
 - Added a multi-droid regression assertion to the game-state combat tests.
+# 2026-08-08 (Captive save runtime state)
+- Extended the Captive v5 save stream with a self-describing `OST1` trailer
+  that preserves score, secondary-objective progress, equipped shield state,
+  and active droid status timers across F9/load.
+- Kept the fixed v5 payload and older v3/v4/v5 saves compatible; thumbnail
+  trailers remain supported after the new state trailer.
+- Added validation and round-trip regression coverage for shield categories,
+  status bitmasks, and runtime-state ranges. Local build and all 60 CTest
+  tests pass.
