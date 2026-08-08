@@ -434,6 +434,39 @@ static void test_lethal_puzzle_hazards_enter_game_over(void) {
     assert(gs.mode == STATE_GAMEOVER);
 }
 
+static void test_puzzle_hazards_respect_shields(void) {
+    GameState gs;
+    PuzzleList puzzles = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    game_state_new_mission(&gs, 1);
+    gs.selected_droid = 0;
+    gs.droids[0].hp = 100;
+    gs.droids[0].shield = 58;
+    gs.droids[0].shield_hp = 10;
+
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_FLOOR_TRAP, .x = 2, .y = 2,
+        .level = gs.current_level, .state = 7
+    };
+    puzzles.num_puzzles = 1;
+    assert(puzzle_interact(&puzzles, &gs, 2, 2, DIR_NORTH));
+    assert(gs.droids[0].hp == 100);
+    assert(gs.droids[0].shield_hp == 3);
+
+    gs.droids[1].hp = 100;
+    gs.droids[1].shield = 59;
+    gs.droids[1].shield_hp = 10;
+    puzzles.puzzles[0] = (Puzzle){
+        .type = PUZZLE_WALL_ELECTRIC, .x = 3, .y = 3,
+        .level = gs.current_level, .face = DIR_NORTH
+    };
+    assert(puzzle_interact(&puzzles, &gs, 3, 3, DIR_NORTH));
+    assert(gs.droids[0].hp == 95);
+    assert(gs.droids[0].shield_hp == 0);
+    assert(gs.droids[1].hp == 100);
+    assert(gs.droids[1].shield_hp == 2);
+}
+
 static void test_generated_triple_levers_use_all_eight_states(void) {
     bool found_extended_solution = false;
     for (uint32_t seed = 1; seed <= 128 && !found_extended_solution; seed++) {
@@ -1603,6 +1636,7 @@ int main(void) {
     test_generated_buttons_face_walls();
     test_generated_puzzles_do_not_overlap();
     test_lethal_puzzle_hazards_enter_game_over();
+    test_puzzle_hazards_respect_shields();
     test_generated_triple_levers_use_all_eight_states();
     test_combat_spawn_never_overlaps_active_creatures();
     test_combat_spawn_density_advances_by_two_groups_per_level();

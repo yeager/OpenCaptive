@@ -1,5 +1,6 @@
 #include "puzzle.h"
 #include "captive_data.h"
+#include "droid_damage.h"
 #include "i18n.h"
 #include <limits.h>
 #include <string.h>
@@ -630,10 +631,7 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                     gs->selected_droid >= (int)(sizeof(gs->droids) / sizeof(gs->droids[0])))
                     return false;
                 Droid *d = &gs->droids[gs->selected_droid];
-                if (p->state >= d->hp)
-                    d->hp = 0;
-                else
-                    d->hp = (int16_t)(d->hp - p->state);
+                droid_apply_environmental_damage(d, p->state);
                 apply_puzzle_game_over(gs);
                 return true;
             }
@@ -667,11 +665,7 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
             case PUZZLE_WALL_ELECTRIC: {
                 int elec_dmg = 8 + gs->current_level * 3;
                 for (int di = 0; di < 4; di++) {
-                    if (gs->droids[di].hp > 0) {
-                        int remaining_hp = (int)gs->droids[di].hp - elec_dmg;
-                        if (remaining_hp < 0) remaining_hp = 0;
-                        gs->droids[di].hp = (int16_t)remaining_hp;
-                    }
+                    droid_apply_environmental_damage(&gs->droids[di], elec_dmg);
                 }
                 apply_puzzle_game_over(gs);
                 return true;
@@ -699,10 +693,7 @@ void puzzle_check_step(PuzzleList *pl, GameState *gs, int x, int y) {
                     gs->selected_droid >= (int)(sizeof(gs->droids) / sizeof(gs->droids[0])))
                     break;
                 Droid *d = &gs->droids[gs->selected_droid];
-                if (p->state >= d->hp)
-                    d->hp = 0;
-                else
-                    d->hp = (int16_t)(d->hp - p->state);
+                droid_apply_environmental_damage(d, p->state);
                 apply_puzzle_game_over(gs);
                 break;
             }

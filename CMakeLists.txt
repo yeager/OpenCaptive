@@ -409,7 +409,7 @@ add_executable(test_game_state tests/test_game_state.c
     src/engine/engine.c src/engine/map_gen.c src/engine/combat.c
     src/engine/captive_data.c src/engine/xp_level.c src/engine/inventory.c
     src/engine/mapgen_ca.c src/engine/spawn.c src/engine/creature_stats.c
-    src/engine/puzzle.c src/data/i18n.c)
+    src/engine/puzzle.c src/engine/droid_damage.c src/data/i18n.c)
 target_include_directories(test_game_state PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_game_state PRIVATE SDL3::SDL3)
 add_test(NAME game_state COMMAND test_game_state)

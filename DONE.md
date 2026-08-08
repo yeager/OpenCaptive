@@ -4178,3 +4178,10 @@
 - Shield durability now initializes from the verified item definition (MK1/MK2
   defense values) and is preserved by the existing save state.
 - Added a UI regression test; local CTest remains 60/60.
+
+## 2026-08-08 (Captive puzzle hazard shield handling)
+
+Captive floor traps and wall-electric puzzles now use the shared environmental
+damage path, so equipped shields absorb their damage before droid HP is
+reduced. Regression coverage verifies both partial shield absorption and the
+existing lethal game-over behavior.
