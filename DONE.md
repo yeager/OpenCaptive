@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive invalid item-database attack)
+
+- Captive attack validation now resolves equipped weapons from the supplied
+  item database before spending energy.
+- A missing or malformed item record can no longer consume energy after the
+  attack has already been rejected.
+- Added regression coverage for the invalid-database path.
+
 ## 2026-08-08 (Captive two-weapon range selection)
 
 - Captive now resolves damage from an equipped weapon that can actually reach

@@ -645,9 +645,14 @@ bool combat_droid_attack_with_items(GameState *gs, CreatureList *cl,
     int attack_range = 0;
     for (int w = 0; w < 2; w++) {
         uint8_t wid = d->weapons[w];
-        CombatWeaponChoice choice;
-        int weapon_range = combat_item_weapon_choice(db, wid, &choice) ?
-                            choice.range : combat_weapon_range(wid);
+        int weapon_range = 0;
+        if (db) {
+            CombatWeaponChoice choice;
+            if (combat_item_weapon_choice(db, wid, &choice))
+                weapon_range = choice.range;
+        } else {
+            weapon_range = combat_weapon_range(wid);
+        }
         if (weapon_range > attack_range) attack_range = weapon_range;
     }
     if (attack_range == 0) return false;
@@ -678,9 +683,6 @@ bool combat_droid_attack_with_items(GameState *gs, CreatureList *cl,
 
     if (!target) return false;
 
-    if (d->energy < 3) return false;
-    d->energy -= 3;
-
     CombatWeaponChoice selected_weapon = {0};
     if (db) {
         bool found_weapon = false;
@@ -698,6 +700,9 @@ bool combat_droid_attack_with_items(GameState *gs, CreatureList *cl,
         }
         if (!found_weapon) return false;
     }
+
+    if (d->energy < 3) return false;
+    d->energy -= 3;
 
     /* Damage formula from CAPPO.EXE:
      * 0x9BF4: ax=[di+6]; mul ah → lo_byte × hi_byte = base damage
