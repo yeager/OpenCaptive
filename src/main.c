@@ -34,6 +34,7 @@
 #include "liberation_citygen_grid.h"
 #include "liberation_city_nav.h"
 #include "liberation_building_interact.h"
+#include "liberation_bar.h"
 #include "liberation_viewport_3d.h"
 #include "liberation_save.h"
 #include "liberation_combat.h"
@@ -3167,7 +3168,8 @@ int main(int argc, char *argv[]) {
                                 msg_push(bmsg, 0xFF44FF44);
                                 gs.mode = STATE_GAME;
                             } else {
-                                gs.bar_guesses--;
+                                gs.bar_guesses =
+                                    liberation_bar_consume_wrong_guess(gs.bar_guesses);
                                 if (gs.bar_guesses == 0) {
                                     msg_push(_("No guesses left! Better luck next time."), 0xFFFF8844);
                                     gs.mode = STATE_GAME;
@@ -3188,7 +3190,8 @@ int main(int argc, char *argv[]) {
                                 msg_push(bmsg, 0xFF44FF44);
                                 gs.mode = STATE_GAME;
                             } else {
-                                gs.bar_guesses--;
+                                gs.bar_guesses =
+                                    liberation_bar_consume_wrong_guess(gs.bar_guesses);
                                 if (gs.bar_guesses == 0) {
                                     msg_push(_("No guesses left! Better luck next time."), 0xFFFF8844);
                                     gs.mode = STATE_GAME;

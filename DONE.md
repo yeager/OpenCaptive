@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Liberation bar guess counter)
+
+- Fixed incorrect number guesses for bar games consuming two attempts for
+  keys 1–9 while key 0 consumed one.
+- Centralized the one-attempt decrement and added coverage for all counter
+  boundaries, including protection against unsigned underflow.
+
 ## 2026-08-08 (Creature damage documentation source-lock correction)
 
 - Removed invented creature names and placeholder HP values from the public

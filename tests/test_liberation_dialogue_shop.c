@@ -1,6 +1,7 @@
 #include "liberation_dialogue.h"
 #include "liberation_shop.h"
 #include "liberation_building_interact.h"
+#include "liberation_bar.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -262,6 +263,14 @@ static void test_bar_menu(void) {
         assert(shop.items[i].price >= 5);
         assert(shop.items[i].price <= 24);
     }
+}
+
+static void test_bar_wrong_guess_consumes_one_attempt(void) {
+    assert(liberation_bar_consume_wrong_guess(3) == 2);
+    assert(liberation_bar_consume_wrong_guess(2) == 1);
+    assert(liberation_bar_consume_wrong_guess(1) == 0);
+    /* A stale input must not wrap the unsigned counter back to 255. */
+    assert(liberation_bar_consume_wrong_guess(0) == 0);
 }
 
 static void test_shop_dialogue(void) {
@@ -668,6 +677,7 @@ int main(void) {
     test_lib_shop_buy();
     test_lib_shop_sell();
     test_bar_menu();
+    test_bar_wrong_guess_consumes_one_attempt();
     test_shop_dialogue();
     test_deterministic_inventory();
     test_building_interact_shop();

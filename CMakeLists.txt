@@ -91,6 +91,7 @@ set(OPENCAPTIVE_SOURCES
     src/game/liberation_city_nav.c
     src/game/liberation_dialogue.c
     src/game/liberation_shop.c
+    src/game/liberation_bar.c
     src/game/liberation_building_interact.c
     src/game/liberation_combat.c
     src/game/liberation_npc_dialogue.c
@@ -332,6 +333,7 @@ add_test(NAME liberation_city_nav COMMAND test_liberation_city_nav)
 
 add_executable(test_liberation_dialogue_shop tests/test_liberation_dialogue_shop.c
     src/game/liberation_dialogue.c src/game/liberation_shop.c
+    src/game/liberation_bar.c
     src/game/liberation_building_interact.c
     src/engine/liberation_citygen.c src/engine/liberation_citygen_grid.c
     src/data/liberation_string_tables.c src/data/i18n.c)
