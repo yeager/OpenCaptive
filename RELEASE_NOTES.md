@@ -24,6 +24,17 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
   gettext catalogs.
 - **(Captive)** Corrected spawn category documentation and type `0x0F` spawn
   count regression coverage against the verified CAPPO disassembly.
+- The start menu now uses the restored Captive and Liberation card artwork
+  from the original project assets.
+- Captive ANM frame and command offsets are now documented and regression
+  tested as little-endian values, matching the verified decoder behavior.
+- Captive version selection now maps mouse clicks to the filtered rows shown
+  in the popup, so a single remaining source can be selected reliably even
+  when it is not the first platform candidate.
+- Bar drinks are now consumed at purchase time instead of being copied into
+  the shared inventory with non-runtime item IDs. Buying drinks still charges
+  gold and performs the documented bar-fight roll.
+- A full shared inventory no longer blocks bar purchases.
 
 ### Removed
 
