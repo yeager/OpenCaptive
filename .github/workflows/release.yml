@@ -311,7 +311,7 @@ jobs:
       - name: Test
         run: |
           $env:PATH = "${{ github.workspace }}/SDL3-install/bin;${{ github.workspace }}/SDL3_ttf-install/bin;${{ github.workspace }}/zlib-install/bin;$env:PATH"
-          ctest --test-dir build -C Release -j4 --output-on-failure -E "liberation_text_table|liberation_x3g|save_load"
+          ctest --test-dir build -C Release -j4 --output-on-failure -E "liberation_text_table|liberation_x3g"
       - name: Get version
         id: version
         shell: bash

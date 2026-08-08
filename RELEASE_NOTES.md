@@ -26,6 +26,8 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
   coverage for wall, roof, and invalid banks.
 - **(Infrastructure)** CI now runs the complete 59-test suite on Windows,
   including large `GameState` fixtures, with portable temporary test paths.
+- **(Infrastructure)** Windows release packaging now includes the portable
+  `save_load` regression instead of excluding it from the release gate.
 
 ### Removed
 
