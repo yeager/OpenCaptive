@@ -35,9 +35,11 @@ for checking the PL5 decoder. The complete 112-entry viewport descriptor table
 has been extracted from CAPPO.EXE at file offset 0x21698 and is implemented in
 `include/captive_viewport_descriptors.h`. Each descriptor is 8 bytes:
 source_offset(u16), destination_offset(u16), width_bytes(u8), height(u8),
-flags(u8), source_bank(u8). The `descriptor_blit()` function handles mirror
-and mask-zero flags. A test verifies all entries have valid dimensions and
-destinations within the 160×112 viewport.
+flags(u8), source_bank(u8). The `descriptor_blit()` helper handles mirror and
+mask-zero flags. It is covered as a decoder/validation helper; the live
+viewport still uses the compatibility renderer until descriptor selection and
+original draw-order integration are recovered. A test verifies all entries
+have valid dimensions and destinations within the 160×112 viewport.
 
 ### Recovered DOS dispatch boundary
 

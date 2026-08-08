@@ -75,7 +75,9 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
 ### Added
 
 - **(Captive)** Complete 112-entry viewport descriptor table extracted from
-  CAPPO.EXE with descriptor_blit() compositor and verification test.
+  CAPPO.EXE, with a verified descriptor decoder and validation test. The
+  live viewport still uses the compatibility renderer; descriptor draw-order
+  integration remains open work.
 - **(Liberation)** CD audio music playback — 10 Red Book tracks from CD32 disc
   image via dedicated SDL3 stereo audio stream.
 - **(Liberation)** Speech/voice sample playback system (8SVX loader).

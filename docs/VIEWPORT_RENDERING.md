@@ -32,14 +32,18 @@ sheet); wall panels use source bank 0.
 
 The `descriptor_blit()` function maps packed PL5 source coordinates to decoded
 pixel coordinates, handling mirror (CAPTIVE_DESC_FLAG_MIRROR_H) and mask-zero
-(CAPTIVE_DESC_FLAG_MASK_ZERO) flags. Enhanced mode additionally draws the modern HUD and
-effects. Neither mode is presented as pixel-identical original Captive output.
+(CAPTIVE_DESC_FLAG_MASK_ZERO) flags. It is currently a verified decoder helper;
+the live viewport still uses the compatibility renderer while original
+descriptor selection and draw-order integration are recovered. Enhanced mode
+additionally draws the modern HUD and effects. Neither mode is presented as
+pixel-identical original Captive output.
 
 PL5 panel and sprite transparency is likewise index-based: palette index 0
 is transparent, while black indices 16 and 18 remain visible. The renderer
 uses the retained PL5 index plane instead of inferring transparency from RGB.
-The shared compositor also applies the recovered DOS descriptor flags for
-horizontal mirroring and index-zero masking in the 160-byte work buffer.
+The descriptor helper applies the recovered DOS flags for horizontal mirroring
+and index-zero masking in the 160-byte work buffer. The live renderer does not
+yet route every frame through this helper.
 
 ## Draw order
 
