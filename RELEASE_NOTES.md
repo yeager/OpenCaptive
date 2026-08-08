@@ -30,6 +30,8 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
   each cell's `wall_tex` value rather than incorrectly using view depth.
 - **(Captive)** Creature rendering now honors the disassembly `frame_index`
   from `DS:0xA16E` instead of always drawing ALIEN sheet frame zero.
+- **(Captive)** Creature kills now award recovered CAPPO XP to every living
+  droid, matching the shared progression loop at `0x9621`.
 - **(Launcher)** Captive and Liberation card artwork now preserves its source
   aspect ratio with centered letterboxing instead of stretching to the card.
 - **(Infrastructure)** CI now runs the complete 59-test suite on Windows,

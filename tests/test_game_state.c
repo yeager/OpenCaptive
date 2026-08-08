@@ -731,6 +731,8 @@ static void test_combat_level_up_uses_pre_attack_xp(void) {
     gs.party_dir = DIR_EAST;
     gs.droids[0].xp = 900;
     gs.droids[0].skill_levels[XP_SKILL_COUNT - 1] = 1;
+    gs.droids[1].xp = 100;
+    gs.droids[1].skill_levels[XP_SKILL_COUNT - 1] = 2;
     gs.droids[0].weapons[0] = 13;
     gs.droids[0].weapon_damage = 0xFFFF;
 
@@ -745,6 +747,7 @@ static void test_combat_level_up_uses_pre_attack_xp(void) {
     };
     assert(combat_droid_attack(&gs, &creatures, 0));
     assert(gs.droids[0].xp == 1296);
+    assert(gs.droids[1].xp == 892);
     assert(gs.droids[0].hp_max == 110);
 }
 

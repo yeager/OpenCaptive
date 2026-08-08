@@ -223,6 +223,37 @@ static int combat_weapon_range(uint8_t item_id) {
     return 0;
 }
 
+static void combat_award_kill_xp(GameState *gs, CreatureList *cl,
+                                 const Creature *target) {
+    if (!gs || !cl || !target) return;
+
+    /* CAPPO.EXE: XP award path at 0x9621 iterates over the droid roster and
+     * awards the kill value to every living droid.  Giving the reward only to
+     * the attacking droid made inactive party members permanently lag behind
+     * the original shared progression model. */
+    for (int i = 0; i < 4; ++i) {
+        Droid *recipient = &gs->droids[i];
+        if (recipient->hp <= 0) continue;
+
+        uint32_t old_xp = recipient->xp;
+        uint32_t xp_reward = xp_award((int)target->speed, target->level,
+                                      recipient->skill_levels[XP_SKILL_COUNT - 1]);
+        recipient->xp = xp_add(old_xp, xp_reward);
+
+        uint16_t old_level = xp_to_display_level(old_xp);
+        uint16_t new_level = xp_to_display_level(recipient->xp);
+        if (new_level > old_level) {
+            recipient->hp_max = (recipient->hp_max > INT16_MAX - 10) ?
+                INT16_MAX : (int16_t)(recipient->hp_max + 10);
+            recipient->hp = recipient->hp_max;
+            recipient->energy_max = (recipient->energy_max > INT16_MAX - 5) ?
+                INT16_MAX : (int16_t)(recipient->energy_max + 5);
+            recipient->energy = recipient->energy_max;
+            cl->level_up_occurred = true;
+        }
+    }
+}
+
 static bool combat_is_weapon_id(uint8_t item_id) {
     return item_id >= 13 && item_id <= 38;
 }
@@ -540,13 +571,6 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
         cl->creature_killed = true;
         gs->score += (uint32_t)(target->hp_max / 2 + 1);
         if (target->is_boss) gs->score += 500;
-        uint32_t old_xp = d->xp;
-        /* CAPPO.EXE: kill XP uses the creature XP value, difficulty and the
-         * droid's Experience skill. Keep this on the recovered xp_award()
-         * path instead of the old hp_max/10 approximation. */
-        uint32_t xp_reward = xp_award((int)target->speed, target->level,
-                                      d->skill_levels[XP_SKILL_COUNT - 1]);
-        d->xp = xp_add(old_xp, xp_reward);
         int reward = target->hp_max / 5 + 1;
         if (reward > 0 && gs->gold <= INT_MAX - reward)
             gs->gold += reward;
@@ -559,19 +583,7 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
                 drop_cell->item_id = (uint8_t)(1 + combat_rand() % 20);
             }
         }
-        {
-            uint16_t old_lvl = xp_to_display_level(old_xp);
-            uint16_t new_lvl = xp_to_display_level(d->xp);
-            if (new_lvl > old_lvl) {
-                d->hp_max = (d->hp_max > INT16_MAX - 10) ?
-                    INT16_MAX : (int16_t)(d->hp_max + 10);
-                d->hp = d->hp_max;
-                d->energy_max = (d->energy_max > INT16_MAX - 5) ?
-                    INT16_MAX : (int16_t)(d->energy_max + 5);
-                d->energy = d->energy_max;
-                cl->level_up_occurred = true;
-            }
-        }
+        combat_award_kill_xp(gs, cl, target);
     }
 
     bool is_spray = false;

@@ -3933,3 +3933,9 @@
 - Added a start-menu regression test using a 2:1 fixture to prevent future
   stretching regressions.
 - Full local test suite: 59/59 tests passed.
+## 2026-08-08 (Shared Captive kill XP)
+
+- Fixed Captive kill progression so every living droid receives the recovered
+  XP award from CAPPO.EXE `0x9621`, not only the attacking droid.
+- Level-up stat restoration now applies independently to each recipient.
+- Added a multi-droid regression assertion to the game-state combat tests.
