@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Corrected Captive spawn documentation)
+
+- Removed the unsupported claim that higher dungeon levels automatically
+  shift creature selection toward harder types.
+- Documented the recovered CAPPO candidate check and kept the unresolved
+  source-lock work in TODO until its caller is reconstructed.
+
 ## 2026-08-08 (Restored start-menu artwork)
 
 - Replaced the Captive and Liberation start-menu card images with the

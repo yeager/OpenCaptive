@@ -87,5 +87,9 @@ Manhattan distance pathfinding toward the player's position.
 
 Creatures spawn based on level difficulty:
 - Number: `3 + level * 2` creatures per dungeon level
-- Type distribution shifts toward harder creatures at higher levels
+- The recovered runtime selects from the category table; the current
+  implementation preserves that table selection at every level. CAPPO also
+  performs a difficulty-dependent candidate check around `0x97B3` before
+  building the spawn record, but the complete candidate-generation caller
+  has not yet been recovered, so no harder-type weighting is claimed here.
 - Placed in rooms during map generation, avoiding party spawn area
