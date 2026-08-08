@@ -224,7 +224,7 @@ static void test_replay(void) {
     replay_record_input(&rs, 10, 3, 2);
     assert(rs.count == 3);
 
-    const char *path = "/tmp/test_opencaptive_replay.ocrp";
+    const char *path = "test_opencaptive_replay.ocrp";
     assert(replay_save(&rs, path));
 
     FILE *header = fopen(path, "rb");
@@ -332,7 +332,7 @@ static void test_cross_save(void) {
 
     assert(!cross_save_export(&gs, "/"));
 
-    const char *path = "/tmp/test_opencaptive_cross.ocsv";
+    const char *path = "test_opencaptive_cross.ocsv";
     assert(cross_save_export(&gs, path));
 
     FILE *header = fopen(path, "rb");
@@ -347,7 +347,7 @@ static void test_cross_save(void) {
 
     GameState gs2;
     memset(&gs2, 0, sizeof(gs2));
-    static const char data_path[] = "/tmp/opencaptive-cross-data";
+    static const char data_path[] = ".";
     gs2.config.render_mode = CAPTIVE_RENDER_ENHANCED;
     gs2.config.scanlines = true;
     gs2.config.brightness = 81;
@@ -431,7 +431,7 @@ static void test_cross_save(void) {
 
     /* Build a v1 fixture from the v2 export by removing the six-byte armor
        condition field that the old format did not contain. */
-    const char *legacy_path = "/tmp/test_opencaptive_cross_v1.ocsv";
+    const char *legacy_path = "test_opencaptive_cross_v1.ocsv";
     FILE *v2_file = fopen(path, "rb");
     assert(v2_file);
     assert(fseek(v2_file, 0, SEEK_END) == 0);
