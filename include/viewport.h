@@ -15,6 +15,11 @@ void viewport_render(const CaptiveViewWindow *window,
                      const TextureAtlas *atlas,
                      uint32_t *framebuffer, int fb_width, int fb_height);
 
+/* Resolve a recovered DOS descriptor source bank to its content-addressed
+ * panel sheet. Bank 4 is the ROOFS sheet in CAPPO's descriptor table. */
+int viewport_descriptor_source_sheet(const TextureAtlas *atlas,
+                                     uint8_t source_bank);
+
 #include "combat.h"
 
 void viewport_render_creatures(const GameState *gs, const CreatureList *cl,

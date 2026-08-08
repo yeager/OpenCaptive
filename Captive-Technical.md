@@ -5,10 +5,10 @@
 ## Runtime model
 
 Captive's recovered presentation currently consists of the original 320×200
-HUD shell and the documented visibility rules. Legacy `DungeonLevel` and
-gameplay structures remain in the source tree as reverse-engineering notes,
-but are not driven by the runtime: they were generated substitutes, not decoded
-original map or save state.
+HUD shell, the documented visibility rules, and a source-backed compatibility
+viewport. Legacy `DungeonLevel` and gameplay structures remain in the source
+tree as reverse-engineering notes; they are not decoded original map or save
+state.
 
 ## PL5 graphics
 
@@ -277,19 +277,20 @@ The executable structure, dispatch tables and descriptor format are documented a
 
 ## Viewport renderer
 
-`src/render/viewport.c` retains an experimental renderer based on the
-19-cell trapezoid from `captive_view_window_build()` and hash-verified PL5
-source sheets. It is intentionally bypassed at runtime. Its placement and
-scaling rules were an approximation, not the original descriptor sequence,
-so displaying it would make a plausible-looking but false parity claim.
+`src/render/viewport.c` contains an experimental compatibility renderer based
+on the 19-cell trapezoid from `captive_view_window_build()` and hash-verified
+PL5 source sheets. It remains active so the game is playable, but its placement
+and scaling rules are an approximation, not the original descriptor sequence.
+Displaying it must not be described as pixel-identical DOS parity.
 
-The active Captive path draws only the verified original `GAME SCRN` shell and
-leaves its dynamic 144×112 viewport unchanged. The original DOS renderer is a
-back-to-front sequence of descriptor-driven planar copies with caller-specific
-destination bases, mask behaviour and per-cell ordering. Restoring the view
+The active Captive path draws the verified original `GAME SCRN` shell and the
+compatibility viewport. The original DOS renderer is a back-to-front sequence
+of descriptor-driven planar copies with caller-specific destination bases,
+mask behaviour and per-cell ordering. Replacing the compatibility view
 therefore requires those commands to be recovered from the original runtime,
-then compared against DOS-VGA captures. Until then no generated perspective,
-floor, ceiling, door, creature or object pixels are presented as game output.
+then compared against DOS-VGA captures. Until then the generated perspective,
+floor, ceiling, door, creature and object pixels remain compatibility output,
+not a parity claim.
 
 ## SFX system
 
@@ -687,8 +688,9 @@ viewport fills exactly 144×112 pixels.
 Captive accepts movement, rotation, interaction, inventory, terminal, save and
 F10 runtime controls. These currently operate on OpenCaptive's provisional map
 state and must not be mistaken for an original-state recovery. The runtime
-displays verified intro/HUD data but deliberately leaves the viewport untouched;
-the earlier approximation based on scaled PL5 fragments has been disabled.
+displays verified intro/HUD data and the source-backed compatibility viewport;
+the earlier approximation based on scaled PL5 fragments remains enabled only
+as a clearly non-parity fallback.
 
 The F10 menu provides God Mode, Infinite Energy and Complete Objective for the
 active local Captive state. They are runtime conveniences, not original-game

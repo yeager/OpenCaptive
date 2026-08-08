@@ -26,6 +26,17 @@ static bool viewport_changed(const uint32_t *framebuffer) {
 }
 
 int main(void) {
+    TextureAtlas bank_atlas;
+    memset(&bank_atlas, 0, sizeof(bank_atlas));
+    bank_atlas.wall_sheets[0] = 10;
+    bank_atlas.wall_sheets[3] = 13;
+    bank_atlas.wall_sheets[4] = 14;
+    bank_atlas.roof_sheet = 99;
+    assert(viewport_descriptor_source_sheet(&bank_atlas, 0) == 10);
+    assert(viewport_descriptor_source_sheet(&bank_atlas, 3) == 13);
+    assert(viewport_descriptor_source_sheet(&bank_atlas, 4) == 99);
+    assert(viewport_descriptor_source_sheet(&bank_atlas, 5) == -1);
+
     static uint32_t texture_pixels[320 * 200];
     static uint8_t texture_indices[320 * 200];
     static uint32_t framebuffer[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];

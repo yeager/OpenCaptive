@@ -272,6 +272,16 @@ static const MapCell *visible_cell_at(const CaptiveViewWindow *window,
     return NULL;
 }
 
+int viewport_descriptor_source_sheet(const TextureAtlas *atlas,
+                                     uint8_t source_bank) {
+    if (!atlas) return -1;
+    if (source_bank < 4U)
+        return atlas->wall_sheets[source_bank];
+    if (source_bank == 4U)
+        return atlas->roof_sheet;
+    return -1;
+}
+
 /* Blit one descriptor panel from a decoded PL5 sheet into the viewport
  * work buffer.  source_offset is in packed PL5 byte space (200 bytes/row);
  * we convert to decoded pixel coordinates (320 pixels/row). */
@@ -280,12 +290,7 @@ static void descriptor_blit(const CaptiveDosDescriptor *desc,
                             uint32_t *vp_buf, int vp_stride) {
     if (!desc || !atlas || !vp_buf || desc->width_bytes == 0 || desc->height == 0)
         return;
-    int bank = desc->source_bank;
-    int sheet = -1;
-    if (bank >= 0 && bank < 5)
-        sheet = atlas->wall_sheets[bank];
-    else if (bank == 4)
-        sheet = atlas->roof_sheet;
+    int sheet = viewport_descriptor_source_sheet(atlas, desc->source_bank);
     if (sheet < 0) return;
     const Texture *tex = gfx_get(&atlas->gfx, sheet);
     if (!tex || !tex->indices) return;

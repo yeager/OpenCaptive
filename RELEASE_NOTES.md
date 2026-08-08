@@ -21,6 +21,9 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
 - **(Captive)** Creature rendering now resolves the disassembly's `DS:0xA16E`
   graphic IDs to the correct ALIEN1–6 sheets instead of treating creature enum
   values as direct sheet indexes.
+- **(Captive)** Descriptor source-bank resolution now routes bank 4 to
+  `ROOFS.PL5`, matching the recovered CAPPO descriptor table, with regression
+  coverage for wall, roof, and invalid banks.
 - **(Infrastructure)** CI now runs the complete 59-test suite on Windows,
   including large `GameState` fixtures, with portable temporary test paths.
 
