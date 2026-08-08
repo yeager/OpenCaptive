@@ -24,6 +24,7 @@
 #include "inventory.h"
 #include "xp_level.h"
 #include "droid_ui.h"
+#include "droid_damage.h"
 #include "terminal.h"
 #include "sfx.h"
 #include "data_vfs.h"
@@ -1400,14 +1401,6 @@ static bool all_droids_dead(const GameState *gs) {
     return true;
 }
 
-static void apply_droid_damage(Droid *d, int damage) {
-    if (!d || damage <= 0 || d->hp <= 0) return;
-    if (damage >= d->hp)
-        d->hp = 0;
-    else
-        d->hp = (int16_t)(d->hp - damage);
-}
-
 static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
     if (event->type != SDL_EVENT_KEY_DOWN) return;
 
@@ -1429,7 +1422,7 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                     int dmg = 5 + gs->mission * 2;
                     for (int di = 0; di < 4; di++)
                         if (gs->droids[di].hp > 0) {
-                            apply_droid_damage(&gs->droids[di], dmg);
+                            droid_apply_environmental_damage(&gs->droids[di], dmg);
                         }
                     char hmsg[64];
                     snprintf(hmsg, sizeof(hmsg), _("Industrial hazard! %d damage!"), dmg);
@@ -1517,7 +1510,7 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                         int dmg = 5 + gs->mission * 2;
                         for (int di = 0; di < 4; di++)
                             if (gs->droids[di].hp > 0) {
-                                apply_droid_damage(&gs->droids[di], dmg);
+                                droid_apply_environmental_damage(&gs->droids[di], dmg);
                             }
                         char hmsg[64];
                         snprintf(hmsg, sizeof(hmsg), _("Industrial hazard! %d damage!"), dmg);
@@ -2174,7 +2167,7 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 for (int di = 0; di < 4; di++) {
                     if (gs->droids[di].hp > 0) {
                         int dmg = 5 + (gs->current_level * 2);
-                        apply_droid_damage(&gs->droids[di], dmg);
+                        droid_apply_environmental_damage(&gs->droids[di], dmg);
                     }
                 }
                 msg_push(_("Fell into a pit!"), 0xFFFF4444);

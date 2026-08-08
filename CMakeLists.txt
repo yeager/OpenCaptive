@@ -50,6 +50,7 @@ set(OPENCAPTIVE_SOURCES
     src/engine/captive_space_nav.c
     src/engine/start_menu.c
     src/engine/combat.c
+    src/engine/droid_damage.c
     src/engine/save_load.c
     src/engine/save_thumbnail.c
     src/engine/inventory.c
@@ -507,6 +508,11 @@ add_executable(test_shop tests/test_shop.c
     src/engine/shop.c src/engine/inventory.c src/engine/captive_data.c)
 target_include_directories(test_shop PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME shop COMMAND test_shop)
+
+add_executable(test_droid_damage tests/test_droid_damage.c
+    src/engine/droid_damage.c)
+target_include_directories(test_droid_damage PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME droid_damage COMMAND test_droid_damage)
 
 add_executable(test_mapgen_ca tests/test_mapgen_ca.c
     src/engine/mapgen_ca.c)

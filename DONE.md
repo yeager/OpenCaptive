@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Environmental damage respects shields)
+
+- Routed pit and Liberation industrial-hazard damage through a shared
+  environmental-damage helper.
+- Equipped shields now absorb that damage before droid HP is reduced, matching
+  the shared shield-first runtime invariant used by creature and Liberation
+  combat.
+- Added regression coverage for partial shield absorption, lethal damage, and
+  invalid damage values.
+
 ## 2026-08-08 (Liberation bar guess counter)
 
 - Fixed incorrect number guesses for bar games consuming two attempts for
