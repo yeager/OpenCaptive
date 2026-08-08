@@ -308,60 +308,43 @@ Where `type_multiplier` varies by weapon class (melee=1, handgun=2, rifle=3, aut
 
 ### 25 creature types across 8 categories
 
-| # | Type | HP | Category | Speed | Sprite |
-| --- | --- | --- | --- | --- | --- |
-| 0 | Rat | 8 | 0 | 4 | 0 |
-| 1 | Snake | 12 | 0 | 5 | 1 |
-| 2 | Spider | 15 | 0 | 3 | 2 |
-| 3 | Bat | 10 | 1 | 6 | 3 |
-| 4 | Slime | 20 | 1 | 2 | 4 |
-| 5 | Skeleton | 25 | 1 | 4 | 5 |
-| 6 | Zombie | 35 | 2 | 3 | 6 |
-| 7 | Ghost | 30 | 2 | 5 | 7 |
-| 8 | Mummy | 40 | 2 | 3 | 8 |
-| 9 | Warrior | 50 | 3 | 4 | 9 |
-| 10 | Knight | 60 | 3 | 4 | 10 |
-| 11 | Wizard | 45 | 3 | 5 | 11 |
-| 12 | Golem | 80 | 4 | 2 | 12 |
-| 13 | Demon | 70 | 4 | 5 | 13 |
-| 14 | Dragon | 100 | 4 | 4 | 14 |
-| 15 | Cyborg | 90 | 5 | 4 | 15 |
-| 16 | Mech | 110 | 5 | 3 | 16 |
-| 17 | Droid | 85 | 5 | 5 | 17 |
-| 18 | Turret | 120 | 6 | 0 | 18 |
-| 19 | Tank | 150 | 6 | 2 | 19 |
-| 20 | Hover | 130 | 6 | 6 | 20 |
-| 21 | Boss-A | 200 | 7 | 3 | 21 |
-| 22 | Boss-B | 250 | 7 | 4 | 22 |
-| 23 | Boss-C | 300 | 7 | 3 | 23 |
-| 24 | Boss-D | 400 | 7 | 2 | 24 |
+The table below contains only values recovered from the hash-verified DOS
+`CAPPO.EXE`. The original executable does not provide the creature names in
+this table, so OpenCaptive intentionally uses numeric type IDs rather than
+invented names.
 
-### Procedural creature damage formula
+| Type ID | HP min | HP max | Category | Speed | Sprite sheet | Frame |
+| --- | ---: | ---: | ---: | ---: | --- | ---: |
+| 1 | 10 | 150 | 0 | 0 | ALIEN1 | 0x20 |
+| 2 | 200 | 400 | 0 | 5 | ALIEN1 | 0x20 |
+| 3 | 400 | 600 | 0 | 7 | ALIEN1 | 0x20 |
+| 4 | 600 | 800 | 1 | 10 | ALIEN1 | 0x20 |
+| 5 | 800 | 1000 | 1 | 16 | ALIEN1 | 0x20 |
+| 6 | 1000 | 1500 | 1 | 20 | ALIEN1 | 0x20 |
+| 7 | 1000 | 1700 | 2 | 30 | ALIEN2 | 0x15 |
+| 8 | 1700 | 2400 | 2 | 20 | ALIEN2 | 0x15 |
+| 9 | 2400 | 3000 | 2 | 22 | ALIEN2 | 0x15 |
+| 10 | 3000 | 3700 | 3 | 24 | ALIEN2 | 0x16 |
+| 11 | 3700 | 4400 | 3 | 24 | ALIEN2 | 0x16 |
+| 12 | 4000 | 4900 | 3 | 40 | ALIEN2 | 0x16 |
+| 13 | 3000 | 3700 | 4 | 32 | ALIEN2 | 0x01 |
+| 14 | 3700 | 4400 | 4 | 36 | ALIEN2 | 0x01 |
+| 15 | 4400 | 5700 | 4 | 46 | ALIEN2 | 0x01 |
+| 16 | 9000 | 10000 | 5 | 56 | ALIEN3 | 0x0F |
+| 17 | 10000 | 12000 | 5 | 20 | ALIEN3 | 0x0F |
+| 18 | 12000 | 15000 | 5 | 24 | ALIEN3 | 0x0F |
+| 19 | 15000 | 17000 | 6 | 26 | ALIEN4 | 0x17 |
+| 20 | 17000 | 19000 | 6 | 25 | ALIEN3 | 0x17 |
+| 21 | 19000 | 22000 | 6 | 30 | ALIEN4 | 0x17 |
+| 22 | 1000 | 3000 | 7 | 40 | ALIEN5 | 0x10 |
+| 23 | 3000 | 5000 | 7 | 25 | ALIEN5 | 0x10 |
+| 24 | 5000 | 7000 | 7 | 30 | ALIEN6 | 0x10 |
+| 25 | 1000 | 1100 | 0 | 30 | non-ALIEN | — |
 
-Creature damage is computed procedurally at runtime, NOT from a lookup table. The formula from the disassembly:
-
-```c
-// Inputs: category (0-7), level_num (current dungeon level)
-base = min(20, 2 + category + level_num);
-
-dmg_lo = (base >> 1) | 1;   // half base, forced odd
-dmg_hi = base;
-
-// Actual damage dealt per hit:
-damage = dmg_lo * dmg_hi;                    // minimum
-damage = dmg_lo * dmg_hi + dmg_hi;           // maximum
-// i.e., damage ranges from dmg_lo*dmg_hi to dmg_lo*dmg_hi + dmg_hi
-
-// Defense value:
-defense = category * 2 + level_num;
-
-// Attack range (tiles):
-range = (category >= 4) ? 4 + (category - 4) : 1 + category / 3;
-```
-
-Example: Category 3 creature on level 5 gives base = min(20, 2+3+5) = 10, dmg_lo = 5|1 = 5, dmg_hi = 10, damage = 50-60, defense = 11, range = 2.
-
-Example: Category 6 creature on level 8 gives base = min(20, 2+6+8) = 16, dmg_lo = 9, dmg_hi = 16, damage = 144-160, defense = 20, range = 6.
+The active runtime's creature damage values remain a compatibility
+approximation. The enemy attack record and its caller have not been isolated
+in the disassembly, so the category/level formula must not be presented as
+original-game data. See `docs/COMBAT_SYSTEM.md` for the exact boundary.
 
 ## Combat PRNG
 
@@ -371,7 +354,9 @@ The combat PRNG at code offset 0x9815 uses:
 rotate right 2, no XOR
 ```
 
-This is a simpler variant than the name-generation PRNG. It produces the damage roll within the min-max range for each hit.
+This is a simpler variant than the name-generation PRNG. It is used by the
+compatibility combat path; the exact enemy attack roll still requires the
+unrecovered attack record and caller.
 
 ## Music system
 

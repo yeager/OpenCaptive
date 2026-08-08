@@ -315,28 +315,16 @@ sequence table in CAP_A.BIN.
 
 ## Creature damage
 
-Procedural damage formula recovered from CAPPO.EXE at 0x5380. The original game
-computes all creature damage at runtime from category and level — there is no
-per-type damage lookup table.
+Creature HP, category, speed and sprite routing are recovered from the DOS
+tables documented below. Creature attack damage is not yet source-verified.
+The code around unpacked CAPPO offset `0x5380`/the corresponding attack
+bytecode constructs a weapon damage word; it is not proof of the enemy attack
+record or of a category/level creature formula.
 
-```
-base = min(20, 2 + category + level_num)
-dmg_lo = (base >> 1) | 1
-dmg_hi = base
-damage_min = dmg_lo * dmg_hi
-damage_max = dmg_lo * dmg_hi + dmg_hi
-defense = category * 2 + level_num
-range = (category >= 4) ? 4 + (category - 4) : 1 + category / 3
-```
-
-25 creature types grouped into 8 categories (3 types per category, plus 1 extra).
-
-HP formula: `hp = category * 8 + 10 + level * 4`.
-
-The procedural approach means creature difficulty scales smoothly with dungeon
-depth rather than requiring hand-tuned stat tables. Defense and attack range
-both increase with category, creating a natural difficulty curve across the
-8 creature tiers.
+OpenCaptive therefore keeps a bounded category/level compatibility formula in
+the runtime, clearly separated from the recovered data. It must not be
+described as original-game parity until the enemy attack record and caller are
+identified.
 
 ## Item system
 
@@ -529,8 +517,10 @@ at 0x5E38:
    checking for signed overflow at each step. Returns 0xFFFD (-3) as an
    overflow sentinel.
 
-4. **Damage application** (0x8DAE): `[di+6]` damage value added to accumulator
-   at `[0x8D81]` when creature type byte equals 0x72.
+4. **Damage application** (0x8DAE): `[di+6]` damage value is added to the
+   relevant accumulator for the attack record. This section describes the
+   recovered attack-bytecode path; it does not identify the enemy creature
+   record or prove that every creature uses the same fields.
 
 ### XP and level-up system
 
@@ -605,7 +595,7 @@ base = min + ((max - min) * difficulty) / 8
 hp = ((base * 2 * creature_modifier) >> 8) + 6
 ```
 
-Where `difficulty` = dungeon level capped at 0-7, `creature_modifier` = byte
+Where `difficulty` = dungeon level capped at 0-8, `creature_modifier` = byte
 from creature spawn data at [di+9].
 
 | Type | HP min | HP max | Cat | Speed | Sprite |
@@ -704,9 +694,12 @@ into dungeon cells based on creature type, party direction, and cell position.
 
 ### Entry point (0x9987)
 
-1. Difficulty is read from the spawn record `[di+1]`, capped at 8, decremented
+1. Difficulty is read from the spawn record `[di+1]`, capped at 8
 2. Category index selects creature type via `spawn_select_type()`
-3. `0x9BB3` selects a creature type from the category table using PRNG
+3. The recovered selector validates the candidate type against the difficulty
+   offset and category data; the complete caller/selection contract is still
+   under review. OpenCaptive's uniform three-entry category selection is
+   therefore a compatibility behavior, not a claimed source-parity result.
 4. HP is computed: `base = min + (range * difficulty / 8); hp = (base * 2 * modifier >> 8) + 6; cap 255`
 
 ### Type routing

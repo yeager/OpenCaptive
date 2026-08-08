@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Creature damage documentation source-lock correction)
+
+- Removed invented creature names and placeholder HP values from the public
+  Captive data reference; the table now contains only the 25 values recovered
+  from the hash-verified CAPPO executable.
+- Corrected the technical documentation so CAPPO attack bytecode around
+  `0x5380` is not misrepresented as the creature damage formula.
+- Documented the remaining creature attack-record gap and kept the runtime
+  category/level calculation explicitly marked as a compatibility approximation.
+
 ## 2026-08-08 (Captive original weapon ranges)
 
 - Restored the original class-specific combat ranges: melee 1, handguns 6,
