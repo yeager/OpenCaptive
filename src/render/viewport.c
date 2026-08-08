@@ -195,7 +195,11 @@ static void draw_wall(uint32_t *fb, int fb_w, int fb_h,
                        int wall_x, int wall_y, int wall_w, int wall_h,
                        int vp_x, int vp_y,
                        uint8_t wall_tex, int range) {
-    int sheet = atlas->wall_sheets[range < 5 ? range : 4];
+    /* Map generation stores the selected WALLA-WALLE set in wall_tex.  The
+     * view range changes projection size, not the source wall set. */
+    (void)range;
+    int wall_set = wall_tex < 5U ? wall_tex : 4;
+    int sheet = atlas->wall_sheets[wall_set];
     if (sheet < 0) return;
 
     int src_base_x = (wall_tex % 4) * 80;

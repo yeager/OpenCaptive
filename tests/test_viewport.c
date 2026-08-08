@@ -8,6 +8,7 @@
 
 static Texture test_texture;
 static Texture roof_texture;
+static Texture wall_set_texture;
 
 const Texture *gfx_get(const GfxData *gfx, int id) {
     if (!gfx || id < 0 || id >= gfx->num_textures) return NULL;
@@ -42,6 +43,8 @@ int main(void) {
     static uint8_t texture_indices[320 * 200];
     static uint32_t roof_pixels[320 * 200];
     static uint8_t roof_indices[320 * 200];
+    static uint32_t wall_set_pixels[320 * 200];
+    static uint8_t wall_set_indices[320 * 200];
     static uint32_t framebuffer[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
     static GameState gs;
     static CreatureList creatures;
@@ -51,6 +54,10 @@ int main(void) {
     for (size_t i = 0; i < sizeof(roof_pixels) / sizeof(roof_pixels[0]); i++) {
         roof_pixels[i] = 0xFF0000FF;
         roof_indices[i] = 3;
+    }
+    for (size_t i = 0; i < sizeof(wall_set_pixels) / sizeof(wall_set_pixels[0]); i++) {
+        wall_set_pixels[i] = 0xFF00FF00;
+        wall_set_indices[i] = 4;
     }
     for (int y = 0; y < 32; y++) {
         for (int x = 0; x < 32; x++) {
@@ -71,12 +78,18 @@ int main(void) {
     roof_texture.width = 320;
     roof_texture.height = 200;
     roof_texture.loaded = true;
+    wall_set_texture.pixels = wall_set_pixels;
+    wall_set_texture.indices = wall_set_indices;
+    wall_set_texture.width = 320;
+    wall_set_texture.height = 200;
+    wall_set_texture.loaded = true;
 
     TextureAtlas atlas;
     memset(&atlas, 0, sizeof(atlas));
-    atlas.gfx.num_textures = 2;
+    atlas.gfx.num_textures = 3;
     atlas.gfx.textures[0] = test_texture;
     atlas.gfx.textures[1] = roof_texture;
+    atlas.gfx.textures[2] = wall_set_texture;
     atlas.loaded = true;
     for (int i = 0; i < 5; ++i) atlas.wall_sheets[i] = 0;
     atlas.roof_sheet = 0;
@@ -263,6 +276,35 @@ int main(void) {
         framebuffer[floor_strip_y * CAPTIVE_ORIGINAL_WIDTH +
                     CAPTIVE_VIEWPORT_X + 54];
     assert(left_cell_first == center_cell_first);
+
+    /* wall_tex identifies the WALLA-WALLE source set. It must not be
+     * replaced by the current depth range when drawing a wall. */
+    atlas.wall_sheets[2] = 2;
+    for (int y = 0; y < MAP_HEIGHT; ++y)
+        for (int x = 0; x < MAP_WIDTH; ++x) {
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+            for (int d = 0; d < 4; ++d)
+                gs.levels[0].cells[y][x].wall_tex[d] = 2;
+        }
+    gs.levels[0].cells[9][10].type = CELL_WALL;
+    captive_view_window_build(&gs, &window);
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render(&window, &atlas, framebuffer,
+                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+    bool found_wall_set_color = false;
+    for (int y = CAPTIVE_VIEWPORT_Y + 13;
+         y < CAPTIVE_VIEWPORT_Y + 98 && !found_wall_set_color; ++y) {
+        for (int x = CAPTIVE_VIEWPORT_X + 54;
+             x < CAPTIVE_VIEWPORT_X + 90; ++x) {
+            if (framebuffer[y * CAPTIVE_ORIGINAL_WIDTH + x] == 0xFF00FF00) {
+                found_wall_set_color = true;
+                break;
+            }
+        }
+    }
+    assert(found_wall_set_color);
+    for (int i = 0; i < 5; ++i) atlas.wall_sheets[i] = 0;
 
     gs.levels[0].cells[10][9].type = CELL_FLOOR;
     gs.levels[0].cells[9][10].type = CELL_WALL;
