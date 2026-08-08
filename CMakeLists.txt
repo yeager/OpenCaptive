@@ -4,6 +4,17 @@ if(APPLE)
     enable_language(OBJC)
 endif()
 
+# GameState contains the full fixed-size dungeon array used by the runtime.
+# Several regression tests exercise that object directly; the Windows default
+# executable stack is too small for those legitimate fixtures, especially
+# when ctest runs them in parallel.  Keep the production and test binaries
+# consistent with the runtime's static GameState allocation.
+if(MSVC)
+    add_link_options(/STACK:8388608)
+elseif(WIN32)
+    add_link_options(-Wl,--stack,8388608)
+endif()
+
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 if(ANDROID)
