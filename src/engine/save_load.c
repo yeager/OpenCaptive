@@ -135,11 +135,16 @@ static bool write_save_state_extension(FILE *f, const GameState *gs,
             fwrite(&d->stun_timer, 1, 1, f) != 1) return false;
     }
     for (size_t i = 0; i < MAX_CREATURES; ++i) {
-        const Creature *c = &creatures->creatures[i];
-        if ((c->status_attack & ~(STATUS_POISON | STATUS_STUN | STATUS_DRAIN)) != 0)
-            return false;
-        uint8_t boss = c->is_boss ? 1 : 0;
-        if (fwrite(&c->status_attack, 1, 1, f) != 1 ||
+        uint8_t status = 0;
+        uint8_t boss = 0;
+        if (i < (size_t)creatures->num_creatures) {
+            const Creature *c = &creatures->creatures[i];
+            if ((c->status_attack & ~(STATUS_POISON | STATUS_STUN | STATUS_DRAIN)) != 0)
+                return false;
+            status = c->status_attack;
+            boss = c->is_boss ? 1 : 0;
+        }
+        if (fwrite(&status, 1, 1, f) != 1 ||
             fwrite(&boss, 1, 1, f) != 1) return false;
     }
     return true;
@@ -176,9 +181,14 @@ static bool read_save_state_extension(FILE *f, GameState *gs,
             uint8_t boss;
             if (fread(&c->status_attack, 1, 1, f) != 1 ||
                 fread(&boss, 1, 1, f) != 1 ||
-                (c->status_attack & ~(STATUS_POISON | STATUS_STUN | STATUS_DRAIN)) != 0 ||
+                c->status_attack & ~(STATUS_POISON | STATUS_STUN | STATUS_DRAIN) ||
                 boss > 1) return false;
-            c->is_boss = boss != 0;
+            if (i < (size_t)creatures->num_creatures) {
+                c->is_boss = boss != 0;
+            } else {
+                c->status_attack = STATUS_NONE;
+                c->is_boss = false;
+            }
         }
     }
     return true;
