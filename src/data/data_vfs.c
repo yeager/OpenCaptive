@@ -822,8 +822,11 @@ static uint8_t *vfs_cache_read(const char hash[65], const char signature[65],
     const char *home = vfs_cache_home();
     if (!home || !valid_sha256_text(hash)) return NULL;
     char meta[1200], data_path[1200], stored[4096];
-    snprintf(meta, sizeof(meta), "%s/.cache/opencaptive/%s.meta", home, hash);
-    snprintf(data_path, sizeof(data_path), "%s/.cache/opencaptive/%s.bin", home, hash);
+    if (snprintf(meta, sizeof(meta), "%s/.cache/opencaptive/%s.meta", home,
+                 hash) >= (int)sizeof(meta) ||
+        snprintf(data_path, sizeof(data_path), "%s/.cache/opencaptive/%s.bin",
+                 home, hash) >= (int)sizeof(data_path))
+        return NULL;
     FILE *mf = fopen(meta, "rb");
     if (!mf) return NULL;
     size_t n = fread(stored, 1, sizeof(stored) - 1, mf);
@@ -921,13 +924,27 @@ static void vfs_cache_write(const char hash[65], const uint8_t *data, size_t siz
     const char *home = vfs_cache_home();
     if (!home || !valid_sha256_text(hash) || !data || size > ZIP_MAX_ENTRY_SIZE) return;
     char base[1024], meta[1200], data_path[1200];
-    snprintf(base, sizeof(base), "%s/.cache/opencaptive", home);
+    if (snprintf(base, sizeof(base), "%s/.cache/opencaptive", home) >=
+        (int)sizeof(base)) return;
     char parent[1024];
-    snprintf(parent, sizeof(parent), "%s/.cache", home);
+    if (snprintf(parent, sizeof(parent), "%s/.cache", home) >=
+        (int)sizeof(parent)) return;
+    if (snprintf(meta, sizeof(meta), "%s/%s.meta", base, hash) >=
+            (int)sizeof(meta) ||
+        snprintf(data_path, sizeof(data_path), "%s/%s.bin", base, hash) >=
+            (int)sizeof(data_path)) return;
+
+    char source_signature[65] = {0};
+    if (source_path && (strchr(source_path, '\n') || strchr(source_path, '\r') ||
+                        !cache_source_signature(source_path, source_signature))) {
+        /* Never persist a loose-file payload without the source fingerprint;
+         * otherwise an unusual path or a race during the write would turn
+         * this back into an unvalidated cache entry. */
+        return;
+    }
+
     (void)vfs_mkdir(parent);
     (void)vfs_mkdir(base);
-    snprintf(meta, sizeof(meta), "%s/%s.meta", base, hash);
-    snprintf(data_path, sizeof(data_path), "%s/%s.bin", base, hash);
     char data_tmp[1250], meta_tmp[1250];
     unsigned long process_id = cache_process_id();
     if (snprintf(data_tmp, sizeof(data_tmp), "%s.tmp.%lu", data_path,
@@ -950,15 +967,6 @@ static void vfs_cache_write(const char hash[65], const uint8_t *data, size_t siz
         return;
     }
 
-    char source_signature[65] = {0};
-    if (source_path && (strchr(source_path, '\n') || strchr(source_path, '\r') ||
-                        !cache_source_signature(source_path, source_signature))) {
-        /* Never persist a loose-file payload without the source fingerprint;
-         * otherwise an unusual path or a race during the write would turn
-         * this back into an unvalidated cache entry. */
-        remove(meta_tmp);
-        return;
-    }
     char metadata[2400];
     int metadata_length = snprintf(metadata, sizeof(metadata), "v2\n%s\n%s\n%s\n",
                                    signature, source_path ? source_path : "",

@@ -3999,6 +3999,17 @@
 - Samma regression verifierar dessutom att alla genererade pusselpositioner
   är nåbara efter upplåsningskedjan.
 
+# 2026-08-08 — Positive scanner-cache path hardening
+
+- Positive cache reads and writes now reject truncated cache paths instead of
+  opening an unintended path when the configured home directory is unusually
+  long.
+- Source metadata is validated before the cached payload is replaced, so a
+  failed or raced scan cannot leave a new payload without its matching v2
+  metadata record.
+- Local build, all 60 CTest tests, and real `.opencaptive` data verification
+  pass.
+
 # 2026-08-07 — Captive lokal texturfas
 
 - Golv- och takpaneler samplar nu PL5-texturen från varje cells lokala
