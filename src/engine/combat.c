@@ -483,18 +483,9 @@ void combat_tick(CreatureList *cl, GameState *gs) {
             if (gs->difficulty == 0) damage = damage * 2 / 3;
             else if (gs->difficulty == 2) damage = damage * 3 / 2;
             if (damage < 1) damage = 1;
-            int part = combat_rand() % 6;
-            if (d->body_parts[part] != 0 && d->body_part_hp[part] > 0) {
-                int armor_reduce = d->body_part_hp[part] / 32;
-                if (armor_reduce > 0) damage -= armor_reduce;
-                if (damage < 1) damage = 1;
-                int part_dmg = damage / 4;
-                if (part_dmg < 1) part_dmg = 1;
-                if (part_dmg >= d->body_part_hp[part])
-                    d->body_part_hp[part] = 0;
-                else
-                    d->body_part_hp[part] -= (uint8_t)part_dmg;
-            }
+            /* The runtime shield is a first-line damage sink.  Do not apply
+             * body-part wear until damage has passed through it; otherwise a
+             * fully charged shield still damages armor on every hit. */
             if (d->shield != 0 && d->shield_hp > 0) {
                 if (damage <= d->shield_hp) {
                     d->shield_hp -= (int16_t)damage;
@@ -502,6 +493,20 @@ void combat_tick(CreatureList *cl, GameState *gs) {
                 } else {
                     damage -= d->shield_hp;
                     d->shield_hp = 0;
+                }
+            }
+            if (damage > 0) {
+                int part = combat_rand() % 6;
+                if (d->body_parts[part] != 0 && d->body_part_hp[part] > 0) {
+                    int armor_reduce = d->body_part_hp[part] / 32;
+                    if (armor_reduce > 0) damage -= armor_reduce;
+                    if (damage < 1) damage = 1;
+                    int part_dmg = damage / 4;
+                    if (part_dmg < 1) part_dmg = 1;
+                    if (part_dmg >= d->body_part_hp[part])
+                        d->body_part_hp[part] = 0;
+                    else
+                        d->body_part_hp[part] -= (uint8_t)part_dmg;
                 }
             }
             if (damage > 0) {

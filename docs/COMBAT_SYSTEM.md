@@ -66,6 +66,14 @@ Manhattan distance pathfinding toward the player's position.
   path, so explosive kills also trigger respawn, score, gold, possible item
   drops, shared XP, and the per-attack kill event.
 
+## Incoming damage and shields
+
+- An equipped shield absorbs incoming damage before body-part condition is
+  reduced. Only damage that remains after the shield is depleted can damage
+  the selected body part or reduce droid HP.
+- Shield durability is saved by both the normal Captive save and the portable
+  cross-save format.
+
 ## Experience and Leveling
 
 - XP per kill follows the recovered CAPPO formula:

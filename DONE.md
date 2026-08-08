@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive shield damage ordering)
+
+- Fixed incoming combat damage so an equipped shield absorbs damage before
+  body-part condition is reduced.
+- Added a regression test proving a fully covering shield leaves both HP and
+  all body-part condition values unchanged.
+- The full local suite passes 60/60 tests.
+
 ## 2026-08-08 (Cross-save shield persistence)
 
 - Bumped the portable Captive cross-save format to version 3 so equipped
