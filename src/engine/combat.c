@@ -118,11 +118,12 @@ static void combat_spawn_for_level_internal(CreatureList *cl,
                     c->speed = def->speed;
                 }
                 {
-                    /* Creature damage formula from CAPPO.EXE at 0x5380:
-                     * base = min(20, combat_val / divisor + 1)
-                     * type 0x60: base ×4; type 0x61: base ×8
-                     * packed as lo*hi word (same encoding as weapons).
-                     * Simplified here using category as the scaling tier. */
+                    /* Compatibility approximation for creature attack stats.
+                     * CAPPO.EXE 0x5380 is the weapon/attack bytecode path
+                     * that builds the lo/hi damage word; it does not by
+                     * itself prove the creature-record damage formula. Keep
+                     * this bounded until the enemy attack record and caller
+                     * are recovered from the disassembly. */
                     int cat = 0;
                     if (se->creature_type >= 1 &&
                         se->creature_type <= CREATURE_TYPE_COUNT)

@@ -20,7 +20,7 @@
 - [ ] Verify a playable Captive viewport pixel-for-pixel against original DOS captures
 
 ### Combat
-- [x] Disassemble combat formula section of CAPPO.EXE (hit check, damage calc, scaling)
+- [x] Disassemble the CAPPO weapon/attack bytecode section (hit check, damage encoding, scaling)
 - [x] Recover combat PRNG variant (ror 2, no XOR at 0x9815)
 - [x] Recover real creature stat tables (DS:0xA1BF, 25 types, HP/category/speed/sprite)
 - [x] Implement damage formula: lo*hi byte encoding, shift-left scaling
@@ -29,6 +29,8 @@
 - [x] Reconstruct the original spawn-record modifier table (`[di+9]`) and
       feed all 24 creature-type entries into HP calculation; the previous
       implementation only covered entries 0-15.
+- [ ] Recover the CAPPO creature attack record and caller; do not treat the
+      weapon bytecode around `0x5380` as proof of the creature damage formula.
 
 ### Map generation
 - [x] Recover cellular automaton rule types from 0x39CC-0x3C21 (maze/rooms/open/mixed)
@@ -121,8 +123,8 @@
 - [x] Any key dismisses help screen
 
 ### Creature stats
-- [x] Creature damage/defense/range derived from category table (not placeholder values)
-- [x] Creature damage formula verified against CAPPO.EXE disassembly at 0x5380 (lo*hi encoding, same as weapons)
+- [x] Creature damage/defense/range use a bounded compatibility formula derived
+      from recovered category data (not yet source-parity verified)
 
 ### Armor and combat
 - [x] Armor damage reduction (body part condition reduces incoming damage)

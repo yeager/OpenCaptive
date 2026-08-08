@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Combat source-lock correction)
+
+- Corrected the combat documentation and source comments: CAPPO.EXE offset
+  `0x5380` is weapon/attack bytecode, not proof of the creature attack
+  formula.
+- Marked the current bounded creature damage calculation as a compatibility
+  approximation and added the actual enemy attack-record recovery to TODO.
+- No synthetic creature-damage data was introduced.
+
 ## 2026-08-08 (Liberation city road-feature navigation)
 
 - Made finalized road features such as phone boxes and post boxes traversable

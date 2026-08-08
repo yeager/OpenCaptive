@@ -228,7 +228,8 @@ The following components have been cross-referenced against the original binarie
 
 | Component | Source | Method |
 |-----------|--------|--------|
-| Combat formulas | CAPPO.EXE at 0x5380 | Disassembly |
+| Weapon damage encoding | CAPPO.EXE attack bytecode around 0x5380 | Disassembly |
+| Creature attack damage | Bounded category/level compatibility formula | Runtime approximation; source recovery pending |
 | Creature stats (25 types) | CAPPO.EXE DS:0xA1BF | Disassembly |
 | Weapon damage (38 weapons) | CAPPO.EXE DS:0x9A42, 0x1A006 | Disassembly |
 | SFX mappings (10 events) | CAPPO.EXE INT 61h sites | Disassembly |

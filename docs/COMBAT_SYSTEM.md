@@ -10,9 +10,10 @@ OpenCaptive's combat system implements Captive's real-time creature encounters w
 
 25 creature types grouped into 8 categories (0-7). Per-type HP/category/speed tables recovered from CAPPO.EXE (DS:0xA1BF, DS:0x9A42, DS:0xA1A4).
 
-### Damage formula (from CAPPO.EXE at 0x5380)
+### Current creature damage boundary
 
-Creature damage is procedurally computed at spawn time, not stored in a per-type table:
+The active runtime computes bounded creature damage at spawn time from the
+recovered creature category and dungeon level:
 ```
 base = min(20, 2 + category + dungeon_level)
 dmg_lo = (base >> 1) | 1
@@ -20,7 +21,15 @@ dmg_hi = base
 damage_min = dmg_lo * dmg_hi
 damage_max = dmg_lo * dmg_hi + dmg_hi
 ```
-Uses the same lo*hi byte encoding as weapon damage (formula at 0x97F2: `mul ah`, shift ×8, cap 0xFFFD).
+
+This is a compatibility approximation, not a source-verified creature
+formula. CAPPO.EXE offset `0x5380` is the weapon/attack bytecode path that
+constructs the low/high damage word; it must not be cited as proof of this
+creature-stat calculation. The enemy attack record and its caller still need
+to be recovered before claiming exact parity.
+
+The runtime uses the same bounded lo*hi representation for compatibility with
+the weapon damage path.
 
 Defense scales with category and level: `category * 2 + level`.
 Range: categories 0-3 are melee (1-2), categories 4-7 are ranged (4-7).
