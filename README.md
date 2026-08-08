@@ -94,7 +94,8 @@ The sequel expands into a cyberpunk city setting with hundreds of interactive bu
 - If multiple verified versions of a game are available, launch opens a localized version-selection popup
 - With `cross_save=1` or `--cross-save-export`, Captive F5 saves also create a
   portable `.ocsv` file beside the normal save (`opencaptive.ocsv` or the
-  matching quicksave slot).
+  matching quicksave slot). Cross-save version 3 preserves equipped shield
+  IDs and durability while still importing versions 1 and 2.
 
 ## Building
 

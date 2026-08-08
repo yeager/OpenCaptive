@@ -9,10 +9,12 @@
 #endif
 
 #define CROSS_SAVE_MAGIC 0x4F435356 /* "OCSV" */
-#define CROSS_SAVE_VERSION 2
+#define CROSS_SAVE_VERSION 3
+#define CROSS_SAVE_VERSION_V2 2
 #define CROSS_SAVE_VERSION_LEGACY 1
 #define CROSS_SAVE_DROID_V1_SIZE 58U
 #define CROSS_SAVE_DROID_V2_SIZE 64U
+#define CROSS_SAVE_DROID_V3_SIZE 67U
 
 static bool read_exact(FILE *fp, void *dst, size_t size, size_t count);
 static bool write_exact(FILE *fp, const void *src, size_t size, size_t count);
@@ -34,6 +36,12 @@ static bool valid_weapon_id(const ItemDatabase *db, uint8_t item_id) {
     const Item *item = db ? item_db_get(db, item_id) : NULL;
     return item && item->category >= ITEM_WEAPON_MELEE &&
            item->category <= ITEM_WEAPON_SPRAY;
+}
+
+static bool valid_shield_id(const ItemDatabase *db, uint8_t item_id) {
+    if (item_id == 0) return true;
+    const Item *item = db ? item_db_get(db, item_id) : NULL;
+    return item && item->category == ITEM_SHIELD;
 }
 
 static bool valid_droid_items(const ItemDatabase *db, const Droid *droid) {
@@ -140,7 +148,9 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
         const Droid *dr = &gs->droids[d];
         if (dr->hp < 0 || dr->hp_max < 0 || dr->hp > dr->hp_max ||
             dr->energy < 0 || dr->energy_max < 0 ||
-            dr->energy > dr->energy_max || !valid_droid_items(&item_db, dr))
+            dr->energy > dr->energy_max || dr->shield_hp < 0 ||
+            !valid_shield_id(&item_db, dr->shield) ||
+            !valid_droid_items(&item_db, dr))
             return false;
     }
     for (int l = 0; l < gs->num_levels; l++) {
@@ -229,6 +239,13 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
             free(temporary_path);
             return false;
         }
+        if (!write_exact(fp, &dr->shield, 1, 1) ||
+            !write_le16(fp, (uint16_t)dr->shield_hp)) {
+            fclose(fp);
+            remove(temporary_path);
+            free(temporary_path);
+            return false;
+        }
     }
 
     for (int l = 0; l < gs->num_levels && l < MAX_LEVELS; l++) {
@@ -294,7 +311,8 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
         IMPORT_FAIL();
     }
     if (!read_le32(fp, &version) ||
-        (version != CROSS_SAVE_VERSION && version != CROSS_SAVE_VERSION_LEGACY)) {
+        (version != CROSS_SAVE_VERSION && version != CROSS_SAVE_VERSION_V2 &&
+         version != CROSS_SAVE_VERSION_LEGACY)) {
         IMPORT_FAIL();
     }
 
@@ -346,7 +364,9 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
     long long level_bytes = (long long)vals[5] *
                             (8LL + (long long)MAP_WIDTH * MAP_HEIGHT * 10);
     uint32_t droid_record_size = version == CROSS_SAVE_VERSION
-        ? CROSS_SAVE_DROID_V2_SIZE : CROSS_SAVE_DROID_V1_SIZE;
+        ? CROSS_SAVE_DROID_V3_SIZE
+        : (version == CROSS_SAVE_VERSION_V2 ? CROSS_SAVE_DROID_V2_SIZE
+                                            : CROSS_SAVE_DROID_V1_SIZE);
     long long required_end = (long long)payload_start +
                              4LL * droid_record_size + level_bytes;
     if (file_end < 0 || (long long)file_end < required_end ||
@@ -356,17 +376,22 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
 
     for (int d = 0; d < 4; d++) {
         Droid *dr = &gs->droids[d];
-        uint16_t hp, hp_max, energy, energy_max, weapon_damage;
+        uint16_t hp, hp_max, energy, energy_max, weapon_damage, shield_hp;
         if (!read_exact(fp, dr->name, 16, 1) ||
             !read_le16(fp, &hp) || !read_le16(fp, &hp_max) ||
             !read_le16(fp, &energy) || !read_le16(fp, &energy_max) ||
             !read_exact(fp, dr->body_parts, 6, 1) ||
-            (version == CROSS_SAVE_VERSION &&
+            (version >= CROSS_SAVE_VERSION_V2 &&
              !read_exact(fp, dr->body_part_hp, 6, 1)) ||
             !read_exact(fp, dr->weapons, 2, 1) ||
             !read_exact(fp, dr->items, 10, 1) ||
             !read_exact(fp, dr->skill_levels, 10, 1) ||
             !read_le32(fp, &dr->xp) || !read_le16(fp, &weapon_damage)) {
+            IMPORT_FAIL();
+        }
+        if (version == CROSS_SAVE_VERSION &&
+            (!read_exact(fp, &dr->shield, 1, 1) ||
+             !read_le16(fp, &shield_hp))) {
             IMPORT_FAIL();
         }
         if (version == CROSS_SAVE_VERSION_LEGACY)
@@ -376,8 +401,11 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
         dr->energy = decode_i16(energy);
         dr->energy_max = decode_i16(energy_max);
         dr->weapon_damage = weapon_damage;
+        if (version == CROSS_SAVE_VERSION)
+            dr->shield_hp = decode_i16(shield_hp);
         if (dr->hp < 0 || dr->hp_max < 0 || dr->hp > dr->hp_max ||
             dr->energy < 0 || dr->energy_max < 0 || dr->energy > dr->energy_max ||
+            dr->shield_hp < 0 || !valid_shield_id(&item_db, dr->shield) ||
             !valid_droid_items(&item_db, dr)) {
             IMPORT_FAIL();
         }

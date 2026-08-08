@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Cross-save shield persistence)
+
+- Bumped the portable Captive cross-save format to version 3 so equipped
+  shield IDs and durability survive export/import.
+- Kept version 1 and version 2 imports compatible, with absent shield fields
+  defaulting to an empty shield.
+- Added round-trip and legacy-format regression coverage.
+
 ## 2026-08-08 (Liberation shield save persistence)
 
 - Extended the OpenCaptive Liberation save stream to version 8 with the

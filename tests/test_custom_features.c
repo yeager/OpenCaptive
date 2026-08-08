@@ -327,6 +327,8 @@ static void test_cross_save(void) {
     gs.droids[0].hp = 100;
     gs.droids[0].hp_max = 200;
     gs.droids[0].body_part_hp[0] = 37;
+    gs.droids[0].shield = 58;
+    gs.droids[0].shield_hp = 11;
     gs.levels[0].seed = 42;
     gs.levels[0].cells[5][10].type = CELL_DOOR;
 
@@ -342,7 +344,7 @@ static void test_cross_save(void) {
     assert(fclose(header) == 0);
     assert(header_bytes[0] == 0x56 && header_bytes[1] == 0x53 &&
            header_bytes[2] == 0x43 && header_bytes[3] == 0x4F);
-    assert(header_bytes[4] == 2 && header_bytes[5] == 0 &&
+    assert(header_bytes[4] == 3 && header_bytes[5] == 0 &&
            header_bytes[6] == 0 && header_bytes[7] == 0);
 
     GameState gs2;
@@ -368,12 +370,59 @@ static void test_cross_save(void) {
     assert(gs2.droids[0].hp == 100);
     assert(gs2.droids[0].hp_max == 200);
     assert(gs2.droids[0].body_part_hp[0] == 37);
+    assert(gs2.droids[0].shield == 58);
+    assert(gs2.droids[0].shield_hp == 11);
     assert(gs2.levels[0].seed == 42);
     assert(gs2.levels[0].cells[5][10].type == CELL_DOOR);
     assert(gs2.config.render_mode == CAPTIVE_RENDER_ENHANCED);
     assert(gs2.config.scanlines);
     assert(gs2.config.brightness == 81);
     assert(gs2.config.data_path == data_path);
+
+    {
+    /* Version 2 already contained body-part condition bytes but predates
+       the shield extension.  Build that shape from the current export and
+       verify that its import keeps the old fields while defaulting shield
+       state to empty. */
+    const char *v2_path = "test_opencaptive_cross_v2.ocsv";
+    FILE *v3_file = fopen(path, "rb");
+    assert(v3_file);
+    assert(fseek(v3_file, 0, SEEK_END) == 0);
+    long v3_size = ftell(v3_file);
+    assert(v3_size > 0 && fseek(v3_file, 0, SEEK_SET) == 0);
+    uint8_t *v3_bytes = malloc((size_t)v3_size);
+    assert(v3_bytes);
+    assert(fread(v3_bytes, 1, (size_t)v3_size, v3_file) == (size_t)v3_size);
+    assert(fclose(v3_file) == 0);
+    const size_t cross_header_size = 57U;
+    const size_t v3_droid_size = 67U;
+    const size_t v2_droid_size = 64U;
+    const size_t droid_count = 4U;
+    const size_t v2_size = (size_t)v3_size -
+                           (v3_droid_size - v2_droid_size) * droid_count;
+    uint8_t *v2_bytes = malloc(v2_size);
+    assert(v2_bytes);
+    memcpy(v2_bytes, v3_bytes, cross_header_size);
+    for (size_t droid = 0; droid < droid_count; ++droid) {
+        memcpy(v2_bytes + cross_header_size + droid * v2_droid_size,
+               v3_bytes + cross_header_size + droid * v3_droid_size,
+               v2_droid_size);
+    }
+    memcpy(v2_bytes + cross_header_size + droid_count * v2_droid_size,
+           v3_bytes + cross_header_size + droid_count * v3_droid_size,
+           (size_t)v3_size - cross_header_size - droid_count * v3_droid_size);
+    v2_bytes[4] = 2;
+    FILE *v2_out = fopen(v2_path, "wb");
+    assert(v2_out);
+    assert(fwrite(v2_bytes, 1, v2_size, v2_out) == v2_size);
+    assert(fclose(v2_out) == 0);
+    free(v2_bytes);
+    free(v3_bytes);
+    assert(cross_save_import(&gs2, v2_path));
+    assert(gs2.droids[0].body_part_hp[0] == 37);
+    assert(gs2.droids[0].shield == 0 && gs2.droids[0].shield_hp == 0);
+    remove(v2_path);
+    }
 
     /* A portable save must rebuild derived combat state instead of trusting
        a mutated weapon_damage field. Header (57) + first droid fields before
@@ -422,15 +471,16 @@ static void test_cross_save(void) {
     assert(cross_save_export(&gs, path));
     FILE *bad_level = fopen(path, "r+b");
     assert(bad_level);
-    assert(fseek(bad_level, 57L + 4L * 64L, SEEK_SET) == 0);
+    assert(fseek(bad_level, 57L + 4L * 67L, SEEK_SET) == 0);
     uint8_t wrong_level[4] = {1, 0, 0, 0};
     assert(fwrite(wrong_level, 1, sizeof(wrong_level), bad_level) == sizeof(wrong_level));
     assert(fclose(bad_level) == 0);
     assert(!cross_save_import(&gs2, path));
     assert(cross_save_export(&gs, path));
 
-    /* Build a v1 fixture from the v2 export by removing the six-byte armor
-       condition field that the old format did not contain. */
+    /* Build a v1 fixture from the v3 export by removing the six-byte armor
+       condition field and three-byte shield extension that the old format
+       did not contain. */
     const char *legacy_path = "test_opencaptive_cross_v1.ocsv";
     FILE *v2_file = fopen(path, "rb");
     assert(v2_file);
@@ -442,22 +492,22 @@ static void test_cross_save(void) {
     assert(fread(v2_bytes, 1, (size_t)v2_size, v2_file) == (size_t)v2_size);
     assert(fclose(v2_file) == 0);
     const size_t cross_header_size = 57U;
-    const size_t v2_droid_size = 64U;
+    const size_t v3_droid_size = 67U;
     const size_t v1_droid_size = 58U;
     const size_t droid_count = 4U;
-    const size_t removed_size = (v2_droid_size - v1_droid_size) * droid_count;
+    const size_t removed_size = (v3_droid_size - v1_droid_size) * droid_count;
     assert((size_t)v2_size > cross_header_size + removed_size);
     size_t v1_size = (size_t)v2_size - removed_size;
     uint8_t *v1_bytes = malloc(v1_size);
     assert(v1_bytes);
     memcpy(v1_bytes, v2_bytes, cross_header_size);
     for (size_t droid = 0; droid < droid_count; ++droid) {
-        size_t v2_offset = cross_header_size + droid * v2_droid_size;
+        size_t v2_offset = cross_header_size + droid * v3_droid_size;
         size_t v1_offset = cross_header_size + droid * v1_droid_size;
         memcpy(v1_bytes + v1_offset, v2_bytes + v2_offset, 30U);
         memcpy(v1_bytes + v1_offset + 30U, v2_bytes + v2_offset + 36U, 28U);
     }
-    size_t v2_level_offset = cross_header_size + droid_count * v2_droid_size;
+    size_t v2_level_offset = cross_header_size + droid_count * v3_droid_size;
     size_t v1_level_offset = cross_header_size + droid_count * v1_droid_size;
     memcpy(v1_bytes + v1_level_offset, v2_bytes + v2_level_offset,
            (size_t)v2_size - v2_level_offset);
@@ -513,8 +563,8 @@ static void test_cross_save(void) {
     assert(cross_save_export(&gs, path));
     mutated = fopen(path, "r+b");
     assert(mutated);
-    /* Header (57 bytes) + four 64-byte v2 droid records. */
-    assert(fseek(mutated, 57 + 4 * 64, SEEK_SET) == 0);
+    /* Header (57 bytes) + four 67-byte v3 droid records. */
+    assert(fseek(mutated, 57 + 4 * 67, SEEK_SET) == 0);
     assert(fwrite(invalid, 1, sizeof(invalid), mutated) == sizeof(invalid));
     assert(fclose(mutated) == 0);
     assert(!cross_save_import(&preserved, path));
