@@ -1204,6 +1204,7 @@ static void restore_liberation_save_state(GameState *gs_ptr,
         memset(gs_ptr->droids[i].body_part_hp, 255,
                sizeof(gs_ptr->droids[i].body_part_hp));
     gs_ptr->mission = (int)save->mission;
+    gs_ptr->difficulty = (uint8_t)save->difficulty;
     gs_ptr->mission_seed = ((uint32_t)save->seed_hi << 16) | save->seed_lo;
     gs_ptr->gold = save->gold > (uint32_t)INT_MAX ? INT_MAX :
         (int)save->gold;
@@ -1781,7 +1782,7 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
             uint16_t seed_hi = (uint16_t)((gs->mission_seed >> 16) & 0xFFFF);
             uint32_t save_gold = gs->gold < 0 ? 0u : (uint32_t)gs->gold;
             lib_save_from_state(&save, seed_hi, seed,
-                (uint16_t)gs->mission, (uint16_t)gs->mission,
+                (uint16_t)gs->difficulty, (uint16_t)gs->mission,
                 save_gold, gs->tick, &lib_nav, sd, 4);
             save.generators_destroyed = gs->generators_destroyed < 0 ? 0 :
                 (gs->generators_destroyed > UINT16_MAX ? UINT16_MAX :

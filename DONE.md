@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Liberation difficulty save/load)
+
+- Fixed Liberation F5 saves that accidentally wrote the mission number as the
+  difficulty value.
+- Restored the saved difficulty during F9 loading and rejected values outside
+  the supported 0–2 range.
+- Added regression coverage; the targeted Liberation save test passes.
+
 ## 2026-08-08 (Captive viewport depth-band geometry)
 
 - Corrected the active compatibility renderer's four non-player depth bands to

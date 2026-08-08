@@ -312,6 +312,7 @@ static void test_from_state(void) {
 
     assert(data.seed_hi == 0x11);
     assert(data.seed_lo == 0x22);
+    assert(data.difficulty == 1);
     assert(data.city_x == 15);
     assert(data.city_y == 20);
     assert(data.facing == 2);
@@ -325,6 +326,17 @@ static void test_from_state_without_droids_is_empty(void) {
     city_nav_init(&nav, 4, 5, CITY_DIR_NORTH);
     lib_save_from_state(&data, 0, 0, 0, 1, 0, 0, &nav, NULL, 2);
     assert(data.num_droids == 0);
+}
+
+static void test_rejects_invalid_difficulty(void) {
+    LibSaveData data;
+    memset(&data, 0, sizeof(data));
+    data.city_x = 0;
+    data.city_y = 0;
+    data.mission = 1;
+    data.difficulty = 3;
+    assert(!lib_save_write(&data, TEST_PATH));
+    unlink(TEST_PATH);
 }
 
 static void test_legacy_version_record_size_is_supported(void) {
@@ -392,6 +404,7 @@ int main(void) {
     test_read_reputation_version();
     test_from_state();
     test_from_state_without_droids_is_empty();
+    test_rejects_invalid_difficulty();
     test_legacy_version_record_size_is_supported();
     test_mission_bitmap();
     printf("All liberation save tests passed\n");

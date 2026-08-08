@@ -44,6 +44,7 @@ static bool replace_save_file(const char *temporary_path, const char *path) {
 
 bool lib_save_write(const LibSaveData *data, const char *path) {
     if (!data || !path || data->num_droids > LIB_SAVE_MAX_DROIDS ||
+        data->difficulty > 2 ||
         data->city_x < 0 || data->city_x >= CITYGRID_WIDTH ||
         data->city_y < 0 || data->city_y >= CITYGRID_HEIGHT ||
         data->facing > 3 ||
@@ -172,6 +173,7 @@ bool lib_save_read(LibSaveData *data, const char *path) {
     /* Every field above is mandatory; fread() on a short file must not be
      * silently converted into zero-valued state. */
     if (feof(f) || ferror(f) || data->facing > 3 ||
+        data->difficulty > 2 ||
         data->city_x < 0 || data->city_x >= CITYGRID_WIDTH ||
         data->city_y < 0 || data->city_y >= CITYGRID_HEIGHT ||
         data->mission < 1 || data->mission >= LIB_SAVE_MAX_MISSIONS) {
