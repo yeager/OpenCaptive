@@ -148,7 +148,10 @@ static void draw_floor_ceiling(uint32_t *fb, int fb_w, int fb_h,
                                 int vp_x, int vp_y) {
     (void)lateral;
     const RangeParams *rp = &range_params[range];
-    int sheet = atlas->wall_sheets[range < 5 ? range : 4];
+    /* CAPPO descriptor records route floor and ceiling strips through source
+     * bank 4, which resolves to ROOFS.PL5.  Range selects the descriptor
+     * geometry, not the source sheet. */
+    int sheet = atlas->roof_sheet;
     if (sheet < 0) return;
 
     int floor_y = rp->bottom_y;

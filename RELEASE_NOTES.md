@@ -24,6 +24,8 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
 - **(Captive)** Descriptor source-bank resolution now routes bank 4 to
   `ROOFS.PL5`, matching the recovered CAPPO descriptor table, with regression
   coverage for wall, roof, and invalid banks.
+- **(Captive)** The active compatibility viewport now samples floor and ceiling
+  strips from `ROOFS.PL5` instead of a range-indexed wall sheet.
 - **(Infrastructure)** CI now runs the complete 59-test suite on Windows,
   including large `GameState` fixtures, with portable temporary test paths.
 - **(Infrastructure)** Windows release packaging now includes the portable

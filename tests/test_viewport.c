@@ -7,6 +7,7 @@
 #include <string.h>
 
 static Texture test_texture;
+static Texture roof_texture;
 
 const Texture *gfx_get(const GfxData *gfx, int id) {
     if (!gfx || id < 0 || id >= gfx->num_textures) return NULL;
@@ -39,12 +40,18 @@ int main(void) {
 
     static uint32_t texture_pixels[320 * 200];
     static uint8_t texture_indices[320 * 200];
+    static uint32_t roof_pixels[320 * 200];
+    static uint8_t roof_indices[320 * 200];
     static uint32_t framebuffer[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
     static GameState gs;
     static CreatureList creatures;
     for (size_t i = 0; i < sizeof(texture_pixels) / sizeof(texture_pixels[0]); i++)
         texture_pixels[i] = 0xFF101010;
     memset(texture_indices, 1, sizeof(texture_indices));
+    for (size_t i = 0; i < sizeof(roof_pixels) / sizeof(roof_pixels[0]); i++) {
+        roof_pixels[i] = 0xFF0000FF;
+        roof_indices[i] = 3;
+    }
     for (int y = 0; y < 32; y++) {
         for (int x = 0; x < 32; x++) {
             texture_pixels[y * 320 + x] = 0xFFFF0000;
@@ -59,11 +66,17 @@ int main(void) {
     test_texture.width = 320;
     test_texture.height = 200;
     test_texture.loaded = true;
+    roof_texture.pixels = roof_pixels;
+    roof_texture.indices = roof_indices;
+    roof_texture.width = 320;
+    roof_texture.height = 200;
+    roof_texture.loaded = true;
 
     TextureAtlas atlas;
     memset(&atlas, 0, sizeof(atlas));
-    atlas.gfx.num_textures = 1;
+    atlas.gfx.num_textures = 2;
     atlas.gfx.textures[0] = test_texture;
+    atlas.gfx.textures[1] = roof_texture;
     atlas.loaded = true;
     for (int i = 0; i < 5; ++i) atlas.wall_sheets[i] = 0;
     atlas.roof_sheet = 0;
@@ -210,6 +223,18 @@ int main(void) {
                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
     assert(memcmp(floor_ceiling_textures, framebuffer,
                   sizeof(floor_ceiling_textures)) != 0);
+
+    /* Floor and ceiling strips use the recovered descriptor bank 4, which is
+     * ROOFS.PL5, rather than the range-indexed wall sheets. */
+    atlas.roof_sheet = 1;
+    captive_view_window_build(&gs, &window);
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render(&window, &atlas, framebuffer,
+                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+    assert(framebuffer[(CAPTIVE_VIEWPORT_Y + 98) * CAPTIVE_ORIGINAL_WIDTH +
+                       CAPTIVE_VIEWPORT_X + 54] == 0xFF0000FF);
+    atlas.roof_sheet = 0;
 
     /* Floor/ceiling projection must restart sampling at each cell's local
      * origin.  A viewport-relative source x made the left and center cells
