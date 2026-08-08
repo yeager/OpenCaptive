@@ -421,7 +421,7 @@ add_test(NAME ctv_decoder COMMAND test_ctv_decoder)
 add_executable(test_save_load tests/test_save_load.c
     src/engine/save_load.c src/engine/save_thumbnail.c src/engine/engine.c src/engine/map_gen.c
     src/engine/combat.c src/engine/puzzle.c src/engine/captive_data.c
-    src/engine/xp_level.c src/engine/inventory.c
+    src/engine/droid_damage.c src/engine/xp_level.c src/engine/inventory.c
     src/engine/mapgen_ca.c src/engine/spawn.c src/engine/creature_stats.c
     src/data/i18n.c)
 target_include_directories(test_save_load PRIVATE ${CMAKE_SOURCE_DIR}/include)
