@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive creature animation frame routing)
+
+- The active Captive viewport now uses the disassembly `frame_index` from
+  `DS:0xA16E` when sampling the 10x5 32x40 ALIEN sheet grid.
+- Added bounds-checked frame-origin conversion and regression coverage for
+  valid and invalid frame indices.
+- Full local test suite: 59/59 tests passed.
+
 ## 2026-08-07 (Captive ANM endian contract)
 
 - Corrected the ANM decoder comments to match the verified little-endian

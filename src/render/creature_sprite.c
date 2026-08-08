@@ -2,6 +2,14 @@
 #include <stdint.h>
 #include <string.h>
 
+bool creature_sprite_frame_origin(int frame_index, int *x, int *y) {
+    if (!x || !y || frame_index < 0 || frame_index >= CREATURE_MAX_FRAMES)
+        return false;
+    *x = (frame_index % CREATURE_COLS) * CREATURE_FRAME_W;
+    *y = (frame_index / CREATURE_COLS) * CREATURE_FRAME_H;
+    return true;
+}
+
 bool creature_sprite_load(const PL5Image *sheet, CreatureSpriteSet *out) {
     if (!sheet || !out || !sheet->pixel_data) return false;
     if (sheet->width < PL5_WIDTH || sheet->height < PL5_HEIGHT) return false;

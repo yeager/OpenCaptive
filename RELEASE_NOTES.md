@@ -28,6 +28,8 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
   strips from `ROOFS.PL5` instead of a range-indexed wall sheet.
 - **(Captive)** Wall rendering now selects the `WALLA–WALLE` source set from
   each cell's `wall_tex` value rather than incorrectly using view depth.
+- **(Captive)** Creature rendering now honors the disassembly `frame_index`
+  from `DS:0xA16E` instead of always drawing ALIEN sheet frame zero.
 - **(Infrastructure)** CI now runs the complete 59-test suite on Windows,
   including large `GameState` fixtures, with portable temporary test paths.
 - **(Infrastructure)** Windows release packaging now includes the portable

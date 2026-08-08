@@ -11,12 +11,13 @@
 - [x] Apply recovered Captive descriptor mirror and transparency flags in compositor
 - [x] Keep Captive playable with a source-backed viewport fallback in both modes
 - [x] Draw Captive creature sprites back-to-front by forward depth
+- [x] Use the disassembly creature `frame_index` when selecting ALIEN sheet frames
 - [x] Sample Captive side-wall textures from the adjacent wall face
 - [x] Apply Captive floor and ceiling texture selectors in the compatibility viewport
 - [x] Make Captive native frame capture enter a complete mission
-- [x] Recover the complete original per-cell descriptor sequence, destination bases and draw order
-- [x] Reproduce original planar mask, mirror and overwrite behaviour in the active viewport
-- [x] Verify a playable Captive viewport pixel-for-pixel against original DOS captures
+- [ ] Recover the complete original per-cell descriptor sequence, destination bases and draw order
+- [ ] Reproduce original planar mask, mirror and overwrite behaviour in the active viewport
+- [ ] Verify a playable Captive viewport pixel-for-pixel against original DOS captures
 
 ### Combat
 - [x] Disassemble combat formula section of CAPPO.EXE (hit check, damage calc, scaling)

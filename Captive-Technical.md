@@ -639,7 +639,8 @@ from creature spawn data at [di+9].
 Category table at DS:0x9A42 (file 0x18232): groups creature types into 8
 categories (0-7), 3 types per category. Speed values at DS:0xA1A4 (file
 0x18994). Sprite assignments at DS:0xA16E (file 0x1895E): graphic_id maps
-to ALIEN PL5 sheets, frame_index selects the animation variant.
+to ALIEN PL5 sheets, and frame_index selects the animation variant in the
+10x5 32x40 frame grid. The active viewport uses both fields.
 
 DS segment base = 0x0E3F (file offset = 0xE7F0 + DS_offset).
 

@@ -26,6 +26,10 @@ typedef struct {
     uint32_t palette[PL5_COLORS];
 } CreatureSpriteSet;
 
+/* Convert the frame number stored by CAPPO at DS:0xA16E to its position in
+ * the 10x5 ALIEN*.PL5 frame grid. Returns false for an invalid frame. */
+bool creature_sprite_frame_origin(int frame_index, int *x, int *y);
+
 bool creature_sprite_load(const PL5Image *sheet, CreatureSpriteSet *out);
 void creature_sprite_blit(const CreatureFrame *frame, const uint32_t *palette,
                           uint32_t *framebuffer, int fb_width, int fb_height,

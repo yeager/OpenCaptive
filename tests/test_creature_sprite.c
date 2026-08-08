@@ -29,6 +29,16 @@ static void test_load_synthetic(void) {
     free(sheet.pixel_data);
 }
 
+static void test_frame_origin_matches_sheet_grid(void) {
+    int x = -1, y = -1;
+    assert(creature_sprite_frame_origin(0x20, &x, &y));
+    assert(x == 2 * CREATURE_FRAME_W);
+    assert(y == 3 * CREATURE_FRAME_H);
+    assert(!creature_sprite_frame_origin(-1, &x, &y));
+    assert(!creature_sprite_frame_origin(CREATURE_MAX_FRAMES, &x, &y));
+    assert(!creature_sprite_frame_origin(0, NULL, &y));
+}
+
 static void test_load_rejects_short_pixel_buffer(void) {
     PL5Image sheet = {0};
     sheet.width = PL5_WIDTH;
@@ -86,6 +96,7 @@ static void test_null_safety(void) {
 
 int main(void) {
     test_load_synthetic();
+    test_frame_origin_matches_sheet_grid();
     test_load_rejects_short_pixel_buffer();
     test_blit();
     test_blit_scale();

@@ -3,6 +3,7 @@
 #include "gfx_loader.h"
 #include "object_sprite.h"
 #include "creature_stats.h"
+#include "creature_sprite.h"
 #include "captive_viewport_descriptors.h"
 #include <string.h>
 
@@ -810,12 +811,17 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
             ? atlas->alien_sheets[alien_idx] : -1;
 
         if (sheet >= 0) {
-            /* Blit from PL5 sheet — front-facing frame at (0,0), 64×100 region */
-            int src_w = 64, src_h = 100;
+            /* CAPPO DS:0xA16E stores the animation frame as the second byte
+             * after graphic_id. The old path always used frame zero, so
+             * several creature types displayed the wrong pose. */
+            int frame_x = 0, frame_y = 0;
+            int frame_index = creature_sprite_frame_index(c->type);
+            if (!creature_sprite_frame_origin(frame_index, &frame_x, &frame_y))
+                continue;
             for (int py = 0; py < sprite_h; py++) {
-                    int src_y = py * src_h / sprite_h;
+                int src_y = frame_y + py * CREATURE_FRAME_H / sprite_h;
                 for (int px = 0; px < sprite_w; px++) {
-                    int src_x = px * src_w / sprite_w;
+                    int src_x = frame_x + px * CREATURE_FRAME_W / sprite_w;
                     uint32_t pixel = sample_sheet(atlas, sheet, src_x, src_y);
                     if (sample_sheet_index(atlas, sheet, src_x, src_y) == 0)
                         continue;
