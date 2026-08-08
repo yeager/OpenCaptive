@@ -332,7 +332,14 @@ bool combat_throw_grenade(GameState *gs, CreatureList *cl,
     if (grenade_slot < 0) return false;
 
     const Item *grenade = item_db_get(db, droid->items[grenade_slot]);
-    int damage = grenade ? (grenade->damage_min + grenade->damage_max) / 2 : 30;
+    /* The item database is the authority for real Captive ordnance.  Do not
+     * consume an item or invent fallback damage when a supplied database is
+     * incomplete; callers can then report the data problem and preserve the
+     * player's inventory. */
+    if (!grenade || grenade->damage_min < 0 || grenade->damage_max < grenade->damage_min)
+        return false;
+    int64_t damage_sum = (int64_t)grenade->damage_min + grenade->damage_max;
+    int damage = (int)(damage_sum / 2);
     if (damage < 1) damage = 1;
     droid->items[grenade_slot] = 0;
 

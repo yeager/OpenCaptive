@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive grenade data validation)
+
+- Captive grenade throws now require a valid real item record before changing
+  inventory or applying damage.
+- Removed the synthetic fallback damage path for incomplete item databases.
+- Added regression coverage proving a missing grenade record leaves the item
+  untouched and does not damage a creature.
+
 ## 2026-08-08 (Captive invalid item-database attack)
 
 - Captive attack validation now resolves equipped weapons from the supplied
