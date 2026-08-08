@@ -104,13 +104,17 @@ static void test_spawn_rejects_invalid_direction(void) {
 
 static void test_spawn_type_0x0F_directional(void) {
     uint32_t seed = 0x1234;
+    bool saw_type = false;
     for (int i = 0; i < 100; i++) {
-        SpawnResult r = spawn_creatures(3, 5, DIR_EAST, 2, &seed);
+        /* Compatibility category 4 contains source creature IDs 13..15. */
+        SpawnResult r = spawn_creatures(4, 5, DIR_EAST, 2, &seed);
         if (r.count > 0 && r.entries[0].creature_type == 0x0F) {
+            saw_type = true;
             ASSERT(r.count == 1, "type 0x0F spawns 1 creature");
-            return;
+            break;
         }
     }
+    ASSERT(saw_type, "test reaches creature type 0x0F");
 }
 
 static void test_spawn_count_bounds(void) {
