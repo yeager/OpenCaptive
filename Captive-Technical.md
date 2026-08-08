@@ -732,9 +732,19 @@ Table 2 (DS:0x9BE8): `01 03 07 05 00 01 03 04 01 02 04 05 03 04 06 07`
 - Opposite: `direction XOR 2`
 - Perpendicular: `NOT direction AND 1`
 
-### Category table (DS:0x9A43)
+### Creature-category mapping (DS:0x9A42)
 
-8 categories × 3 types each. PRNG selects which type from the category.
+The verified CAPPO image contains a 25-byte mapping indexed by the runtime
+creature candidate. It starts at file offset `0x18232` (`DS:0x9A42`) and is
+not an 8×3 category-to-creature table:
+
+`0D 00 00 00 01 01 01 02 02 02 03 03 03 04 04 04 05 05 05 06 06 06 07 07`
+
+The preceding `0D` is part of the same indexed table. The later runtime
+selection/retry path around `0x97B3` consumes this mapping together with the
+spawn record and the difficulty-offset table. OpenCaptive's reverse grouped
+`spawn_categories` array remains a compatibility representation until that
+caller contract is recovered; it must not be described as the original table.
 
 ### Modifier table (DS:0x9AB7)
 

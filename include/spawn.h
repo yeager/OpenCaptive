@@ -13,6 +13,9 @@ typedef struct {
     uint8_t types[SPAWN_TYPES_PER_CAT];
 } SpawnCategory;
 
+/* Compatibility grouping only.  CAPPO stores the source data as a
+ * candidate-indexed creature->category mapping at DS:0x9A42; the reverse
+ * grouped form is retained until the 0x97B3 caller/retry contract is mapped. */
 extern const SpawnCategory spawn_categories[SPAWN_CATEGORY_COUNT];
 extern const uint8_t spawn_difficulty_offset[SPAWN_TYPE_TABLE_COUNT];
 extern const uint8_t spawn_modifier[SPAWN_TYPE_TABLE_COUNT];
