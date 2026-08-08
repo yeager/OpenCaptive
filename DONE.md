@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive original weapon ranges)
+
+- Restored the original class-specific combat ranges: melee 1, handguns 6,
+  rifles 15, automatics 12, lasers 30, cannons 50 and sprayguns 45.
+- Added regression coverage for long-range rifle attacks and the spraygun
+  maximum range.
+- Full local test suite: 60/60 tests passed; verified against the real
+  `.opencaptive` data set.
+
 ## 2026-08-08 (Liberation shield damage ordering)
 
 - Fixed the Liberation combat slice so enemy damage is absorbed by equipped

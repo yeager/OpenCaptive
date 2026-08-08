@@ -845,7 +845,7 @@ static void test_combat_respects_spray_weapon_range(void) {
     gs.party_x = 1;
     gs.party_y = 1;
     gs.party_dir = DIR_EAST;
-    gs.droids[0].weapons[0] = 33; /* spray weapon: range 4 */
+    gs.droids[0].weapons[0] = 33; /* spray weapon: range 45 */
     gs.droids[0].weapons[1] = 0;
     gs.droids[0].weapon_damage = 0x0505;
 
@@ -856,11 +856,35 @@ static void test_combat_respects_spray_weapon_range(void) {
     creatures.num_creatures = 1;
     creatures.creatures[0] = (Creature){
         .type = CREATURE_ALIEN1, .hp = 30, .hp_max = 30,
-        .x = 6, .y = 1, .level = 0, .active = true,
+        .x = 47, .y = 1, .level = 0, .active = true,
     };
     assert(!combat_droid_attack(&gs, &creatures, 0));
     assert(creatures.creatures[0].hp == 30);
     assert(gs.droids[0].energy == gs.droids[0].energy_max);
+}
+
+static void test_combat_uses_original_ranged_weapon_ranges(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    assert(game_state_new_mission(&gs, 1));
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+    gs.droids[0].weapons[0] = 21; /* rifle: range 15 */
+    gs.droids[0].weapon_damage = 0x0505;
+
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 30, .hp_max = 30,
+        .x = 15, .y = 1, .level = 0, .active = true,
+    };
+    assert(combat_droid_attack(&gs, &creatures, 0));
 }
 
 static void test_combat_spray_splash_awards_kill_progression(void) {
@@ -1452,6 +1476,7 @@ int main(void) {
     test_combat_attack_events_are_per_attack();
     test_combat_uses_ranged_hand_when_melee_is_first();
     test_combat_respects_spray_weapon_range();
+    test_combat_uses_original_ranged_weapon_ranges();
     test_combat_spray_splash_awards_kill_progression();
     test_combat_alternate_kill_path_awards_progression();
     test_combat_dead_droid_cannot_throw_grenade();

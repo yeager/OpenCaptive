@@ -212,15 +212,22 @@ static bool blocks_movement_or_sight(CellType cell) {
 }
 
 static int combat_weapon_range(uint8_t item_id) {
-    /* CAPPO's item table gives spray weapons (IDs 33-35) a shorter range
-     * than handguns, rifles and the other ranged weapons.  Keep this small
-     * lookup aligned with inventory.c until combat receives an ItemDatabase
-     * parameter; treating every ranged weapon as range six lets sprays hit
-     * targets outside their documented reach. */
+    /* Captive weapon tools list these class ranges: brawling 1, handguns 6,
+     * rifles 15, automatics 12, lasers 30, cannons 50 and sprayguns 45.
+     * The compact item IDs follow the same class order as CAPPO's item table;
+     * the A12/L22/X42 records (36-38) are the corresponding ranged variants.
+     * Treating every ranged weapon as range six made the late-game weapons
+     * unusable at their original distances. */
     if (item_id >= 13 && item_id <= 17) return 1;
-    if (item_id >= 33 && item_id <= 35) return 4;
-    if ((item_id >= 18 && item_id <= 32) ||
-        (item_id >= 36 && item_id <= 38)) return 6;
+    if (item_id >= 18 && item_id <= 20) return 6;
+    if (item_id >= 21 && item_id <= 23) return 15;
+    if (item_id >= 24 && item_id <= 26) return 12;
+    if (item_id >= 27 && item_id <= 29) return 30;
+    if (item_id >= 30 && item_id <= 32) return 50;
+    if (item_id >= 33 && item_id <= 35) return 45;
+    if (item_id == 36) return 12;
+    if (item_id == 37) return 30;
+    if (item_id == 38) return 50;
     return 0;
 }
 

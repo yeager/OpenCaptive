@@ -53,9 +53,9 @@ Manhattan distance pathfinding toward the player's position.
 - Damage uses the cache shared by the equipped weapons. The low/high bytes
   are multiplied and then doubled three times, capped at `0xFFFD`.
 - Defense reduces damage by half: `effective = max(1, damage - target.defense / 2)`
-- Range check: the equipped weapon's range versus Manhattan distance to the
-  nearest creature; spray weapons use range 4 while the other ranged weapons
-  use range 6
+- Range check: the equipped weapon's original class range versus Manhattan
+  distance to the nearest creature: melee 1, handguns 6, rifles 15,
+  automatics 12, lasers 30, cannons 50 and sprayguns 45
 - Each successful droid attack costs 3 energy. Creature cooldowns use the
   recovered creature speed; droid attacks currently have no separate weapon
   cooldown.
