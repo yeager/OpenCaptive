@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Restored start-menu artwork)
+
+- Replaced the Captive and Liberation start-menu card images with the
+  supplied project artwork from Downloads.
+- Verified both tracked PNGs byte-for-byte against the supplied source files.
+- Kept the existing aspect-fit renderer, which centers each image without
+  stretching it to the card rectangle.
+
 ## 2026-08-08 (Captive grenade data validation)
 
 - Captive grenade throws now require a valid real item record before changing

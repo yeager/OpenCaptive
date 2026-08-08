@@ -16,6 +16,9 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
 
 ### Changed
 
+- **(Launcher)** Captive and Liberation start-menu cards now use the supplied
+  restored artwork, with source aspect ratios preserved by the existing
+  centered fit renderer.
 - **(Captive)** Grenade kills now use the shared CAPPO kill bookkeeping path,
   so explosive kills correctly award score, gold, drops, shared XP, respawn
   state, and the per-attack kill event.
