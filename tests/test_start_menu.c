@@ -27,6 +27,13 @@ int main(void) {
     assert(strcmp(menu.data_path, "/tmp/opencaptive-data") == 0);
     assert(menu.data_path_cursor == (int)strlen(menu.data_path));
 
+    /* Re-entry while the background scanner is active must release its VFS
+       before start_menu_reset clears the menu state. */
+    start_menu_start_scan(&menu, ".", false);
+    assert(menu.scanner_vfs_ready && menu.scanner_background);
+    start_menu_reinit(&menu);
+    assert(!menu.scanner_vfs_ready && !menu.scanner_background);
+
     /* Small targets must not make the fixed-size popups write out of bounds. */
     menu.show_setup_popup = true;
     start_menu_render(&menu, tiny_pixels, 16, 16);

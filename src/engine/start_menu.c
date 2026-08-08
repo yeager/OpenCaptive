@@ -376,6 +376,10 @@ static void start_menu_reset(StartMenu *menu, bool preserve_resources) {
      * from the running game explicitly opts into preserving loaded resources
      * and the user's data path. */
     if (preserve_resources) {
+        /* Re-entry can happen while the background data scan is still alive.
+         * Release its VFS before clearing the struct; otherwise the pointer
+         * is lost by memset and the scan's archive state leaks. */
+        stop_data_scanner(menu);
         memcpy(saved_path, menu->data_path, sizeof(saved_path));
         saved_cursor = menu->data_path_cursor;
         logo_img = menu->logo_img;

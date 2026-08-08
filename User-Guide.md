@@ -1,6 +1,6 @@
 # User Guide
 
-> Updated for v1.1.89. The launcher now caches unchanged data-scan results and asks which verified version to launch when several versions are present.
+> Updated for v1.1.90. The launcher now caches unchanged data-scan results and asks which verified version to launch when several versions are present.
 
 ## System requirements
 

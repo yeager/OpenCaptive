@@ -4200,3 +4200,10 @@ They wait and retry when the party or another active creature occupies that
 cell, preventing overlapping runtime entities while preserving the recovered
 600-tick respawn cadence. Added regression coverage for both retry and normal
 respawn.
+# 2026-08-08 (Launcher scanner re-entry and v1.1.90 docs)
+- Fixed launcher re-entry while a background data scan is active: the scanner
+  VFS is now released before the menu state is reset, preventing leaked archive
+  handles/state. Added a regression test for this lifecycle path.
+- Updated all wiki and technical documentation baselines from v1.1.89 to the
+  published v1.1.90 release without changing the documented parity boundaries.
+- Local CTest remains 61/61.

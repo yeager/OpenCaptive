@@ -1,6 +1,6 @@
 # Captive Weapons and Items
 
-> Updated for v1.1.89. Weapon and item behavior remains documented against the verified source references.
+> Updated for v1.1.90. Weapon and item behavior remains documented against the verified source references.
 
 Reference: captive.atari.org Tools/Weapons and Tools/Items
 
