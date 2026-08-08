@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive saturated weapon damage)
+
+- Fixed the CAPPO-compatible weapon-damage saturation path: `0xFFFD` is now
+  kept as a positive 16-bit damage value instead of becoming signed `-3`.
+- Added regression coverage proving an over-range weapon still kills a normal
+  target rather than collapsing to a one-point hit.
+- Full local test suite: 60/60 tests passed.
+
 ## 2026-08-08 (Liberation difficulty save/load)
 
 - Fixed Liberation F5 saves that accidentally wrote the mission number as the

@@ -593,7 +593,10 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx) {
     if (cx <= 0) cx = 5;
     for (int i = 0; i < 3; i++) {
         int next = cx * 2;
-        if (next > 0x7FFF) { cx = (int)(int16_t)0xFFFD; break; }
+        /* CAPPO keeps this saturated value as an unsigned 16-bit damage
+         * word.  Converting 0xFFFD through int16_t would turn it into -3 and
+         * collapse an over-range weapon into the minimum one-point hit. */
+        if (next > 0x7FFF) { cx = 0xFFFD; break; }
         cx = next;
     }
     int base_damage = (int)cx;

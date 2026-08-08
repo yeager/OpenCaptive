@@ -720,6 +720,34 @@ static void test_combat_gold_reward_saturates(void) {
     assert(gs.gold == INT_MAX);
 }
 
+static void test_combat_saturated_weapon_damage_stays_positive(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    assert(game_state_new_mission(&gs, 1));
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+    gs.droids[0].weapons[0] = 13;
+    /* 0xFFFF overflows the repeated CAPPO left-shift and must saturate at
+     * the positive 0xFFFD word, not become signed -3. */
+    gs.droids[0].weapon_damage = UINT16_MAX;
+
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 100, .hp_max = 100,
+        .x = 2, .y = 1, .level = 0, .active = true,
+    };
+    assert(combat_droid_attack(&gs, &creatures, 0));
+    assert(!creatures.creatures[0].active);
+    assert(creatures.creatures[0].hp == 0);
+}
+
 static void test_combat_level_up_uses_pre_attack_xp(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -1356,6 +1384,7 @@ int main(void) {
     test_combat_creature_collision_ignores_other_levels();
     test_combat_respawn_timer_runs_on_other_levels();
     test_combat_gold_reward_saturates();
+    test_combat_saturated_weapon_damage_stays_positive();
     test_combat_level_up_uses_pre_attack_xp();
     test_combat_attack_events_are_per_attack();
     test_combat_uses_ranged_hand_when_melee_is_first();
