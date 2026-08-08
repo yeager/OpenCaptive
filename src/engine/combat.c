@@ -336,7 +336,8 @@ bool combat_throw_grenade(GameState *gs, CreatureList *cl,
      * consume an item or invent fallback damage when a supplied database is
      * incomplete; callers can then report the data problem and preserve the
      * player's inventory. */
-    if (!grenade || grenade->damage_min < 0 || grenade->damage_max < grenade->damage_min)
+    if (!grenade || grenade->category != ITEM_GRENADE ||
+        grenade->damage_min < 0 || grenade->damage_max < grenade->damage_min)
         return false;
     int64_t damage_sum = (int64_t)grenade->damage_min + grenade->damage_max;
     int damage = (int)(damage_sum / 2);
@@ -369,6 +370,22 @@ bool combat_throw_grenade(GameState *gs, CreatureList *cl,
 
 static bool combat_is_weapon_id(uint8_t item_id) {
     return item_id >= 13 && item_id <= 38;
+}
+
+static bool combat_item_is_weapon(const Item *item) {
+    if (!item) return false;
+    switch (item->category) {
+        case ITEM_WEAPON_MELEE:
+        case ITEM_WEAPON_HANDGUN:
+        case ITEM_WEAPON_RIFLE:
+        case ITEM_WEAPON_AUTO:
+        case ITEM_WEAPON_LASER:
+        case ITEM_WEAPON_CANNON:
+        case ITEM_WEAPON_SPRAY:
+            return true;
+        default:
+            return false;
+    }
 }
 
 static bool combat_has_line_of_sight(const GameState *gs,
@@ -600,7 +617,11 @@ static bool combat_item_weapon_choice(const ItemDatabase *db, uint8_t item_id,
                                       CombatWeaponChoice *choice) {
     if (!db || !choice || !combat_is_weapon_id(item_id)) return false;
     const Item *item = item_db_get(db, item_id);
-    if (!item || item->damage_min < 0 || item->damage_min > UINT8_MAX ||
+    /* Numeric IDs are only lookup keys.  A malformed database must not turn
+     * an armor or tool record into a weapon merely because it occupies a
+     * weapon ID slot. */
+    if (!combat_item_is_weapon(item) || item->damage_min < 0 ||
+        item->damage_min > UINT8_MAX ||
         item->damage_max < 0 || item->damage_max > UINT8_MAX)
         return false;
     uint8_t lo = (uint8_t)item->damage_min;

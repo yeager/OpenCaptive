@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive item-category validation)
+
+- Captive weapon and grenade actions now require the supplied item record to
+  carry the matching weapon or grenade category, not just a recognized ID.
+- Added regression coverage proving malformed item records cannot spend energy,
+  deal damage, or consume grenades.
+
 ## 2026-08-08 (Corrected Captive spawn documentation)
 
 - Removed the unsupported claim that higher dungeon levels automatically

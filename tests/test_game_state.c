@@ -892,6 +892,38 @@ static void test_combat_does_not_spend_energy_for_invalid_item_database(void) {
     assert(creatures.creatures[0].hp == 30);
 }
 
+static void test_combat_rejects_weapon_id_with_wrong_item_category(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    ItemDatabase db;
+    item_db_init(&db);
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    assert(game_state_new_mission(&gs, 1));
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+    gs.droids[0].weapons[0] = 18;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+    for (int i = 0; i < db.num_defs; i++) {
+        if (db.defs[i].id == 18) {
+            db.defs[i].category = ITEM_ARMOR_HEAD;
+            break;
+        }
+    }
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 30, .hp_max = 30,
+        .x = 2, .y = 1, .level = 0, .active = true,
+    };
+    int energy_before = gs.droids[0].energy;
+    assert(!combat_droid_attack_with_items(&gs, &creatures, 0, &db));
+    assert(gs.droids[0].energy == energy_before);
+    assert(creatures.creatures[0].hp == 30);
+}
+
 static void test_grenade_is_not_consumed_without_item_data(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -908,6 +940,37 @@ static void test_grenade_is_not_consumed_without_item_data(void) {
         for (int x = 0; x < MAP_WIDTH; x++)
             gs.levels[0].cells[y][x].type = CELL_FLOOR;
 
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 30, .hp_max = 30,
+        .x = 3, .y = 1, .level = 0, .active = true,
+    };
+    assert(!combat_throw_grenade(&gs, &creatures, &db));
+    assert(gs.droids[0].items[0] == 60);
+    assert(creatures.creatures[0].hp == 30);
+}
+
+static void test_grenade_rejects_id_with_wrong_item_category(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    ItemDatabase db;
+    item_db_init(&db);
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    assert(game_state_new_mission(&gs, 1));
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+    gs.droids[0].items[0] = 60;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            gs.levels[0].cells[y][x].type = CELL_FLOOR;
+    for (int i = 0; i < db.num_defs; i++) {
+        if (db.defs[i].id == 60) {
+            db.defs[i].category = ITEM_EXPLOSIVE;
+            break;
+        }
+    }
     creatures.num_creatures = 1;
     creatures.creatures[0] = (Creature){
         .type = CREATURE_ALIEN1, .hp = 30, .hp_max = 30,
@@ -1559,7 +1622,9 @@ int main(void) {
     test_combat_uses_ranged_hand_when_melee_is_first();
     test_combat_uses_damage_of_weapon_that_reaches_target();
     test_combat_does_not_spend_energy_for_invalid_item_database();
+    test_combat_rejects_weapon_id_with_wrong_item_category();
     test_grenade_is_not_consumed_without_item_data();
+    test_grenade_rejects_id_with_wrong_item_category();
     test_combat_respects_spray_weapon_range();
     test_combat_uses_original_ranged_weapon_ranges();
     test_combat_spray_splash_awards_kill_progression();
