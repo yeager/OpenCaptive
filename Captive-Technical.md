@@ -732,7 +732,7 @@ Table 2 (DS:0x9BE8): `01 03 07 05 00 01 03 04 01 02 04 05 03 04 06 07`
 - Opposite: `direction XOR 2`
 - Perpendicular: `NOT direction AND 1`
 
-### Category table (DS:0x9A42)
+### Category table (DS:0x9A43)
 
 8 categories × 3 types each. PRNG selects which type from the category.
 

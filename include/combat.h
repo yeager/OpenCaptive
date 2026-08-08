@@ -6,7 +6,7 @@
 
 /* Captive has 6 alien sprite sets (ALIEN1-ALIEN6.PL5).
  * Stats recovered from CAPPO.EXE: HP from DS:0xA1BF, categories from
- * DS:0x9A42, speeds from DS:0xA1A4. Creature attack damage remains a
+ * DS:0x9A43, speeds from DS:0xA1A4. Creature attack damage remains a
  * bounded compatibility approximation until its source record is recovered. */
 typedef enum {
     CREATURE_NONE = 0,

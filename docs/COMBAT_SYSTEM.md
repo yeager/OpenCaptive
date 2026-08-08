@@ -8,7 +8,7 @@ OpenCaptive's combat system implements Captive's real-time creature encounters w
 
 ## Creatures
 
-25 creature types grouped into 8 categories (0-7). Per-type HP/category/speed tables recovered from CAPPO.EXE (DS:0xA1BF, DS:0x9A42, DS:0xA1A4).
+25 creature types grouped into 8 categories (0-7). Per-type HP/category/speed tables recovered from CAPPO.EXE (DS:0xA1BF, DS:0x9A43, DS:0xA1A4).
 
 ### Current creature damage boundary
 
