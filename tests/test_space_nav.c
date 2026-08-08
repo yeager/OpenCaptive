@@ -1,16 +1,14 @@
 #include "captive_space_nav.h"
 #include <assert.h>
 #include <math.h>
-#include <stdio.h>
 #include <string.h>
 
 int main(void) {
-    GameState gs;
+    static GameState gs;
     memset(&gs, 0, sizeof(gs));
     gs.mission = 1;
     gs.mission_seed = 42;
 
-    fprintf(stderr, "space_flight_init\n"); fflush(stderr);
     space_flight_init(&gs);
     assert(gs.space_x == 0.0f);
     assert(gs.space_y == 0.0f);
@@ -21,13 +19,11 @@ int main(void) {
     gs.space_vx = 1.0f;
     gs.space_vy = 0.5f;
     float old_x = gs.space_x;
-    fprintf(stderr, "space_flight_update\n"); fflush(stderr);
     space_flight_update(&gs);
     assert(gs.space_x > old_x);
     assert(fabsf(gs.space_vx) < 1.0f);
 
     Starfield sf;
-    fprintf(stderr, "starfield_init\n"); fflush(stderr);
     starfield_init(&sf, 42);
     for (int i = 0; i < STARFIELD_COUNT; i++) {
         assert(sf.stars[i].x >= 0.0f && sf.stars[i].x < 320.0f);
@@ -38,7 +34,6 @@ int main(void) {
 
     static uint32_t fb[320 * 200];
     memset(fb, 0, sizeof(fb));
-    fprintf(stderr, "space_flight_render\n"); fflush(stderr);
     space_flight_render(&gs, &sf, fb, 320, 200);
     int nonblack = 0;
     for (int i = 0; i < 320 * 200; i++)
@@ -46,7 +41,6 @@ int main(void) {
     assert(nonblack > 0);
 
     memset(fb, 0, sizeof(fb));
-    fprintf(stderr, "orbit_render\n"); fflush(stderr);
     orbit_render(&gs, NULL, fb, 320, 200);
     nonblack = 0;
     for (int i = 0; i < 320 * 200; i++)
@@ -55,14 +49,12 @@ int main(void) {
 
     gs.landing_tick = LANDING_TICKS / 2;
     memset(fb, 0, sizeof(fb));
-    fprintf(stderr, "landing_render\n"); fflush(stderr);
     landing_render(&gs, fb, 320, 200);
     nonblack = 0;
     for (int i = 0; i < 320 * 200; i++)
         if (fb[i] != 0 && fb[i] != 0xFF000000) nonblack++;
     assert(nonblack > 0);
 
-    fprintf(stderr, "final init\n"); fflush(stderr);
     space_flight_init(&gs);
     gs.space_x = gs.space_target_x;
     gs.space_y = gs.space_target_y;
