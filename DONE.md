@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive spawn/combat data integrity)
+
+- Made shared kill registration idempotent so alternate weapon paths cannot
+  award a finalized creature twice.
+- Corrected the English technical reference to document all 25 verified
+  CAPPO spawn modifier bytes, including creature types 16–24.
+- Added regression coverage for duplicate kill registration.
+
 ## 2026-08-08 (Captive grenade kill progression)
 
 - Routed grenade kills through the shared Captive kill finalization path so

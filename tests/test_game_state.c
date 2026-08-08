@@ -896,6 +896,14 @@ static void test_combat_alternate_kill_path_awards_progression(void) {
     assert(gs.score > 0);
     assert(gs.gold > 100);
     assert(gs.droids[0].xp > xp_before);
+
+    uint32_t score_after = gs.score;
+    int gold_after = gs.gold;
+    uint32_t xp_after = gs.droids[0].xp;
+    combat_register_kill(&gs, &creatures, target);
+    assert(gs.score == score_after);
+    assert(gs.gold == gold_after);
+    assert(gs.droids[0].xp == xp_after);
 }
 
 static void test_combat_melee_rejects_diagonal_target(void) {

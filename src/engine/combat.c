@@ -256,11 +256,13 @@ static void combat_award_kill_xp(GameState *gs, CreatureList *cl,
 
 void combat_register_kill(GameState *gs, CreatureList *cl,
                           Creature *target) {
-    if (!gs || !cl || !target || target->hp > 0) return;
+    if (!gs || !cl || !target || !target->active || target->hp > 0) return;
 
     /* Keep every kill source on the same recovered progression path.  The
-     * primary target used to do this inline, while spray splash kills only
-     * flipped active=false and therefore lost all rewards and event state. */
+     * primary target used to do this inline, while spray splash and grenade
+     * kills only flipped active=false and therefore lost all rewards and event
+     * state.  The active guard also makes alternate weapon callers idempotent
+     * if an already-finalized target is presented again. */
     target->active = false;
     target->respawn_timer = 600;
     cl->creature_killed = true;

@@ -742,7 +742,14 @@ Table 2 (DS:0x9BE8): `01 03 07 05 00 01 03 04 01 02 04 05 03 04 06 07`
 
 ### Modifier table (DS:0x9AB7)
 
-16 entries: `2, 4, 12, 30, 23, 60, 110, 90, 16, 18, 16, 12, 10, 12, 4, 0`
+The verified v1.06 CAPPO image contains 25 contiguous modifier bytes, indexed
+by the 1-based creature type used by the runtime (entry 0 is reserved):
+`2, 4, 12, 30, 23, 60, 110, 90, 16, 18, 16, 12, 10, 12, 4, 0,
+4, 8, 20, 8, 4, 2, 12, 4, 6`.
+The first 16 values are the original table commonly transcribed in older
+notes; the remaining nine values are part of the same source data region and
+are required for creature types 16–24. The OpenCaptive table is hash-checked
+against the unpacked CAPPO image (`fa7d5ca7…`).
 
 ### Difficulty offset table (DS:0x9A5A)
 
