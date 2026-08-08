@@ -64,7 +64,7 @@ original filename. Some outputs are deliberately sparse or black because the
 original presentation uses them as layers; the export is evidence for SCPT
 recovery, not a claim that the first frames form complete screens by themselves.
 
-See [the technical notes](wiki/Liberation-Technical.md) for resource hashes,
+See [the technical notes](Liberation-Technical.md) for resource hashes,
 container observations and the exact current limitations.
 
 ## Work required for playable parity

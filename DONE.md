@@ -2592,7 +2592,7 @@
 ### CA cell-to-viewport wall segment mapping
 - 5-byte CA cells now preserve per-segment wall bits in MapCell.ca_segments
 - Viewport draws partial walls: 5 column segments per cell with thickness codes
-- Matches disassembled renderer at 0x4560: byte→bit mapping from Captive-Technical.md
+- Matches disassembled renderer at 0x4560: byte→bit mapping from [Captive-Technical.md](docs/Captive-Technical.md)
 
 ### Full feature placement pipeline
 - Bars, button combos, hidden buttons, floor traps, teleporter traps
