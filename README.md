@@ -237,7 +237,7 @@ The following components have been cross-referenced against the original binarie
 | Combat PRNG | CAPPO.EXE at 0x9815 | Disassembly |
 | MapGen cellular automaton | CAPPO.EXE at 0x39CC-0x3C21 | Disassembly |
 | Generator placement | CAPPO.EXE at 0x1C3C | Disassembly |
-| Item pricing | CAPPO.EXE at 0x1A220+ | Disassembly |
+| Weapon variant price records | CAPPO.EXE at 0x1A220+ | Disassembly; procedural item pricing remains open |
 | CityGen grid (64x64) | Amiga CityGen 1.12 (10,824 bytes) | Disassembly |
 | BuildingGen | Amiga BuildingGen (23,252 bytes) | Disassembly |
 | PlotGen / ArcD | Amiga PlotGen at 0x302-0x520 | Disassembly |
