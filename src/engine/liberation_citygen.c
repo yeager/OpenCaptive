@@ -222,6 +222,15 @@ void citygen_assign_types(CityGrid *grid) {
         uint8_t raw = (uint8_t)(r & 0xFF);
         grid->buildings[i].type = raw % 9;
 
+        /* Liberation BuildingGen stores the generated category in bits 2-5
+         * of the record flags (Captive-Technical.md, "Building record").
+         * The low two bits are the connection count and are populated by
+         * citygen_place_buildings(), so preserve them while completing the
+         * original record layout. */
+        grid->buildings[i].flags =
+            (uint8_t)((grid->buildings[i].flags & 0x03U) |
+                      ((grid->buildings[i].type & 0x0FU) << 2));
+
         /* Sequential ID */
         grid->buildings[i].id = (uint8_t)(seq_id & 0xFF);
         seq_id++;

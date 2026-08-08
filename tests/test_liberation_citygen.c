@@ -83,6 +83,8 @@ static void test_building_types(void) {
     int type_counts[CITYGEN_BUILDING_TYPES] = {0};
     for (int i = 0; i < (int)grid.total_buildings; i++) {
         assert(grid.buildings[i].type < CITYGEN_BUILDING_TYPES);
+        assert((grid.buildings[i].flags & 0x3C) ==
+               ((grid.buildings[i].type & 0x0F) << 2));
         type_counts[grid.buildings[i].type]++;
     }
 
