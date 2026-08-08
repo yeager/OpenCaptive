@@ -675,22 +675,28 @@ msgstr ""
 #: src/main.c:3208 src/main.c:3278
 msgid "ALL MISSIONS COMPLETE"
 msgstr ""
+
 #: src/engine/droid_ui.c
 msgid "EQUIPMENT"
 msgstr "AUSRUESTUNG"
+
 #: src/engine/droid_ui.c
 msgid "EMPTY"
 msgstr "LEER"
+
 #: src/engine/droid_ui.c
 msgid "TAB:SWITCH ENTER:EQUIP/USE ESC:CLOSE"
 msgstr "TAB:WECHSELN ENTER:AUSRUESTEN/NUTZEN ESC:SCHLIESSEN"
+
 #: src/main.c
 msgid "MISSION COMPLETE!"
 msgstr "MISSION ABGESCHLOSSEN!"
+
 #: src/main.c
 #, c-format
 msgid "Next: Mission %d of 10"
 msgstr "Naechste: Mission %d von 10"
+
 #: src/main.c
 msgid "ENTER: Launch    S: Shop"
 msgstr "ENTER: Starten    S: Laden"
@@ -711,10 +717,7 @@ msgstr ""
 msgid "ESC: RESUME"
 msgstr ""
 
-#: src/main.c:3273 src/main.c:3343
-
-#: src/main.c:3297 src/main.c:3367
-
+#: src/main.c:3273 src/main.c:3343 src/main.c:3297 src/main.c:3367
 #: src/main.c:3306 src/main.c:3376
 msgid "CITY MAP"
 msgstr ""
@@ -982,6 +985,15 @@ msgstr ""
 msgid "I: Inventory"
 msgstr "I: Inventar"
 
+msgid "EN %d"
+msgstr ""
+
+msgid "HP %d"
+msgstr ""
+
+msgid "R:RENAME  S:SWAP  ENTER:START"
+msgstr ""
+
 #~ msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
 #~ msgstr "PFEILE: AUSWÄHLEN  ENTER: START  D: DATEN SCANNEN  F1: STEUERUNG"
 
@@ -1043,15 +1055,3 @@ msgstr "I: Inventar"
 
 #~ msgid "ENTER: SAVE PATH  ESC: CANCEL"
 #~ msgstr "ENTER: PFAD SPEICHERN  ESC: ABBRECHEN"
-
-msgid "EN %d"
-msgstr ""
-
-msgid "HP %d"
-msgstr ""
-
-msgid "R:RENAME  S:SWAP  ENTER:START"
-msgstr ""
-
-msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS  F10: IN-GAME OPTIONS"
-msgstr ""

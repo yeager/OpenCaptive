@@ -361,6 +361,12 @@ target_include_directories(test_i18n PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_i18n PRIVATE SDL3::SDL3)
 add_test(NAME i18n COMMAND test_i18n)
 
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(NAME po_catalogs
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/validate_po.py)
+endif()
+
 add_executable(test_liberation_plotgen tests/test_liberation_plotgen.c
     src/engine/liberation_plotgen.c src/data/liberation_string_tables.c)
 target_include_directories(test_liberation_plotgen PRIVATE ${CMAKE_SOURCE_DIR}/include)

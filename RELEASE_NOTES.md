@@ -50,6 +50,9 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
   including large `GameState` fixtures, with portable temporary test paths.
 - **(Infrastructure)** Windows release packaging now includes the portable
   `save_load` regression instead of excluding it from the release gate.
+- **(Infrastructure)** All 18 translated PO catalogs are now valid gettext
+  catalogs, and CTest validates their required launcher strings to prevent
+  duplicate or missing entries from reaching a build.
 
 ### Removed
 

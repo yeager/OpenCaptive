@@ -676,22 +676,28 @@ msgstr ""
 #: src/main.c:3208 src/main.c:3278
 msgid "ALL MISSIONS COMPLETE"
 msgstr ""
+
 #: src/engine/droid_ui.c
 msgid "EQUIPMENT"
 msgstr "EQUIPAMENTO"
+
 #: src/engine/droid_ui.c
 msgid "EMPTY"
 msgstr "VAZIO"
+
 #: src/engine/droid_ui.c
 msgid "TAB:SWITCH ENTER:EQUIP/USE ESC:CLOSE"
 msgstr "TAB:TROCAR ENTER:EQUIPAR/USAR ESC:FECHAR"
+
 #: src/main.c
 msgid "MISSION COMPLETE!"
 msgstr "MISSAO CONCLUIDA!"
+
 #: src/main.c
 #, c-format
 msgid "Next: Mission %d of 10"
 msgstr "Seguinte: Missao %d de 10"
+
 #: src/main.c
 msgid "ENTER: Launch    S: Shop"
 msgstr "ENTER: Iniciar    S: Loja"
@@ -712,10 +718,7 @@ msgstr ""
 msgid "ESC: RESUME"
 msgstr ""
 
-#: src/main.c:3273 src/main.c:3343
-
-#: src/main.c:3297 src/main.c:3367
-
+#: src/main.c:3273 src/main.c:3343 src/main.c:3297 src/main.c:3367
 #: src/main.c:3306 src/main.c:3376
 msgid "CITY MAP"
 msgstr ""
@@ -981,6 +984,15 @@ msgstr ""
 msgid "I: Inventory"
 msgstr "I: Inventário"
 
+msgid "EN %d"
+msgstr ""
+
+msgid "HP %d"
+msgstr ""
+
+msgid "R:RENAME  S:SWAP  ENTER:START"
+msgstr ""
+
 #~ msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
 #~ msgstr ""
 #~ "SETAS: SELECIONAR  ENTER: INICIAR  D: VERIFICAR DADOS  F1: CONTROLES"
@@ -1036,15 +1048,3 @@ msgstr "I: Inventário"
 
 #~ msgid "VIEW RECONSTRUCTION"
 #~ msgstr "VER RECONSTRUÇÃO"
-
-msgid "EN %d"
-msgstr ""
-
-msgid "HP %d"
-msgstr ""
-
-msgid "R:RENAME  S:SWAP  ENTER:START"
-msgstr ""
-
-msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS  F10: IN-GAME OPTIONS"
-msgstr ""

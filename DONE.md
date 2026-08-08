@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Localization catalog validation)
+
+- Removed duplicate launcher/F10 message definitions from all 18 translated
+  PO catalogs while preserving the existing translations.
+- Added a portable catalog validator to CTest so duplicate or missing required
+  launcher strings are caught without requiring gettext on the build host.
+- All 18 catalogs pass `msgfmt --check`; the full local suite is now 60/60.
+
 ## 2026-08-08 (Captive spawn/combat data integrity)
 
 - Made shared kill registration idempotent so alternate weapon paths cannot

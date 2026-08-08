@@ -671,22 +671,28 @@ msgstr ""
 #: src/main.c:3208 src/main.c:3278
 msgid "ALL MISSIONS COMPLETE"
 msgstr ""
+
 #: src/engine/droid_ui.c
 msgid "EQUIPMENT"
 msgstr "UTRUSTNING"
+
 #: src/engine/droid_ui.c
 msgid "EMPTY"
 msgstr "TOM"
+
 #: src/engine/droid_ui.c
 msgid "TAB:SWITCH ENTER:EQUIP/USE ESC:CLOSE"
 msgstr "TAB:BYT ENTER:UTRUSTA/ANVAND ESC:STANG"
+
 #: src/main.c
 msgid "MISSION COMPLETE!"
 msgstr "UPPDRAG KLART!"
+
 #: src/main.c
 #, c-format
 msgid "Next: Mission %d of 10"
 msgstr "Nasta: Uppdrag %d av 10"
+
 #: src/main.c
 msgid "ENTER: Launch    S: Shop"
 msgstr "ENTER: Starta    S: Butik"
@@ -707,10 +713,7 @@ msgstr ""
 msgid "ESC: RESUME"
 msgstr ""
 
-#: src/main.c:3273 src/main.c:3343
-
-#: src/main.c:3297 src/main.c:3367
-
+#: src/main.c:3273 src/main.c:3343 src/main.c:3297 src/main.c:3367
 #: src/main.c:3306 src/main.c:3376
 msgid "CITY MAP"
 msgstr ""
@@ -976,6 +979,15 @@ msgstr ""
 msgid "I: Inventory"
 msgstr "I: Utrustning"
 
+msgid "EN %d"
+msgstr "EN %d"
+
+msgid "HP %d"
+msgstr "HP %d"
+
+msgid "R:RENAME  S:SWAP  ENTER:START"
+msgstr "R:BYT NAMN  S:BYT VAPEN  ENTER:STARTA"
+
 #~ msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS"
 #~ msgstr "PILAR: VÄLJ  ENTER: STARTA  D: SKANNA DATA  F1: KONTROLLER"
 
@@ -1030,15 +1042,3 @@ msgstr "I: Utrustning"
 
 #~ msgid "VIEW RECONSTRUCTION"
 #~ msgstr "VISA REKONSTRUKTION"
-
-msgid "EN %d"
-msgstr "EN %d"
-
-msgid "HP %d"
-msgstr "HP %d"
-
-msgid "R:RENAME  S:SWAP  ENTER:START"
-msgstr "R:BYT NAMN  S:BYT VAPEN  ENTER:STARTA"
-
-msgid "ARROWS: SELECT  ENTER: START  D: SCAN DATA  F1: CONTROLS  F10: IN-GAME OPTIONS"
-msgstr "PILAR: VÄLJ  ENTER: STARTA  D: SKANNA DATA  F1: KONTROLLER  F10: ALTERNATIV I SPELET"

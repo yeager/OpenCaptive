@@ -23,7 +23,7 @@ Always test both Debug and Release configurations. Test targets compile with ass
 ctest --test-dir build -j4 --output-on-failure
 ```
 
-- 59 tests covering decoders, game logic, rendering, combat, save/load, and release metadata.
+- 60 tests covering decoders, game logic, rendering, combat, save/load, localization catalogs, and release metadata.
 - Some viewport tests require original game data files and will fail or timeout without them.
 - Run a subset with `-R <pattern>`:
 
@@ -50,7 +50,7 @@ src/
                 minimap, audio_reverb, upscale_xbrz
   platform/   - Platform-specific: macos_menu
 include/      - All public headers
-tests/        - 60 test source files (59 CTest targets)
+tests/        - 61 test source files (60 CTest targets)
 docs/         - Documentation and wiki
 po/           - Translation files (19 languages)
 data/         - Bundled fonts
