@@ -2067,41 +2067,11 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
                 stair_flash_ttl = 6;
             return;
         case SDLK_G: {
-            /* Alternate weapon paths must publish the same per-attack events
-             * as combat_droid_attack.  In particular, grenade kills go
-             * through the shared CAPPO kill bookkeeping below. */
-            creatures.creature_killed = false;
-            creatures.level_up_occurred = false;
             Droid *gd = &gs->droids[gs->selected_droid];
-            int grenade_slot = -1;
-            for (int si = 0; si < 10; si++) {
-                uint8_t gid = gd->items[si];
-                if (gid == 60 || gid == 61) { grenade_slot = si; break; }
-            }
-            if (grenade_slot < 0) { msg_push(_("No grenades!"), 0xFFFF4444); return; }
-            const Item *gi = item_db_get(&item_db, gd->items[grenade_slot]);
-            int gdmg = gi ? (gi->damage_min + gi->damage_max) / 2 : 30;
-            gd->items[grenade_slot] = 0;
-            int fwd_x2 = (int[]){0,1,0,-1}[gs->party_dir];
-            int fwd_y2 = (int[]){-1,0,1,0}[gs->party_dir];
-            int gx = gs->party_x + fwd_x2 * 2;
-            int gy = gs->party_y + fwd_y2 * 2;
-            int creature_count2 = creatures.num_creatures;
-            if (creature_count2 > MAX_CREATURES) creature_count2 = MAX_CREATURES;
-            for (int ci = 0; ci < creature_count2; ci++) {
-                Creature *gc = &creatures.creatures[ci];
-                if (!gc->active || gc->level != gs->current_level || gc->hp <= 0) continue;
-                int cdist = abs(gc->x - gx) + abs(gc->y - gy);
-                if (cdist > 2) continue;
-                int dmg = gdmg - gc->defense / 3;
-                if (dmg < 1) dmg = 1;
-                if (dmg >= gc->hp) {
-                    gc->hp = 0;
-                    combat_register_kill(gs, &creatures, gc);
-                    msg_push(_("Creature destroyed!"), 0xFF44AAFF);
-                } else {
-                    gc->hp = (int16_t)(gc->hp - dmg);
-                }
+            if (gd->hp <= 0) return;
+            if (!combat_throw_grenade(gs, &creatures, &item_db)) {
+                msg_push(_("No grenades!"), 0xFFFF4444);
+                return;
             }
             sfx_play(&sfx, SFX_GENERATOR);
             msg_push(_("Grenade thrown!"), 0xFFFF8800);

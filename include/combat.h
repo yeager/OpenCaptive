@@ -2,6 +2,7 @@
 #define COMBAT_H
 
 #include "game_state.h"
+#include "inventory.h"
 
 /* Captive has 6 alien sprite sets (ALIEN1-ALIEN6.PL5).
  * Stats recovered from CAPPO.EXE: HP from DS:0xA1BF, categories from
@@ -97,6 +98,10 @@ bool combat_droid_attack(GameState *gs, CreatureList *cl, int droid_idx);
  * grenade).  This keeps score, respawn, drops, XP and event flags identical
  * to the normal attack path.  The target must already have hp <= 0. */
 void combat_register_kill(GameState *gs, CreatureList *cl, Creature *target);
+/* Throw the first grenade in the selected droid's inventory at the cell two
+ * squares ahead. Dead droids cannot act and therefore do not consume it. */
+bool combat_throw_grenade(GameState *gs, CreatureList *cl,
+                          const ItemDatabase *db);
 void combat_interact(GameState *gs, const void *item_db);
 
 #endif

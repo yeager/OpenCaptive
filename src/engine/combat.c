@@ -293,6 +293,65 @@ void combat_register_kill(GameState *gs, CreatureList *cl,
     combat_award_kill_xp(gs, cl, target);
 }
 
+bool combat_throw_grenade(GameState *gs, CreatureList *cl,
+                          const ItemDatabase *db) {
+    if (cl) {
+        cl->creature_killed = false;
+        cl->level_up_occurred = false;
+    }
+    if (!gs || !cl || !db || gs->game_type != GAME_CAPTIVE ||
+        gs->current_level < 0 || gs->current_level >= gs->num_levels ||
+        gs->current_level >= MAX_LEVELS ||
+        gs->party_x < 0 || gs->party_x >= MAP_WIDTH ||
+        gs->party_y < 0 || gs->party_y >= MAP_HEIGHT ||
+        gs->party_dir < DIR_NORTH || gs->party_dir > DIR_WEST ||
+        gs->selected_droid < 0 || gs->selected_droid >= 4 ||
+        cl->num_creatures < 0)
+        return false;
+
+    Droid *droid = &gs->droids[gs->selected_droid];
+    /* A destroyed droid cannot perform an alternate weapon action. */
+    if (droid->hp <= 0) return false;
+
+    int grenade_slot = -1;
+    for (int slot = 0; slot < 10; ++slot) {
+        uint8_t item_id = droid->items[slot];
+        if (item_id == 60 || item_id == 61) {
+            grenade_slot = slot;
+            break;
+        }
+    }
+    if (grenade_slot < 0) return false;
+
+    const Item *grenade = item_db_get(db, droid->items[grenade_slot]);
+    int damage = grenade ? (grenade->damage_min + grenade->damage_max) / 2 : 30;
+    if (damage < 1) damage = 1;
+    droid->items[grenade_slot] = 0;
+
+    const int forward_x[4] = {0, 1, 0, -1};
+    const int forward_y[4] = {-1, 0, 1, 0};
+    int target_x = gs->party_x + forward_x[gs->party_dir] * 2;
+    int target_y = gs->party_y + forward_y[gs->party_dir] * 2;
+    int creature_count = cl->num_creatures > MAX_CREATURES ? MAX_CREATURES :
+                         cl->num_creatures;
+    for (int i = 0; i < creature_count; ++i) {
+        Creature *target = &cl->creatures[i];
+        if (!target->active || target->level != gs->current_level ||
+            target->hp <= 0) continue;
+        int distance = abs(target->x - target_x) + abs(target->y - target_y);
+        if (distance > 2) continue;
+        int effective = damage - target->defense / 3;
+        if (effective < 1) effective = 1;
+        if (effective >= target->hp) {
+            target->hp = 0;
+            combat_register_kill(gs, cl, target);
+        } else {
+            target->hp = (int16_t)(target->hp - effective);
+        }
+    }
+    return true;
+}
+
 static bool combat_is_weapon_id(uint8_t item_id) {
     return item_id >= 13 && item_id <= 38;
 }

@@ -934,6 +934,31 @@ static void test_combat_alternate_kill_path_awards_progression(void) {
     assert(gs.droids[0].xp == xp_after);
 }
 
+static void test_combat_dead_droid_cannot_throw_grenade(void) {
+    GameState gs;
+    CreatureList creatures = {0};
+    ItemDatabase db;
+    item_db_init(&db);
+    game_state_init(&gs, GAME_CAPTIVE, 1);
+    assert(game_state_new_mission(&gs, 1));
+    gs.current_level = 0;
+    gs.party_x = 1;
+    gs.party_y = 1;
+    gs.party_dir = DIR_EAST;
+    gs.droids[0].hp = 0;
+    gs.droids[0].items[0] = 60;
+    creatures.num_creatures = 1;
+    creatures.creatures[0] = (Creature){
+        .type = CREATURE_ALIEN1, .hp = 10, .hp_max = 10,
+        .x = 3, .y = 1, .level = 0, .active = true,
+    };
+
+    assert(!combat_throw_grenade(&gs, &creatures, &db));
+    assert(gs.droids[0].items[0] == 60);
+    assert(creatures.creatures[0].active);
+    assert(creatures.creatures[0].hp == 10);
+}
+
 static void test_combat_melee_rejects_diagonal_target(void) {
     GameState gs;
     CreatureList creatures = {0};
@@ -1391,6 +1416,7 @@ int main(void) {
     test_combat_respects_spray_weapon_range();
     test_combat_spray_splash_awards_kill_progression();
     test_combat_alternate_kill_path_awards_progression();
+    test_combat_dead_droid_cannot_throw_grenade();
     test_combat_melee_rejects_diagonal_target();
     test_combat_does_not_treat_non_weapon_as_ranged();
     test_combat_requires_equipped_weapon();

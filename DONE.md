@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive grenade actor validation)
+
+- Moved the Captive grenade action into the combat module so it shares the
+  normal state validation and kill bookkeeping path.
+- Prevented destroyed droids from throwing grenades or consuming inventory.
+- Added regression coverage for the dead-droid case; full local suite remains
+  60/60 tests passed.
+
 ## 2026-08-08 (Captive saturated weapon damage)
 
 - Fixed the CAPPO-compatible weapon-damage saturation path: `0xFFFD` is now
