@@ -120,23 +120,25 @@ typedef struct {
 } RangeParams;
 
 /* Viewport is CAPTIVE_VIEWPORT_WIDTH x CAPTIVE_VIEWPORT_HEIGHT (144x112).
- * Perspective brackets scaled to the actual viewport dimensions. */
+ * The vertical bands below are the recovered CAPPO panel coordinates, not
+ * estimates: descriptor records 17-22, 11-16, 5-10 and 43-52 place the
+ * active wall bands at y=9/25/37/45 with heights 98/70/49/35. */
 static const RangeParams range_params[] = {
     /* Range 0: fills most of the viewport */
     { .left_x = 0, .right_x = 143, .top_y = 0, .bottom_y = 111,
       .wall_width = 48, .wall_height = 112 },
     /* Range 1: medium-large */
-    { .left_x = 18, .right_x = 125, .top_y = 13, .bottom_y = 98,
-      .wall_width = 36, .wall_height = 86 },
+    { .left_x = 18, .right_x = 125, .top_y = 9, .bottom_y = 105,
+      .wall_width = 36, .wall_height = 98 },
     /* Range 2: medium */
-    { .left_x = 32, .right_x = 111, .top_y = 23, .bottom_y = 88,
-      .wall_width = 27, .wall_height = 66 },
+    { .left_x = 32, .right_x = 111, .top_y = 25, .bottom_y = 93,
+      .wall_width = 27, .wall_height = 70 },
     /* Range 3: small */
-    { .left_x = 40, .right_x = 103, .top_y = 31, .bottom_y = 80,
+    { .left_x = 40, .right_x = 103, .top_y = 37, .bottom_y = 84,
       .wall_width = 12, .wall_height = 49 },
     /* Range 4: distant */
-    { .left_x = 47, .right_x = 96, .top_y = 36, .bottom_y = 75,
-      .wall_width = 10, .wall_height = 40 },
+    { .left_x = 47, .right_x = 96, .top_y = 45, .bottom_y = 79,
+      .wall_width = 10, .wall_height = 35 },
 };
 
 /* Draw a floor/ceiling strip for a cell at a given range.

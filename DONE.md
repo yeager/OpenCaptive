@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-08 (Captive viewport depth-band geometry)
+
+- Corrected the active compatibility renderer's four non-player depth bands to
+  the recovered CAPPO panel coordinates: y=9/25/37/45 with heights 98/70/49/35.
+- Kept the original descriptor draw sequence out of the runtime until its
+  complete per-cell dispatch and caller destination bases are recovered.
+- Full local test suite: 60/60 tests passed.
+
 ## 2026-08-08 (Localization catalog validation)
 
 - Removed duplicate launcher/F10 message definitions from all 18 translated
