@@ -7,7 +7,8 @@
  * SHA-256: fa7d5ca76d26f614476ed41f27cf737084942e9216b20b4605734df9ede9aee4
  *
  * HP table at DS:0xA1BF (file offset 0x189AF): 4 bytes per type (min_hp, max_hp).
- * Category table at DS:0x9A42 (file 0x18232): 1 byte per type (0-7 group ID).
+ * Category table at DS:0x9A43 (file 0x18233): 1 byte per type (0-7 group ID).
+ * DS:0x9A42/file 0x18232 is the preceding non-type runtime byte.
  * Speed table at DS:0xA1A4 (file 0x18994): 1 byte per type.
  *
  * HP formula from 0x9B12:

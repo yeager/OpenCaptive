@@ -3,7 +3,7 @@
 #include "creature_stats.h"
 
 const SpawnCategory spawn_categories[SPAWN_CATEGORY_COUNT] = {
-    /* CAPPO.EXE DS:0x9A42: creature types are 1-based; types 1-24
+    /* CAPPO.EXE DS:0x9A43 (file offset 0x18233): creature types are 1-based; types 1-24
      * form eight groups of three. Type 25 is the extra special entry. */
     {{ 1,  2,  3}},
     {{ 4,  5,  6}},
