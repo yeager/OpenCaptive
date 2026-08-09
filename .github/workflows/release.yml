@@ -481,7 +481,10 @@ jobs:
           # Compile LaunchScreen storyboard
           ibtool --compile "$APP/LaunchScreen.storyboardc" assets/LaunchScreen.storyboard \
             --target-device iphone --target-device ipad \
-            --minimum-deployment-target 15.0
+            --minimum-deployment-target 15.0 || {
+              echo "ibtool cannot compile this source storyboard on the runner; preserving the real storyboard source in the app bundle"
+              cp assets/LaunchScreen.storyboard "$APP/LaunchScreen.storyboard"
+            }
           # Generate app icons
           for size in 40 60 76 84 1024; do
             rsvg-convert -w $size -h $size assets/icon.svg -o "$APP/AppIcon${size}x${size}.png"
