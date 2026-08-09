@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-09 (DOSBox-X Captive navigation checkpoint)
+
+- Replayed the supplied original `CAPTIVE.BAT` in DOSBox-X through VGA, AdLib,
+  music selection, `INTRO.EXE`, `FILEPLAY.EXE`, and the real CAPPO mission view.
+- Verified the original navigation surface exposes arrow controls, zoom
+  ladder controls, `ORBIT`, and `LAND`; no generated map or replacement text
+  was used.
+- Updated the holomap and viewport documentation to describe this evidence
+  and the remaining landing/runtime-decoder boundary.
+
 ## 2026-08-09 (CAPPO runtime descriptor alignment)
 
 - Recovered the complete 959-record descriptor table from real CAPPO.EXE data.

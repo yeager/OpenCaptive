@@ -24,8 +24,9 @@ pixel parity is not claimed.
 
 The recovered DOS compositor builds a 160×112 work buffer. Its descriptor
 destination fields are byte offsets in that buffer; the final screen copy
-shows the first 144 pixels of every row. The complete descriptor table is in
-`include/captive_cappo_descriptors.h`; the 112-entry viewport subset is kept in
+shows the first 144 pixels of every row. The complete descriptor table is
+declared in `include/captive_cappo_descriptors.h` and defined in
+`src/data/captive_cappo_descriptors.c`; the 112-entry viewport subset is kept in
 `include/captive_viewport_descriptors.h` for focused tests. The viewport bands
 are organized by depth:
 d4 farthest at y=45 h=35, d3 at y=37 h=49, d2 at y=25 h=70, d1 at y=9 h=98,

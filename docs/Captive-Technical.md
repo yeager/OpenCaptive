@@ -33,7 +33,8 @@ also contains the original game-screen, roof, wall and door asset references.
 These observations validate the resource-to-framebuffer path and are useful
 for checking the PL5 decoder. The complete relocated descriptor table contains
 959 records copied from CAPPO.EXE file records 3..961 at unpacked file offset
-0x216b0 and is implemented in `include/captive_cappo_descriptors.h`. DOSBox-X
+0x216b0 and is declared in `include/captive_cappo_descriptors.h` and defined in
+`src/data/captive_cappo_descriptors.c`. DOSBox-X
 memory dumps confirm that file record 3 is runtime `DS:00c0` record 0. The
 focused 112-entry viewport subset is in `include/captive_viewport_descriptors.h`.
 Each descriptor is 8 bytes:

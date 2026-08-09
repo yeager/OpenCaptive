@@ -23,6 +23,16 @@ keyboard arrows use the same state path. The reference frame is intentionally
 not modified with synthetic cursor art or invented mission data. Enter also
 does not enter the unfinished dungeon compositor.
 
-To reproduce the source frame, boot the verified DOS media in DOSBox-X and
-capture the first holomap frame. Do not replace this asset with generated art
-or a mockup.
+The DOSBox-X verification sequence used for the current reference is:
+
+1. Run `CAPTIVE.BAT` from the directory containing the supplied `CAPPO.EXE`.
+2. Select VGA, then the original sound and music devices.
+3. Allow `INTRO.EXE` and `FILEPLAY.EXE` to finish; CAPPO then opens on
+   `CAPTIVE MISSION 0001` in the real navigation view.
+4. Use the original arrow controls to move the map cursor. The ladder-down
+   control zooms in, ladder-up zooms out, `ORBIT` flies to the selected point,
+   and `LAND` starts the landing transition.
+
+The current native implementation intentionally stops at the verified
+navigation frame until the same mission/runtime records and landing state are
+decoded. Do not replace this asset with generated art or a mockup.

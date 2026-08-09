@@ -21,6 +21,8 @@
 - [ ] Reproduce original planar mask, mirror and overwrite behaviour in the active viewport
 - [ ] Verify a playable Captive viewport pixel-for-pixel against original DOS captures
 - [ ] Recover the runtime graphic-ID selector operands for every descriptor band
+- [ ] Decode the original landing transition and mission records after the
+      DOSBox-X navigation checkpoint (`CAPTIVE MISSION 0001`)
 
 ### Combat
 - [x] Disassemble the CAPPO weapon/attack bytecode section (hit check, damage encoding, scaling)
