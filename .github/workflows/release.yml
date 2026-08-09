@@ -58,7 +58,7 @@ jobs:
           mkdir -p opencaptive-linux-x86_64/data opencaptive-linux-x86_64/po opencaptive-linux-x86_64/assets
           cp build/opencaptive opencaptive-linux-x86_64/
           cp data/DejaVuSansMono-Bold.ttf opencaptive-linux-x86_64/data/
-          cp -R assets/menu opencaptive-linux-x86_64/assets/
+          cp -R assets/menu assets/captive opencaptive-linux-x86_64/assets/
           cp po/*.po opencaptive-linux-x86_64/po/
           cp README.md LICENSE opencaptive-linux-x86_64/
           tar czf opencaptive-linux-x86_64.tar.gz opencaptive-linux-x86_64/
@@ -80,7 +80,7 @@ jobs:
           mkdir -p deb/usr/share/opencaptive/assets
           cp build/opencaptive deb/usr/bin/
           cp data/DejaVuSansMono-Bold.ttf deb/usr/share/opencaptive/data/
-          cp -R assets/menu deb/usr/share/opencaptive/assets/
+          cp -R assets/menu assets/captive deb/usr/share/opencaptive/assets/
           cp po/*.po deb/usr/share/opencaptive/po/
           cp README.md LICENSE deb/usr/share/doc/opencaptive/
           mkdir -p deb/usr/share/icons
@@ -100,7 +100,7 @@ jobs:
           mkdir -p rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets
           cp data/DejaVuSansMono-Bold.ttf rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/data/
           cp po/*.po rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/po/
-          cp -R assets/menu rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets/
+          cp -R assets/menu assets/captive rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets/
           tar czf rpmbuild/SOURCES/opencaptive-${PKG_VERSION}.tar.gz \
             -C rpmbuild/SOURCES opencaptive-${PKG_VERSION}
           printf '%s\n' \
@@ -127,7 +127,7 @@ jobs:
             "mkdir -p %{buildroot}/usr/share/opencaptive/assets" \
             "cp data/DejaVuSansMono-Bold.ttf %{buildroot}/usr/share/opencaptive/data/" \
             "cp po/*.po %{buildroot}/usr/share/opencaptive/po/" \
-            "cp -R assets/menu %{buildroot}/usr/share/opencaptive/assets/" \
+            "cp -R assets/menu assets/captive %{buildroot}/usr/share/opencaptive/assets/" \
             "mkdir -p %{buildroot}/usr/share/doc/opencaptive" \
             "cp README.md LICENSE %{buildroot}/usr/share/doc/opencaptive/" \
             "" \
@@ -136,6 +136,7 @@ jobs:
             "/usr/share/opencaptive/data/DejaVuSansMono-Bold.ttf" \
             "/usr/share/opencaptive/po/*" \
             "/usr/share/opencaptive/assets/menu/*" \
+            "/usr/share/opencaptive/assets/captive/*" \
             "/usr/share/doc/opencaptive/README.md" \
             "/usr/share/doc/opencaptive/LICENSE" \
             > rpmbuild/SPECS/opencaptive.spec
@@ -187,7 +188,7 @@ jobs:
           cp build/opencaptive AppDir/usr/bin/
           cp data/DejaVuSansMono-Bold.ttf AppDir/usr/share/opencaptive/data/
           cp po/*.po AppDir/usr/share/opencaptive/po/
-          cp -R assets/menu AppDir/usr/share/opencaptive/assets/
+          cp -R assets/menu assets/captive AppDir/usr/share/opencaptive/assets/
           printf '%s\n' '[Desktop Entry]' 'Name=OpenCaptive' 'Exec=opencaptive' 'Icon=opencaptive' 'Type=Application' 'Categories=Game;' > AppDir/usr/share/applications/opencaptive.desktop
           rsvg-convert -w 256 -h 256 assets/icon.svg -o AppDir/usr/share/icons/hicolor/256x256/apps/opencaptive.png
       - name: Download linuxdeploy
@@ -229,7 +230,7 @@ jobs:
           cp assets/icon.icns "$APP/Contents/Resources/OpenCaptive.icns"
           cp build/opencaptive "$APP/Contents/MacOS/OpenCaptive"
           cp data/DejaVuSansMono-Bold.ttf "$APP/Contents/Resources/data/"
-          cp -R assets/menu "$APP/Contents/Resources/assets/"
+          cp -R assets/menu assets/captive "$APP/Contents/Resources/assets/"
           cp po/*.po "$APP/Contents/Resources/po/"
           cp -R assets/lproj/*.lproj "$APP/Contents/Resources/"
           # Bundle all non-system dylibs recursively
@@ -473,7 +474,7 @@ jobs:
           ls -la build-ios/opencaptive* 2>/dev/null || true
           cp "$BINARY" "$APP/OpenCaptive"
           cp data/DejaVuSansMono-Bold.ttf "$APP/data/"
-          cp -R assets/menu "$APP/assets/"
+          cp -R assets/menu assets/captive "$APP/assets/"
           cp po/*.po "$APP/po/"
           sed "s/\$(VERSION)/$VERSION/g" assets/Info-iOS.plist > "$APP/Info.plist"
           # Compile LaunchScreen storyboard
@@ -578,7 +579,7 @@ jobs:
 
           # Copy game resources to APK assets
           cp data/DejaVuSansMono-Bold.ttf apk-project/app/src/main/assets/data/
-          cp -R assets/menu apk-project/app/src/main/assets/assets/
+          cp -R assets/menu assets/captive apk-project/app/src/main/assets/assets/
           cp po/*.po apk-project/app/src/main/assets/po/
 
           # Copy native libs

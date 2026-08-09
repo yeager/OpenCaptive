@@ -47,6 +47,7 @@ set(OPENCAPTIVE_SOURCES
     src/engine/engine.c
     src/engine/map_gen.c
     src/engine/captive_view_window.c
+    src/engine/captive_navigation.c
     src/engine/captive_space_nav.c
     src/engine/start_menu.c
     src/engine/combat.c
@@ -175,7 +176,12 @@ if(NOT ANDROID)
             "$<TARGET_FILE_DIR:opencaptive>/assets/menu/captive-cover-v1.png"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_SOURCE_DIR}/assets/menu/liberation-cover-v1.png"
-            "$<TARGET_FILE_DIR:opencaptive>/assets/menu/liberation-cover-v1.png")
+            "$<TARGET_FILE_DIR:opencaptive>/assets/menu/liberation-cover-v1.png"
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            "$<TARGET_FILE_DIR:opencaptive>/assets/captive"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/assets/captive/holamap-initial.png"
+            "$<TARGET_FILE_DIR:opencaptive>/assets/captive/holamap-initial.png")
 endif()
 
 # --- Tests ---
@@ -441,6 +447,12 @@ if(NOT WIN32)
   target_link_libraries(test_space_nav PRIVATE m)
 endif()
 add_test(NAME space_nav COMMAND test_space_nav)
+
+add_executable(test_captive_navigation
+    tests/test_captive_navigation.c
+    src/engine/captive_navigation.c)
+target_include_directories(test_captive_navigation PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME captive_navigation COMMAND test_captive_navigation)
 
 add_executable(test_creature_sprite tests/test_creature_sprite.c
     src/render/creature_sprite.c)

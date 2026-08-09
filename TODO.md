@@ -9,12 +9,12 @@
 - [x] Encode and test the DOS compositor's 160×112 destination-offset layout
 - [x] Preserve PL5 palette indices for Captive viewport transparency
 - [x] Apply recovered Captive descriptor mirror and transparency flags in compositor
-- [x] Keep Captive playable with a source-backed viewport fallback in both modes
+- [ ] Keep Captive playable with a source-backed viewport fallback in both modes
 - [x] Draw Captive creature sprites back-to-front by forward depth
 - [x] Use the disassembly creature `frame_index` when selecting ALIEN sheet frames
 - [x] Sample Captive side-wall textures from the adjacent wall face
 - [x] Apply Captive floor and ceiling texture selectors in the compatibility viewport
-- [x] Make Captive native frame capture enter a complete mission
+- [ ] Make Captive native frame capture enter a complete mission from real mission data
 - [ ] Recover the complete original per-cell descriptor sequence, destination bases and draw order
 - [ ] Reproduce original planar mask, mirror and overwrite behaviour in the active viewport
 - [ ] Verify a playable Captive viewport pixel-for-pixel against original DOS captures
@@ -82,9 +82,9 @@
 - [x] Energy regeneration (1 per ~5 seconds per alive droid)
 
 ### Mission flow
-- [x] Holamap screen between missions (planet name, shop access)
-- [x] Generator destruction auto-triggers mission completion
-- [x] Mission 10 → victory, missions 1-9 → holamap → next mission
+- [ ] Holamap screen between missions (real planet/base data and vector compositor)
+- [ ] Generator destruction auto-triggers mission completion from the decoded runtime
+- [ ] Mission 10 → victory, missions 1-9 → holamap → next mission from real mission data
 
 ### Equipment
 - [x] Weapon equip/unequip updates droid weapon_damage from item database
@@ -137,7 +137,9 @@
 - [x] Terminal map shows all cell types (teleporter, terminal, pit, pressure plate, elevator)
 
 ### Droid configuration
-- [x] Droid configuration screen (STATE_DROID_CONFIG) shown before mission start
+- [ ] Reintroduce the original source-backed droid-configuration timing after
+  the CAPPO mission/runtime decoder is complete; Captive startup currently
+  lands in the verified navigation surface and never shortcuts to a dungeon.
 - [x] Displays all 4 droids with HP, energy, and body part condition
 - [x] Droid rename (R key, keyboard input, up to 14 characters)
 - [x] Weapon swap between droids (S key, swaps with next droid)

@@ -133,8 +133,9 @@ static bool find_best(const DescriptorPanel *panel,
 }
 
 int main(int argc, char **argv) {
-    if (argc != 3) {
-        fprintf(stderr, "usage: %s <hash-verified-dos-memory> <vga-frame.ppm>\n", argv[0]);
+    bool scan = argc == 4 && strcmp(argv[3], "--scan") == 0;
+    if (argc != 3 && !scan) {
+        fprintf(stderr, "usage: %s <hash-verified-dos-memory> <vga-frame.ppm> [--scan]\n", argv[0]);
         return 2;
     }
     size_t memory_size = 0;
@@ -162,6 +163,38 @@ int main(int argc, char **argv) {
         {0x010, 32, 64, 1511},
         {0x01a, 48, 64, 1356},
     };
+    if (scan) {
+        /* This is an analysis-only pass over real DOS runtime descriptors.
+         * It reports source panels that occur in the supplied original frame;
+         * it never creates a replacement frame or invents a draw command. */
+        for (unsigned id = 0; id <= 0xff; ++id) {
+            CaptiveDosDescriptor descriptor = {0};
+            DescriptorPanel panel = {0};
+            int x = 0, y = 0, agreement = 0;
+            if (!captive_dos_descriptor_read(memory, memory_size,
+                                             DESCRIPTOR_SEGMENT,
+                                             SOURCE_BANK_TABLE_SEGMENT,
+                                             (uint16_t)id, &descriptor) ||
+                !panel_decode(memory, memory_size, &descriptor, &panel) ||
+                !find_best(&panel, &descriptor, frame, &x, &y, &agreement)) {
+                free(panel.pixels);
+                continue;
+            }
+            /* Ignore one-pixel coincidences; they are not useful evidence of
+             * an original draw command. */
+            if (panel.opaque_count >= 16 &&
+                agreement * 100 >= panel.opaque_count * 90) {
+                printf("scan id=%03x source-bank=%u source=%04x size=%dx%d "
+                       "flags=%02x target=%d,%d agreement=%d/%d\n",
+                       id, descriptor.source_bank, descriptor.source_offset,
+                       panel.width, panel.height, descriptor.flags, x, y,
+                       agreement, panel.opaque_count);
+            }
+            free(panel.pixels);
+        }
+        free(memory);
+        return 0;
+    }
     bool ok = true;
     for (size_t i = 0; i < sizeof(expected) / sizeof(expected[0]); ++i) {
         CaptiveDosDescriptor descriptor = {0};

@@ -350,7 +350,12 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
     float scale_x = (float)output_width / r->texture_width;
     float scale_y = (float)output_height / r->texture_height;
     float scale = scale_x < scale_y ? scale_x : scale_y;
-    if (r->integer_scaling && scale >= 1.0f) {
+    /* The launcher uses a 960x600 canvas and must fill a normal 1280x800
+     * window. Integer scaling is useful for the original 320x200/320x256
+     * game canvases, but forcing 1x on the launcher leaves large unused
+     * borders around the entire menu. */
+    if (r->integer_scaling && scale >= 1.0f &&
+        r->canvas_width <= 640 && r->canvas_height <= 400) {
         scale = (float)(int)scale;
     }
     SDL_FRect destination = {

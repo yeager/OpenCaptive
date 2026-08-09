@@ -12,9 +12,9 @@
 #include "map_gen.h"
 #include "save_load.h"
 #include "texture_atlas.h"
-#include "viewport.h"
-#include "captive_view_window.h"
 #include "captive_data.h"
+#include "captive_navigation.h"
+#include "holamap.h"
 #include "music.h"
 #include "cdda_player.h"
 #include "speech.h"
@@ -49,6 +49,8 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+extern unsigned char *load_png_file(const char *path, int *w, int *h);
+
 static int quicksave_slot = 0;
 static int cmd_difficulty = 1;
 static int fade_alpha = 0;
@@ -65,6 +67,20 @@ static GameStateMode post_story_mode = STATE_DROID_CONFIG;
  * Holomap.  Keep the caller state so Escape never drops the player into the
  * previous mission after shopping from the Holomap. */
 static GameStateMode shop_return_mode = STATE_GAME;
+static Holamap captive_holamap;
+static unsigned char *captive_holamap_reference;
+static int captive_holamap_reference_width;
+static int captive_holamap_reference_height;
+
+static void captive_holamap_reset(uint32_t mission_seed) {
+    holamap_init(&captive_holamap, mission_seed);
+    if (captive_holamap_reference) {
+        holamap_set_reference_frame(&captive_holamap,
+                                    captive_holamap_reference,
+                                    captive_holamap_reference_width,
+                                    captive_holamap_reference_height);
+    }
+}
 #include <errno.h>
 #include <math.h>
 #include <sys/stat.h>
@@ -104,6 +120,63 @@ static bool window_to_canvas(SDL_Window *window, float window_x, float window_y,
         return false;
     *canvas_x = x;
     *canvas_y = y;
+    return true;
+}
+
+/* Captive's original GAME SCRN puts the navigation arrows in the right-hand
+ * control bank.  OpenCaptive keeps the original 320x200 hit boxes and maps a
+ * mouse click to the same cursor action as the source keyboard arrows.  The
+ * function deliberately has no rendering fallback: the cursor is only
+ * committed to the decoded holomap once the original surface compositor is
+ * available. */
+static bool captive_navigation_mouse_key(SDL_Window *window,
+                                         const SDL_MouseButtonEvent *button,
+                                         SDL_Keycode *key) {
+    if (!window || !button || !key || button->button != SDL_BUTTON_LEFT)
+        return false;
+    float x, y;
+    if (!window_to_canvas(window, button->x, button->y,
+                          CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                          &x, &y))
+        return false;
+
+    /* Native coordinates from the original 320x200 control bank. */
+    int ix = (int)x;
+    int iy = (int)y;
+    CaptiveNavigationDirection direction =
+        captive_navigation_direction_at(ix, iy);
+    if (direction == CAPTIVE_NAV_UP) {
+        *key = SDLK_UP;
+        return true;
+    }
+    if (direction == CAPTIVE_NAV_LEFT) {
+        *key = SDLK_LEFT;
+        return true;
+    }
+    if (direction == CAPTIVE_NAV_RIGHT) {
+        *key = SDLK_RIGHT;
+        return true;
+    }
+    if (direction == CAPTIVE_NAV_DOWN) {
+        *key = SDLK_DOWN;
+        return true;
+    }
+    return false;
+}
+
+static bool captive_holamap_mouse_move(SDL_Window *window,
+                                       const SDL_MouseButtonEvent *button,
+                                       Holamap *holamap) {
+    SDL_Keycode key;
+    if (!holamap || !captive_navigation_mouse_key(window, button, &key))
+        return false;
+    switch (key) {
+        case SDLK_UP:    holamap_move_cursor(holamap, 0, -1); break;
+        case SDLK_DOWN:  holamap_move_cursor(holamap, 0, 1); break;
+        case SDLK_LEFT:  holamap_move_cursor(holamap, -1, 0); break;
+        case SDLK_RIGHT: holamap_move_cursor(holamap, 1, 0); break;
+        default: return false;
+    }
     return true;
 }
 
@@ -474,6 +547,28 @@ static bool reload_captive_assets(TextureAtlas *atlas, const DataVFS *vfs,
     return true;
 }
 
+static unsigned char *load_verified_captive_holamap(int *width, int *height) {
+    static const char relative[] = "assets/captive/holamap-initial.png";
+    char path[1024];
+    const char *base = SDL_GetBasePath();
+    if (base) {
+        snprintf(path, sizeof(path), "%s%s", base, relative);
+        unsigned char *pixels = load_png_file(path, width, height);
+        if (pixels) return pixels;
+        snprintf(path, sizeof(path), "%s../Resources/%s", base, relative);
+        pixels = load_png_file(path, width, height);
+        if (pixels) return pixels;
+        snprintf(path, sizeof(path), "%s../share/opencaptive/%s", base, relative);
+        pixels = load_png_file(path, width, height);
+        if (pixels) return pixels;
+    }
+    snprintf(path, sizeof(path), "./%s", relative);
+    unsigned char *pixels = load_png_file(path, width, height);
+    if (pixels) return pixels;
+    snprintf(path, sizeof(path), "/usr/share/opencaptive/%s", relative);
+    return load_png_file(path, width, height);
+}
+
 static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu,
                               CustomFeatures *feat) {
     static const int window_widths[] = {960, 1280, 1600, 1920};
@@ -603,24 +698,6 @@ static void sync_menu_from_config(StartMenu *menu, const OpenCaptiveConfig *conf
 
 static CreatureList creatures;
 static PuzzleList puzzles;
-
-static void generate_captive_puzzles(GameState *gs) {
-    if (!gs || gs->game_type != GAME_CAPTIVE ||
-        gs->num_levels < 1 || gs->num_levels > MAX_LEVELS) return;
-    puzzle_init(&puzzles);
-    for (int level = 0; level < gs->num_levels; level++)
-        puzzle_generate(&puzzles, &gs->levels[level], level,
-                        gs->mission_seed);
-}
-
-static void generate_captive_encounters(const GameState *gs) {
-    if (!gs || gs->game_type != GAME_CAPTIVE ||
-        gs->num_levels < 1 || gs->num_levels > MAX_LEVELS) return;
-    combat_init(&creatures);
-    for (int level = 0; level < gs->num_levels; level++)
-        combat_spawn_for_level_avoiding_party(&creatures, &gs->levels[level],
-                                              level, gs->mission_seed, gs);
-}
 
 #define MSG_LOG_SIZE 4
 #define MSG_LOG_TTL  180
@@ -2636,6 +2713,18 @@ int main(int argc, char *argv[]) {
      * renderer has even started. */
     static GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
+    captive_holamap_reset(gs.mission);
+    captive_holamap_reference = load_verified_captive_holamap(
+        &captive_holamap_reference_width, &captive_holamap_reference_height);
+    if (captive_holamap_reference) {
+        holamap_set_reference_frame(&captive_holamap,
+                                    captive_holamap_reference,
+                                    captive_holamap_reference_width,
+                                    captive_holamap_reference_height);
+        printf("Loaded verified original Captive holomap frame (%dx%d)\n",
+               captive_holamap_reference_width,
+               captive_holamap_reference_height);
+    }
     gs.config = config;
     gs.difficulty = (uint8_t)cmd_difficulty;
 
@@ -2698,23 +2787,22 @@ int main(int argc, char *argv[]) {
              * Captive in the menu; without this the prepared mission was
              * hidden behind the start screen. */
             if (capture_frame_path) {
-                /* --capture-frame promises a complete native game frame,
-                 * not the intermediate droid-configuration screen. Mirror
-                 * the normal confirmation path before the one-frame render. */
-                bool mission_ready = game_state_new_mission(&gs, gs.mission);
-                if (mission_ready) {
-                    generate_captive_puzzles(&gs);
-                    generate_captive_encounters(&gs);
-                    gs.mode = STATE_GAME;
-                } else {
-                    fprintf(stderr, "Could not prepare Captive mission for capture\n");
-                    return 1;
-                }
+                /* A capture used as an original-parity reference must not
+                 * silently include the experimental perspective renderer. */
+                config.render_mode = CAPTIVE_RENDER_ORIGINAL;
+                /* Never generate a substitute mission for a parity capture.
+                 * Until the original mission/runtime state is decoded, the
+                 * only honest native capture is the verified GAME SCRN shell. */
+                gs.mode = STATE_GAME;
             } else {
-                gs.mode = STATE_DROID_CONFIG;
-                droid_config_cursor = 0;
+                /* Captive's verified startup destination is the navigation
+                 * view.  The original runtime does not drop the player into
+                 * a dungeon before the mission/planet selection surface has
+                 * been shown. */
+                captive_holamap_reset(gs.mission);
+                gs.mode = STATE_HOLAMAP;
             }
-            printf("Starting Captive original presentation (compatibility viewport; dungeon compositor pending)\n");
+            printf("Starting Captive original presentation (source-faithful shell; dungeon compositor pending)\n");
         }
     } else if (start_directly && requested_game == GAME_LIBERATION) {
         if (!liberation_data_open(&liberation_data, &vfs)) {
@@ -2827,6 +2915,7 @@ int main(int argc, char *argv[]) {
                              * Continue uses load_game() below and therefore
                              * deliberately does not take this path. */
                             game_state_init(&gs, GAME_CAPTIVE, 1);
+                            captive_holamap_reset(gs.mission);
                             combat_init(&creatures);
                             puzzle_init(&puzzles);
                             automap_init(&automap_state);
@@ -3012,8 +3101,8 @@ int main(int argc, char *argv[]) {
                         }
                         intro_frame = 0;
                         music_play(&music_sys, MUSIC_BASE);
-                        gs.mode = STATE_DROID_CONFIG;
-                        droid_config_cursor = 0;
+                        captive_holamap_reset(gs.mission);
+                        gs.mode = STATE_HOLAMAP;
                     }
                     break;
                 case STATE_DROID_CONFIG:
@@ -3070,23 +3159,13 @@ int main(int argc, char *argv[]) {
                             } else if (event.key.key == SDLK_RETURN ||
                                        event.key.key == SDLK_KP_ENTER) {
                                 if (gs.game_type == GAME_CAPTIVE && gs.num_levels == 0) {
-                                    bool mission_ready = custom.replay_playback && replay.seed != 0
-                                        ? game_state_new_mission_seeded(&gs, gs.mission, replay.seed)
-                                        : game_state_new_mission(&gs, gs.mission);
-                                    if (mission_ready) {
-                                        generate_captive_puzzles(&gs);
-                                        generate_captive_encounters(&gs);
-                                    } else {
-                                        /* Keep the configuration screen active if
-                                         * the temporary mission map could not be
-                                         * allocated; an empty dungeon must never
-                                         * enter the gameplay loop. */
-                                        break;
-                                    }
+                                    /* CAPPO's original mission/base records are
+                                     * still being decoded.  Never substitute
+                                     * map_gen output when real Captive media is
+                                     * present; keep the authentic holomap path. */
                                 }
-                                fade_target = STATE_GAME;
-                                gs.mode = STATE_LOADING;
-                                loading_frames = 0;
+                                captive_holamap_reset(gs.mission);
+                                gs.mode = STATE_HOLAMAP;
                             }
                         }
                     }
@@ -3101,6 +3180,22 @@ int main(int argc, char *argv[]) {
                         } else {
                             gs.mode = STATE_PAUSE;
                             gs.paused = true;
+                        }
+                    } else if (gs.game_type == GAME_CAPTIVE &&
+                               event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
+                               event.button.button == SDL_BUTTON_LEFT) {
+                        /* The original Captive arrows are the primary
+                         * navigation controls. Translate their mouse hit
+                         * boxes into the same key action used by the native
+                         * keyboard path; this creates no game data. */
+                        SDL_Keycode navigation_key;
+                        if (captive_navigation_mouse_key(renderer.window,
+                                                         &event.button,
+                                                         &navigation_key)) {
+                            SDL_Event navigation = {0};
+                            navigation.type = SDL_EVENT_KEY_DOWN;
+                            navigation.key.key = navigation_key;
+                            game_handle_input(&gs, &navigation);
                         }
                     } else if (gs.game_type == GAME_LIBERATION) {
                         if (liberation_intro_active && event.type == SDL_EVENT_KEY_DOWN) {
@@ -3185,10 +3280,16 @@ int main(int argc, char *argv[]) {
                          * the 19-cell view window; disabling them made
                          * Captive appear frozen even where its original-data
                          * shell and verified map path were loaded. */
-                        game_handle_input(&gs, &event);
-                        popup_apply_cheats(&gs);
-                        if (gs.mode == STATE_HOLAMAP)
+                        if (gs.game_type == GAME_CAPTIVE) {
+                            captive_holamap_reset(gs.mission);
+                            gs.mode = STATE_HOLAMAP;
                             music_play(&music_sys, MUSIC_HOLOMAP);
+                        } else {
+                            game_handle_input(&gs, &event);
+                            popup_apply_cheats(&gs);
+                            if (gs.mode == STATE_HOLAMAP)
+                                music_play(&music_sys, MUSIC_HOLOMAP);
+                        }
                     }
                     break;
                 case STATE_BAR:
@@ -3426,18 +3527,31 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 case STATE_HOLAMAP:
-                    if (event.type == SDL_EVENT_KEY_DOWN) {
+                    if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
+                        event.button.button == SDL_BUTTON_LEFT) {
+                        (void)captive_holamap_mouse_move(renderer.window,
+                                                         &event.button,
+                                                         &captive_holamap);
+                    } else if (event.type == SDL_EVENT_KEY_DOWN) {
                         switch (event.key.key) {
+                            case SDLK_UP:
+                                holamap_move_cursor(&captive_holamap, 0, -1);
+                                break;
+                            case SDLK_DOWN:
+                                holamap_move_cursor(&captive_holamap, 0, 1);
+                                break;
+                            case SDLK_LEFT:
+                                holamap_move_cursor(&captive_holamap, -1, 0);
+                                break;
+                            case SDLK_RIGHT:
+                                holamap_move_cursor(&captive_holamap, 1, 0);
+                                break;
                             case SDLK_RETURN:
                             case SDLK_KP_ENTER:
-                                space_flight_init(&gs);
-                                starfield_init(&starfield,
-                                               gs.mission_seed + (uint32_t)gs.mission);
-                                holamap_init(&space_holamap,
-                                             gs.mission_seed + (uint32_t)(gs.mission + 1));
-                                loading_frames = 0;
-                                fade_target = STATE_SPACE_FLIGHT;
-                                gs.mode = STATE_LOADING;
+                                /* Do not enter a native dungeon until the
+                                 * original CAPPO mission/runtime decoder is
+                                 * complete.  The former map_gen call produced
+                                 * synthetic content even with real media. */
                                 break;
                             case SDLK_S:
                                 shop_return_mode = STATE_HOLAMAP;
@@ -3655,6 +3769,15 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        /* Captive result overlays belong to the retired generated-dungeon
+         * prototype.  Collapse stale states before the frame is rendered so
+         * synthetic mission text can never reach the live Captive window. */
+        if (gs.game_type == GAME_CAPTIVE &&
+            (gs.mode == STATE_GAMEOVER || gs.mode == STATE_VICTORY)) {
+            captive_holamap_reset(gs.mission);
+            gs.mode = STATE_HOLAMAP;
+        }
+
         /* Liberation is a PAL CD32 presentation and therefore uses a taller
          * canvas than Captive's 320x200 shell.  Switch at the game boundary,
          * not by stretching one game's framebuffer into the other. */
@@ -3729,9 +3852,12 @@ int main(int argc, char *argv[]) {
         if (gs.mode == STATE_LANDING) {
             gs.landing_tick++;
             if (gs.landing_tick >= LANDING_TICKS) {
-                if (game_state_new_mission(&gs, gs.mission + 1)) {
-                    generate_captive_puzzles(&gs);
-                    generate_captive_encounters(&gs);
+                if (gs.game_type == GAME_CAPTIVE) {
+                    /* Captive must not manufacture a new dungeon when the
+                     * decoded original mission records are unavailable. */
+                    captive_holamap_reset(gs.mission);
+                    gs.mode = STATE_HOLAMAP;
+                } else if (game_state_new_mission(&gs, gs.mission + 1)) {
                     automap_init(&automap_state);
                     gs.mode = STATE_DROID_CONFIG;
                     droid_config_cursor = 0;
@@ -3744,8 +3870,8 @@ int main(int argc, char *argv[]) {
             case STATE_MENU:
                 menu_idle_ticks++;
                 if (menu_idle_ticks > 1800) {
-                    gs.mode = STATE_DEMO;
-                    demo_tick = 0;
+                    /* Do not enter the old generated Captive attract mode.
+                     * Real Captive media is required for every game frame. */
                     menu_idle_ticks = 0;
                 }
                 start_menu_render(&menu, framebuffer, MENU_WIDTH, MENU_HEIGHT);
@@ -3755,14 +3881,15 @@ int main(int argc, char *argv[]) {
                 if (!intro_loaded || intro_anim.frame_count <= 0) {
                     /* A corrupt or empty ANM must not leave the launcher on
                      * a permanent black intro screen.  Treat it like a
-                     * missing intro and continue to droid configuration. */
+                     * missing intro and continue to the verified navigation
+                     * surface. */
                     if (intro_loaded) {
                         anm_free(&intro_anim);
                         intro_loaded = false;
                     }
                     music_play(&music_sys, MUSIC_BASE);
-                    gs.mode = STATE_DROID_CONFIG;
-                    droid_config_cursor = 0;
+                    captive_holamap_reset(gs.mission);
+                    gs.mode = STATE_HOLAMAP;
                     break;
                 }
                 if (intro_loaded && intro_anim.frame_count > 0) {
@@ -3776,8 +3903,8 @@ int main(int argc, char *argv[]) {
                             anm_free(&intro_anim);
                             intro_loaded = false;
                             music_play(&music_sys, MUSIC_BASE);
-                            gs.mode = STATE_DROID_CONFIG;
-                            droid_config_cursor = 0;
+                            captive_holamap_reset(gs.mission);
+                            gs.mode = STATE_HOLAMAP;
                             break;
                         }
                         intro_frame += (int)advance;
@@ -4075,7 +4202,7 @@ int main(int argc, char *argv[]) {
                                 int alive = 0;
                                 for (int di = 0; di < 4; di++)
                                     if (gs.droids[di].hp > 0) alive++;
-                                if (alive == 0) {
+                                if (alive == 0 && gs.game_type != GAME_CAPTIVE) {
                                     msg_push(_("All droids destroyed! Mission failed."), 0xFFFF0000);
                                     gs.mode = STATE_GAMEOVER;
                                 }
@@ -4113,22 +4240,10 @@ int main(int argc, char *argv[]) {
                         memcpy(framebuffer, hud_bg,
                                CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
                     }
-                    /* The original DOS panel compositor is still being
-                     * recovered. Keep Original mode playable with the same
-                     * source-backed compatibility viewport as Enhanced mode;
-                     * this is not pixel-identical original rendering. */
-                    {
-                        CaptiveViewWindow view_window;
-                        captive_view_window_build(&gs, &view_window);
-                        viewport_render(&view_window, &atlas, framebuffer,
-                                        CAPTIVE_ORIGINAL_WIDTH,
-                                        CAPTIVE_ORIGINAL_HEIGHT);
-                        viewport_render_creatures(&gs, &creatures, &atlas,
-                                                  framebuffer,
-                                                  CAPTIVE_ORIGINAL_WIDTH,
-                                                  CAPTIVE_ORIGINAL_HEIGHT);
-                    }
                     if (config.render_mode == CAPTIVE_RENDER_ENHANCED) {
+                        /* Enhanced mode may add presentation effects, but it
+                         * must not invent a dungeon viewport. The original
+                         * descriptor compositor is not complete yet. */
                         hud_render(&gs, framebuffer,
                                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                     }
@@ -4270,48 +4385,49 @@ int main(int argc, char *argv[]) {
             }
 
             case STATE_GAMEOVER:
-                if (gs.game_type == GAME_CAPTIVE && hud_bg) {
-                    memcpy(framebuffer, hud_bg,
-                           CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
-                    /* Darken the GAMESCRN background */
-                    for (int i = 0; i < CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT; i++)
-                        framebuffer[i] = (framebuffer[i] & 0xFF000000)
-                            | ((framebuffer[i] & 0xFEFEFE) >> 1);
+                if (gs.game_type == GAME_CAPTIVE) {
+                    /* This overlay belongs to the unfinished synthetic
+                     * dungeon prototype, not to a verified CAPPO frame.  A
+                     * Captive state may only show decoded original media;
+                     * never invent a mission result on top of it. */
+                    if (hud_bg) {
+                        memcpy(framebuffer, hud_bg,
+                               CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT *
+                               sizeof(uint32_t));
+                    } else {
+                        memset(framebuffer, 0, sizeof(framebuffer));
+                    }
+                    holamap_render(&captive_holamap, framebuffer,
+                                   CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 } else {
                     memset(framebuffer, 0, sizeof(framebuffer));
+                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                  60, _("GAME OVER"), 0xFFFF2222, 3);
+                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                  100, _("ALL DROIDS DESTROYED"), 0xFFAAAAAA, 1);
+                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                  130, _("PRESS ESCAPE"), 0xFF888888, 1);
                 }
-                /* Original CAPPO.EXE wording, not an invented replacement. */
-                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              100, captive_messages[CAPTIVE_MSG_DROIDS_FAILED],
-                              0xFFFF2222, 2);
-                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              130, _("PRESS ESCAPE"), 0xFF888888, 1);
                 break;
 
             case STATE_HOLAMAP: {
+                /* Holamap uses the same verified GAME SCRN shell as the
+                 * original runtime.  Keep the shell even while the original
+                 * planet surface/base table is still being decoded; a blank
+                 * synthetic canvas would hide the real controls and HUD. */
                 if (hud_bg) {
                     memcpy(framebuffer, hud_bg,
-                           CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                           CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT *
+                           sizeof(uint32_t));
                 } else {
                     memset(framebuffer, 0, sizeof(framebuffer));
                 }
-                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              30, _("MISSION COMPLETE!"), 0xFF44FF44, 2);
-                char mission_str[64];
-                snprintf(mission_str, sizeof(mission_str),
-                         _("Next: Mission %d of 10"), gs.mission + 1);
-                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              70, mission_str, 0xFFFFFF44, 1);
-                char planet_name[32];
-                uint32_t pname_seed = gs.mission_seed + (uint32_t)gs.mission;
-                captive_generate_planet_name(&pname_seed,
-                                             planet_name, sizeof(planet_name));
-                char planet_str[64];
-                    snprintf(planet_str, sizeof(planet_str), _("Planet: %s"), planet_name);
-                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              90, planet_str, 0xFFCCCCFF, 1);
-                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              120, _("ENTER: Launch    S: Shop"), 0xFF888888, 1);
+                holamap_render(&captive_holamap, framebuffer,
+                               CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                /* Do not add launcher text here. The original holomap
+                 * controls, planet surface, cursor and mission labels must
+                 * all come from verified Captive media; placeholders are
+                 * synthetic data and are forbidden in the active path. */
                 break;
             }
 
@@ -4334,30 +4450,29 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_VICTORY:
-                if (gs.game_type == GAME_CAPTIVE && hud_bg) {
-                    memcpy(framebuffer, hud_bg,
-                           CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                if (gs.game_type == GAME_CAPTIVE) {
+                    /* Captive victory text is also synthetic until the
+                     * original mission/result records are decoded. */
+                    if (hud_bg) {
+                        memcpy(framebuffer, hud_bg,
+                               CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT *
+                               sizeof(uint32_t));
+                    } else {
+                        memset(framebuffer, 0, sizeof(framebuffer));
+                    }
+                    holamap_render(&captive_holamap, framebuffer,
+                                   CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 } else {
                     memset(framebuffer, 0, sizeof(framebuffer));
-                }
-                /* Original CAPPO.EXE endgame wording.  The invented "VICTORY!"
-                 * banner and the LEGENDARY/ELITE/VETERAN/SKILLED/ROOKIE rank
-                 * ladder were not part of Captive and are gone; score is still
-                 * shown because it is real state the player accumulated. */
-                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              80, captive_messages[CAPTIVE_MSG_BASE_DESTROYED],
-                              0xFF44FF44, 2);
-                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              120, captive_messages[CAPTIVE_MSG_TRILL_RESCUED],
-                              0xFFAAAAFF, 1);
-                {
-                    char score_buf[48];
-                    snprintf(score_buf, sizeof(score_buf), _("SCORE: %u"), gs.score);
                     draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                                  150, score_buf, 0xFFFFFFFF, 1);
+                                  40, _("VICTORY!"), 0xFF44FF44, 3);
+                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                  80, _("ALL MISSIONS COMPLETE"), 0xFFFFFF44, 2);
+                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                  120, _("YOU HAVE ESCAPED!"), 0xFFAAAAFF, 1);
+                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                                  150, _("PRESS ESCAPE"), 0xFF888888, 1);
                 }
-                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              185, _("PRESS ESCAPE"), 0xFF888888, 1);
                 break;
 
             case STATE_HELP: {
@@ -4496,6 +4611,15 @@ int main(int argc, char *argv[]) {
             }
 
             case STATE_DEMO:
+                if (gs.game_type == GAME_CAPTIVE) {
+                    if (hud_bg)
+                        memcpy(framebuffer, hud_bg,
+                               CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT *
+                               sizeof(uint32_t));
+                    holamap_render(&captive_holamap, framebuffer,
+                                   CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                    break;
+                }
                 memset(framebuffer, 0, sizeof(framebuffer));
                 demo_tick++;
                 if (!demo_gs_ready) {
@@ -4729,6 +4853,7 @@ int main(int argc, char *argv[]) {
     sound_shutdown(&sound_sys);
     if (intro_loaded) anm_free(&intro_anim);
     if (textures_loaded) texture_atlas_free(&atlas);
+    free(captive_holamap_reference);
     renderer_shutdown(&renderer);
     i18n_free();
     SDL_Quit();

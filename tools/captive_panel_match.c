@@ -60,6 +60,23 @@ static bool same_tile(const uint32_t *target, const uint32_t *sheet,
     return true;
 }
 
+static bool masked_tile_match(const PL5Image *image, const uint32_t *sheet,
+                              const uint32_t *target, int target_x,
+                              int target_y, int source_x, int source_y,
+                              int *opaque_out) {
+    int opaque = 0;
+    for (int y = 0; y < TILE; ++y) for (int x = 0; x < TILE; ++x) {
+        uint8_t index = image->pixel_data[(source_y + y) * SCREEN_W + source_x + x] & 31U;
+        if (index == 0) continue;
+        ++opaque;
+        if (sheet[(source_y + y) * SCREEN_W + source_x + x] !=
+            target[(target_y + y) * SCREEN_W + target_x + x])
+            return false;
+    }
+    if (opaque_out) *opaque_out = opaque;
+    return opaque > 0;
+}
+
 /* Palette index zero is transparent in the original panel blitters.  A tile
  * made almost entirely of it cannot establish a source rectangle: identical
  * black areas occur in many sheets.  Require a meaningful number of opaque
@@ -111,8 +128,8 @@ static void print_blit_candidates(MatchedTile matches[VIEW_ROWS][VIEW_COLS]) {
 }
 
 int main(int argc, char **argv) {
-    if (argc != 3) {
-        fprintf(stderr, "usage: %s <data-dir> <hash-verified-dos-reference.ppm>\n", argv[0]);
+    if (argc != 3 && argc != 4) {
+        fprintf(stderr, "usage: %s <data-dir> <hash-verified-dos-reference.ppm> [--masked]\n", argv[0]);
         return 2;
     }
     uint32_t target[SCREEN_W * SCREEN_H];
@@ -141,6 +158,38 @@ int main(int argc, char **argv) {
         for (int i = 0; i < SHEETS; ++i) { pl5_free(&images[i]); free(sheet_pixels[i]); }
         vfs_free(&vfs);
         return 1;
+    }
+    if (argc == 4 && strcmp(argv[3], "--masked") == 0) {
+        /* Search only real PL5 source pixels.  A later original blit may cover
+         * transparent/source-zero pixels, so exact full-tile equality is too
+         * strict for recovering the original command stream. */
+        for (int y = VIEW_Y; y < VIEW_Y + VIEW_H; y += TILE) {
+            for (int x = VIEW_X; x < VIEW_X + VIEW_W; x += TILE) {
+                int best_sheet = -1, best_sx = -1, best_sy = -1, best_opaque = 0;
+                for (int sheet = 0; sheet < SHEETS; ++sheet) {
+                    for (int sy = 0; sy <= SCREEN_H - TILE; sy += TILE) {
+                        for (int sx = 0; sx <= SCREEN_W - TILE; sx += TILE) {
+                            int opaque = 0;
+                            if (masked_tile_match(&images[sheet], sheet_pixels[sheet],
+                                                  target, x, y, sx, sy, &opaque) &&
+                                opaque > best_opaque) {
+                                best_sheet = sheet;
+                                best_sx = sx;
+                                best_sy = sy;
+                                best_opaque = opaque;
+                            }
+                        }
+                    }
+                }
+                if (best_sheet >= 0 && best_opaque >= 16)
+                    printf("masked target=%d,%d source=%s@%d,%d opaque=%d\n",
+                           x, y, captive_view_source_hashes[best_sheet],
+                           best_sx, best_sy, best_opaque);
+            }
+        }
+        for (int i = 0; i < SHEETS; ++i) { pl5_free(&images[i]); free(sheet_pixels[i]); }
+        vfs_free(&vfs);
+        return 0;
     }
     size_t capacity = (size_t)SHEETS * (SCREEN_W - TILE + 1) * (SCREEN_H - TILE + 1);
     TileRef *tiles = malloc(capacity * sizeof(*tiles));
