@@ -240,6 +240,11 @@ add_executable(test_viewport
     src/engine/creature_stats.c
     src/render/creature_sprite.c)
 target_include_directories(test_viewport PRIVATE ${CMAKE_SOURCE_DIR}/include)
+if(MSVC)
+    target_link_options(test_viewport PRIVATE /STACK:8388608)
+elseif(WIN32)
+    target_link_options(test_viewport PRIVATE -Wl,--stack,8388608)
+endif()
 add_test(NAME viewport COMMAND test_viewport)
 
 add_executable(test_dos_vga_reference tests/test_dos_vga_reference.c
