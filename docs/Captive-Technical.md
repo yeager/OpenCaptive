@@ -31,9 +31,12 @@ values. Both write four VGA planes when planar output is active. The executable
 also contains the original game-screen, roof, wall and door asset references.
 
 These observations validate the resource-to-framebuffer path and are useful
-for checking the PL5 decoder. The complete 112-entry viewport descriptor table
-has been extracted from CAPPO.EXE at file offset 0x21698 and is implemented in
-`include/captive_viewport_descriptors.h`. Each descriptor is 8 bytes:
+for checking the PL5 decoder. The complete relocated descriptor table contains
+959 records copied from CAPPO.EXE file records 3..961 at unpacked file offset
+0x216b0 and is implemented in `include/captive_cappo_descriptors.h`. DOSBox-X
+memory dumps confirm that file record 3 is runtime `DS:00c0` record 0. The
+focused 112-entry viewport subset is in `include/captive_viewport_descriptors.h`.
+Each descriptor is 8 bytes:
 source_offset(u16), destination_offset(u16), width_bytes(u8), height(u8),
 flags(u8), source_bank(u8). The `descriptor_blit()` helper handles mirror and
 mask-zero flags. It is covered as a decoder/validation helper; the live
@@ -188,7 +191,9 @@ the same 160-byte work-row layout used by CAPPO. The compositor is wired after
 the verified GAME SCRN shell and before any optional enhancement layer. It
 copies source pixels from the content-addressed PL5 sheets, preserves index
 zero transparency, and exposes the first 144 pixels of each row at the
-disassembly-verified viewport origin.
+disassembly-verified viewport origin. The runtime table alignment was checked
+against a real DOSBox-X memory dump; the first three records in the unpacked
+file image are not runtime descriptor records.
 
 This is a real-data rendering path, not a generated replacement scene. It is
 deliberately not described as complete parity yet: the original runtime still

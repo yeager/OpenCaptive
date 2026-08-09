@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-09 (CAPPO runtime descriptor alignment)
+
+- Recovered the complete 959-record descriptor table from real CAPPO.EXE data.
+- Corrected the three-record file-image offset by comparing the table against a
+  real DOSBox-X `MEMDUMP.BIN`: executable record 3 is runtime `DS:00c0` record 0.
+- Routed the original-mode viewport compositor through the aligned table and
+  added regression checks for the viewport subset, sentinel records, and full
+  table coverage.
+- All 62 local tests pass. Per-cell selector operands and complete mission
+  runtime data remain open; no parity-complete claim is made.
+
 ## 2026-08-09 (CAPPO descriptor compositor wired into runtime)
 
 - Connected the original-mode Captive game frame to the recovered 160×112

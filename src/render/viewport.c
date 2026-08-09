@@ -5,6 +5,7 @@
 #include "creature_stats.h"
 #include "creature_sprite.h"
 #include "captive_viewport_descriptors.h"
+#include "captive_cappo_descriptors.h"
 #include <string.h>
 
 /* Captive's original viewport is a panel-based compositor: pre-projected
@@ -345,12 +346,13 @@ static void descriptor_blit(const CaptiveDosDescriptor *desc,
 static int original_wall_descriptor(int range, int lateral) {
     /* These are the fixed panel bands recovered from CAPPO's descriptor
      * table.  The source selector for the individual wall graphic is still
-     * carried by the verified PL5 bank; no procedural wall is introduced. */
+     * carried by the verified PL5 bank; no procedural wall is introduced.
+     * IDs are runtime DS:00c0 indices, not raw file-record indices. */
     static const int groups[4][3][2] = {
-        {{17, 18}, {19, 20}, {21, 22}},
-        {{11, 12}, {13, 14}, {15, 16}},
-        {{5, 6}, {7, 8}, {9, 10}},
-        {{43, 44}, {47, 48}, {51, 52}},
+        {{14, 15}, {16, 17}, {18, 19}},
+        {{8, 9}, {10, 11}, {12, 13}},
+        {{2, 3}, {4, 5}, {6, 7}},
+        {{40, 41}, {44, 45}, {48, 49}},
     };
     int band = 3 - range;
     if (band < 0 || band >= 4) return -1;
@@ -360,10 +362,10 @@ static int original_wall_descriptor(int range, int lateral) {
 
 static int original_floor_descriptor(int range, int lateral, bool ceiling) {
     static const int floor_groups[4][3] = {
-        {75, 77, 79}, {69, 71, 73}, {63, 65, 67}, {53, 57, 61}
+        {72, 74, 76}, {66, 68, 70}, {60, 62, 64}, {50, 54, 58}
     };
     static const int ceiling_groups[4][3] = {
-        {103, 105, 107}, {97, 99, 101}, {91, 93, 95}, {81, 85, 89}
+        {100, 102, 104}, {94, 96, 98}, {88, 90, 92}, {78, 82, 86}
     };
     int band = 3 - range;
     if (band < 0 || band >= 4) return -1;
@@ -382,12 +384,11 @@ void viewport_render_original_descriptors(const CaptiveViewWindow *window,
     uint32_t work[CAPTIVE_DOS_VIEW_STRIDE * CAPTIVE_DOS_VIEW_HEIGHT];
     memset(work, 0, sizeof(work));
 
-    /* CAPPO builds the view back-to-front.  The full panel pair supplies the
-     * authentic room background; depth-specific ceiling/floor and wall
-     * panels then overwrite it through the original mask convention. */
-    descriptor_blit(&captive_viewport_descriptors[3], atlas, work,
-                    CAPTIVE_DOS_VIEW_STRIDE);
-    descriptor_blit(&captive_viewport_descriptors[1], atlas, work,
+    /* CAPPO builds the view back-to-front.  Runtime record 0 is the verified
+     * full floor panel.  The ceiling is supplied by the depth-specific bank-4
+     * strips below; the unpacked file's first three records are not runtime
+     * descriptors and must never be used as a substitute background. */
+    descriptor_blit(&captive_cappo_descriptors[0], atlas, work,
                     CAPTIVE_DOS_VIEW_STRIDE);
 
     for (int range = 4; range >= 1; --range) {
@@ -405,10 +406,10 @@ void viewport_render_original_descriptors(const CaptiveViewWindow *window,
             int floor_id = original_floor_descriptor(range, lateral, false);
             int ceiling_id = original_floor_descriptor(range, lateral, true);
             if (floor_id >= 0)
-                descriptor_blit(&captive_viewport_descriptors[floor_id], atlas,
+                descriptor_blit(&captive_cappo_descriptors[floor_id], atlas,
                                 work, CAPTIVE_DOS_VIEW_STRIDE);
             if (ceiling_id >= 0)
-                descriptor_blit(&captive_viewport_descriptors[ceiling_id], atlas,
+                descriptor_blit(&captive_cappo_descriptors[ceiling_id], atlas,
                                 work, CAPTIVE_DOS_VIEW_STRIDE);
 
             if (cell->type == CELL_WALL || cell->type == CELL_DOOR ||
@@ -419,7 +420,7 @@ void viewport_render_original_descriptors(const CaptiveViewWindow *window,
                     int wall_set = cell->wall_tex[face] < 5U
                         ? cell->wall_tex[face] : 0;
                     descriptor_blit_sheet(
-                        &captive_viewport_descriptors[wall_id], atlas,
+                        &captive_cappo_descriptors[wall_id], atlas,
                         atlas->wall_sheets[wall_set], work,
                         CAPTIVE_DOS_VIEW_STRIDE);
                 }

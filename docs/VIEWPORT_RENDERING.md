@@ -6,14 +6,14 @@ Reference: captive.atari.org Technical/ViewRendering
 
 ## Status
 
-The 19-cell traversal, ordered visibility cleanup, and the complete 112-entry
-descriptor table extracted from CAPPO.EXE are implemented and tested as
-recovery/compositor components. The descriptor table has been verified: all
-entries have valid dimensions, source banks ≤ 4, and destinations within the
-160×112 viewport with >75% pixel coverage. The active game path still uses a
-source-backed compatibility renderer; the original per-cell dispatch sequence
-and caller destination bases are not yet recovered, so playable pixel parity
-is not claimed.
+The 19-cell traversal, ordered visibility cleanup, and the relocated DOS
+descriptor table are implemented and tested as recovery/compositor components.
+The complete table contains 959 original records and is copied from CAPPO.EXE
+file records 3..961 at unpacked offset `0x216b0`. DOSBox-X memory dumps confirm
+that file record 3 is runtime `DS:00c0` record 0. The active original-mode
+path now executes the recovered descriptor bands, but the per-cell selector
+operands and complete mission/runtime state are not yet recovered, so playable
+pixel parity is not claimed.
 
 ## Visible area
 
@@ -25,18 +25,19 @@ is not claimed.
 The recovered DOS compositor builds a 160×112 work buffer. Its descriptor
 destination fields are byte offsets in that buffer; the final screen copy
 shows the first 144 pixels of every row. The complete descriptor table is in
-`include/captive_viewport_descriptors.h` (112 entries organized by depth band:
+`include/captive_cappo_descriptors.h`; the 112-entry viewport subset is kept in
+`include/captive_viewport_descriptors.h` for focused tests. The viewport bands
+are organized by depth:
 d4 farthest at y=45 h=35, d3 at y=37 h=49, d2 at y=25 h=70, d1 at y=9 h=98,
 full-height at y=0 h=112). Floor/ceiling strips use source bank 4 (roof
 sheet); wall panels use source bank 0.
 
 The `descriptor_blit()` function maps packed PL5 source coordinates to decoded
 pixel coordinates, handling mirror (CAPTIVE_DESC_FLAG_MIRROR_H) and mask-zero
-(CAPTIVE_DESC_FLAG_MASK_ZERO) flags. It is currently a verified decoder helper;
-the live viewport still uses the compatibility renderer while original
-descriptor selection and draw-order integration are recovered. Enhanced mode
-additionally draws the modern HUD and effects. Neither mode is presented as
-pixel-identical original Captive output.
+(CAPTIVE_DESC_FLAG_MASK_ZERO) flags. The original-mode live viewport uses this
+path for the recovered bands. Enhanced mode additionally draws the modern HUD
+and effects. Neither mode is presented as pixel-identical original Captive
+output.
 
 PL5 panel and sprite transparency is likewise index-based: palette index 0
 is transparent, while black indices 16 and 18 remain visible. The renderer

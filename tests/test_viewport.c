@@ -1,5 +1,6 @@
 #include "viewport.h"
 #include "captive_viewport_descriptors.h"
+#include "captive_cappo_descriptors.h"
 
 #include <assert.h>
 #include <stdbool.h>
@@ -374,6 +375,12 @@ int main(void) {
      * dimensions, source banks, and destinations within the viewport. */
     for (int i = 0; i < CAPTIVE_VIEWPORT_DESCRIPTOR_COUNT; i++) {
         const CaptiveDosDescriptor *d = &captive_viewport_descriptors[i];
+        if (d->source_offset == 0xfffbU &&
+            d->destination_offset == 0xfff8U &&
+            d->width_bytes == 0xffU && d->height == 0xffU &&
+            d->flags == 0xffU) {
+            continue;
+        }
         assert(d->width_bytes > 0 && d->width_bytes <= 20);
         assert(d->height > 0 && d->height <= 112);
         assert(d->source_bank <= 4);
@@ -382,6 +389,31 @@ int main(void) {
         int dst_y = d->destination_offset / CAPTIVE_DOS_VIEW_STRIDE;
         assert(dst_x >= 0 && dst_x + pixel_w <= CAPTIVE_VIEWPORT_WIDTH);
         assert(dst_y >= 0 && dst_y + (int)d->height <= CAPTIVE_VIEWPORT_HEIGHT);
+    }
+
+    /* The renderer must consume the complete table recovered from CAPPO.EXE,
+     * while retaining byte-for-byte identity with the viewport subset used by
+     * the original compositor tests.  The remaining records include real
+     * selector targets and the executable's explicit 0xff sentinel records. */
+    assert(CAPTIVE_CAPPO_DESCRIPTOR_COUNT == 959);
+    for (int i = 0; i < CAPTIVE_VIEWPORT_DESCRIPTOR_COUNT; ++i) {
+        const CaptiveDosDescriptor *legacy = &captive_viewport_descriptors[i];
+        const CaptiveDosDescriptor *full = &captive_cappo_descriptors[i];
+        assert(memcmp(legacy, full, sizeof(*legacy)) == 0);
+    }
+    for (int i = 0; i < CAPTIVE_CAPPO_DESCRIPTOR_COUNT; ++i) {
+        const CaptiveDosDescriptor *d = &captive_cappo_descriptors[i];
+        if (d->source_offset == 0xfffbU &&
+            d->destination_offset == 0xfff8U &&
+            d->width_bytes == 0xffU && d->height == 0xffU &&
+            d->flags == 0xffU) {
+            continue;
+        }
+        assert(d->width_bytes > 0U && d->height > 0U);
+        /* The complete table also contains HUD, map, sprite and menu
+         * descriptors. Their banks and destinations legitimately extend
+         * beyond the 144x112 viewport; only the viewport subset above is
+         * constrained to that work area. */
     }
 
     /* Verify full viewport coverage: blitting all descriptors in order

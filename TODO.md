@@ -10,6 +10,7 @@
 - [x] Preserve PL5 palette indices for Captive viewport transparency
 - [x] Apply recovered Captive descriptor mirror and transparency flags in compositor
 - [x] Connect the recovered descriptor compositor to the original-mode Captive runtime
+- [x] Align the complete descriptor table to DOSBox-X runtime DS:00c0 (959 original records)
 - [ ] Keep Captive playable with a source-backed viewport fallback in both modes
 - [x] Draw Captive creature sprites back-to-front by forward depth
 - [x] Use the disassembly creature `frame_index` when selecting ALIEN sheet frames
