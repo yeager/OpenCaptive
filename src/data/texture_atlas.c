@@ -57,6 +57,12 @@ bool texture_atlas_load(TextureAtlas *atlas, const DataVFS *vfs) {
         atlas->loaded = atlas->loaded && atlas->wall_sheets[i] >= 0;
     for (int i = 0; i < CAPTIVE_VIEW_SOURCE_COUNT; ++i)
         atlas->loaded = atlas->loaded && atlas->view_sheets[i] >= 0;
+    /* The alien sheets are part of the same contract.  Omitting them let a
+       missing ALIEN sheet pass as a complete atlas, which reached the
+       procedural creature fallback and drew invented rectangles in place of
+       original sprite data. */
+    for (int i = 0; i < 6; ++i)
+        atlas->loaded = atlas->loaded && atlas->alien_sheets[i] >= 0;
     if (!atlas->loaded) {
         /* Loading can fail after several hash-verified sheets have already
          * allocated pixel buffers.  Leave callers with a clean, empty atlas

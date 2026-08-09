@@ -1,5 +1,24 @@
 # OpenCaptive — Completed work
 
+## 2026-08-09 (Multi-round code review campaign, v1.1.92–v1.1.95)
+
+- Ran four multi-agent review rounds over the whole tree and fixed 16 confirmed
+  bugs. The highest-impact class was save/load state loss: difficulty was
+  dropped by all three save paths, and Liberation crime state was dropped by
+  the quicksave path.
+- Save formats bumped with backward compatibility preserved throughout: main
+  state extension to version 3, portable cross-save to version 4, Liberation
+  quicksave to version 9.
+- Fixed a data-scanner defect where uppercase SHA-256 hashes never matched,
+  producing sticky negative cache entries for game data that was present.
+- Fixed Liberation city generation producing unreachable mission objectives and
+  NPCs confined to a quarter of the city grid.
+- Verified clean under `-Wall -Wextra -Wshadow -Wconversion -Wcast-align`: the
+  remaining diagnostics are sign/width conversion noise plus two known-safe
+  idioms (`assert(!"...")` and casts of `malloc`-aligned buffers).
+- Backfilled the RELEASE_NOTES sections for v1.1.92–v1.1.95, which had shipped
+  without the handwritten section the release policy requires.
+
 ## 2026-08-08 (Captive type 25 sprite record)
 
 - Corrected creature type 25's sprite frame from `0x60/0x00` to the real

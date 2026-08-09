@@ -82,11 +82,10 @@ static void test_has_generators(void) {
     assert(gen_count > 0);
 }
 
-static void test_mission_seed_formula(void) {
-    // seed = ((mission-1)*11) + base
-    uint32_t seed = ((17 - 1) * 11) + 3;
-    assert(seed == 179);
-}
+/* The mission seed formula is exercised against the real
+ * game_state_new_mission() in test_save_load and test_game_state, which link
+ * engine.c.  A local copy of the arithmetic here asserted nothing: the
+ * compiler folded it to 179 == 179 without calling any production code. */
 
 static void test_recovered_original_prng(void) {
     static const uint16_t expected[] = {
@@ -448,7 +447,6 @@ int main(void) {
     test_border_walls();
     test_level_number_is_bounded();
     test_has_generators();
-    test_mission_seed_formula();
     test_recovered_original_prng();
     test_first_base_start_matches_architect_special_case();
     test_implementation_prng_regression();

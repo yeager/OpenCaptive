@@ -12,7 +12,7 @@
 #include <sys/stat.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
-extern unsigned char *load_png_file(const char *path, int *w, int *h);
+#include "png_loader.h"
 
 #define CAPTIVE_HASH_COUNT CAPTIVE_REQUIRED_SOURCE_COUNT
 
@@ -826,6 +826,13 @@ MenuResult start_menu_handle_click(StartMenu *menu, float x, float y) {
         return MENU_RESULT_NONE;
     }
     if (menu->in_settings) {
+        /* Clicking anywhere commits the data-path field.  Only the keyboard
+         * path used to close it, so leaving settings with the mouse left an
+         * invisible active text field that swallowed all later key input. */
+        if (menu->data_path_editing) {
+            menu->data_path_editing = false;
+            SDL_StopTextInput(NULL);
+        }
         int menu_y = 90, item_h = 28;
         int col_items = 12;
         int back = SETTINGS_COUNT - 1;

@@ -1387,16 +1387,25 @@ static bool load_liberation_mission_menu(void) {
 }
 
 static void lib_transfer_purchases(GameState *gs) {
-    for (int i = 0; i < lib_interact.purchased_count; i++) {
+    int moved = 0;
+    while (moved < lib_interact.purchased_count) {
         if (gs->lib_inventory_count >= 40) break;
         snprintf(gs->lib_inventory[gs->lib_inventory_count].name,
                  sizeof(gs->lib_inventory[0].name), "%s",
-                 lib_interact.purchased[i].name);
+                 lib_interact.purchased[moved].name);
         gs->lib_inventory[gs->lib_inventory_count].item_type =
-            lib_interact.purchased[i].item_type;
+            lib_interact.purchased[moved].item_type;
         gs->lib_inventory_count++;
+        moved++;
     }
-    lib_interact.purchased_count = 0;
+    /* Gold was debited when these were bought, so anything that does not fit
+     * must stay pending rather than be discarded.  Clearing the count
+     * unconditionally destroyed paid-for items once the city inventory
+     * reached its 40-slot limit. */
+    int remaining = lib_interact.purchased_count - moved;
+    for (int i = 0; i < remaining; i++)
+        lib_interact.purchased[i] = lib_interact.purchased[moved + i];
+    lib_interact.purchased_count = remaining;
 }
 
 static bool all_droids_dead(const GameState *gs) {
@@ -1567,6 +1576,12 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                                     if (gs->levels[f].cells[y3][x3].type == CELL_GENERATOR)
                                         gs->generators_total++;
                         combat_init(&creatures);
+                        /* The interior is a freshly generated map, so stale
+                         * puzzles from the previous one would sit at
+                         * coordinates that now mean something else: their
+                         * traps fired on unrelated cells and their matches
+                         * swallowed the interact key in front of generators. */
+                        puzzle_init(&puzzles);
                         combat_spawn_for_level_avoiding_party(
                             &creatures, &gs->levels[0], 0, gs->mission_seed, gs);
                         msg_push(_("Entered building interior"), 0xFF44AAFF);
@@ -2082,6 +2097,9 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
         case SDLK_G: {
             Droid *gd = &gs->droids[gs->selected_droid];
             if (gd->hp <= 0) return;
+            /* One grenade per press: auto-repeat would throw the whole
+             * stock while the key is held. */
+            if (event->key.repeat) return;
             if (!combat_throw_grenade(gs, &creatures, &item_db)) {
                 msg_push(_("No grenades!"), 0xFFFF4444);
                 return;
@@ -2713,17 +2731,25 @@ int main(int argc, char *argv[]) {
             printf("Starting verified Liberation presentation\n");
 
             {
+                /* Audio tracks are located by content hash through the VFS,
+                 * never by filename: a file only becomes game audio if its
+                 * SHA-256 matches the verified CD32 disc. */
                 unsigned cdda_loaded = 0;
-                for (unsigned ti = 2; ti <= 11; ti++) {
-                    char tpath[512];
-                    snprintf(tpath, sizeof(tpath),
-                             "%s/Liberation - Captive II (Europe) (Rev 3) (Track %02u).bin",
-                             config.data_path, ti);
-                    if (cdda_load_track_file(&cdda_player, ti - 2, tpath))
+                for (unsigned ti = 0; ti < LIBERATION_CDDA_TRACK_COUNT; ti++) {
+                    const char *want = liberation_cdda_track_sha256(ti);
+                    if (!want) continue;
+                    size_t tsize = 0;
+                    uint8_t *tdata = vfs_find_sha256(&vfs, want, &tsize);
+                    if (!tdata) continue;
+                    if (tsize <= UINT32_MAX &&
+                        cdda_load_track_raw(&cdda_player, ti, tdata,
+                                            (uint32_t)tsize))
                         cdda_loaded++;
+                    free(tdata);
                 }
                 if (cdda_loaded > 0)
-                    printf("CDDA: loaded %u audio tracks from CD32 disc image\n", cdda_loaded);
+                    printf("CDDA: loaded %u verified audio tracks from CD32 disc image\n",
+                           cdda_loaded);
             }
         }
     }
@@ -3116,6 +3142,15 @@ int main(int argc, char *argv[]) {
                                     event.key.key == SDLK_ESCAPE) {
                                     lib_in_dungeon = false;
                                     msg_push(_("Left building"), 0xFF44AAFF);
+                                } else if (event.type == SDL_EVENT_KEY_DOWN &&
+                                           (event.key.key == SDLK_F5 ||
+                                            event.key.key == SDLK_F9)) {
+                                    /* Building interiors run the Captive
+                                     * dungeon loop, but the session is still
+                                     * Liberation: save_game() rejects it, so
+                                     * routing quicksave here would silently
+                                     * discard the interior's progress. */
+                                    liberation_handle_input(&gs, &event);
                                 } else {
                                     game_handle_input(&gs, &event);
                                     popup_apply_cheats(&gs);
@@ -3375,10 +3410,16 @@ int main(int argc, char *argv[]) {
                                 break;
                             case SDLK_RETURN:
                             case SDLK_KP_ENTER:
-                                shop_buy(&shop, &item_db, &gs);
+                                /* Purchases and repairs commit gold on every
+                                 * press.  Without this guard, holding the key
+                                 * let auto-repeat buy the same item until the
+                                 * inventory filled and the gold ran out. */
+                                if (!event.key.repeat)
+                                    shop_buy(&shop, &item_db, &gs);
                                 break;
                             case SDLK_R:
-                                shop_repair(&shop, &gs, gs.selected_droid);
+                                if (!event.key.repeat)
+                                    shop_repair(&shop, &gs, gs.selected_droid);
                                 break;
                             default: break;
                         }
@@ -4239,10 +4280,10 @@ int main(int argc, char *argv[]) {
                 } else {
                     memset(framebuffer, 0, sizeof(framebuffer));
                 }
+                /* Original CAPPO.EXE wording, not an invented replacement. */
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              60, _("GAME OVER"), 0xFFFF2222, 3);
-                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              100, _("ALL DROIDS DESTROYED"), 0xFFAAAAAA, 1);
+                              100, captive_messages[CAPTIVE_MSG_DROIDS_FAILED],
+                              0xFFFF2222, 2);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                               130, _("PRESS ESCAPE"), 0xFF888888, 1);
                 break;
@@ -4299,27 +4340,21 @@ int main(int argc, char *argv[]) {
                 } else {
                     memset(framebuffer, 0, sizeof(framebuffer));
                 }
+                /* Original CAPPO.EXE endgame wording.  The invented "VICTORY!"
+                 * banner and the LEGENDARY/ELITE/VETERAN/SKILLED/ROOKIE rank
+                 * ladder were not part of Captive and are gone; score is still
+                 * shown because it is real state the player accumulated. */
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              40, _("VICTORY!"), 0xFF44FF44, 3);
+                              80, captive_messages[CAPTIVE_MSG_BASE_DESTROYED],
+                              0xFF44FF44, 2);
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              80, _("ALL MISSIONS COMPLETE"), 0xFFFFFF44, 2);
-                draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                              120, _("YOU HAVE ESCAPED!"), 0xFFAAAAFF, 1);
+                              120, captive_messages[CAPTIVE_MSG_TRILL_RESCUED],
+                              0xFFAAAAFF, 1);
                 {
                     char score_buf[48];
                     snprintf(score_buf, sizeof(score_buf), _("SCORE: %u"), gs.score);
                     draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                                  145, score_buf, 0xFFFFFFFF, 1);
-                    const char *rank;
-                    if (gs.score >= 50000) rank = _("LEGENDARY");
-                    else if (gs.score >= 20000) rank = _("ELITE");
-                    else if (gs.score >= 10000) rank = _("VETERAN");
-                    else if (gs.score >= 5000) rank = _("SKILLED");
-                    else rank = _("ROOKIE");
-                    char rank_buf[48];
-                    snprintf(rank_buf, sizeof(rank_buf), _("RANK: %s"), rank);
-                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                                  165, rank_buf, 0xFFFFCC44, 1);
+                                  150, score_buf, 0xFFFFFFFF, 1);
                 }
                 draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
                               185, _("PRESS ESCAPE"), 0xFF888888, 1);

@@ -56,6 +56,26 @@ static const char *const amiga_resource_sha256[LIBERATION_RESOURCE_COUNT] = {
         "9664753e362deccbcd1f4a55e4c63ae4a6763de620306373a275fb7052b4e11b",
 };
 
+/* Red Book audio tracks 2-11 of the CD32 disc (Europe, Rev 3), in disc order.
+ * Verified against the original disc image; track 1 is the data track above. */
+static const char *const cdda_track_sha256[LIBERATION_CDDA_TRACK_COUNT] = {
+    "ceded68026add084e467f750f40297d46dc7e2ce493fb3f855e956acebd1f59c",
+    "527bd7f2d00f7e1f1d33593e697541b70bc215c4cc11b6bbe6ad6cf42b81ea58",
+    "64994dc80fa2cf425d0827f919ab3e078cf04cdd7a4b357e7fe01b6439b471ed",
+    "196f28c68ba35703530179311fa9f41b2ba749ef402722dcfdb157aaf6a03fac",
+    "3fa8f0be60271f4738f448515fc433749622d71066895f7611c46b766efe5040",
+    "f4afd5eebd2f7128c6bfeb67212323b5ca27abb6feead6786c203c2d85c00ac0",
+    "b5301553fd2a082c2134570af25aec3fffceef816b1c6e90b8c3b0127225aaf3",
+    "6708d78f1d990009272eaa31602f917bafb709a31b6bceb3c3f2ef1649782ccc",
+    "25be0db8612c832728423c6894388bf0b79c35ba7916ac8c54b0f8f6f18eb524",
+    "359ece35a1f05f682bea0b5b6dfa280bd628254ab90271ca1cec5b75e4d766f6",
+};
+
+const char *liberation_cdda_track_sha256(unsigned index) {
+    if (index >= LIBERATION_CDDA_TRACK_COUNT) return NULL;
+    return cdda_track_sha256[index];
+}
+
 static uint32_t read_be32(const uint8_t *data) {
     return ((uint32_t)data[0] << 24) | ((uint32_t)data[1] << 16) |
            ((uint32_t)data[2] << 8) | data[3];

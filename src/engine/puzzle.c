@@ -554,6 +554,13 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
         Puzzle *p = &pl->puzzles[i];
         if (p->x != x || p->y != y || p->face != face ||
             p->level != gs->current_level) continue;
+        /* NOTE: floor and teleporter traps sit on open floor with
+         * face == DIR_NORTH, so a party standing on one and facing north
+         * matches here and re-applies the trap on every interact press, and
+         * the match swallows the keypress so a generator or door ahead cannot
+         * be used.  Filtering traps out here is NOT safe as a silent change:
+         * test_game_state.c:208 and :413 both assert that interact triggers
+         * them.  Resolving it needs a decision on intended behaviour. */
 
         DungeonLevel *lvl = &gs->levels[gs->current_level];
 

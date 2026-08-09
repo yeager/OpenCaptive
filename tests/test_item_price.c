@@ -36,8 +36,15 @@ static void test_availability_grade_zero(void) {
 }
 
 static void test_availability_returns_nonzero(void) {
+    /* `r > 0 || r == 0` is true for every uint8_t, so the old assertion could
+     * not fail.  Assert the property that actually matters: the routine is
+     * pure, so identical inputs must yield identical output, and it must not
+     * vary with an unrelated call in between. */
     uint8_t r = item_check_availability(1, 50, 1);
-    ASSERT(r > 0 || r == 0, "availability returns a value");
+    uint8_t other = item_check_availability(2, 90, 3);
+    (void)other;
+    ASSERT(item_check_availability(1, 50, 1) == r,
+           "availability is deterministic for identical inputs");
 }
 
 int main(void) {

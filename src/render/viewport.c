@@ -350,13 +350,11 @@ void viewport_render(const CaptiveViewWindow *window,
     int roof_sheet = atlas->roof_sheet;
     for (int y = 0; y < vp_h; y++) {
         for (int x = 0; x < vp_w; x++) {
-            uint32_t c;
-            if (roof_sheet >= 0) {
-                int sy = y < vp_h / 2 ? y : y;
-                c = sample_sheet(atlas, roof_sheet, x % 320, sy % 200);
-            } else {
-                c = y < vp_h / 2 ? 0xFF1A1A2E : 0xFF0A0A1A;
-            }
+            /* Sampled from the original roof sheet only.  The old invented
+             * two-tone gradient is gone: the atlas is hash-verified and
+             * all-or-nothing, so roof_sheet is always present here. */
+            if (roof_sheet < 0) continue;
+            uint32_t c = sample_sheet(atlas, roof_sheet, x % 320, y % 200);
             put_pixel_vp(framebuffer, fb_width, fb_height,
                          vp_x + x, vp_y + y, c);
         }
@@ -699,16 +697,6 @@ void viewport_render(const CaptiveViewWindow *window,
     }
 }
 
-static const uint32_t creature_colors[CREATURE_COUNT] = {
-    [CREATURE_NONE]   = 0x00000000,
-    [CREATURE_ALIEN1] = 0xFF22AA22,
-    [CREATURE_ALIEN2] = 0xFF2222CC,
-    [CREATURE_ALIEN3] = 0xFFCC2222,
-    [CREATURE_ALIEN4] = 0xFFAAAA22,
-    [CREATURE_ALIEN5] = 0xFFCC22CC,
-    [CREATURE_ALIEN6] = 0xFF22CCCC,
-};
-
 void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
                                const TextureAtlas *atlas,
                                uint32_t *framebuffer, int fb_width, int fb_height) {
@@ -801,10 +789,6 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
         int sx = cell_cx - sprite_w / 2;
         int sy = rp->top_y + rp->wall_height - sprite_h;
 
-        uint32_t color = (c->type >= CREATURE_ALIEN1 &&
-                          c->type <= CREATURE_ALIEN6) ?
-            creature_colors[c->type] : 0xFF22AA22;
-
         /* ReDMCSB/CAPPO disassembly: DS:0xA16E stores a graphic_id per
          * creature type.  The enum value is not the source-sheet selector;
          * types 7..24 deliberately reuse ALIEN2-5 resources. */
@@ -831,27 +815,10 @@ void viewport_render_creatures(const GameState *gs, const CreatureList *cl,
                                  vp_x + sx + px, vp_y + sy + py, pixel);
                 }
             }
-        } else {
-            /* Procedural fallback */
-            fill_rect_vp(framebuffer, fb_width, fb_height,
-                         vp_x + sx + sprite_w / 4, vp_y + sy + sprite_h / 4,
-                         sprite_w / 2, sprite_h * 3 / 4, color);
-            int head_sz = sprite_w / 3;
-            if (head_sz < 2) head_sz = 2;
-            fill_rect_vp(framebuffer, fb_width, fb_height,
-                         vp_x + sx + sprite_w / 2 - head_sz / 2,
-                         vp_y + sy,
-                         head_sz, head_sz, color);
-            int eye_sz = head_sz / 3;
-            if (eye_sz < 1) eye_sz = 1;
-            fill_rect_vp(framebuffer, fb_width, fb_height,
-                         vp_x + sx + sprite_w / 2 - head_sz / 4,
-                         vp_y + sy + head_sz / 3,
-                         eye_sz, eye_sz, 0xFFFF0000);
-            fill_rect_vp(framebuffer, fb_width, fb_height,
-                         vp_x + sx + sprite_w / 2 + head_sz / 4 - eye_sz,
-                         vp_y + sy + head_sz / 3,
-                         eye_sz, eye_sz, 0xFFFF0000);
         }
+        /* No fallback: the atlas is an all-or-nothing hash-verified contract,
+           so a creature is drawn from its original sheet or not at all.  The
+           previous procedural body/head/eye rectangles invented sprite data
+           the game data already provides. */
     }
 }

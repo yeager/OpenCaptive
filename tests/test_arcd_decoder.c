@@ -46,13 +46,24 @@ static void test_game_data_if_available(void) {
     size_t expected[] = { 16304, 14136, 17809 };
     const char *basedir = getenv("OPENCAPTIVE_TEST_DATA");
     if (!basedir) basedir = getenv("HOME");
-    if (!basedir) return;
+    if (!basedir) {
+        printf("SKIP: game_data (no OPENCAPTIVE_TEST_DATA or HOME)\n");
+        return;
+    }
 
+    int verified = 0;
     for (int i = 0; i < 3; i++) {
         char path[512];
         snprintf(path, sizeof(path), "%s/.opencaptive/liberation/disk3/%s", basedir, paths[i]);
         FILE *f = fopen(path, "rb");
-        if (!f) continue;
+        if (!f) {
+            /* A bare `continue` here let all three files be absent while
+             * main() still printed "PASS: all arcd tests", reporting success
+             * for a run that verified nothing. */
+            printf("SKIP: game_data %s not available\n", paths[i]);
+            continue;
+        }
+        verified++;
 
         fseek(f, 0, SEEK_END);
         long fsize = ftell(f);
@@ -76,6 +87,10 @@ static void test_game_data_if_available(void) {
         free(dst);
         free(src);
     }
+    if (verified == 0)
+        printf("SKIP: game_data (0 of 3 files present, nothing verified)\n");
+    else
+        printf("PASS: game_data (%d of 3 files verified)\n", verified);
 }
 
 int main(void) {
@@ -88,6 +103,6 @@ int main(void) {
     test_rejects_unreasonable_output_size();
     printf("PASS: unreasonable_output_size\n");
     test_game_data_if_available();
-    printf("PASS: all arcd tests\n");
+    printf("PASS: arcd unit tests (see game_data line above for data coverage)\n");
     return 0;
 }

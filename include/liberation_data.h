@@ -38,6 +38,12 @@ typedef enum {
     LIBERATION_RESOURCE_COUNT,
 } LiberationResource;
 
+/* Red Book audio tracks 2-11 of the CD32 disc, in disc order. Identified by
+ * content hash like every other resource; the track's position in a disc image
+ * and the name an archive happens to store it under are never trusted. */
+#define LIBERATION_CDDA_TRACK_COUNT 10
+const char *liberation_cdda_track_sha256(unsigned index);
+
 bool liberation_data_open(LiberationData *data, const DataVFS *vfs);
 bool liberation_data_open_source(LiberationData *data, const DataVFS *vfs,
                                  LiberationSource source);

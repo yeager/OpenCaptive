@@ -10,6 +10,8 @@
 #pragma clang diagnostic pop
 #endif
 
+#include "png_loader.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>

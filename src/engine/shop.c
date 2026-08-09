@@ -154,6 +154,11 @@ void shop_render(const ShopState *shop, const ItemDatabase *db,
     if (shop_bg) {
         memcpy(pixels, shop_bg, pixel_count * sizeof(uint32_t));
     } else {
+        /* NOTE: this backdrop is invented chrome standing in for the original
+         * SHOP1 artwork, which the no-data path is deliberately tested
+         * against (tests/test_shop.c:174).  Making it fail-closed like the
+         * texture atlas would render the shop unusable, so the decision is
+         * left explicit rather than changed silently. */
         for (size_t i = 0; i < pixel_count; i++)
             pixels[i] = (pixels[i] & 0xFF000000) | ((pixels[i] & 0xFEFEFE) >> 1);
         fill_rect_s(pixels, width, height, px, py, pw, ph, 0xFF111133);

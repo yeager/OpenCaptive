@@ -44,6 +44,15 @@ void captive_generate_name(uint32_t *prng_state, char *buf, int bufsize);
 #define CAPTIVE_MSG_COUNT 25
 extern const char *const captive_messages[CAPTIVE_MSG_COUNT];
 
+/* Indices into captive_messages[].  These are the original strings, so screens
+ * that have one must use it rather than inventing replacement wording. */
+#define CAPTIVE_MSG_DESTROY_GENERATORS 0
+#define CAPTIVE_MSG_BASE_DESTROYED     3
+#define CAPTIVE_MSG_TRILL_RESCUED      4
+#define CAPTIVE_MSG_DROIDS_FAILED      5
+#define CAPTIVE_MSG_PRESS_TO_CONTINUE 10
+#define CAPTIVE_MSG_LET_BATTLE        11
+
 /* Shop dialogue strings from the DOS executable. */
 #define CAPTIVE_SHOP_MSG_COUNT 13
 extern const char *const captive_shop_messages[CAPTIVE_SHOP_MSG_COUNT];
