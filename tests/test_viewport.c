@@ -5,17 +5,24 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
 static Texture test_texture;
 static Texture roof_texture;
 static Texture wall_set_texture;
+static uint32_t *without_ornament;
+static uint32_t *wall_less_panel;
+static uint32_t *north_view;
+static uint32_t *left_wall_from_neighbor;
+static uint32_t *floor_ceiling_textures;
+static uint32_t *depth_sorted;
+static uint32_t *coverage;
 
 const Texture *gfx_get(const GfxData *gfx, int id) {
     if (!gfx || id < 0 || id >= gfx->num_textures) return NULL;
     return &gfx->textures[id];
 }
-
 static bool viewport_changed(const uint32_t *framebuffer) {
     for (int y = CAPTIVE_VIEWPORT_Y;
          y < CAPTIVE_VIEWPORT_Y + CAPTIVE_VIEWPORT_HEIGHT; ++y) {
@@ -49,6 +56,16 @@ int main(void) {
     static uint32_t framebuffer[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
     static GameState gs;
     static CreatureList creatures;
+    without_ornament = calloc(CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT, sizeof(*without_ornament));
+    wall_less_panel = calloc(CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT, sizeof(*wall_less_panel));
+    north_view = calloc(CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT, sizeof(*north_view));
+    left_wall_from_neighbor = calloc(CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT, sizeof(*left_wall_from_neighbor));
+    floor_ceiling_textures = calloc(CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT, sizeof(*floor_ceiling_textures));
+    depth_sorted = calloc(CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT, sizeof(*depth_sorted));
+    coverage = calloc(CAPTIVE_VIEWPORT_WIDTH * CAPTIVE_VIEWPORT_HEIGHT, sizeof(*coverage));
+    assert(without_ornament && wall_less_panel && north_view &&
+           left_wall_from_neighbor && floor_ceiling_textures &&
+           depth_sorted && coverage);
     for (size_t i = 0; i < sizeof(texture_pixels) / sizeof(texture_pixels[0]); i++)
         texture_pixels[i] = 0xFF101010;
     memset(texture_indices, 1, sizeof(texture_indices));
@@ -127,8 +144,7 @@ int main(void) {
                                          CAPTIVE_ORIGINAL_HEIGHT);
     assert(viewport_changed(framebuffer));
 
-    uint32_t without_ornament[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
-    memcpy(without_ornament, framebuffer, sizeof(without_ornament));
+    memcpy(without_ornament, framebuffer, ((CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT) * sizeof(uint32_t)));
     gs.levels[0].cells[10][10].ornament[DIR_NORTH] = ORNAMENT_NONE;
     captive_view_window_build(&gs, &window);
     for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
@@ -145,9 +161,7 @@ int main(void) {
         framebuffer[i] = 0xFF010203;
     viewport_render(&window, &atlas, framebuffer,
                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
-    uint32_t wall_less_panel[
-        CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
-    memcpy(wall_less_panel, framebuffer, sizeof(wall_less_panel));
+    memcpy(wall_less_panel, framebuffer, ((CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT) * sizeof(uint32_t)));
     gs.levels[0].cells[10][10].ornament[DIR_NORTH] = ORNAMENT_NONE;
     captive_view_window_build(&gs, &window);
     for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
@@ -180,8 +194,7 @@ int main(void) {
         framebuffer[i] = 0xFF010203;
     viewport_render(&window, &atlas, framebuffer,
                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
-    uint32_t north_view[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
-    memcpy(north_view, framebuffer, sizeof(north_view));
+    memcpy(north_view, framebuffer, ((CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT) * sizeof(uint32_t)));
 
     gs.party_dir = DIR_EAST;
     captive_view_window_build(&gs, &window);
@@ -205,9 +218,7 @@ int main(void) {
         framebuffer[i] = 0xFF010203;
     viewport_render(&window, &atlas, framebuffer,
                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
-    uint32_t left_wall_from_neighbor[
-        CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
-    memcpy(left_wall_from_neighbor, framebuffer, sizeof(left_wall_from_neighbor));
+    memcpy(left_wall_from_neighbor, framebuffer, ((CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT) * sizeof(uint32_t)));
     gs.levels[0].cells[10][9].wall_tex[DIR_EAST] = 0;
     gs.levels[0].cells[10][10].wall_tex[DIR_WEST] = 1;
     captive_view_window_build(&gs, &window);
@@ -216,7 +227,7 @@ int main(void) {
     viewport_render(&window, &atlas, framebuffer,
                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
     assert(memcmp(left_wall_from_neighbor, framebuffer,
-                  sizeof(left_wall_from_neighbor)) != 0);
+                  ((CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT) * sizeof(uint32_t))) != 0);
 
     /* Floor and ceiling texture selectors must affect their own source
      * regions.  They are serialized map data and must not be ignored by the
@@ -234,9 +245,7 @@ int main(void) {
         framebuffer[i] = 0xFF010203;
     viewport_render(&window, &atlas, framebuffer,
                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
-    uint32_t floor_ceiling_textures[
-        CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
-    memcpy(floor_ceiling_textures, framebuffer, sizeof(floor_ceiling_textures));
+    memcpy(floor_ceiling_textures, framebuffer, ((CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT) * sizeof(uint32_t)));
     gs.levels[0].cells[10][10].floor_tex = 0;
     gs.levels[0].cells[10][10].ceil_tex = 0;
     captive_view_window_build(&gs, &window);
@@ -245,7 +254,7 @@ int main(void) {
     viewport_render(&window, &atlas, framebuffer,
                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
     assert(memcmp(floor_ceiling_textures, framebuffer,
-                  sizeof(floor_ceiling_textures)) != 0);
+                  ((CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT) * sizeof(uint32_t))) != 0);
 
     /* Floor and ceiling strips use the recovered descriptor bank 4, which is
      * ROOFS.PL5, rather than the range-indexed wall sheets. */
@@ -359,8 +368,7 @@ int main(void) {
     viewport_render_creatures(&gs, &creatures, &atlas, framebuffer,
                               CAPTIVE_ORIGINAL_WIDTH,
                               CAPTIVE_ORIGINAL_HEIGHT);
-    uint32_t depth_sorted[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
-    memcpy(depth_sorted, framebuffer, sizeof(depth_sorted));
+    memcpy(depth_sorted, framebuffer, ((CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT) * sizeof(uint32_t)));
     Creature far = creatures.creatures[0];
     creatures.creatures[0] = creatures.creatures[1];
     creatures.creatures[1] = far;
@@ -369,7 +377,7 @@ int main(void) {
     viewport_render_creatures(&gs, &creatures, &atlas, framebuffer,
                               CAPTIVE_ORIGINAL_WIDTH,
                               CAPTIVE_ORIGINAL_HEIGHT);
-    assert(memcmp(depth_sorted, framebuffer, sizeof(depth_sorted)) == 0);
+    assert(memcmp(depth_sorted, framebuffer, ((CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT) * sizeof(uint32_t))) == 0);
 
     /* Verify descriptor table integrity: all 112 entries have valid
      * dimensions, source banks, and destinations within the viewport. */
@@ -418,8 +426,7 @@ int main(void) {
 
     /* Verify full viewport coverage: blitting all descriptors in order
      * (with a non-transparent fill) must cover every pixel. */
-    uint32_t coverage[CAPTIVE_VIEWPORT_WIDTH * CAPTIVE_VIEWPORT_HEIGHT];
-    memset(coverage, 0, sizeof(coverage));
+    memset(coverage, 0, ((CAPTIVE_VIEWPORT_WIDTH * CAPTIVE_VIEWPORT_HEIGHT) * sizeof(uint32_t)));
     for (int i = 0; i < CAPTIVE_VIEWPORT_DESCRIPTOR_COUNT; i++) {
         const CaptiveDosDescriptor *d = &captive_viewport_descriptors[i];
         int pixel_w = d->width_bytes * 8;
