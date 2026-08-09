@@ -30,10 +30,12 @@
 /* Captive runtime state was added as a self-describing trailer so the fixed
  * v5 header and droid records remain readable on older installations. */
 #define SAVE_STATE_MAGIC 0x3154534Fu /* "OST1" */
-#define SAVE_STATE_VERSION 2u
+#define SAVE_STATE_VERSION 3u
+#define SAVE_STATE_V2_VERSION 2u
 #define SAVE_STATE_V1_VERSION 1u
 #define SAVE_STATE_V1_BLOCK_SIZE 40L
-#define SAVE_STATE_BLOCK_SIZE 168L
+#define SAVE_STATE_V2_BLOCK_SIZE 168L
+#define SAVE_STATE_BLOCK_SIZE 169L
 
 typedef struct {
     uint32_t magic;
@@ -147,6 +149,7 @@ static bool write_save_state_extension(FILE *f, const GameState *gs,
         if (fwrite(&status, 1, 1, f) != 1 ||
             fwrite(&boss, 1, 1, f) != 1) return false;
     }
+    if (fwrite(&gs->difficulty, 1, 1, f) != 1) return false;
     return true;
 }
 
@@ -158,6 +161,7 @@ static bool read_save_state_extension(FILE *f, GameState *gs,
         !read_u16_le(f, &version) || !read_u16_le(f, &size) ||
         magic != SAVE_STATE_MAGIC ||
         ((version != SAVE_STATE_V1_VERSION || size != SAVE_STATE_V1_BLOCK_SIZE) &&
+         (version != SAVE_STATE_V2_VERSION || size != SAVE_STATE_V2_BLOCK_SIZE) &&
          (version != SAVE_STATE_VERSION || size != SAVE_STATE_BLOCK_SIZE)) ||
         !read_u32_le(f, &score) ||
         fread(&gs->secondary_obj_type, 1, 1, f) != 1 ||
@@ -174,7 +178,7 @@ static bool read_save_state_extension(FILE *f, GameState *gs,
             fread(&d->poison_timer, 1, 1, f) != 1 ||
             fread(&d->stun_timer, 1, 1, f) != 1) return false;
     }
-    if (version == SAVE_STATE_VERSION) {
+    if (version >= SAVE_STATE_V2_VERSION) {
         if (!creatures) return false;
         for (size_t i = 0; i < MAX_CREATURES; ++i) {
             Creature *c = &creatures->creatures[i];
@@ -190,6 +194,10 @@ static bool read_save_state_extension(FILE *f, GameState *gs,
                 c->is_boss = false;
             }
         }
+    }
+    if (version >= SAVE_STATE_VERSION) {
+        if (fread(&gs->difficulty, 1, 1, f) != 1 ||
+            gs->difficulty > 2) return false;
     }
     return true;
 }
@@ -757,12 +765,16 @@ bool load_game(GameState *gs, CreatureList *creatures, PuzzleList *puzzles,
     if (trailing == SAVE_STATE_V1_BLOCK_SIZE ||
         trailing == SAVE_STATE_V1_BLOCK_SIZE + SAVE_THUMB_BLOCK_SIZE)
         state_size = SAVE_STATE_V1_BLOCK_SIZE;
+    else if (trailing == SAVE_STATE_V2_BLOCK_SIZE ||
+             trailing == SAVE_STATE_V2_BLOCK_SIZE + SAVE_THUMB_BLOCK_SIZE)
+        state_size = SAVE_STATE_V2_BLOCK_SIZE;
     else if (trailing == SAVE_STATE_BLOCK_SIZE ||
              trailing == SAVE_STATE_BLOCK_SIZE + SAVE_THUMB_BLOCK_SIZE)
         state_size = SAVE_STATE_BLOCK_SIZE;
     bool has_state = state_size != 0;
     bool has_thumb = trailing == SAVE_THUMB_BLOCK_SIZE ||
                      trailing == SAVE_STATE_V1_BLOCK_SIZE + SAVE_THUMB_BLOCK_SIZE ||
+                     trailing == SAVE_STATE_V2_BLOCK_SIZE + SAVE_THUMB_BLOCK_SIZE ||
                      trailing == SAVE_STATE_BLOCK_SIZE + SAVE_THUMB_BLOCK_SIZE;
     if (trailing != 0 && !has_state && !has_thumb) {
         LOAD_FAIL();

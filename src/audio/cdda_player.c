@@ -171,6 +171,13 @@ void cdda_update(CDDAPlayer *cd) {
     if (cd->position + chunk > cd->track_size[t])
         chunk = cd->track_size[t] - cd->position;
     chunk &= ~3U;
+    if (chunk == 0 && cd->position < cd->track_size[t]) {
+        if (cd->looping)
+            cd->position = 0;
+        else
+            cd->playing = false;
+        return;
+    }
 
     if (chunk >= bytes_per_frame && cd->cdda_stream) {
         const int16_t *src = (const int16_t *)(cd->track_data[t] + cd->position);

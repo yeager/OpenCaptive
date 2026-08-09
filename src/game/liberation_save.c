@@ -156,6 +156,7 @@ bool lib_save_read(LibSaveData *data, const char *path) {
     uint16_t ver;
     if (!read_u16(f, &ver) ||
         (ver != LIB_SAVE_VERSION && ver != LIB_SAVE_PREVIOUS_VERSION &&
+         ver != LIB_SAVE_SKILLS_VERSION &&
          ver != LIB_SAVE_BODY_PART_VERSION &&
          ver != LIB_SAVE_REPUTATION_VERSION &&
          ver != LIB_SAVE_XP_VERSION &&

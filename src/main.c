@@ -3630,6 +3630,7 @@ int main(int argc, char *argv[]) {
                         break;
                     case STATE_INVENTORY:
                     case STATE_CITY_MAP:
+                    case STATE_BAR:
                         liberation_canvas = true;
                         break;
                     default:
@@ -4521,6 +4522,8 @@ int main(int argc, char *argv[]) {
                 if (demo_tick > 900) {
                     gs.mode = STATE_MENU;
                     start_menu_reinit(&menu);
+                    sync_menu_from_config(&menu, &config, &custom,
+                                          true, true);
                     demo_gs_ready = false;
                 }
                 break;
@@ -4649,7 +4652,7 @@ int main(int argc, char *argv[]) {
             if (fade_alpha >= 255) { fade_alpha = 255; fade_direction = -1; gs.mode = fade_target; }
             if (fade_alpha <= 0) { fade_alpha = 0; fade_direction = 0; }
             uint32_t mask = ((uint32_t)(255 - fade_alpha) << 24);
-            int pix_count = CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT;
+            int pix_count = frame_width * frame_height;
             for (int pi = 0; pi < pix_count; pi++) {
                 uint32_t c = framebuffer[pi];
                 uint8_t r = (uint8_t)(((c >> 16) & 0xFF) * (255 - fade_alpha) / 255);

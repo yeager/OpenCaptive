@@ -9,7 +9,8 @@
 #endif
 
 #define CROSS_SAVE_MAGIC 0x4F435356 /* "OCSV" */
-#define CROSS_SAVE_VERSION 3
+#define CROSS_SAVE_VERSION 4
+#define CROSS_SAVE_VERSION_V3 3
 #define CROSS_SAVE_VERSION_V2 2
 #define CROSS_SAVE_VERSION_LEGACY 1
 #define CROSS_SAVE_DROID_V1_SIZE 58U
@@ -272,6 +273,9 @@ bool cross_save_export(const void *game_state_ptr, const char *path) {
         }
     }
 
+    uint8_t diff = gs->difficulty > 2 ? 2 : gs->difficulty;
+    WRITE_OR_FAIL(&diff, 1, 1);
+
     bool ok = fclose(fp) == 0;
     if (!ok) {
         remove(temporary_path);
@@ -311,7 +315,8 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
         IMPORT_FAIL();
     }
     if (!read_le32(fp, &version) ||
-        (version != CROSS_SAVE_VERSION && version != CROSS_SAVE_VERSION_V2 &&
+        (version != CROSS_SAVE_VERSION && version != CROSS_SAVE_VERSION_V3 &&
+         version != CROSS_SAVE_VERSION_V2 &&
          version != CROSS_SAVE_VERSION_LEGACY)) {
         IMPORT_FAIL();
     }
@@ -363,12 +368,14 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
     long file_end = ftell(fp);
     long long level_bytes = (long long)vals[5] *
                             (8LL + (long long)MAP_WIDTH * MAP_HEIGHT * 10);
-    uint32_t droid_record_size = version == CROSS_SAVE_VERSION
+    uint32_t droid_record_size = version >= CROSS_SAVE_VERSION_V3
         ? CROSS_SAVE_DROID_V3_SIZE
         : (version == CROSS_SAVE_VERSION_V2 ? CROSS_SAVE_DROID_V2_SIZE
                                             : CROSS_SAVE_DROID_V1_SIZE);
+    long long difficulty_size = version >= CROSS_SAVE_VERSION ? 1LL : 0LL;
     long long required_end = (long long)payload_start +
-                             4LL * droid_record_size + level_bytes;
+                             4LL * droid_record_size + level_bytes +
+                             difficulty_size;
     if (file_end < 0 || (long long)file_end < required_end ||
         fseek(fp, payload_start, SEEK_SET) != 0) {
         IMPORT_FAIL();
@@ -389,7 +396,7 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
             !read_le32(fp, &dr->xp) || !read_le16(fp, &weapon_damage)) {
             IMPORT_FAIL();
         }
-        if (version == CROSS_SAVE_VERSION &&
+        if (version >= CROSS_SAVE_VERSION_V3 &&
             (!read_exact(fp, &dr->shield, 1, 1) ||
              !read_le16(fp, &shield_hp))) {
             IMPORT_FAIL();
@@ -401,7 +408,7 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
         dr->energy = decode_i16(energy);
         dr->energy_max = decode_i16(energy_max);
         dr->weapon_damage = weapon_damage;
-        if (version == CROSS_SAVE_VERSION)
+        if (version >= CROSS_SAVE_VERSION_V3)
             dr->shield_hp = decode_i16(shield_hp);
         if (dr->hp < 0 || dr->hp_max < 0 || dr->hp > dr->hp_max ||
             dr->energy < 0 || dr->energy_max < 0 || dr->energy > dr->energy_max ||
@@ -443,6 +450,13 @@ bool cross_save_import(void *game_state_ptr, const char *path) {
                 c->type = (CellType)ct;
             }
         }
+    }
+
+    if (version >= CROSS_SAVE_VERSION) {
+        uint8_t diff;
+        if (!read_exact(fp, &diff, 1, 1) || diff > 2)
+            IMPORT_FAIL();
+        gs->difficulty = diff;
     }
 
     long payload_end = ftell(fp);

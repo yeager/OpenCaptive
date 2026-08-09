@@ -344,7 +344,7 @@ static void test_cross_save(void) {
     assert(fclose(header) == 0);
     assert(header_bytes[0] == 0x56 && header_bytes[1] == 0x53 &&
            header_bytes[2] == 0x43 && header_bytes[3] == 0x4F);
-    assert(header_bytes[4] == 3 && header_bytes[5] == 0 &&
+    assert(header_bytes[4] == 4 && header_bytes[5] == 0 &&
            header_bytes[6] == 0 && header_bytes[7] == 0);
 
     GameState gs2;
@@ -399,7 +399,8 @@ static void test_cross_save(void) {
     const size_t v2_droid_size = 64U;
     const size_t droid_count = 4U;
     const size_t v2_size = (size_t)v3_size -
-                           (v3_droid_size - v2_droid_size) * droid_count;
+                           (v3_droid_size - v2_droid_size) * droid_count -
+                           1U;
     uint8_t *v2_bytes = malloc(v2_size);
     assert(v2_bytes);
     memcpy(v2_bytes, v3_bytes, cross_header_size);
@@ -408,9 +409,11 @@ static void test_cross_save(void) {
                v3_bytes + cross_header_size + droid * v3_droid_size,
                v2_droid_size);
     }
+    size_t level_data_size = (size_t)v3_size - cross_header_size -
+                             droid_count * v3_droid_size - 1U;
     memcpy(v2_bytes + cross_header_size + droid_count * v2_droid_size,
            v3_bytes + cross_header_size + droid_count * v3_droid_size,
-           (size_t)v3_size - cross_header_size - droid_count * v3_droid_size);
+           level_data_size);
     v2_bytes[4] = 2;
     FILE *v2_out = fopen(v2_path, "wb");
     assert(v2_out);
@@ -497,7 +500,7 @@ static void test_cross_save(void) {
     const size_t droid_count = 4U;
     const size_t removed_size = (v3_droid_size - v1_droid_size) * droid_count;
     assert((size_t)v2_size > cross_header_size + removed_size);
-    size_t v1_size = (size_t)v2_size - removed_size;
+    size_t v1_size = (size_t)v2_size - removed_size - 1U;
     uint8_t *v1_bytes = malloc(v1_size);
     assert(v1_bytes);
     memcpy(v1_bytes, v2_bytes, cross_header_size);
@@ -510,7 +513,7 @@ static void test_cross_save(void) {
     size_t v2_level_offset = cross_header_size + droid_count * v3_droid_size;
     size_t v1_level_offset = cross_header_size + droid_count * v1_droid_size;
     memcpy(v1_bytes + v1_level_offset, v2_bytes + v2_level_offset,
-           (size_t)v2_size - v2_level_offset);
+           (size_t)v2_size - v2_level_offset - 1U);
     v1_bytes[4] = 1;
     FILE *v1_file = fopen(legacy_path, "wb");
     assert(v1_file);
