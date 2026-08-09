@@ -11,6 +11,7 @@
 - [x] Apply recovered Captive descriptor mirror and transparency flags in compositor
 - [x] Connect the recovered descriptor compositor to the original-mode Captive runtime
 - [x] Align the complete descriptor table to DOSBox-X runtime DS:00c0 (959 original records)
+- [x] Map the original holomap ladder controls to nearest-neighbour zoom of the verified map panel
 - [ ] Keep Captive playable with a source-backed viewport fallback in both modes
 - [x] Draw Captive creature sprites back-to-front by forward depth
 - [x] Use the disassembly creature `frame_index` when selecting ALIEN sheet frames
@@ -315,16 +316,21 @@
 - [x] Unicode/extended character support in bitmap font renderer (UTF-8 decode, lowercase a-z, accented→base mapping for all 19 languages)
 
 ### Space navigation (pre-dungeon)
-- [x] Implement space flight (starfield rendering, directional thrust, fuel consumption)
-- [x] Implement cockpit HUD (fuel gauge, speed, distance, heading)
-- [x] Implement planet approach and orbit entry (auto-transition at arrival distance)
-- [x] Implement orbit view with planet terrain from holamap, probe marker, landing cursor
-- [x] Implement landing sequence (descent animation with altitude readout → droid config)
-- [x] Wire space navigation into mission flow: holamap → space flight → orbit → landing → droid config → dungeon
-- [x] Recover spaceship cockpit layout from CAPPO.EXE (instrument panel, viewport, status displays)
-- [x] Implement probe launch sequence (mission briefing → launch animation)
-- [x] Recover navigation computer UI (coordinate entry, planet database)
-- [x] Recover original starfield rendering (parallax star layers, planet sprites)
+- [x] Verify the real green flight point, orbit view, white landing point, and
+      land-level frame in DOSBox-X
+- [x] Wire mouse `ORBIT` and `LAND` to the verified original reference frames
+- [ ] Decode the original CAPPO flight/orbit state so the live point and
+      transition are data-driven rather than frame references
+- [ ] Decode the original CAPPO landing/runtime records and enter a live
+      dungeon; procedural starfields, planets, terrain, and landing pads are
+      forbidden in this path
+- [ ] Verify wrong-point rejection against the original runtime (water-only
+      landing must not be accepted)
+- [ ] Recover the live spaceship cockpit state from CAPPO.EXE (the current
+      native path must not use a generated cockpit)
+- [ ] Decode the original probe-launch sequence from real CAPPO media
+- [ ] Recover the original navigation computer UI from CAPPO runtime data
+- [ ] Recover the original starfield and planet sprites from verified media
 
 ### Intro sequence
 - [x] Recover original intro/credits sequence from CAPPO.EXE

@@ -1,5 +1,29 @@
 # OpenCaptive — Completed work
 
+## 2026-08-09 (Verified Captive planet landing checkpoint)
+
+- Replayed the real CAPPO mission in DOSBox-X through the green blinking
+  flight point, `ORBIT`, the white landing point, `LAND`, and the resulting
+  land-level dungeon view.
+- Added the four nearest-neighbour frame references used by the native
+  Captive navigation path. They are emulator captures, not generated game
+  data.
+- Replaced the native Captive procedural space/orbit/landing path with the
+  authenticated frames. A live dungeon state is still gated on decoding the
+  original CAPPO mission/runtime records; no procedural dungeon fallback is
+  allowed.
+- Verified the mouse path in the native window and ran all 62 tests.
+
+## 2026-08-09 (Verified holomap zoom controls)
+
+- Added source-backed hitboxes for Captive's Orbit, Land, and two ladder
+  controls using the native 320×200 GAME SCRN coordinates.
+- Wired the ladder controls to nearest-neighbour zoom of the verified
+  holomap map panel only; the HUD and control bank remain untouched.
+- Kept the live mission/runtime handoff gated because its records are not yet
+  decoded; the native path now shows only authenticated original frames.
+- Added navigation and zoom clamp regression tests; all 62 tests pass.
+
 ## 2026-08-09 (DOSBox-X Captive navigation checkpoint)
 
 - Replayed the supplied original `CAPTIVE.BAT` in DOSBox-X through VGA, AdLib,

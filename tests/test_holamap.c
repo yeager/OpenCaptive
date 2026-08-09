@@ -11,6 +11,18 @@ static void test_init(void) {
     assert(hm.num_bases == 0);
     assert(hm.cursor_x == HOLAMAP_WIDTH / 2);
     assert(hm.cursor_y == HOLAMAP_HEIGHT / 2);
+    assert(hm.zoom_level == 1);
+}
+
+static void test_zoom_is_clamped(void) {
+    Holamap hm;
+    holamap_init(&hm, 1);
+    holamap_zoom_out(&hm);
+    assert(hm.zoom_level == 1);
+    for (int i = 0; i < 20; i++) holamap_zoom_in(&hm);
+    assert(hm.zoom_level == 4);
+    for (int i = 0; i < 20; i++) holamap_zoom_out(&hm);
+    assert(hm.zoom_level == 1);
 }
 
 static void test_deterministic(void) {
@@ -79,6 +91,13 @@ static void test_reference_frame(void) {
     assert(fb[1] == 0xFFA0B0C0U);
 }
 
+static void test_standalone_reference_frame(void) {
+    uint8_t rgba[4] = { 0x12, 0x34, 0x56, 0xFF };
+    uint32_t fb = 0;
+    holamap_render_reference_frame(rgba, 1, 1, &fb, 1, 1);
+    assert(fb == 0xFF123456U);
+}
+
 static void test_surface_variety(void) {
     Holamap hm;
     holamap_init(&hm, 777);
@@ -103,8 +122,10 @@ int main(void) {
     test_invalid_base_count_does_not_escape_array();
     test_reveal();
     test_cursor_movement_is_clamped();
+    test_zoom_is_clamped();
     test_render();
     test_reference_frame();
+    test_standalone_reference_frame();
     test_surface_variety();
     test_base_coordinates_seed_sweep();
     printf("All holamap tests passed.\n");

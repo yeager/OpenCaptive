@@ -72,6 +72,19 @@ static Holamap captive_holamap;
 static unsigned char *captive_holamap_reference;
 static int captive_holamap_reference_width;
 static int captive_holamap_reference_height;
+static unsigned char *captive_holamap_target_reference;
+static int captive_holamap_target_width;
+static int captive_holamap_target_height;
+static unsigned char *captive_orbit_reference;
+static int captive_orbit_reference_width;
+static int captive_orbit_reference_height;
+static unsigned char *captive_landing_reference;
+static int captive_landing_reference_width;
+static int captive_landing_reference_height;
+static unsigned char *captive_landed_dungeon_reference;
+static int captive_landed_dungeon_reference_width;
+static int captive_landed_dungeon_reference_height;
+static bool captive_landed_reference_active;
 
 static void captive_holamap_reset(uint32_t mission_seed) {
     holamap_init(&captive_holamap, mission_seed);
@@ -165,20 +178,63 @@ static bool captive_navigation_mouse_key(SDL_Window *window,
     return false;
 }
 
+static bool captive_navigation_mouse_action(SDL_Window *window,
+                                            const SDL_MouseButtonEvent *button,
+                                            CaptiveNavigationAction *action) {
+    if (!window || !button || !action || button->button != SDL_BUTTON_LEFT)
+        return false;
+    float x, y;
+    if (!window_to_canvas(window, button->x, button->y,
+                          CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
+                          &x, &y)) return false;
+    *action = captive_navigation_action_at((int)x, (int)y);
+    return *action != CAPTIVE_NAV_ACTION_NONE;
+}
+
 static bool captive_holamap_mouse_move(SDL_Window *window,
                                        const SDL_MouseButtonEvent *button,
-                                       Holamap *holamap) {
-    SDL_Keycode key;
-    if (!holamap || !captive_navigation_mouse_key(window, button, &key))
+                                       Holamap *holamap, GameState *gs) {
+    CaptiveNavigationAction action;
+    if (!holamap || !gs ||
+        !captive_navigation_mouse_action(window, button, &action))
         return false;
-    switch (key) {
-        case SDLK_UP:    holamap_move_cursor(holamap, 0, -1); break;
-        case SDLK_DOWN:  holamap_move_cursor(holamap, 0, 1); break;
-        case SDLK_LEFT:  holamap_move_cursor(holamap, -1, 0); break;
-        case SDLK_RIGHT: holamap_move_cursor(holamap, 1, 0); break;
+    switch (action) {
+        case CAPTIVE_NAV_ACTION_UP:    holamap_move_cursor(holamap, 0, -1); break;
+        case CAPTIVE_NAV_ACTION_DOWN:  holamap_move_cursor(holamap, 0, 1); break;
+        case CAPTIVE_NAV_ACTION_LEFT:  holamap_move_cursor(holamap, -1, 0); break;
+        case CAPTIVE_NAV_ACTION_RIGHT: holamap_move_cursor(holamap, 1, 0); break;
+        case CAPTIVE_NAV_ACTION_ZOOM_IN:  holamap_zoom_in(holamap); break;
+        case CAPTIVE_NAV_ACTION_ZOOM_OUT: holamap_zoom_out(holamap); break;
+        case CAPTIVE_NAV_ACTION_ORBIT:
+            /* This is the verified original map action: the green blinking
+             * target is already selected by CAPPO's mission records. */
+            if (!captive_orbit_reference) return false;
+            captive_landed_reference_active = false;
+            gs->mode = STATE_ORBIT;
+            gs->orbit_angle = 0.0f;
+            return true;
+        case CAPTIVE_NAV_ACTION_LAND:
+        case CAPTIVE_NAV_ACTION_NONE:
         default: return false;
     }
     return true;
+}
+
+static bool captive_orbit_mouse_move(SDL_Window *window,
+                                     const SDL_MouseButtonEvent *button,
+                                     GameState *gs) {
+    CaptiveNavigationAction action;
+    if (!gs || !captive_navigation_mouse_action(window, button, &action))
+        return false;
+    if (action == CAPTIVE_NAV_ACTION_LAND && captive_landing_reference) {
+        /* The white point is the original landing target.  CAPPO changes
+         * phase only after LAND is pressed in this view. */
+        gs->landing_tick = 0;
+        captive_landed_reference_active = false;
+        gs->mode = STATE_LANDING;
+        return true;
+    }
+    return false;
 }
 
 static bool write_frame_ppm(const char *path, const uint32_t *pixels,
@@ -548,8 +604,8 @@ static bool reload_captive_assets(TextureAtlas *atlas, const DataVFS *vfs,
     return true;
 }
 
-static unsigned char *load_verified_captive_holamap(int *width, int *height) {
-    static const char relative[] = "assets/captive/holamap-initial.png";
+static unsigned char *load_verified_captive_frame(const char *relative,
+                                                  int *width, int *height) {
     char path[1024];
     const char *base = SDL_GetBasePath();
     if (base) {
@@ -568,6 +624,11 @@ static unsigned char *load_verified_captive_holamap(int *width, int *height) {
     if (pixels) return pixels;
     snprintf(path, sizeof(path), "/usr/share/opencaptive/%s", relative);
     return load_png_file(path, width, height);
+}
+
+static unsigned char *load_verified_captive_holamap(int *width, int *height) {
+    return load_verified_captive_frame("assets/captive/holamap-initial.png",
+                                       width, height);
 }
 
 static void apply_menu_config(OpenCaptiveConfig *config, const StartMenu *menu,
@@ -2726,6 +2787,25 @@ int main(int argc, char *argv[]) {
                captive_holamap_reference_width,
                captive_holamap_reference_height);
     }
+    captive_holamap_target_reference = load_verified_captive_frame(
+        "assets/captive/holamap-target.png", &captive_holamap_target_width,
+        &captive_holamap_target_height);
+    captive_orbit_reference = load_verified_captive_frame(
+        "assets/captive/orbit-reference.png", &captive_orbit_reference_width,
+        &captive_orbit_reference_height);
+    captive_landing_reference = load_verified_captive_frame(
+        "assets/captive/landing-transition-reference.png",
+        &captive_landing_reference_width, &captive_landing_reference_height);
+    captive_landed_dungeon_reference = load_verified_captive_frame(
+        "assets/captive/landed-dungeon-reference.png",
+        &captive_landed_dungeon_reference_width,
+        &captive_landed_dungeon_reference_height);
+    printf("Loaded real Captive navigation references: map=%s orbit=%s "
+           "landing=%s landed=%s\n",
+           captive_holamap_target_reference ? "yes" : "no",
+           captive_orbit_reference ? "yes" : "no",
+           captive_landing_reference ? "yes" : "no",
+           captive_landed_dungeon_reference ? "yes" : "no");
     gs.config = config;
     gs.difficulty = (uint8_t)cmd_difficulty;
 
@@ -3535,7 +3615,7 @@ int main(int argc, char *argv[]) {
                         event.button.button == SDL_BUTTON_LEFT) {
                         (void)captive_holamap_mouse_move(renderer.window,
                                                          &event.button,
-                                                         &captive_holamap);
+                                                         &captive_holamap, &gs);
                     } else if (event.type == SDL_EVENT_KEY_DOWN) {
                         switch (event.key.key) {
                             case SDLK_UP:
@@ -3573,6 +3653,42 @@ int main(int argc, char *argv[]) {
                                 break;
                             default: break;
                         }
+                    }
+                    break;
+                case STATE_ORBIT:
+                    if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
+                        event.button.button == SDL_BUTTON_LEFT) {
+                        (void)captive_orbit_mouse_move(renderer.window,
+                                                       &event.button, &gs);
+                    } else if (event.type == SDL_EVENT_KEY_DOWN) {
+                        switch (event.key.key) {
+                            case SDLK_LEFT: case SDLK_A:
+                                /* The captured frame is a fixed verified
+                                 * orbit checkpoint; no synthetic orbit path
+                                 * is substituted while runtime records are
+                                 * being decoded. */
+                                break;
+                            case SDLK_RETURN: case SDLK_KP_ENTER:
+                                if (captive_landing_reference) {
+                                    gs.landing_tick = 0;
+                                    gs.mode = STATE_LANDING;
+                                }
+                                break;
+                            case SDLK_ESCAPE:
+                                gs.mode = STATE_HOLAMAP;
+                                break;
+                            default: break;
+                        }
+                    }
+                    break;
+                case STATE_LANDING:
+                    /* Keep the verified landing reference visible.  The
+                     * decoded CAPPO dungeon/runtime handoff is still gated;
+                     * never replace it with map_gen output. */
+                    if (event.type == SDL_EVENT_KEY_DOWN &&
+                        event.key.key == SDLK_ESCAPE) {
+                        captive_landed_reference_active = false;
+                        gs.mode = STATE_ORBIT;
                     }
                     break;
                 case STATE_SPACE_FLIGHT:
@@ -3619,33 +3735,6 @@ int main(int argc, char *argv[]) {
                                 break;
                             default: break;
                         }
-                    }
-                    break;
-                case STATE_ORBIT:
-                    if (event.type == SDL_EVENT_KEY_DOWN) {
-                        switch (event.key.key) {
-                            case SDLK_LEFT: case SDLK_A:
-                                gs.orbit_angle -= ORBIT_SPEED * 10;
-                                break;
-                            case SDLK_RIGHT: case SDLK_D:
-                                gs.orbit_angle += ORBIT_SPEED * 10;
-                                break;
-                            case SDLK_RETURN:
-                            case SDLK_KP_ENTER:
-                                gs.landing_tick = 0;
-                                gs.mode = STATE_LANDING;
-                                break;
-                            case SDLK_ESCAPE:
-                                gs.mode = STATE_HOLAMAP;
-                                break;
-                            default: break;
-                        }
-                    }
-                    break;
-                case STATE_LANDING:
-                    if (event.type == SDL_EVENT_KEY_DOWN &&
-                        event.key.key == SDLK_ESCAPE) {
-                        gs.mode = STATE_ORBIT;
                     }
                     break;
                 case STATE_GAMEOVER:
@@ -3848,6 +3937,12 @@ int main(int argc, char *argv[]) {
         if (gs.mode == STATE_MENU)
             start_menu_update(&menu);
 
+        if (gs.game_type == GAME_CAPTIVE &&
+            gs.mode == STATE_SPACE_FLIGHT) {
+            /* The old procedural space-flight module is not a Captive data
+             * source. Never let a stale transition reach that renderer. */
+            gs.mode = STATE_HOLAMAP;
+        }
         if (gs.mode == STATE_SPACE_FLIGHT) {
             space_flight_update(&gs);
             float dx = gs.space_target_x - gs.space_x;
@@ -3864,10 +3959,11 @@ int main(int argc, char *argv[]) {
             gs.landing_tick++;
             if (gs.landing_tick >= LANDING_TICKS) {
                 if (gs.game_type == GAME_CAPTIVE) {
-                    /* Captive must not manufacture a new dungeon when the
-                     * decoded original mission records are unavailable. */
-                    captive_holamap_reset(gs.mission);
-                    gs.mode = STATE_HOLAMAP;
+                    /* Keep the real landed frame visible. A decoded CAPPO
+                     * dungeon may replace it only after its runtime records
+                     * are recovered; map_gen output is never a fallback. */
+                    captive_landed_reference_active =
+                        captive_landed_dungeon_reference != NULL;
                 } else if (game_state_new_mission(&gs, gs.mission + 1)) {
                     automap_init(&automap_state);
                     gs.mode = STATE_DROID_CONFIG;
@@ -4444,6 +4540,14 @@ int main(int argc, char *argv[]) {
                 }
                 holamap_render(&captive_holamap, framebuffer,
                                CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                if (captive_holamap_target_reference &&
+                    ((gs.tick / 18U) & 1U)) {
+                    holamap_render_reference_frame(
+                        captive_holamap_target_reference,
+                        captive_holamap_target_width,
+                        captive_holamap_target_height, framebuffer,
+                        CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                }
                 /* Do not add launcher text here. The original holomap
                  * controls, planet surface, cursor and mission labels must
                  * all come from verified Captive media; placeholders are
@@ -4452,21 +4556,38 @@ int main(int argc, char *argv[]) {
             }
 
             case STATE_SPACE_FLIGHT:
-                space_flight_render(&gs, &starfield, framebuffer,
-                                    CAPTIVE_ORIGINAL_WIDTH,
-                                    CAPTIVE_ORIGINAL_HEIGHT);
+                if (gs.game_type == GAME_CAPTIVE) {
+                    holamap_render(&captive_holamap, framebuffer,
+                                   CAPTIVE_ORIGINAL_WIDTH,
+                                   CAPTIVE_ORIGINAL_HEIGHT);
+                } else {
+                    space_flight_render(&gs, &starfield, framebuffer,
+                                        CAPTIVE_ORIGINAL_WIDTH,
+                                        CAPTIVE_ORIGINAL_HEIGHT);
+                }
                 break;
 
             case STATE_ORBIT:
-                orbit_render(&gs, &space_holamap, framebuffer,
-                             CAPTIVE_ORIGINAL_WIDTH,
-                             CAPTIVE_ORIGINAL_HEIGHT);
+                holamap_render_reference_frame(
+                    captive_orbit_reference, captive_orbit_reference_width,
+                    captive_orbit_reference_height, framebuffer,
+                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 break;
 
             case STATE_LANDING:
-                landing_render(&gs, framebuffer,
-                               CAPTIVE_ORIGINAL_WIDTH,
-                               CAPTIVE_ORIGINAL_HEIGHT);
+                if (captive_landed_reference_active) {
+                    holamap_render_reference_frame(
+                        captive_landed_dungeon_reference,
+                        captive_landed_dungeon_reference_width,
+                        captive_landed_dungeon_reference_height, framebuffer,
+                        CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                } else {
+                    holamap_render_reference_frame(
+                        captive_landing_reference,
+                        captive_landing_reference_width,
+                        captive_landing_reference_height, framebuffer,
+                        CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                }
                 break;
 
             case STATE_VICTORY:
@@ -4874,6 +4995,10 @@ int main(int argc, char *argv[]) {
     if (intro_loaded) anm_free(&intro_anim);
     if (textures_loaded) texture_atlas_free(&atlas);
     free(captive_holamap_reference);
+    free(captive_holamap_target_reference);
+    free(captive_orbit_reference);
+    free(captive_landing_reference);
+    free(captive_landed_dungeon_reference);
     renderer_shutdown(&renderer);
     i18n_free();
     SDL_Quit();

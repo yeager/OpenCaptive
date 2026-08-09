@@ -10,6 +10,13 @@ static void test_arrow_centres(void) {
     assert(captive_navigation_direction_at(251, 94) == CAPTIVE_NAV_RIGHT);
 }
 
+static void test_original_action_centres(void) {
+    assert(captive_navigation_action_at(201, 74) == CAPTIVE_NAV_ACTION_ORBIT);
+    assert(captive_navigation_action_at(251, 74) == CAPTIVE_NAV_ACTION_LAND);
+    assert(captive_navigation_action_at(201, 114) == CAPTIVE_NAV_ACTION_ZOOM_OUT);
+    assert(captive_navigation_action_at(251, 114) == CAPTIVE_NAV_ACTION_ZOOM_IN);
+}
+
 static void test_edges_and_gaps(void) {
     assert(captive_navigation_direction_at(218, 65) == CAPTIVE_NAV_UP);
     assert(captive_navigation_direction_at(235, 82) == CAPTIVE_NAV_UP);
@@ -22,6 +29,7 @@ static void test_edges_and_gaps(void) {
 
 int main(void) {
     test_arrow_centres();
+    test_original_action_centres();
     test_edges_and_gaps();
     puts("All Captive navigation tests passed.");
     return 0;
