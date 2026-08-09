@@ -205,6 +205,7 @@ static bool captive_holamap_mouse_move(SDL_Window *window,
         case CAPTIVE_NAV_ACTION_RIGHT: holamap_move_cursor(holamap, 1, 0); break;
         case CAPTIVE_NAV_ACTION_ZOOM_IN:  holamap_zoom_in(holamap); break;
         case CAPTIVE_NAV_ACTION_ZOOM_OUT: holamap_zoom_out(holamap); break;
+        case CAPTIVE_NAV_ACTION_PYRAMID:  holamap_center_cursor(holamap); break;
         case CAPTIVE_NAV_ACTION_ORBIT:
             /* This is the verified original map action: the green blinking
              * target is already selected by CAPPO's mission records. */
@@ -2790,6 +2791,15 @@ int main(int argc, char *argv[]) {
     captive_holamap_target_reference = load_verified_captive_frame(
         "assets/captive/holamap-target.png", &captive_holamap_target_width,
         &captive_holamap_target_height);
+    if (captive_holamap_target_reference) {
+        /* Mission 0001 opens on the real CAPPO planet-selection surface.
+         * Keep the separate space-map capture available for later runtime
+         * decoding, but do not flash or composite it over this surface. */
+        holamap_set_reference_frame(&captive_holamap,
+                                    captive_holamap_target_reference,
+                                    captive_holamap_target_width,
+                                    captive_holamap_target_height);
+    }
     captive_orbit_reference = load_verified_captive_frame(
         "assets/captive/orbit-reference.png", &captive_orbit_reference_width,
         &captive_orbit_reference_height);
@@ -3641,12 +3651,19 @@ int main(int argc, char *argv[]) {
                                     gs.orbit_angle = 0.0f;
                                 }
                                 break;
+                            case SDLK_KP_1:
+                                holamap_zoom_out(&captive_holamap);
+                                break;
+                            case SDLK_KP_3:
+                                holamap_zoom_in(&captive_holamap);
+                                break;
+                            case SDLK_KP_5:
+                                break;
                             case SDLK_RETURN:
                             case SDLK_KP_ENTER:
-                                /* Do not enter a native dungeon until the
-                                 * original CAPPO mission/runtime decoder is
-                                 * complete.  The former map_gen call produced
-                                 * synthetic content even with real media. */
+                                /* CAPPO's keyboard mapping aliases ENTER
+                                 * with Pyramid while in space. */
+                                holamap_center_cursor(&captive_holamap);
                                 break;
                             case SDLK_S:
                                 shop_return_mode = STATE_HOLAMAP;
@@ -4552,14 +4569,6 @@ int main(int argc, char *argv[]) {
                 }
                 holamap_render(&captive_holamap, framebuffer,
                                CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
-                if (captive_holamap_target_reference &&
-                    ((gs.tick / 18U) & 1U)) {
-                    holamap_render_reference_frame(
-                        captive_holamap_target_reference,
-                        captive_holamap_target_width,
-                        captive_holamap_target_height, framebuffer,
-                        CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
-                }
                 /* Do not add launcher text here. The original holomap
                  * controls, planet surface, cursor and mission labels must
                  * all come from verified Captive media; placeholders are

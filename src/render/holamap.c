@@ -63,6 +63,14 @@ void holamap_move_cursor(Holamap *hm, int dx, int dy) {
     hm->cursor_y = y;
 }
 
+void holamap_center_cursor(Holamap *hm) {
+    if (!hm) return;
+    /* CAPPO's Pyramid command returns the cursor to The Swan.  This only
+     * changes the selection state; no marker or map pixels are fabricated. */
+    hm->cursor_x = HOLAMAP_WIDTH / 2;
+    hm->cursor_y = HOLAMAP_HEIGHT / 2;
+}
+
 void holamap_reveal_base(Holamap *hm, int base_idx) {
     if (hm && base_idx >= 0 && base_idx < hm->num_bases &&
         base_idx < HOLAMAP_MAX_BASES)

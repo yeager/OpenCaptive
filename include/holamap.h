@@ -38,6 +38,7 @@ void holamap_render_reference_frame(const uint8_t *rgba, int reference_width,
 /* Apply one original navigation-arrow action to the real holomap cursor.
  * This changes input state only; it never creates surface or base data. */
 void holamap_move_cursor(Holamap *hm, int dx, int dy);
+void holamap_center_cursor(Holamap *hm);
 void holamap_zoom_in(Holamap *hm);
 void holamap_zoom_out(Holamap *hm);
 void holamap_reveal_base(Holamap *hm, int base_idx);

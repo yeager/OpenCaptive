@@ -603,13 +603,19 @@ Original CAPPO holomap controls (also supported by OpenCaptive):
 
 ```
 NUMPAD 2/4/6/8 — Move the holomap cursor down/left/right/up
+NUMPAD 1/3     — Zoom out/in while in space
 NUMPAD 7       — Orbit / fly to the selected green target
 NUMPAD 9       — Land at the selected white landing point
+ENTER          — Center the cursor on The Swan while in space
 ```
 
 OpenCaptive also exposes the same six movement actions through the graphical
-control-bank arrows. These controls only select positions from the real CAPPO
-mission view; they never create a map, landing point, or dungeon.
+control-bank arrows, including Pyramid for the same The Swan-centering action.
+These controls only select positions from the real CAPPO mission view; they
+never create a map, landing point, dungeon, or placeholder text. The control
+semantics are cross-checked against the [Captive player's reference card]
+(https://www.lemonamiga.com/doc/captive/286) and the [original keyboard help]
+(https://www.scribd.com/document/221560796/AMIGA-Captive-Help).
 
 ## Executable structure
 

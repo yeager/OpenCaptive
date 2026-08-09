@@ -15,6 +15,7 @@ static void test_original_action_centres(void) {
     assert(captive_navigation_action_at(251, 74) == CAPTIVE_NAV_ACTION_LAND);
     assert(captive_navigation_action_at(201, 114) == CAPTIVE_NAV_ACTION_ZOOM_OUT);
     assert(captive_navigation_action_at(251, 114) == CAPTIVE_NAV_ACTION_ZOOM_IN);
+    assert(captive_navigation_action_at(226, 94) == CAPTIVE_NAV_ACTION_PYRAMID);
 }
 
 static void test_edges_and_gaps(void) {

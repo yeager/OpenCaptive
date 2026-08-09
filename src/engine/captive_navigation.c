@@ -10,6 +10,8 @@ CaptiveNavigationAction captive_navigation_action_at(int x, int y) {
         return CAPTIVE_NAV_ACTION_ZOOM_OUT;
     if (x >= 242 && x < 260 && y >= 105 && y < 123)
         return CAPTIVE_NAV_ACTION_ZOOM_IN;
+    if (x >= 218 && x < 236 && y >= 85 && y < 103)
+        return CAPTIVE_NAV_ACTION_PYRAMID;
     if (x >= 218 && x < 236 && y >= 65 && y < 83)
         return CAPTIVE_NAV_ACTION_UP;
     if (x >= 193 && x < 211 && y >= 85 && y < 103)
