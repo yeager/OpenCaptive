@@ -9,6 +9,7 @@
 - [x] Encode and test the DOS compositor's 160×112 destination-offset layout
 - [x] Preserve PL5 palette indices for Captive viewport transparency
 - [x] Apply recovered Captive descriptor mirror and transparency flags in compositor
+- [x] Connect the recovered descriptor compositor to the original-mode Captive runtime
 - [ ] Keep Captive playable with a source-backed viewport fallback in both modes
 - [x] Draw Captive creature sprites back-to-front by forward depth
 - [x] Use the disassembly creature `frame_index` when selecting ALIEN sheet frames
@@ -18,6 +19,7 @@
 - [ ] Recover the complete original per-cell descriptor sequence, destination bases and draw order
 - [ ] Reproduce original planar mask, mirror and overwrite behaviour in the active viewport
 - [ ] Verify a playable Captive viewport pixel-for-pixel against original DOS captures
+- [ ] Recover the runtime graphic-ID selector operands for every descriptor band
 
 ### Combat
 - [x] Disassemble the CAPPO weapon/attack bytecode section (hit check, damage encoding, scaling)

@@ -181,6 +181,22 @@ preprojected panels. A parity renderer must recover the original panel source
 rectangles, destinations, transparency convention and per-cell state table;
 sampling fixed-size tiles cannot reproduce the reference viewport.
 
+### Live descriptor compositor
+
+The original-mode runtime now executes the recovered descriptor bands through
+the same 160-byte work-row layout used by CAPPO. The compositor is wired after
+the verified GAME SCRN shell and before any optional enhancement layer. It
+copies source pixels from the content-addressed PL5 sheets, preserves index
+zero transparency, and exposes the first 144 pixels of each row at the
+disassembly-verified viewport origin.
+
+This is a real-data rendering path, not a generated replacement scene. It is
+deliberately not described as complete parity yet: the original runtime still
+selects graphic IDs and destination bases from per-cell operands that are not
+fully recovered. Until those operands and the original map/runtime records are
+decoded, the compositor is a verified panel-draw boundary and the remaining
+compatibility renderer stays available for isolated tests.
+
 ## ANM animation
 
 ANM starts with a 768-byte VGA palette of 6-bit RGB triples. A little-endian

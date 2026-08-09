@@ -295,12 +295,14 @@ int viewport_descriptor_source_sheet(const TextureAtlas *atlas,
 /* Blit one descriptor panel from a decoded PL5 sheet into the viewport
  * work buffer.  source_offset is in packed PL5 byte space (200 bytes/row);
  * we convert to decoded pixel coordinates (320 pixels/row). */
-static void descriptor_blit(const CaptiveDosDescriptor *desc,
-                            const TextureAtlas *atlas,
-                            uint32_t *vp_buf, int vp_stride) {
+static void descriptor_blit_sheet(const CaptiveDosDescriptor *desc,
+                                  const TextureAtlas *atlas,
+                                  int source_sheet,
+                                  uint32_t *vp_buf, int vp_stride) {
     if (!desc || !atlas || !vp_buf || desc->width_bytes == 0 || desc->height == 0)
         return;
-    int sheet = viewport_descriptor_source_sheet(atlas, desc->source_bank);
+    int sheet = source_sheet >= 0 ? source_sheet
+        : viewport_descriptor_source_sheet(atlas, desc->source_bank);
     if (sheet < 0) return;
     const Texture *tex = gfx_get(&atlas->gfx, sheet);
     if (!tex || !tex->indices) return;
@@ -330,6 +332,111 @@ static void descriptor_blit(const CaptiveDosDescriptor *desc,
             uint8_t idx = tex->indices[sy * tex->width + sx];
             if (mask_zero && idx == 0) continue;
             vp_buf[dy * vp_stride + dx] = tex->pixels[sy * tex->width + sx];
+        }
+    }
+}
+
+static void descriptor_blit(const CaptiveDosDescriptor *desc,
+                            const TextureAtlas *atlas,
+                            uint32_t *vp_buf, int vp_stride) {
+    descriptor_blit_sheet(desc, atlas, -1, vp_buf, vp_stride);
+}
+
+static int original_wall_descriptor(int range, int lateral) {
+    /* These are the fixed panel bands recovered from CAPPO's descriptor
+     * table.  The source selector for the individual wall graphic is still
+     * carried by the verified PL5 bank; no procedural wall is introduced. */
+    static const int groups[4][3][2] = {
+        {{17, 18}, {19, 20}, {21, 22}},
+        {{11, 12}, {13, 14}, {15, 16}},
+        {{5, 6}, {7, 8}, {9, 10}},
+        {{43, 44}, {47, 48}, {51, 52}},
+    };
+    int band = 3 - range;
+    if (band < 0 || band >= 4) return -1;
+    int side = lateral < 0 ? 0 : lateral > 0 ? 2 : 1;
+    return groups[band][side][0];
+}
+
+static int original_floor_descriptor(int range, int lateral, bool ceiling) {
+    static const int floor_groups[4][3] = {
+        {75, 77, 79}, {69, 71, 73}, {63, 65, 67}, {53, 57, 61}
+    };
+    static const int ceiling_groups[4][3] = {
+        {103, 105, 107}, {97, 99, 101}, {91, 93, 95}, {81, 85, 89}
+    };
+    int band = 3 - range;
+    if (band < 0 || band >= 4) return -1;
+    int side = lateral < 0 ? 0 : lateral > 0 ? 2 : 1;
+    return (ceiling ? ceiling_groups : floor_groups)[band][side];
+}
+
+void viewport_render_original_descriptors(const CaptiveViewWindow *window,
+                                          const TextureAtlas *atlas,
+                                          uint32_t *framebuffer,
+                                          int fb_width, int fb_height) {
+    if (!window || !atlas || !atlas->loaded || !framebuffer ||
+        fb_width <= 0 || fb_height <= 0)
+        return;
+
+    uint32_t work[CAPTIVE_DOS_VIEW_STRIDE * CAPTIVE_DOS_VIEW_HEIGHT];
+    memset(work, 0, sizeof(work));
+
+    /* CAPPO builds the view back-to-front.  The full panel pair supplies the
+     * authentic room background; depth-specific ceiling/floor and wall
+     * panels then overwrite it through the original mask convention. */
+    descriptor_blit(&captive_viewport_descriptors[3], atlas, work,
+                    CAPTIVE_DOS_VIEW_STRIDE);
+    descriptor_blit(&captive_viewport_descriptors[1], atlas, work,
+                    CAPTIVE_DOS_VIEW_STRIDE);
+
+    for (int range = 4; range >= 1; --range) {
+        for (int lateral = -2; lateral <= 2; ++lateral) {
+            int cell_index = -1;
+            for (int i = 0; i < CAPTIVE_VISIBLE_CELL_COUNT; ++i) {
+                if (captive_visible_cell_positions[i].forward == range &&
+                    captive_visible_cell_positions[i].lateral == lateral) {
+                    cell_index = i;
+                    break;
+                }
+            }
+            if (cell_index < 0 || window->hidden[cell_index]) continue;
+            const MapCell *cell = &window->visible[cell_index];
+            int floor_id = original_floor_descriptor(range, lateral, false);
+            int ceiling_id = original_floor_descriptor(range, lateral, true);
+            if (floor_id >= 0)
+                descriptor_blit(&captive_viewport_descriptors[floor_id], atlas,
+                                work, CAPTIVE_DOS_VIEW_STRIDE);
+            if (ceiling_id >= 0)
+                descriptor_blit(&captive_viewport_descriptors[ceiling_id], atlas,
+                                work, CAPTIVE_DOS_VIEW_STRIDE);
+
+            if (cell->type == CELL_WALL || cell->type == CELL_DOOR ||
+                cell->type == CELL_DOOR_LOCKED) {
+                int wall_id = original_wall_descriptor(range, lateral);
+                if (wall_id >= 0) {
+                    int face = (window->facing + 2) & 3;
+                    int wall_set = cell->wall_tex[face] < 5U
+                        ? cell->wall_tex[face] : 0;
+                    descriptor_blit_sheet(
+                        &captive_viewport_descriptors[wall_id], atlas,
+                        atlas->wall_sheets[wall_set], work,
+                        CAPTIVE_DOS_VIEW_STRIDE);
+                }
+            }
+        }
+    }
+
+    /* The descriptor destination is in the original 160-byte work stride;
+     * the VGA copy exposes the first 144 pixels at the documented viewport
+     * origin. */
+    for (int y = 0; y < CAPTIVE_VIEWPORT_HEIGHT &&
+                    CAPTIVE_VIEWPORT_Y + y < fb_height; ++y) {
+        for (int x = 0; x < CAPTIVE_VIEWPORT_WIDTH &&
+                        CAPTIVE_VIEWPORT_X + x < fb_width; ++x) {
+            framebuffer[(size_t)(CAPTIVE_VIEWPORT_Y + y) * (size_t)fb_width +
+                        (size_t)(CAPTIVE_VIEWPORT_X + x)] =
+                work[(size_t)y * CAPTIVE_DOS_VIEW_STRIDE + (size_t)x];
         }
     }
 }

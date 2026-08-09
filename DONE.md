@@ -1,5 +1,17 @@
 # OpenCaptive — Completed work
 
+## 2026-08-09 (CAPPO descriptor compositor wired into runtime)
+
+- Connected the original-mode Captive game frame to the recovered 160×112
+  CAPPO descriptor draw list instead of leaving the viewport as an empty HUD
+  rectangle.
+- The compositor uses only the hash-verified PL5 sheets and the recovered
+  source-bank, destination-offset, mask, and depth-band records; it does not
+  create replacement geometry, colours, text, or sprites.
+- Added regression coverage and ran the complete 62-test suite successfully.
+- Kept the compatibility projection separate while the remaining runtime
+  graphic-ID selector operands are being recovered from the original binary.
+
 ## 2026-08-09 (Original font data bound + .po parser overflow, v1.1.98)
 
 - Fixed a one-byte out-of-bounds stack write in the `.po` parser: the

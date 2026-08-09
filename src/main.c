@@ -43,6 +43,7 @@
 #include "amos_sprite.h"
 #include "dos_vga_reference.h"
 #include "captive_space_nav.h"
+#include "viewport.h"
 #include "frame_compare.h"
 #include "custom_features.h"
 #include "i18n.h"
@@ -4249,6 +4250,15 @@ int main(int argc, char *argv[]) {
                     if (hud_bg) {
                         memcpy(framebuffer, hud_bg,
                                CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                    }
+                    if (gs.game_type == GAME_CAPTIVE &&
+                        config.render_mode == CAPTIVE_RENDER_ORIGINAL &&
+                        textures_loaded) {
+                        CaptiveViewWindow original_view;
+                        captive_view_window_build(&gs, &original_view);
+                        viewport_render_original_descriptors(
+                            &original_view, &atlas, framebuffer,
+                            CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                     }
                     if (config.render_mode == CAPTIVE_RENDER_ENHANCED) {
                         /* Enhanced mode may add presentation effects, but it

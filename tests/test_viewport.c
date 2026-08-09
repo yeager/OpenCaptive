@@ -117,6 +117,15 @@ int main(void) {
                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
     assert(viewport_changed(framebuffer));
 
+    /* The live original-mode compositor must execute the recovered CAPPO
+     * descriptor bands rather than the compatibility projection. */
+    for (size_t i = 0; i < sizeof(framebuffer) / sizeof(framebuffer[0]); ++i)
+        framebuffer[i] = 0xFF010203;
+    viewport_render_original_descriptors(&window, &atlas, framebuffer,
+                                         CAPTIVE_ORIGINAL_WIDTH,
+                                         CAPTIVE_ORIGINAL_HEIGHT);
+    assert(viewport_changed(framebuffer));
+
     uint32_t without_ornament[CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT];
     memcpy(without_ornament, framebuffer, sizeof(without_ornament));
     gs.levels[0].cells[10][10].ornament[DIR_NORTH] = ORNAMENT_NONE;
