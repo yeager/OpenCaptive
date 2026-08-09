@@ -270,6 +270,15 @@ void city_nav_render(CityNavState *nav, const CityGridState *grid,
         nav->cell_y >= CITYGRID_HEIGHT || !isfinite(nav->smooth_x) ||
         !isfinite(nav->smooth_y) || !isfinite(nav->smooth_yaw)) return;
 
+    /* Adopt the caller's palette, matching lib3d_render_object.  These
+     * parameters were previously accepted and then ignored: every draw below
+     * reads render->palette, so a caller that passed the palette only here
+     * rendered with none at all. */
+    if (palette && pal_size > 0) {
+        render->palette = palette;
+        render->pal_size = pal_size;
+    }
+
     lib3d_set_camera(render, nav->smooth_x, CITY_EYE_HEIGHT, nav->smooth_y,
                      nav->smooth_yaw);
     lib3d_clear(render,
@@ -356,6 +365,15 @@ void city_nav_render_textured(CityNavState *nav, const CityGridState *grid,
         nav->cell_x >= CITYGRID_WIDTH || nav->cell_y < 0 ||
         nav->cell_y >= CITYGRID_HEIGHT || !isfinite(nav->smooth_x) ||
         !isfinite(nav->smooth_y) || !isfinite(nav->smooth_yaw)) return;
+
+    /* Adopt the caller's palette, matching lib3d_render_object.  These
+     * parameters were previously accepted and then ignored: every draw below
+     * reads render->palette, so a caller that passed the palette only here
+     * rendered with none at all. */
+    if (palette && pal_size > 0) {
+        render->palette = palette;
+        render->pal_size = pal_size;
+    }
 
     lib3d_set_camera(render, nav->smooth_x, CITY_EYE_HEIGHT, nav->smooth_y,
                      nav->smooth_yaw);

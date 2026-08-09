@@ -195,11 +195,18 @@ static void test_render(void) {
     Lib3dState render;
     lib3d_init(&render);
 
-    city_nav_render(&nav, &grid, &render, NULL, NULL, 0);
+    /* Polygon colours come from the original palette; lib3d draws nothing for
+     * an index it cannot resolve.  A flat white fixture keeps every shaded
+     * result grey, so it can never collide with the sky or ground constants
+     * below. */
+    static uint32_t palette[64];
+    for (int i = 0; i < 64; i++) palette[i] = 0xFFFFFFFF;
+
+    city_nav_render(&nav, &grid, &render, NULL, palette, 64);
 
     assert(render.vis_count > 0);
 
-    uint32_t dest[320 * 200];
+    static uint32_t dest[320 * 200];
     memset(dest, 0, sizeof(dest));
     lib3d_present(&render, dest, 320, 200, 32, 20);
 
@@ -208,6 +215,26 @@ static void test_render(void) {
         if (dest[i] != 0xFF4466AA && dest[i] != 0xFF446644 && dest[i] != 0)
             has_wall = true;
     assert(has_wall);
+}
+
+/* Without the original palette no geometry is drawn.  lib3d used to invent a
+ * colour ramp so every polygon rendered in fabricated colours. */
+static void test_render_without_palette_draws_no_geometry(void) {
+    CityGridState grid = make_test_grid();
+    CityNavState nav;
+    city_nav_init(&nav, 7, 5, CITY_DIR_NORTH);
+
+    Lib3dState render;
+    lib3d_init(&render);
+
+    city_nav_render(&nav, &grid, &render, NULL, NULL, 0);
+
+    static uint32_t dest[320 * 200];
+    memset(dest, 0, sizeof(dest));
+    lib3d_present(&render, dest, 320, 200, 32, 20);
+
+    for (int i = 0; i < 320 * 200; i++)
+        assert(dest[i] == 0xFF4466AA || dest[i] == 0xFF446644 || dest[i] == 0);
 }
 
 static void test_render_rejects_corrupt_coordinates(void) {
@@ -235,6 +262,7 @@ int main(void) {
     test_smooth_movement();
     test_update_rejects_invalid_state();
     test_render();
+    test_render_without_palette_draws_no_geometry();
     test_render_rejects_corrupt_coordinates();
     printf("All liberation_city_nav tests passed\n");
     return 0;

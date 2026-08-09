@@ -1,5 +1,20 @@
 # OpenCaptive — Completed work
 
+## 2026-08-09 (Synthetic-data removal, v1.1.97)
+
+- Removed the last two reachable synthetic-content fallbacks: the invented shop
+  backdrop and the invented 3D polygon colour ramp. Both now fail closed, so
+  original artwork and the original palette are the only sources of pixels.
+- These were left in place in v1.1.96 because the test suite asserted the
+  fallback behaviour. The tests turned out to be the weak part: they asserted
+  only "not black" or "two buffers differ", which passed even when nothing was
+  drawn. They now assert exact palette colours, and two new tests lock in that
+  missing data produces an empty frame rather than invented content.
+- Found while fixing the tests: `city_nav_render` and `city_nav_render_textured`
+  accepted `palette`/`pal_size` and ignored them, reading `render->palette`
+  instead. Production worked only because main.c also assigned the field
+  directly.
+
 ## 2026-08-09 (Multi-round code review campaign, v1.1.92–v1.1.95)
 
 - Ran four multi-agent review rounds over the whole tree and fixed 16 confirmed

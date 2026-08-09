@@ -9,3 +9,6 @@ gamedata/
 *.zip
 .DS_Store
 wiki/
+
+# Local Claude Code dev config: machine-specific absolute paths.
+.claude/

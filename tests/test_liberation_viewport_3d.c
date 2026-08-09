@@ -50,18 +50,25 @@ static void test_render_triangle(void) {
     obj.parsed_polys = &poly;
     obj.polygon_count = 1;
 
-    lib3d_render_object(&state, &obj, 0, 0, 0, NULL, 0);
+    /* Geometry is only filled in colours the palette can resolve. */
+    static uint32_t palette[64];
+    for (int i = 0; i < 64; i++) palette[i] = 0xFF000000 | (uint32_t)(i + 1);
+    palette[0x1F] = 0xFF3366CC;
+
+    lib3d_render_object(&state, &obj, 0, 0, 0, palette, 64);
     assert(state.proj_count == 3);
     assert(state.vis_count == 1);
 
-    uint32_t dest[320 * 200];
+    static uint32_t dest[320 * 200];
     memset(dest, 0, sizeof(dest));
     lib3d_present(&state, dest, 320, 200, 32, 20);
 
-    /* Center of viewport should have the triangle */
+    /* The centre must carry the triangle's own palette colour.  The polygon
+     * has a zero normal, so it is drawn unshaded and the value is exact.
+     * Asserting "not black" passed even when nothing was drawn at all. */
     int cx = 32 + LIB3D_VP_WIDTH / 2;
     int cy = 20 + LIB3D_VP_HEIGHT / 2;
-    assert(dest[cy * 320 + cx] != 0xFF000000);
+    assert(dest[cy * 320 + cx] == 0xFF3366CC);
 }
 
 static void test_z_sorting(void) {
@@ -110,18 +117,28 @@ static void test_z_sorting(void) {
     near_obj.parsed_polys = &near_poly;
     near_obj.polygon_count = 1;
 
-    lib3d_render_object(&state, &far_obj, 0, 0, 0, NULL, 0);
-    lib3d_render_object(&state, &near_obj, 0, 0, 0, NULL, 0);
+    /* Give the two quads distinct palette colours so the depth order is
+     * actually observable.  Both have zero normals, so they are drawn
+     * unshaded and the centre pixel equals one palette entry exactly. */
+    static uint32_t palette[64];
+    for (int i = 0; i < 64; i++) palette[i] = 0xFF000000 | (uint32_t)(i + 1);
+    palette[far_poly.color & 0x3F]  = 0xFF0000FF;   /* far  = blue  */
+    palette[near_poly.color & 0x3F] = 0xFFFF0000;   /* near = red   */
 
-    uint32_t dest[320 * 200];
+    lib3d_render_object(&state, &far_obj, 0, 0, 0, palette, 64);
+    lib3d_render_object(&state, &near_obj, 0, 0, 0, palette, 64);
+
+    static uint32_t dest[320 * 200];
     memset(dest, 0, sizeof(dest));
     lib3d_present(&state, dest, 320, 200, 0, 0);
 
-    /* Center pixel should be the near (brighter) polygon */
+    /* The near quad must win the centre.  The old assertion only checked the
+     * pixel was not black, so an inverted depth sort — or nothing drawn at
+     * all — passed just as happily. */
     int cx = LIB3D_VP_WIDTH / 2;
     int cy = LIB3D_VP_HEIGHT / 2;
     uint32_t center = dest[cy * 320 + cx];
-    assert(center != 0xFF000000);
+    assert(center == 0xFFFF0000);
 }
 
 static void test_camera_rotation(void) {
@@ -377,14 +394,20 @@ static void test_projected_indices_above_255(void) {
     lib3d_init(&state);
     lib3d_set_camera(&state, 0, 0, 0, 0);
     lib3d_clear(&state, 0xFF000000, 0xFF000000);
-    lib3d_render_object(&state, &filler_object, 0, 0, 0, NULL, 0);
-    lib3d_render_object(&state, &triangle_object, 0, 0, 0, NULL, 0);
+    static uint32_t palette[64];
+    for (int i = 0; i < 64; i++) palette[i] = 0xFF000000 | (uint32_t)(i + 1);
+    palette[0x1F] = 0xFF3366CC;
+
+    lib3d_render_object(&state, &filler_object, 0, 0, 0, palette, 64);
+    lib3d_render_object(&state, &triangle_object, 0, 0, 0, palette, 64);
 
     assert(state.proj_count == 259);
     assert(state.vis_count == 1);
     memset(dest, 0, sizeof(dest));
     lib3d_present(&state, dest, 320, 200, 0, 0);
-    assert(dest[100 * 320 + 128] != 0xFF000000);
+    /* The triangle's vertices sit past index 255, so this pixel proves the
+     * high indices resolved to the right projected vertices. */
+    assert(dest[100 * 320 + 128] == 0xFF3366CC);
 }
 
 static void test_extreme_screen_coordinates_are_clipped(void) {

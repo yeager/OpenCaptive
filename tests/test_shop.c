@@ -169,10 +169,16 @@ static void test_shop_render_includes_item_name(void) {
     db.defs[1] = db.defs[0];
     db.defs[1].id = 2;
     db.defs[1].name[0] = 'B';
+    /* Stand-in for the original SHOP1 backdrop.  This is a test fixture, not
+     * shipped artwork: shop_render only needs some verified background to
+     * composite the item list onto. */
+    static uint32_t backdrop[320 * 200];
+    for (int i = 0; i < 320 * 200; i++) backdrop[i] = 0xFF203040;
+
     shop.item_ids[0] = 1;
-    shop_render(&shop, &db, first, 320, 200, NULL);
+    shop_render(&shop, &db, first, 320, 200, backdrop);
     shop.item_ids[0] = 2;
-    shop_render(&shop, &db, second, 320, 200, NULL);
+    shop_render(&shop, &db, second, 320, 200, backdrop);
 
     bool label_differs = false;
     for (int y = 36; y < 43 && !label_differs; y++)
@@ -182,6 +188,27 @@ static void test_shop_render_includes_item_name(void) {
                 break;
             }
     assert(label_differs);
+}
+
+/* Without the original backdrop the shop draws nothing at all.  It used to
+ * synthesize a panel, border, and title bar in place of the real artwork. */
+static void test_shop_render_without_backdrop_draws_nothing(void) {
+    ItemDatabase db = {0};
+    ShopState shop = {.active = true, .num_items = 1, .selected = 0,
+                      .gold = 100};
+    static uint32_t canvas[320 * 200];
+    for (int i = 0; i < 320 * 200; i++) canvas[i] = 0xDEADBEEF;
+
+    db.num_defs = 1;
+    db.defs[0].id = 1;
+    db.defs[0].name[0] = 'A';
+    db.defs[0].price = 100;
+    shop.item_ids[0] = 1;
+
+    shop_render(&shop, &db, canvas, 320, 200, NULL);
+
+    for (int i = 0; i < 320 * 200; i++)
+        assert(canvas[i] == 0xDEADBEEF);
 }
 
 int main(void) {
@@ -197,5 +224,6 @@ int main(void) {
     test_shop_navigation_stops_at_visible_item_limit();
     test_shop_stock_matches_visible_list();
     test_shop_render_includes_item_name();
+    test_shop_render_without_backdrop_draws_nothing();
     return 0;
 }

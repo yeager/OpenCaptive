@@ -151,27 +151,11 @@ void shop_render(const ShopState *shop, const ItemDatabase *db,
     if (!shop || !db || !pixels || width <= 0 || height <= 0) return;
     size_t pixel_count = (size_t)width * (size_t)height;
     int px = 30, py = 20, pw = 260, ph = 160;
-    if (shop_bg) {
-        memcpy(pixels, shop_bg, pixel_count * sizeof(uint32_t));
-    } else {
-        /* NOTE: this backdrop is invented chrome standing in for the original
-         * SHOP1 artwork, which the no-data path is deliberately tested
-         * against (tests/test_shop.c:174).  Making it fail-closed like the
-         * texture atlas would render the shop unusable, so the decision is
-         * left explicit rather than changed silently. */
-        for (size_t i = 0; i < pixel_count; i++)
-            pixels[i] = (pixels[i] & 0xFF000000) | ((pixels[i] & 0xFEFEFE) >> 1);
-        fill_rect_s(pixels, width, height, px, py, pw, ph, 0xFF111133);
-        for (int x = px; x < px + pw; x++) {
-            put_pixel_s(pixels, width, height, x, py, 0xFF5555AA);
-            put_pixel_s(pixels, width, height, x, py + ph - 1, 0xFF5555AA);
-        }
-        for (int y = py; y < py + ph; y++) {
-            put_pixel_s(pixels, width, height, px, y, 0xFF5555AA);
-            put_pixel_s(pixels, width, height, px + pw - 1, y, 0xFF5555AA);
-        }
-        fill_rect_s(pixels, width, height, px + pw/2 - 12, py + 4, 24, 8, 0xFFFFAA00);
-    }
+    /* The shop backdrop is original SHOP1 artwork.  Without it there is
+     * nothing to draw: the previous fallback invented a panel, border, and
+     * title bar standing in for that artwork. */
+    if (!shop_bg) return;
+    memcpy(pixels, shop_bg, pixel_count * sizeof(uint32_t));
 
     int list_y = py + 16;
     int item_count = shop->num_items;

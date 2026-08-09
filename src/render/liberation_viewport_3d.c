@@ -447,17 +447,12 @@ void lib3d_present(Lib3dState *state, uint32_t *dest, int dest_w, int dest_h,
 
     for (unsigned i = 0; i < state->vis_count; i++) {
         const Lib3dVisPoly *poly = &state->visible[i];
-        uint32_t color;
         unsigned ci = poly->color & 0x3F;
-        /* NOTE: the else branch is a synthetic colour ramp standing in for the
-         * original palette.  Skipping unpalettable polygons instead breaks
-         * test_liberation_city_nav.c:210, which renders with no palette and
-         * asserts walls appear, so this needs a decision rather than a silent
-         * change. */
-        if (state->palette && ci < state->pal_size)
-            color = state->palette[ci];
-        else
-            color = 0xFF000000 | (ci * 4) | ((ci * 4) << 8) | ((63 - ci) * 4) << 16;
+        /* Colours come from the original palette or the polygon is not drawn.
+         * The previous synthetic ramp invented a colour for every polygon
+         * whenever the palette was absent or shorter than the index. */
+        if (!state->palette || ci >= state->pal_size) continue;
+        uint32_t color = state->palette[ci];
 
         float shade = 1.0f;
         if (poly->normal_x != 0 || poly->normal_y != 0) {
