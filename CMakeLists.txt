@@ -80,6 +80,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/texture_atlas.c
     src/data/dos_vga_reference.c
     src/data/captive_dos_descriptor.c
+    src/data/captive_cappo_descriptors.c
     src/data/adf_reader.c
     src/data/iso9660_reader.c
     src/data/liberation_data.c
@@ -234,6 +235,7 @@ add_test(NAME captive_compositor COMMAND test_captive_compositor)
 add_executable(test_viewport
     tests/test_viewport.c
     src/render/viewport.c
+    src/data/captive_cappo_descriptors.c
     src/engine/captive_view_window.c
     src/engine/creature_stats.c
     src/render/creature_sprite.c)
