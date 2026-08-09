@@ -64,6 +64,8 @@ static void test_write_read_roundtrip(void) {
     out.generators_destroyed = 3;
     out.generators_total = 10;
     out.reputation = -42;
+    out.crime_level = 3;
+    out.wanted = 1;
     out.shared_inventory_count = 2;
     snprintf(out.shared_inventory[0].name, sizeof(out.shared_inventory[0].name),
              "KEYCARD");
@@ -128,6 +130,8 @@ static void test_write_read_roundtrip(void) {
     assert(in.generators_destroyed == 3);
     assert(in.generators_total == 10);
     assert(in.reputation == -42);
+    assert(in.crime_level == 3);
+    assert(in.wanted == 1);
     assert(in.shared_inventory_count == 2);
     assert(strcmp(in.shared_inventory[0].name, "KEYCARD") == 0);
     assert(in.shared_inventory[0].item_type == 49);
@@ -259,7 +263,7 @@ static void test_read_previous_version_without_reputation(void) {
     assert(fseek(f, 4, SEEK_SET) == 0);
     uint8_t version[2] = {0, LIB_SAVE_SHARED_INVENTORY_VERSION};
     assert(fwrite(version, 1, sizeof(version), f) == sizeof(version));
-    assert(fseek(f, -2, SEEK_END) == 0);
+    assert(fseek(f, -4, SEEK_END) == 0);
     long end_without_reputation = ftell(f);
     assert(end_without_reputation >= 0);
     assert(ftruncate(fileno(f), end_without_reputation) == 0);
@@ -289,6 +293,10 @@ static void test_read_reputation_version(void) {
     assert(fseek(f, 4, SEEK_SET) == 0);
     uint8_t version[2] = {0, LIB_SAVE_REPUTATION_VERSION};
     assert(fwrite(version, 1, sizeof(version), f) == sizeof(version));
+    assert(fseek(f, -2, SEEK_END) == 0);
+    long end_without_crime = ftell(f);
+    assert(end_without_crime >= 0);
+    assert(ftruncate(fileno(f), end_without_crime) == 0);
     assert(fclose(f) == 0);
 
     LibSaveData loaded;
@@ -361,10 +369,10 @@ static void test_legacy_version_record_size_is_supported(void) {
     assert(fseek(f, 4, SEEK_SET) == 0);
     uint8_t version[2] = {0, LIB_SAVE_REPUTATION_VERSION};
     assert(fwrite(version, 1, sizeof(version), f) == sizeof(version));
-    /* Remove v8's shield extension, v7's two additional skill bytes, and
-       six body-part condition bytes; v5 retains reputation but predates
-       these fields. */
-    assert(fseek(f, -11, SEEK_END) == 0);
+    /* Remove v9's crime fields, v8's shield extension, v7's two additional
+       skill bytes, and six body-part condition bytes; v5 retains reputation
+       but predates these fields. */
+    assert(fseek(f, -13, SEEK_END) == 0);
     long end = ftell(f);
     assert(end >= 0 && ftruncate(fileno(f), end) == 0);
     assert(fclose(f) == 0);

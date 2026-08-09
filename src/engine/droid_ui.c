@@ -307,7 +307,7 @@ bool droid_ui_handle_key(DroidUIState *ui, GameState *gs, const ItemDatabase *db
                 }
                 return false;
             }
-            return true;
+            return false;
         }
         default:
             return false;

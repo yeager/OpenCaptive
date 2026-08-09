@@ -975,7 +975,7 @@ MenuResult start_menu_handle_event(StartMenu *menu, const SDL_Event *event) {
                 } else if (c < col_items) {
                     if (c > 0) menu->settings_cursor--;
                 } else {
-                    if (c > col_items) menu->settings_cursor--;
+                    if (c >= col_items) menu->settings_cursor--;
                 }
                 break;
             }

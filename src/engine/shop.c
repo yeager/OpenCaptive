@@ -229,13 +229,15 @@ bool shop_repair(ShopState *shop, GameState *gs, int droid_idx) {
         return false;
     bool needs_repair = (d->hp < d->hp_max || d->energy < d->energy_max);
     for (int i = 0; i < 6 && !needs_repair; i++)
-        if (d->body_part_hp[i] < 255) needs_repair = true;
+        if (d->body_parts[i] != 0 && d->body_part_hp[i] < 255)
+            needs_repair = true;
     if (!needs_repair) return false;
 
     int64_t damage = (int64_t)(d->hp_max - d->hp) +
                      (int64_t)(d->energy_max - d->energy);
     for (int i = 0; i < 6; i++)
-        damage += (int64_t)(255 - d->body_part_hp[i]);
+        if (d->body_parts[i] != 0)
+            damage += (int64_t)(255 - d->body_part_hp[i]);
     int64_t cost = damage * 2;
     if (cost < 10) cost = 10;
     if (cost > shop->gold) return false;
@@ -244,6 +246,7 @@ bool shop_repair(ShopState *shop, GameState *gs, int droid_idx) {
     d->hp = d->hp_max;
     d->energy = d->energy_max;
     for (int i = 0; i < 6; i++)
-        d->body_part_hp[i] = 255;
+        if (d->body_parts[i] != 0)
+            d->body_part_hp[i] = 255;
     return true;
 }

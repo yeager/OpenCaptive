@@ -80,7 +80,7 @@ static void test_shop_repair_handles_large_valid_stats(void) {
     d->hp_max = INT16_MAX;
     d->energy = 0;
     d->energy_max = INT16_MAX;
-    for (int i = 0; i < 6; i++) d->body_part_hp[i] = 0;
+    for (int i = 0; i < 6; i++) { d->body_parts[i] = 1; d->body_part_hp[i] = 0; }
     int64_t expected_cost = (int64_t)INT16_MAX * 2 + (int64_t)INT16_MAX * 2 + (int64_t)255 * 6 * 2;
     assert(shop_repair(&shop, &gs, 0));
     assert(shop.gold == INT_MAX - (int)expected_cost);

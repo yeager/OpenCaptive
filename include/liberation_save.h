@@ -9,8 +9,9 @@
 #include "liberation_city_nav.h"
 
 #define LIB_SAVE_MAGIC "LSAV"
-#define LIB_SAVE_VERSION 8
-#define LIB_SAVE_PREVIOUS_VERSION 7
+#define LIB_SAVE_VERSION 9
+#define LIB_SAVE_PREVIOUS_VERSION 8
+#define LIB_SAVE_CRIME_VERSION 9
 #define LIB_SAVE_REPUTATION_VERSION 5
 #define LIB_SAVE_BODY_PART_VERSION 6
 #define LIB_SAVE_SKILLS_VERSION 7
@@ -62,6 +63,8 @@ typedef struct {
     uint16_t generators_destroyed;
     uint16_t generators_total;
     int16_t  reputation;
+    uint8_t  crime_level;
+    uint8_t  wanted;
 } LibSaveData;
 
 bool lib_save_write(const LibSaveData *data, const char *path);

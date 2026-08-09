@@ -665,6 +665,7 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
             case PUZZLE_WALL_ELECTRIC: {
                 int elec_dmg = 8 + gs->current_level * 3;
                 for (int di = 0; di < 4; di++) {
+                    if (gs->droids[di].hp <= 0) continue;
                     droid_apply_environmental_damage(&gs->droids[di], elec_dmg);
                 }
                 apply_puzzle_game_over(gs);

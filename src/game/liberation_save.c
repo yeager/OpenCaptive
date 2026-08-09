@@ -51,7 +51,8 @@ bool lib_save_write(const LibSaveData *data, const char *path) {
         data->mission < 1 || data->mission >= LIB_SAVE_MAX_MISSIONS ||
         data->shared_inventory_count > LIB_SAVE_MAX_SHARED_ITEMS ||
         data->generators_destroyed > data->generators_total ||
-        data->reputation < -100 || data->reputation > 100) return false;
+        data->reputation < -100 || data->reputation > 100 ||
+        data->crime_level > 5 || data->wanted > 1) return false;
     for (int i = 0; i < data->num_droids; i++) {
         const LibSaveDroid *d = &data->droids[i];
         if (d->hp < 0 || d->hp_max < 0 || d->hp > d->hp_max ||
@@ -117,6 +118,8 @@ bool lib_save_write(const LibSaveData *data, const char *path) {
     ok = write_u16(f, data->generators_destroyed) && ok;
     ok = write_u16(f, data->generators_total) && ok;
     ok = write_u16(f, (uint16_t)data->reputation) && ok;
+    ok = fwrite(&data->crime_level, 1, 1, f) == 1 && ok;
+    ok = fwrite(&data->wanted, 1, 1, f) == 1 && ok;
 
     ok = ok && !ferror(f);
     ok = fclose(f) == 0 && ok;
@@ -213,10 +216,11 @@ bool lib_save_read(LibSaveData *data, const char *path) {
      * decoding the declared count below. */
     long long shared_inventory_size = ver >= LIB_SAVE_SHARED_INVENTORY_VERSION ? 1LL : 0LL;
     long long reputation_size = ver >= LIB_SAVE_REPUTATION_VERSION ? 2LL : 0LL;
+    long long crime_size = ver >= LIB_SAVE_CRIME_VERSION ? 2LL : 0LL;
     long long required_end = (long long)payload_start +
                              (long long)data->num_droids * droid_record_size +
                              shared_inventory_size + LIB_SAVE_MAX_MISSIONS / 8 + 4LL +
-                             reputation_size;
+                             reputation_size + crime_size;
     if (file_end < 0 || (long long)file_end < required_end ||
         fseek(f, payload_start, SEEK_SET) != 0) {
         fclose(f);
@@ -332,6 +336,16 @@ bool lib_save_read(LibSaveData *data, const char *path) {
             fclose(f);
             return false;
         }
+    }
+
+    if (ver >= LIB_SAVE_CRIME_VERSION) {
+        if (fread(&data->crime_level, 1, 1, f) != 1 ||
+            fread(&data->wanted, 1, 1, f) != 1) {
+            fclose(f);
+            return false;
+        }
+        if (data->crime_level > 5) data->crime_level = 5;
+        if (data->wanted > 1) data->wanted = 1;
     }
 
     /* A valid save has no extension area.  Accepting trailing bytes would

@@ -1223,6 +1223,10 @@ static void restore_liberation_save_state(GameState *gs_ptr,
     gs_ptr->generators_destroyed = (int)save->generators_destroyed;
     gs_ptr->generators_total = (int)save->generators_total;
     gs_ptr->reputation = save->version >= LIB_SAVE_REPUTATION_VERSION ? save->reputation : 0;
+    if (save->version >= LIB_SAVE_CRIME_VERSION) {
+        gs_ptr->crime_level = save->crime_level;
+        gs_ptr->wanted = save->wanted;
+    }
     memcpy(gs_ptr->lib_mission_complete, save->mission_complete,
            sizeof(gs_ptr->lib_mission_complete));
     for (int i = 0; i < 4 && i < save->num_droids; i++) {
@@ -1800,6 +1804,8 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 save.generators_destroyed = save.generators_total;
             save.reputation = gs->reputation < -100 ? -100 :
                 (gs->reputation > 100 ? 100 : (int16_t)gs->reputation);
+            save.crime_level = gs->crime_level > 5 ? 5 : gs->crime_level;
+            save.wanted = gs->wanted ? 1 : 0;
             memcpy(save.mission_complete, gs->lib_mission_complete,
                    sizeof(save.mission_complete));
             save.shared_inventory_count = gs->lib_inventory_count < 0 ? 0 :
