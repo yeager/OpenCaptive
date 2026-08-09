@@ -2952,8 +2952,11 @@ int main(int argc, char *argv[]) {
                             }
                             if (!intro_loaded) {
                                 music_play(&music_sys, MUSIC_BASE);
-                                gs.mode = STATE_DROID_CONFIG;
-                                droid_config_cursor = 0;
+                                /* Without decoded intro media, continue to
+                                 * the verified navigation surface.  Never
+                                 * expose the generated droid-config shell. */
+                                captive_holamap_reset(gs.mission);
+                                gs.mode = STATE_HOLAMAP;
                             }
                             /* Show the backstory scroll first; it hands off
                              * to whichever mode was just computed above
@@ -3036,8 +3039,8 @@ int main(int argc, char *argv[]) {
                                     gs.config = config;
                                     combat_init(&creatures);
                                     puzzle_init(&puzzles);
-                                    gs.mode = STATE_DROID_CONFIG;
-                                    droid_config_cursor = 0;
+                                    captive_holamap_reset(gs.mission);
+                                    gs.mode = STATE_HOLAMAP;
                                 }
                             }
                             break;
@@ -3774,6 +3777,13 @@ int main(int argc, char *argv[]) {
          * synthetic mission text can never reach the live Captive window. */
         if (gs.game_type == GAME_CAPTIVE &&
             (gs.mode == STATE_GAMEOVER || gs.mode == STATE_VICTORY)) {
+            captive_holamap_reset(gs.mission);
+            gs.mode = STATE_HOLAMAP;
+        }
+        if (gs.game_type == GAME_CAPTIVE && gs.mode == STATE_DROID_CONFIG) {
+            /* The droid-config screen in this native path is populated from
+             * generated GameState defaults, not decoded CAPPO records.  It
+             * must never be visible when real Captive media is in use. */
             captive_holamap_reset(gs.mission);
             gs.mode = STATE_HOLAMAP;
         }
