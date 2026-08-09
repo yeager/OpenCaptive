@@ -240,6 +240,17 @@ void citygen_assign_types(CityGrid *grid) {
         grid->buildings[i].name_seed = (uint8_t)(grid->prng_state & 0xFF);
 
     }
+    bool has_special = false;
+    for (int i = 0; i < (int)grid->total_buildings; i++)
+        if (grid->buildings[i].type == BUILDING_SPECIAL) { has_special = true; break; }
+    if (!has_special && grid->total_buildings > 0) {
+        uint16_t r = citygen_prng(&grid->prng_state);
+        int idx = (int)(r % grid->total_buildings);
+        grid->buildings[idx].type = BUILDING_SPECIAL;
+        grid->buildings[idx].flags =
+            (uint8_t)((grid->buildings[idx].flags & 0x03U) |
+                      ((BUILDING_SPECIAL & 0x0FU) << 2));
+    }
 }
 
 /*

@@ -631,6 +631,7 @@ bool puzzle_interact(PuzzleList *pl, GameState *gs, int x, int y, int face) {
                     gs->selected_droid >= (int)(sizeof(gs->droids) / sizeof(gs->droids[0])))
                     return false;
                 Droid *d = &gs->droids[gs->selected_droid];
+                if (d->hp <= 0) return false;
                 droid_apply_environmental_damage(d, p->state);
                 apply_puzzle_game_over(gs);
                 return true;
@@ -694,6 +695,7 @@ void puzzle_check_step(PuzzleList *pl, GameState *gs, int x, int y) {
                     gs->selected_droid >= (int)(sizeof(gs->droids) / sizeof(gs->droids[0])))
                     break;
                 Droid *d = &gs->droids[gs->selected_droid];
+                if (d->hp <= 0) break;
                 droid_apply_environmental_damage(d, p->state);
                 apply_puzzle_game_over(gs);
                 break;

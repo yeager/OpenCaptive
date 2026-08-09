@@ -1,4 +1,5 @@
 #include "liberation_npc.h"
+#include "liberation_citygen_grid.h"
 #include <string.h>
 
 /* Simple PRNG */
@@ -22,8 +23,8 @@ void city_npc_init(CityNPCList *list, uint32_t seed) {
     for (int i = 0; i < count; i++) {
         CityNPC *n = &list->npcs[i];
         n->active = true;
-        n->x = (int16_t)(npc_rng(&rng) % 32);
-        n->y = (int16_t)(npc_rng(&rng) % 32);
+        n->x = (int16_t)(npc_rng(&rng) % CITYGRID_WIDTH);
+        n->y = (int16_t)(npc_rng(&rng) % CITYGRID_HEIGHT);
         n->dir = (uint8_t)(npc_rng(&rng) % 4);
         n->frame = 0;
         n->speed = (uint8_t)(4 + npc_rng(&rng) % 5); /* 4-8 */
@@ -53,10 +54,10 @@ void city_npc_tick(CityNPCList *list, uint32_t tick) {
         n->y += (int16_t)dy[n->dir];
 
         /* Wrap within city bounds */
-        if (n->x < 0) n->x = 31;
-        if (n->x > 31) n->x = 0;
-        if (n->y < 0) n->y = 31;
-        if (n->y > 31) n->y = 0;
+        if (n->x < 0) n->x = CITYGRID_WIDTH - 1;
+        if (n->x >= CITYGRID_WIDTH) n->x = 0;
+        if (n->y < 0) n->y = CITYGRID_HEIGHT - 1;
+        if (n->y >= CITYGRID_HEIGHT) n->y = 0;
 
         /* Randomly change direction at "intersections" (every few moves) */
         uint32_t rng = tick * 31 + (uint32_t)i * 7 + (uint32_t)n->x * 13 + (uint32_t)n->y * 17;

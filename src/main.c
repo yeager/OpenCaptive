@@ -2803,6 +2803,7 @@ int main(int argc, char *argv[]) {
                             game_state_init(&gs, GAME_CAPTIVE, 1);
                             combat_init(&creatures);
                             puzzle_init(&puzzles);
+                            automap_init(&automap_state);
                             gs.game_type = GAME_CAPTIVE;
                             apply_menu_config(&config, &menu, &custom);
                             gs.config = config;
@@ -2907,6 +2908,7 @@ int main(int argc, char *argv[]) {
                                 loaded = load_game(&gs, &creatures, &puzzles, spath);
                                 if (!loaded) loaded = load_game(&gs, &creatures, &puzzles, "opencaptive.sav");
                                 if (loaded) {
+                                    automap_init(&automap_state);
                                     music_play(&music_sys, MUSIC_BASE);
                                     gs.mode = STATE_GAME;
                                 } else {
@@ -3689,6 +3691,7 @@ int main(int argc, char *argv[]) {
                 if (game_state_new_mission(&gs, gs.mission + 1)) {
                     generate_captive_puzzles(&gs);
                     generate_captive_encounters(&gs);
+                    automap_init(&automap_state);
                     gs.mode = STATE_DROID_CONFIG;
                     droid_config_cursor = 0;
                     music_play(&music_sys, MUSIC_BASE);
