@@ -19,9 +19,11 @@ resolution.
 
 The original arrow controls remain interactive. Mouse coordinates are mapped
 through the centered native canvas and use the original 18×18 control regions;
-keyboard arrows use the same state path. The two original ladder hitboxes now
-change nearest-neighbour zoom on the verified map panel while leaving the HUD
-and control bank untouched.
+keyboard arrows and the original numeric keypad controls use the same state
+path. OpenCaptive maps `NUMPAD 2/4/6/8` to cursor movement, `NUMPAD 7` to
+`ORBIT`, and `NUMPAD 9` to `LAND`. The two original ladder hitboxes now change
+nearest-neighbour zoom on the verified map panel while leaving the HUD and
+control bank untouched.
 
 The complete verified checkpoint is now available as four real CAPPO frames:
 

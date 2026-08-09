@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-09 (CAPPO numeric-keypad controls)
+
+- Added the original CAPPO holomap mapping to OpenCaptive: `NUMPAD 2/4/6/8`
+  moves the cursor, `NUMPAD 7` starts Orbit, and `NUMPAD 9` starts Land.
+- Kept the live mission/runtime handoff source-gated; this change adds input
+  parity only and creates no map, landing point, or dungeon data.
+- Rebuilt successfully and passed all 62 tests.
+
 ## 2026-08-09 (Verified Captive planet landing checkpoint)
 
 - Replayed the real CAPPO mission in DOSBox-X through the green blinking

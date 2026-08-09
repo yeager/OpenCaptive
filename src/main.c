@@ -3619,16 +3619,27 @@ int main(int argc, char *argv[]) {
                     } else if (event.type == SDL_EVENT_KEY_DOWN) {
                         switch (event.key.key) {
                             case SDLK_UP:
+                            case SDLK_KP_8:
                                 holamap_move_cursor(&captive_holamap, 0, -1);
                                 break;
                             case SDLK_DOWN:
+                            case SDLK_KP_2:
                                 holamap_move_cursor(&captive_holamap, 0, 1);
                                 break;
                             case SDLK_LEFT:
+                            case SDLK_KP_4:
                                 holamap_move_cursor(&captive_holamap, -1, 0);
                                 break;
                             case SDLK_RIGHT:
+                            case SDLK_KP_6:
                                 holamap_move_cursor(&captive_holamap, 1, 0);
+                                break;
+                            case SDLK_KP_7:
+                                if (captive_orbit_reference) {
+                                    captive_landed_reference_active = false;
+                                    gs.mode = STATE_ORBIT;
+                                    gs.orbit_angle = 0.0f;
+                                }
                                 break;
                             case SDLK_RETURN:
                             case SDLK_KP_ENTER:
@@ -3669,6 +3680,7 @@ int main(int argc, char *argv[]) {
                                  * being decoded. */
                                 break;
                             case SDLK_RETURN: case SDLK_KP_ENTER:
+                            case SDLK_KP_9:
                                 if (captive_landing_reference) {
                                     gs.landing_tick = 0;
                                     gs.mode = STATE_LANDING;

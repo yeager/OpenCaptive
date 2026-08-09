@@ -599,6 +599,18 @@ P — Pause
 ESC — Menu
 ```
 
+Original CAPPO holomap controls (also supported by OpenCaptive):
+
+```
+NUMPAD 2/4/6/8 — Move the holomap cursor down/left/right/up
+NUMPAD 7       — Orbit / fly to the selected green target
+NUMPAD 9       — Land at the selected white landing point
+```
+
+OpenCaptive also exposes the same six movement actions through the graphical
+control-bank arrows. These controls only select positions from the real CAPPO
+mission view; they never create a map, landing point, or dungeon.
+
 ## Executable structure
 
 ```
