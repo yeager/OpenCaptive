@@ -35,6 +35,17 @@ typedef enum {
     LIBERATION_RESOURCE_DIALOGUE_TEXT,
     /* 320x109 AMOS mission-selection composition, sprite index zero. */
     LIBERATION_RESOURCE_MISSION_MENU,
+    /* Everything above must be present for a source to count as verified. */
+    LIBERATION_RESOURCE_REQUIRED_COUNT,
+
+    /* Optional resources.  A source is still verified without these, so a
+     * manifest gap here cannot make an otherwise complete install unloadable.
+     * 0Liberation.FNT / 1Liberation.FNT: 114 proportional glyphs, 7 rows, two
+     * bitplanes, decoded by liberation_fnt.c.  The CD32 hashes are verified;
+     * the Amiga floppy equivalents are not yet recovered, so that source
+     * simply reports the font as unavailable. */
+    LIBERATION_RESOURCE_FONT_0 = LIBERATION_RESOURCE_REQUIRED_COUNT,
+    LIBERATION_RESOURCE_FONT_1,
     LIBERATION_RESOURCE_COUNT,
 } LiberationResource;
 

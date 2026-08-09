@@ -34,6 +34,11 @@ static const char *const resource_sha256[LIBERATION_RESOURCE_COUNT] = {
         "e154d250c1acdbed66835bb356a699efdb6f9f8b5e6d586ca07080414610a94c",
     [LIBERATION_RESOURCE_MISSION_MENU] =
         "d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2",
+    /* 1836 bytes each; verified against the CD32 disc image. */
+    [LIBERATION_RESOURCE_FONT_0] =
+        "c9a86d8912e1b99198589eb7f96cda948dee36659c6fae819fd2a9c8c3970a20",
+    [LIBERATION_RESOURCE_FONT_1] =
+        "8856f947e6cc680c58afa81c065fe408e9fc552d90ded2c627b4b243f9915b12",
 };
 
 /* Amiga OCS/AGA floppy resource hashes.  CityGen and PlotGen are byte-
@@ -140,7 +145,7 @@ static bool liberation_cd32_available(const DataVFS *vfs) {
     ISOImage iso;
     bool ok = iso_open_raw(&iso, track, size);
     if (ok) {
-        for (int i = 0; i < LIBERATION_RESOURCE_COUNT; ++i) {
+        for (int i = 0; i < LIBERATION_RESOURCE_REQUIRED_COUNT; ++i) {
             uint8_t *file = iso_read_file_sha256(&iso, resource_sha256[i], NULL);
             if (!file) { ok = false; break; }
             free(file);
@@ -151,7 +156,7 @@ static bool liberation_cd32_available(const DataVFS *vfs) {
 }
 
 static bool liberation_amiga_available(const DataVFS *vfs) {
-    for (int i = 0; i < LIBERATION_RESOURCE_COUNT; ++i) {
+    for (int i = 0; i < LIBERATION_RESOURCE_REQUIRED_COUNT; ++i) {
         uint8_t *file = vfs_find_sha256(vfs, amiga_resource_sha256[i], NULL);
         if (!file) return false;
         free(file);
@@ -188,7 +193,7 @@ bool liberation_data_open_source(LiberationData *data, const DataVFS *vfs,
         data->disc_data = vfs_find_sha256(vfs, cd32_track_sha256, &data->disc_size);
     if (try_cd32 && data->disc_data && iso_open_raw(&data->iso, data->disc_data, data->disc_size)) {
         bool all_found = true;
-        for (int i = 0; i < LIBERATION_RESOURCE_COUNT; i++) {
+        for (int i = 0; i < LIBERATION_RESOURCE_REQUIRED_COUNT; i++) {
             uint8_t *file = iso_read_file_sha256(&data->iso, resource_sha256[i], NULL);
             if (!file) { all_found = false; break; }
             free(file);
@@ -211,12 +216,12 @@ bool liberation_data_open_source(LiberationData *data, const DataVFS *vfs,
         return false;
     }
     int found = 0;
-    for (int i = 0; i < LIBERATION_RESOURCE_COUNT; i++) {
+    for (int i = 0; i < LIBERATION_RESOURCE_REQUIRED_COUNT; i++) {
         uint8_t *file = vfs_find_sha256(vfs, amiga_resource_sha256[i], NULL);
         if (file) { found++; free(file); }
     }
 
-    if (found == LIBERATION_RESOURCE_COUNT) {
+    if (found == LIBERATION_RESOURCE_REQUIRED_COUNT) {
         data->verified = true;
         data->source = LIBERATION_SOURCE_AMIGA_ADF;
         return true;

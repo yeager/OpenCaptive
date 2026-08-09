@@ -2,6 +2,11 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#endif
 
 static int tests_run = 0;
 
@@ -81,8 +86,36 @@ static void test_droid_ui_strings_are_catalogued(void) {
     i18n_free();
 }
 
+/* A msgstr that fills the buffer to exactly one free slot and then hits an
+ * unrecognized escape used to emit two bytes into that one slot, pushing the
+ * terminator one byte past the end of load_po's stack buffer.  The parse must
+ * stop before the pair instead, yielding 254 characters — the unfixed parser
+ * produced 255 and wrote out of bounds. */
+static void test_unknown_escape_at_buffer_end_is_truncated(void) {
+    const char *key = "OVERFLOW_PROBE";
+#ifdef _WIN32
+    _mkdir("po");
+#else
+    mkdir("po", 0777);
+#endif
+    FILE *f = fopen("po/zz.po", "w");
+    assert(f);
+    fprintf(f, "msgid \"%s\"\nmsgstr \"", key);
+    for (int i = 0; i < 254; i++) fputc('A', f);
+    fprintf(f, "\\q\"\n");
+    fclose(f);
+
+    i18n_init("zz");
+    const char *v = i18n_get(key);
+    assert(strlen(v) == 254);
+    for (int i = 0; i < 254; i++) assert(v[i] == 'A');
+    i18n_free();
+    remove("po/zz.po");
+}
+
 int main(void) {
     printf("i18n tests:\n");
+    TEST(test_unknown_escape_at_buffer_end_is_truncated);
     TEST(test_english_passthrough);
     TEST(test_null_returns_empty);
     TEST(test_unknown_lang_passthrough);

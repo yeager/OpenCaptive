@@ -669,7 +669,7 @@ void start_menu_start_scan(StartMenu *menu, const char *data_path,
     menu->scanner_captive_found = 0;
     menu->scanner_captive_total = (int)CAPTIVE_HASH_COUNT;
     menu->scanner_liberation_found = 0;
-    menu->scanner_liberation_total = (int)LIBERATION_RESOURCE_COUNT;
+    menu->scanner_liberation_total = (int)LIBERATION_RESOURCE_REQUIRED_COUNT;
     menu->scanner_progress = 0;
     menu->scanner_total = menu->scanner_captive_total +
                           menu->scanner_liberation_total;
@@ -721,7 +721,7 @@ void start_menu_update(StartMenu *menu) {
         menu->liberation_source_mask =
             liberation_data_available_sources(&menu->scanner_vfs);
         if (menu->liberation_source_mask != 0U) {
-            menu->scanner_liberation_found = (int)LIBERATION_RESOURCE_COUNT;
+            menu->scanner_liberation_found = (int)LIBERATION_RESOURCE_REQUIRED_COUNT;
         }
         menu->scanner_progress = menu->scanner_total;
         menu->scanner_phase = 2;

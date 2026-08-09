@@ -1,5 +1,37 @@
 # OpenCaptive — Completed work
 
+## 2026-08-09 (Original font data bound + .po parser overflow, v1.1.98)
+
+- Fixed a one-byte out-of-bounds stack write in the `.po` parser: the
+  unrecognized-escape branch emits two bytes behind a guard that reserved one
+  and could never fire, so a catalog string filling the buffer to its last slot
+  pushed the terminator past the end. Reachable from any shipped translation.
+  Proved the new regression test fails against the unfixed parser before
+  restoring the fix. Found by a review sweep over the ~37 source files no
+  earlier round had examined; everything else in that sweep was clean.
+
+
+- The seven invented 5x7 glyph tables cannot render lowercase, so every
+  non-English translation loses most of its text. The real font was already
+  decodable — `liberation_fnt.c` had zero callers and no manifest entry.
+- Extracted `0Liberation.FNT` / `1Liberation.FNT` from the CD32 disc via the
+  project's own `iso_list --hash`, added both hashes, and proved end to end that
+  they load through `liberation_data_read` and decode: 114 glyphs, two
+  bitplanes, proportional, all 95 printable ASCII characters resolve.
+- Split resources into required and optional. Every verification loop had
+  demanded the full manifest, so appending the fonts would have made Amiga
+  floppy loading fail outright. Verified against the real data afterwards:
+  `verify_liberation` still reports the CD32 source as verified.
+- Stopped short of the glyph blitter deliberately. The two bitplanes give a
+  2-bit value per pixel and the font file does not say which palette entries
+  those four values select; guessing it would be inventing colour data. Logged
+  in TODO with the exact blocker.
+- Checked the earlier claim that `map_gen.c` overwrites the verified CA output:
+  it does not. `carve()` only sets `CELL_FLOOR`, so rooms and corridors are
+  added on top. The file already documents its map construction as incomplete,
+  so this is an acknowledged reconstruction gap, not synthesis displacing
+  available original data. Left unchanged.
+
 ## 2026-08-09 (Synthetic-data removal, v1.1.97)
 
 - Removed the last two reachable synthetic-content fallbacks: the invented shop

@@ -367,6 +367,29 @@
 
 ## Liberation parity — missing features
 
+### Original font rendering (replaces invented glyph tables)
+- [x] Add verified SHA-256 entries for `0Liberation.FNT` / `1Liberation.FNT`
+- [x] Confirm `liberation_fnt.c` decodes the original file (114 glyphs, 2 planes,
+      proportional, full printable ASCII including lowercase)
+- [ ] Write a glyph blitter for the two-bitplane format. Blocked on one unknown:
+      the two planes give a 2-bit value per pixel, and which palette entries
+      those four values select is not recoverable from the font file alone.
+      Guessing the mapping would be inventing colour data — recover it from the
+      CD32 executable's text-drawing routine first.
+- [ ] Retire the seven invented 5x7 tables once the blitter exists:
+      `simple_font` (src/main.c), `digit_4x6` (src/render/hud.c),
+      `ui_font` (src/engine/droid_ui.c), `tiny_font` + `glyphs` (src/engine/shop.c),
+      `nav_font` (src/engine/captive_space_nav.c),
+      `cs_font` (src/engine/liberation_cutscene.c),
+      `t_font` (src/engine/terminal.c).
+      These cannot render lowercase at all, so every non-English translation
+      currently loses most of its text. `t_font` in `src/engine/terminal.c` is
+      worse still: its highest entry is `['Y']`, so the bounds check also drops
+      capital `Z` from every translated string it draws. Not patched with an
+      invented glyph on purpose — the table is due for removal, and hand-drawing
+      one more character would add exactly the kind of fabricated data this work
+      exists to eliminate.
+
 ### City NPCs
 - [x] Implement animated NPC sprites walking city streets (pedestrians, police)
 - [x] Implement police chase/arrest sequence (pursuit through streets)

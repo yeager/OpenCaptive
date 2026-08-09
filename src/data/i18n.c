@@ -47,7 +47,14 @@ static void parse_po_line(const char *line, char *out, size_t out_size) {
                 case '\\': out[i++] = '\\'; break;
                 case '"': out[i++] = '"'; break;
                 default:
-                    if (i + 1 >= out_size) {
+                    /* This branch emits two bytes and the loop still has to
+                     * terminate the string afterwards, so it needs two free
+                     * slots plus the terminator.  The old `i + 1 >= out_size`
+                     * could never be true — the loop condition already caps i
+                     * at out_size - 2 — which let the pair write up to
+                     * out[out_size - 1] and pushed the terminator one byte
+                     * past the end of the buffer. */
+                    if (i + 2 >= out_size) {
                         out[i] = '\0';
                         return;
                     }
