@@ -42,7 +42,7 @@ jobs:
           sudo ldconfig
       - name: Build
         run: |
-          cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja
+          cmake -S . -B build -DCMAKE_C_COMPILER=cc -DCMAKE_BUILD_TYPE=Debug -G Ninja
           ninja -C build
       - name: Test
         run: |
