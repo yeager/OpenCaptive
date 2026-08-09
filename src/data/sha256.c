@@ -78,7 +78,12 @@ void sha256_digest(const uint8_t *data, size_t len, uint8_t digest[32]) {
 int sha256_matches_hex(const uint8_t digest[32], const char expected[65]) {
     static const char hex[] = "0123456789abcdef";
     if (!expected || strlen(expected) != 64) return 0;
-    for (int i = 0; i < 32; i++)
-        if (expected[i * 2] != hex[digest[i] >> 4] || expected[i * 2 + 1] != hex[digest[i] & 15]) return 0;
+    for (int i = 0; i < 32; i++) {
+        char hi = expected[i * 2];
+        char lo = expected[i * 2 + 1];
+        if (hi >= 'A' && hi <= 'F') hi = (char)(hi + 32);
+        if (lo >= 'A' && lo <= 'F') lo = (char)(lo + 32);
+        if (hi != hex[digest[i] >> 4] || lo != hex[digest[i] & 15]) return 0;
+    }
     return 1;
 }
