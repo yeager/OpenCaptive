@@ -1,6 +1,6 @@
 # OpenCaptive Wiki
 
-**Current version: v1.1.91**
+**Current version: v1.1.99**
 
 OpenCaptive is a C/SDL3 reimplementation of **Captive** (1990) and **Liberation: Captive 2** (1993) by Tony Crowther, originally published by Mindscape.
 

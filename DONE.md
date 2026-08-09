@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-09 (v1.1.99 release preparation)
+
+- Updated every public documentation page and all 24 wiki pages to v1.1.99.
+- Documented the source-backed CAPPO holomap controls and the 62-test suite.
+- Hardened GitHub Actions release packaging: Windows includes Captive assets,
+  and iOS/Android icon generation fails instead of inventing fallback data.
+- Local Debug build and all 62 CTest targets pass.
+
 ## 2026-08-09 (CAPPO numeric-keypad controls)
 
 - Added the original CAPPO holomap mapping to OpenCaptive: `NUMPAD 2/4/6/8`

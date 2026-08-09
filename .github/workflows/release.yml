@@ -339,6 +339,7 @@ jobs:
           copy ${{ github.workspace }}\zlib-install\bin\zlib.dll dist\ 2>nul || copy ${{ github.workspace }}\zlib-install\bin\zlib1.dll dist\ 2>nul || echo No zlib DLL found
           copy data\DejaVuSansMono-Bold.ttf dist\data\
           xcopy /E /I /Y assets\menu dist\assets\menu
+          xcopy /E /I /Y assets\captive dist\assets\captive
           copy po\*.po dist\po\
           copy README.md dist\
           copy LICENSE dist\
@@ -480,10 +481,10 @@ jobs:
           # Compile LaunchScreen storyboard
           ibtool --compile "$APP/LaunchScreen.storyboardc" assets/LaunchScreen.storyboard \
             --target-device iphone --target-device ipad \
-            --minimum-deployment-target 15.0 || true
+            --minimum-deployment-target 15.0
           # Generate app icons
           for size in 40 60 76 84 1024; do
-            rsvg-convert -w $size -h $size assets/icon.svg -o "$APP/AppIcon${size}x${size}.png" 2>/dev/null || true
+            rsvg-convert -w $size -h $size assets/icon.svg -o "$APP/AppIcon${size}x${size}.png"
           done
           # Ad-hoc sign (required for AltStore sideloading)
           codesign --force --deep -s - "$APP"
@@ -595,20 +596,7 @@ jobs:
           cp -r SDL3-src/android-project/app/src/main/java/org apk-project/app/src/main/java/
 
           # Generate app icon from SVG
-          rsvg-convert -w 192 -h 192 assets/icon.svg -o apk-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png || \
-            python3 -c "
-          import struct, zlib
-          w=h=192
-          raw=b''
-          for y in range(h):
-              raw+=b'\x00'+(b'\x33\x66\x99\xff')*w
-          def chunk(t,d):return struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
-          with open('apk-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png','wb') as f:
-              f.write(b'\x89PNG\r\n\x1a\n')
-              f.write(chunk(b'IHDR',struct.pack('>IIBBBBB',w,h,8,6,0,0,0)))
-              f.write(chunk(b'IDAT',zlib.compress(raw)))
-              f.write(chunk(b'IEND',b''))
-          "
+          rsvg-convert -w 192 -h 192 assets/icon.svg -o apk-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
 
           # AndroidManifest.xml
           cp assets/AndroidManifest.xml apk-project/app/src/main/AndroidManifest.xml

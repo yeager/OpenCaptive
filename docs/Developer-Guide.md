@@ -1,6 +1,6 @@
 # Developer Guide
 
-> Updated for v1.1.91. Release tags build and verify Linux, macOS, Windows, Android, and iOS artifacts in GitHub Actions.
+> Updated for v1.1.99. Release tags build and verify Linux, macOS, Windows, Android, and iOS artifacts in GitHub Actions.
 
 ## Build
 
@@ -50,7 +50,7 @@ src/
                 minimap, audio_reverb, upscale_xbrz
   platform/   - Platform-specific: macos_menu
 include/      - All public headers
-tests/        - 61 test source files (60 CTest targets)
+tests/        - 62 test source files (62 CTest targets)
 docs/         - Documentation and wiki
 po/           - Translation files (19 languages)
 data/         - Bundled fonts
