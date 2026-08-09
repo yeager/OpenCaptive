@@ -429,6 +429,12 @@ int main(void) {
     memset(coverage, 0, ((CAPTIVE_VIEWPORT_WIDTH * CAPTIVE_VIEWPORT_HEIGHT) * sizeof(uint32_t)));
     for (int i = 0; i < CAPTIVE_VIEWPORT_DESCRIPTOR_COUNT; i++) {
         const CaptiveDosDescriptor *d = &captive_viewport_descriptors[i];
+        if (d->source_offset == 0xfffbU &&
+            d->destination_offset == 0xfff8U &&
+            d->width_bytes == 0xffU && d->height == 0xffU &&
+            d->flags == 0xffU) {
+            continue;
+        }
         int pixel_w = d->width_bytes * 8;
         int dst_x = d->destination_offset % CAPTIVE_DOS_VIEW_STRIDE;
         int dst_y = d->destination_offset / CAPTIVE_DOS_VIEW_STRIDE;

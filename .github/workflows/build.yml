@@ -42,16 +42,10 @@ jobs:
           sudo ldconfig
       - name: Build
         run: |
-          cmake -S . -B build -DCMAKE_C_COMPILER=cc -DCMAKE_BUILD_TYPE=Debug -G Ninja
+          cmake -S . -B build -DCMAKE_C_COMPILER=cc -G Ninja
           ninja -C build
       - name: Test
-        run: |
-          if ! ctest --test-dir build -j4 --output-on-failure -E "liberation_img|liberation_text_table"; then
-            sudo apt-get update
-            sudo apt-get install -y gdb
-            gdb -batch -ex run -ex bt --args ./build/test_viewport || true
-            exit 1
-          fi
+        run: ctest --test-dir build -j4 --output-on-failure -E "liberation_img|liberation_text_table"
 
   build-macos:
     runs-on: macos-14
