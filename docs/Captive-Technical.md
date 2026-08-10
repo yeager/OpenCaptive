@@ -320,14 +320,25 @@ PL5 source sheets. It remains active so the game is playable, but its placement
 and scaling rules are an approximation, not the original descriptor sequence.
 Displaying it must not be described as pixel-identical DOS parity.
 
-The active Captive path draws the verified original `GAME SCRN` shell and the
-compatibility viewport. The original DOS renderer is a back-to-front sequence
+The active Captive path draws the verified original `GAME SCRN` shell and, when
+available, an authenticated landed checkpoint. It does not draw the
+compatibility viewport: the original DOS renderer is a back-to-front sequence
 of descriptor-driven planar copies with caller-specific destination bases,
-mask behaviour and per-cell ordering. Replacing the compatibility view
-therefore requires those commands to be recovered from the original runtime,
-then compared against DOS-VGA captures. Until then the generated perspective,
-floor, ceiling, door, creature and object pixels remain compatibility output,
-not a parity claim.
+mask behaviour and per-cell ordering. Re-enabling a live viewport therefore
+requires those commands to be recovered from the original runtime, then
+compared against DOS-VGA captures. Until then, generated perspective, floor,
+ceiling, door, creature and object pixels are not shown as Captive content.
+
+### Raw DOSBox-X map inspection
+
+`captive_map_dump MEMDUMP.BIN [DS-segment-hex]` is an analysis-only tool. It
+reads a caller-supplied, complete 1 MiB DOSBox-X memory dump and prints the
+original 64×32 byte map at `DS:7CB3`, the active coordinates at `DS:5E80` and
+`DS:5E82`, and the orientation field at `DS:5E84`. It deliberately preserves
+CAPPO's raw cell bytes and performs no conversion to OpenCaptive cell types.
+The default segment is `0x2942`, matching the verified relocated runtime
+fixture. No dump bytes are bundled and the tool is never used as runtime game
+data.
 
 ## SFX system
 

@@ -79,6 +79,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/gfx_loader.c
     src/data/texture_atlas.c
     src/data/dos_vga_reference.c
+    src/data/captive_dos_map.c
     src/data/captive_dos_descriptor.c
     src/data/captive_cappo_descriptors.c
     src/data/adf_reader.c
@@ -274,6 +275,11 @@ add_executable(test_captive_dos_descriptor tests/test_captive_dos_descriptor.c
     src/data/captive_dos_descriptor.c)
 target_include_directories(test_captive_dos_descriptor PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME captive_dos_descriptor COMMAND test_captive_dos_descriptor)
+
+add_executable(test_captive_dos_map tests/test_captive_dos_map.c
+    src/data/captive_dos_map.c)
+target_include_directories(test_captive_dos_map PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME captive_dos_map COMMAND test_captive_dos_map)
 
 add_executable(test_frame_compare tests/test_frame_compare.c
     src/render/frame_compare.c)
@@ -783,6 +789,10 @@ add_executable(captive_descriptor_match tools/captive_descriptor_match.c
     src/data/captive_dos_descriptor.c src/data/dos_vga_reference.c
     src/data/pl5_decoder.c src/data/sha256.c)
 target_include_directories(captive_descriptor_match PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+add_executable(captive_map_dump tools/captive_map_dump.c
+    src/data/captive_dos_map.c)
+target_include_directories(captive_map_dump PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 add_executable(dump_pge tools/dump_pge.c
     src/data/liberation_data.c src/data/liberation_string_tables.c

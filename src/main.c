@@ -4428,24 +4428,16 @@ int main(int argc, char *argv[]) {
                             memcpy(framebuffer, hud_bg,
                                    CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
                         }
-                        if (gs.game_type == GAME_CAPTIVE &&
-                            config.render_mode == CAPTIVE_RENDER_ORIGINAL &&
-                            textures_loaded) {
-                            CaptiveViewWindow original_view;
-                            captive_view_window_build(&gs, &original_view);
-                            viewport_render_original_descriptors(
-                                &original_view, &atlas, framebuffer,
-                                CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
-                        }
-                        if (config.render_mode == CAPTIVE_RENDER_ENHANCED) {
-                            /* Enhanced mode may add presentation effects, but it
-                             * must not invent a dungeon viewport. The original
-                             * descriptor compositor is not complete yet. */
-                            hud_render(&gs, framebuffer,
-                                       CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
-                        }
+                        /* Do not render the compatibility viewport here.  Its
+                         * input is OpenCaptive's native GameState, while the
+                         * original CAPPO renderer consumes raw DS:7CB3 cell
+                         * codes and runtime descriptor state.  Until that
+                         * mapping and draw order are recovered from real DOS
+                         * data, drawing it would present synthetic geometry as
+                         * Captive content.  The authenticated landed frame
+                         * above remains the only active dungeon image. */
                     }
-                    if (msg_scroll_offset > 0) {
+                    if (gs.game_type != GAME_CAPTIVE && msg_scroll_offset > 0) {
                         int start = msg_history_count - MSG_LOG_SIZE - msg_scroll_offset;
                         if (start < 0) start = 0;
                         for (int mi = 0; mi < MSG_LOG_SIZE; mi++) {
@@ -4455,7 +4447,7 @@ int main(int argc, char *argv[]) {
                                 CAPTIVE_ORIGINAL_HEIGHT, 4, 170 + mi * 8,
                                 msg_history[idx].text, msg_history[idx].color, 1);
                         }
-                    } else {
+                    } else if (gs.game_type != GAME_CAPTIVE) {
                         for (int mi = 0; mi < MSG_LOG_SIZE; mi++) {
                             if (msg_log[mi].ttl <= 0) continue;
                             uint32_t mc = msg_log[mi].color;
