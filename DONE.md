@@ -1,5 +1,11 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (Captive LAND input parity)
+
+- Captive orbit now accepts LAND only from keypad 9 or the authenticated
+  on-screen LAND control.
+- ENTER no longer skips the original white landing-point action.
+
 ## 2026-08-10 (Captive transit input separation)
 
 - Captive's authenticated transit frame no longer consumes Liberation thrust,

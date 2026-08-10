@@ -3743,7 +3743,10 @@ int main(int argc, char *argv[]) {
                                  * is substituted while runtime records are
                                  * being decoded. */
                                 break;
-                            case SDLK_RETURN: case SDLK_KP_ENTER:
+                            /* CAPPO help: keypad 9 is LAND in space.  ENTER
+                             * is the ship/pyramid command, not a landing
+                             * command, so it must not bypass the white
+                             * landing-point control. */
                             case SDLK_KP_9:
                                 if (captive_landing_reference) {
                                     gs.landing_tick = 0;
