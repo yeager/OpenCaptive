@@ -1,5 +1,17 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (Captive 0x1C90 visibility guard)
+
+- Reproduced CAPPO's shared `0x1C90` neighbour tests for direction values 1,
+  2 and 3, including the original special-cell bypasses and the record
+  byte+4 zero guard.
+- Preserved the copied window's three-byte row padding and report
+  `pass/fail/unknown`; unknown or out-of-window data is never converted to a
+  generated map cell.
+- `captive_map_dump` now reports the guard result beside each real
+  draw-order record.
+- Local Debug build and all 64 CTest targets pass.
+
 ## 2026-08-10 (Captive descriptor operand recovery)
 
 - Added an analysis-only decoder for the recovered CAPPO descriptor operands

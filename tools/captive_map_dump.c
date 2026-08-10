@@ -102,6 +102,11 @@ int main(int argc, char **argv) {
                     printf(" %04X", operands.descriptor_id[n]);
                 puts(" (1C90-conditional)");
             }
+            CaptiveDosGuardResult guard =
+                captive_dos_dispatch_visibility_guard(&window, &record, raw);
+            printf("   1C90-guard: %s\n",
+                   guard == CAPTIVE_DOS_GUARD_PASS ? "pass" :
+                   guard == CAPTIVE_DOS_GUARD_FAIL ? "fail" : "unknown");
         }
     }
     for (int y = 0; y < CAPTIVE_DOS_MAP_HEIGHT; ++y) {

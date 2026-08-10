@@ -65,6 +65,12 @@ typedef struct {
     bool requires_1c90_pass;
 } CaptiveDosDescriptorOperands;
 
+typedef enum {
+    CAPTIVE_DOS_GUARD_UNKNOWN = 0,
+    CAPTIVE_DOS_GUARD_FAIL,
+    CAPTIVE_DOS_GUARD_PASS,
+} CaptiveDosGuardResult;
+
 /* First-stage CAPPO raw-cell dispatch.  These names intentionally describe
  * code addresses, not guessed gameplay meanings. */
 typedef enum {
@@ -123,6 +129,14 @@ bool captive_dos_dispatch_descriptor_operands(
     const uint8_t *memory, size_t memory_size, uint16_t ds_segment,
     const CaptiveDosDispatchRecord *record, uint8_t raw,
     CaptiveDosDescriptorOperands *out);
+
+/* Evaluate CAPPO 0x1C90 against the copied 5x5 window.  UNKNOWN is returned
+ * whenever the original neighbour offset lands in the three-byte row
+ * padding or outside the supplied window; callers must not turn it into a
+ * wall, floor, or visible sprite. */
+CaptiveDosGuardResult captive_dos_dispatch_visibility_guard(
+    const CaptiveDosViewWindow *window,
+    const CaptiveDosDispatchRecord *record, uint8_t raw);
 
 /* Apply CAPPO's proven `raw & 0x7f` dispatch gate from 0x1A93. */
 CaptiveDosCellRoute captive_dos_cell_route(uint8_t raw);

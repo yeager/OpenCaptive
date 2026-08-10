@@ -382,6 +382,15 @@ as `01DC 01E3` (the `DS:1276[3]` path) and `0406`/`0405` (the `DS:5CC2`
 path). No descriptor ID is synthesized when a source table marks a route as
 inactive.
 
+The dump tool now also evaluates the shared `0x1C90` guard. It preserves
+CAPPO's three-byte row padding: a neighbour read landing in that padding, or
+outside the 5×5 copied window, is reported as `unknown`, never as a fake cell.
+For direction values 1, 3 and 2 it reproduces the original `[di+9]`,
+`[di+1]`, `[di+7]` and `[di-1]` comparisons against `0x1A`, including the
+special raw-code bypasses (`0x1A`, `0x1C`, `0x22`, `0x24`). This separates a
+descriptor operand from a proven descriptor call and is the next input needed
+before enabling the active compositor.
+
 ## SFX system
 
 10 game-level SFX types mapped to CAP_A.BIN AdLib sequences via INT 61h disassembly:

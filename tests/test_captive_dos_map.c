@@ -81,6 +81,20 @@ int main(void) {
     assert(operands.handler_address == 0x1E35);
     assert(operands.descriptor_id[0] == 0x01DC);
     assert(operands.descriptor_id[1] == 0x01E3);
+    window.outside[0][0] = false;
+    window.outside[0][1] = false;
+    window.raw[0][0] = 0x1B;
+    record.window_index = 0;
+    record.byte_at_4 = 1;
+    record.byte_at_5 = 3;
+    assert(captive_dos_dispatch_visibility_guard(
+               &window, &record, 0x10) == CAPTIVE_DOS_GUARD_FAIL);
+    window.raw[0][1] = 0x1B;
+    assert(captive_dos_dispatch_visibility_guard(
+               &window, &record, 0x10) == CAPTIVE_DOS_GUARD_PASS);
+    record.window_index = 4;
+    assert(captive_dos_dispatch_visibility_guard(
+               &window, &record, 0x10) == CAPTIVE_DOS_GUARD_UNKNOWN);
     assert(!captive_dos_map_decode(memory, 0xFFFFFu, ds, &state));
     free(memory);
     return 0;

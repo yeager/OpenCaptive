@@ -119,6 +119,69 @@ bool captive_dos_dispatch_window_xy(uint8_t window_index, int *x, int *y) {
     return true;
 }
 
+static CaptiveDosGuardResult window_relative_byte(
+    const CaptiveDosViewWindow *window, uint8_t window_index, int delta,
+    uint8_t *out) {
+    if (!window || !out || window_index >= 40U ||
+        (window_index % 8U) >= 5U)
+        return CAPTIVE_DOS_GUARD_UNKNOWN;
+    int offset = (int)window_index + delta;
+    if (offset < 0 || offset >= 40 || (offset % 8) >= 5)
+        return CAPTIVE_DOS_GUARD_UNKNOWN;
+    int x = offset % 8;
+    int y = offset / 8;
+    if (window->outside[y][x]) return CAPTIVE_DOS_GUARD_UNKNOWN;
+    *out = window->raw[y][x];
+    return CAPTIVE_DOS_GUARD_PASS;
+}
+
+CaptiveDosGuardResult captive_dos_dispatch_visibility_guard(
+    const CaptiveDosViewWindow *window,
+    const CaptiveDosDispatchRecord *record, uint8_t raw) {
+    if (!window || !record) return CAPTIVE_DOS_GUARD_UNKNOWN;
+    /* CAPPO 0x1C90 starts with `or bp,bp`; BP is record byte +4. */
+    if (record->byte_at_4 == 0U) return CAPTIVE_DOS_GUARD_FAIL;
+
+    raw &= 0x7FU;
+    uint8_t neighbour = 0;
+    switch (record->byte_at_5) {
+        case 1:
+            /* `raw == 1A || [di+9] > 1A`. */
+            if (raw == 0x1AU) return CAPTIVE_DOS_GUARD_PASS;
+            if (window_relative_byte(window, record->window_index, 9,
+                                     &neighbour) != CAPTIVE_DOS_GUARD_PASS)
+                return CAPTIVE_DOS_GUARD_UNKNOWN;
+            return neighbour > 0x1AU ? CAPTIVE_DOS_GUARD_PASS
+                                     : CAPTIVE_DOS_GUARD_FAIL;
+        case 3:
+            /* `raw == 1C || [di+1] > 1A`. */
+            if (raw == 0x1CU) return CAPTIVE_DOS_GUARD_PASS;
+            if (window_relative_byte(window, record->window_index, 1,
+                                     &neighbour) != CAPTIVE_DOS_GUARD_PASS)
+                return CAPTIVE_DOS_GUARD_UNKNOWN;
+            return neighbour > 0x1AU ? CAPTIVE_DOS_GUARD_PASS
+                                     : CAPTIVE_DOS_GUARD_FAIL;
+        case 2:
+            /* `raw == 22 || [di+7] > 1A`, then
+             * `raw == 24 || [di-1] > 1A`. */
+            if (raw != 0x22U) {
+                if (window_relative_byte(window, record->window_index, 7,
+                                          &neighbour) != CAPTIVE_DOS_GUARD_PASS)
+                    return CAPTIVE_DOS_GUARD_UNKNOWN;
+                if (neighbour <= 0x1AU) return CAPTIVE_DOS_GUARD_FAIL;
+            }
+            if (raw != 0x24U) {
+                if (window_relative_byte(window, record->window_index, -1,
+                                          &neighbour) != CAPTIVE_DOS_GUARD_PASS)
+                    return CAPTIVE_DOS_GUARD_UNKNOWN;
+                if (neighbour <= 0x1AU) return CAPTIVE_DOS_GUARD_FAIL;
+            }
+            return CAPTIVE_DOS_GUARD_PASS;
+        default:
+            return CAPTIVE_DOS_GUARD_FAIL;
+    }
+}
+
 bool captive_dos_dispatch_descriptor_operands(
     const uint8_t *memory, size_t memory_size, uint16_t ds_segment,
     const CaptiveDosDispatchRecord *record, uint8_t raw,
