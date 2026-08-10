@@ -62,6 +62,25 @@ int main(void) {
     assert(x == 4 && y == 1);
     assert(!captive_dos_dispatch_window_xy(5, &x, &y));
     assert(captive_dos_cell_route(0x00) == CAPTIVE_DOS_CELL_ROUTE_NONE);
+    CaptiveDosDispatchRecord record = {
+        .byte_at_5 = 0x03,
+        .byte_at_6 = 0x03,
+    };
+    memory[base + 0x5CC2] = 0x03;
+    memory[base + 0x5CC3] = 0x04;
+    memory[base + 0x1276 + 3] = 0x4A;
+    CaptiveDosDescriptorOperands operands;
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x03, &operands));
+    assert(operands.handler_address == 0x1D17);
+    assert(operands.descriptor_count == 1);
+    assert(operands.descriptor_id[0] == 0x0406);
+    record.byte_at_5 = 0x03;
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x10, &operands));
+    assert(operands.handler_address == 0x1E35);
+    assert(operands.descriptor_id[0] == 0x01DC);
+    assert(operands.descriptor_id[1] == 0x01E3);
     assert(!captive_dos_map_decode(memory, 0xFFFFFu, ds, &state));
     free(memory);
     return 0;

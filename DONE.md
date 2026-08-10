@@ -1,5 +1,17 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (Captive descriptor operand recovery)
+
+- Added an analysis-only decoder for the recovered CAPPO descriptor operands
+  in handlers `0x1D17`, `0x1E35`, `0x1DFC` and `0x1E13`.
+- The decoder reads the real `DS:5CC2` and `DS:1276` tables from a supplied
+  DOSBox-X memory dump; it does not create replacement IDs or activate a
+  guessed viewport renderer.
+- `captive_map_dump` now reports the conditional operand sequence and keeps
+  the shared `0x1C90` visibility guard explicit. The verified capture emits
+  real sequences including `01DC 01E3`, `0406` and `0405`.
+- Local Debug build and all 64 CTest targets pass.
+
 ## 2026-08-10 (Captive navigation-first capture)
 
 - Corrected direct Captive frame capture to start in the verified holomap

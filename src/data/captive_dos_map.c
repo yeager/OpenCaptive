@@ -8,6 +8,8 @@ static bool range_inside(size_t offset, size_t length, size_t size) {
     return offset <= size && length <= size - offset;
 }
 
+static uint16_t route_address(CaptiveDosCellRoute route);
+
 bool captive_dos_map_decode(const uint8_t *memory, size_t memory_size,
                             uint16_t ds_segment, CaptiveDosMapState *out) {
     if (!memory || !out || memory_size < DOS_MEMORY_SIZE) return false;
@@ -114,6 +116,75 @@ bool captive_dos_dispatch_window_xy(uint8_t window_index, int *x, int *y) {
         return false;
     *x = window_index % 8U;
     *y = window_index / 8U;
+    return true;
+}
+
+bool captive_dos_dispatch_descriptor_operands(
+    const uint8_t *memory, size_t memory_size, uint16_t ds_segment,
+    const CaptiveDosDispatchRecord *record, uint8_t raw,
+    CaptiveDosDescriptorOperands *out) {
+    if (!memory || !record || !out || memory_size < DOS_MEMORY_SIZE)
+        return false;
+
+    memset(out, 0, sizeof(*out));
+    raw &= 0x7FU;
+    CaptiveDosCellRoute route = (record->byte_at_5 & 0x08U)
+        ? captive_dos_cell_route(raw)
+        : captive_dos_cell_route_normal(raw);
+    out->handler_address = route_address(route);
+    out->requires_1c90_pass = out->handler_address != 0;
+
+    /* CAPPO 0x1D17: after the 0x1C90 call, AL is byte 6 and the
+     * orientation-adjusted word at DS:5CC2 is added before 0x2DD7. */
+    if (route == CAPTIVE_DOS_CELL_ROUTE_1D17) {
+        size_t base = (size_t)ds_segment * 16U;
+        uint8_t direction = (uint8_t)((record->byte_at_5 -
+                                       (memory[base + CAPTIVE_DOS_FACING_OFFSET] & 3U)) & 3U);
+        size_t table = base + 0x5CC2u + (size_t)direction * 2U;
+        if (!range_inside(table, 2, memory_size)) return false;
+        uint16_t adjustment = (uint16_t)(memory[table] |
+                                          ((uint16_t)memory[table + 1] << 8));
+        out->descriptor_id[0] = (uint16_t)(adjustment + record->byte_at_6);
+        out->descriptor_count = 1;
+        return true;
+    }
+
+    /* CAPPO 0x1E35.  0x1C90 is called first.  The handler then indexes the
+     * caller-owned DS:1276 table with record byte 6; that table value, not
+     * the cell code, is the operand carried into 0x2DD7. */
+    if (route == CAPTIVE_DOS_CELL_ROUTE_1E35) {
+        size_t table = (size_t)ds_segment * 16U + 0x1276u +
+                       (size_t)record->byte_at_6;
+        if (!range_inside(table, 1, memory_size)) return false;
+        uint8_t table_value = memory[table];
+        if (table_value & 0x80U) return true;
+        if (record->byte_at_5 & 0x04U) {
+            out->descriptor_id[0] = (uint16_t)(table_value + 0x17EU);
+            out->descriptor_id[1] = (uint16_t)(table_value + 0x18BU);
+        } else {
+            out->descriptor_id[0] = (uint16_t)(table_value + 0x192U);
+            out->descriptor_id[1] = (uint16_t)(table_value + 0x199U);
+        }
+        out->descriptor_count = 2;
+        return true;
+    }
+
+    /* CAPPO 0x1DFC: the direct descriptor call is reached for cells <= 0x0C
+     * after the shared guard. */
+    if (route == CAPTIVE_DOS_CELL_ROUTE_1DFC && record->byte_at_6 <= 0x0CU) {
+        out->descriptor_id[0] = (uint16_t)(record->byte_at_6 + 0x1EDU);
+        out->descriptor_count = 1;
+        return true;
+    }
+
+    /* CAPPO 0x1E13 has a direct 0x157 band; raw 0x0C additionally invokes
+     * its special 0x42E2/0x432D path, which remains intentionally opaque. */
+    if (route == CAPTIVE_DOS_CELL_ROUTE_1E13 && record->byte_at_6 <= 0x0CU) {
+        out->descriptor_id[0] = (uint16_t)(record->byte_at_6 + 0x157U);
+        out->descriptor_count = 1;
+        return true;
+    }
+
     return true;
 }
 

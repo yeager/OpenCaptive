@@ -368,6 +368,20 @@ The dump tool also prints a 5×5 matrix of these handler addresses, so an
 emulator dump can be compared directly with the disassembly before any
 viewport pixels are composed.
 
+The next analysis boundary recovers descriptor operands for handlers whose
+immediate formulas are now complete. For `0x1D17`, the operand is the
+orientation-selected word at `DS:5CC2` plus record byte 6. For `0x1E35`,
+record byte 6 indexes the real `DS:1276` table; CAPPO adds `0x17E`/`0x18B`
+when flag bit 2 is set, or `0x192`/`0x199` on the ordinary path. `0x1DFC`
+and `0x1E13` expose their corresponding `+0x1ED` and `+0x157` operands.
+The API and dump tool label these as `1C90-conditional`: the IDs are the
+actual operands from the supplied dump, but CAPPO may reject the cell before
+the descriptor call because of the shared visibility and neighbour checks.
+For the captured navigation frame this produces real operand sequences such
+as `01DC 01E3` (the `DS:1276[3]` path) and `0406`/`0405` (the `DS:5CC2`
+path). No descriptor ID is synthesized when a source table marks a route as
+inactive.
+
 ## SFX system
 
 10 game-level SFX types mapped to CAP_A.BIN AdLib sequences via INT 61h disassembly:

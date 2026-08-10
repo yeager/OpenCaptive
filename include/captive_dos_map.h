@@ -52,6 +52,19 @@ typedef struct {
     uint8_t window_index;
 } CaptiveDosDispatchRecord;
 
+#define CAPTIVE_DOS_DESCRIPTOR_OPERAND_MAX 2u
+
+/* Descriptor operands emitted by one recovered CAPPO cell handler.  These
+ * are analysis results, not a renderer command: CAPPO still applies the
+ * shared 0x1C90 visibility/neighbor guard before the handler reaches its
+ * descriptor call. */
+typedef struct {
+    uint16_t handler_address;
+    uint16_t descriptor_id[CAPTIVE_DOS_DESCRIPTOR_OPERAND_MAX];
+    uint8_t descriptor_count;
+    bool requires_1c90_pass;
+} CaptiveDosDescriptorOperands;
+
 /* First-stage CAPPO raw-cell dispatch.  These names intentionally describe
  * code addresses, not guessed gameplay meanings. */
 typedef enum {
@@ -101,6 +114,15 @@ bool captive_dos_dispatch_record_read(const uint8_t *memory, size_t memory_size,
 
 /* Convert the record's DS:12F1 byte index to a 5x5 position. */
 bool captive_dos_dispatch_window_xy(uint8_t window_index, int *x, int *y);
+
+/* Recover descriptor IDs from the handler formulas in the unpacked CAPPO
+ * image.  The normal 0x1D17 path reads DS:5CC2 from the caller-owned dump;
+ * the other recovered paths use the raw record/table bytes and fixed
+ * immediates from the disassembly. No synthetic descriptor IDs are invented. */
+bool captive_dos_dispatch_descriptor_operands(
+    const uint8_t *memory, size_t memory_size, uint16_t ds_segment,
+    const CaptiveDosDispatchRecord *record, uint8_t raw,
+    CaptiveDosDescriptorOperands *out);
 
 /* Apply CAPPO's proven `raw & 0x7f` dispatch gate from 0x1A93. */
 CaptiveDosCellRoute captive_dos_cell_route(uint8_t raw);

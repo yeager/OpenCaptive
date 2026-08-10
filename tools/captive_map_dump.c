@@ -93,6 +93,15 @@ int main(int argc, char **argv) {
                    record.window_index, raw, record.byte_at_5, handler,
                    record.word_at_0, record.word_at_2, record.byte_at_4,
                    record.byte_at_6);
+            CaptiveDosDescriptorOperands operands;
+            if (captive_dos_dispatch_descriptor_operands(
+                    memory, 0x100000u, ds, &record, raw, &operands) &&
+                operands.descriptor_count != 0) {
+                printf("   descriptor-operands:");
+                for (uint8_t n = 0; n < operands.descriptor_count; ++n)
+                    printf(" %04X", operands.descriptor_id[n]);
+                puts(" (1C90-conditional)");
+            }
         }
     }
     for (int y = 0; y < CAPTIVE_DOS_MAP_HEIGHT; ++y) {
