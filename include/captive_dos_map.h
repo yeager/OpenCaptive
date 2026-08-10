@@ -52,7 +52,7 @@ typedef struct {
     uint8_t window_index;
 } CaptiveDosDispatchRecord;
 
-#define CAPTIVE_DOS_DESCRIPTOR_OPERAND_MAX 2u
+#define CAPTIVE_DOS_DESCRIPTOR_OPERAND_MAX 5u
 
 /* Descriptor operands emitted by one recovered CAPPO cell handler.  These
  * are analysis results, not renderer commands: CAPPO calls 0x1C90 first, but

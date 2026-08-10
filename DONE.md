@@ -53,6 +53,15 @@
   invalid.
 - Local Debug build and all 64 CTest targets pass.
 
+## 2026-08-10 (Captive overlay 0x2089/0x2715 operand chains)
+
+- Recovered the real `0x2089` state-table path for `0x2065` and `0x21A0`,
+  including the four-entry `DS:0E3F:93AE` lookup and two `0x20E4` operands.
+- Added the `0x2715` prefix used by `0x26F8`, `0x2701` and `0x212F`, plus
+  `0x212F`'s exact `DS:5EF4` conditional pair.
+- Expanded the analysis result to five operands and added source-locked
+  regression vectors; local Debug build and all 64 CTest targets pass.
+
 ## 2026-08-10 (Captive navigation-first capture)
 
 - Corrected direct Captive frame capture to start in the verified holomap

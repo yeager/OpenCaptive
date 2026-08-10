@@ -122,6 +122,38 @@ int main(void) {
     assert(operands.descriptor_count == 2);
     assert(operands.descriptor_id[0] == 0x0089);
     assert(operands.descriptor_id[1] == 0x0080);
+    memory[0x0E3FU * 16U + 0x5E95U] = 0x34;
+    memory[0x0E3FU * 16U + 0x5E96U] = 0x12;
+    memory[0x0E3FU * 16U + 0x93AEU] = 0x34;
+    memory[0x0E3FU * 16U + 0x93AFU] = 0x12;
+    memory[0x0E3FU * 16U + 0x93B0U] = 0x02;
+    record.byte_at_4 = 3;
+    record.byte_at_5 = 9; /* CAPPO overlay dispatch: DL bit 3 is set. */
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x3E, &operands));
+    assert(operands.handler_address == 0x2065);
+    assert(operands.descriptor_count == 2);
+    assert(operands.descriptor_id[0] == 0x030D);
+    assert(operands.descriptor_id[1] == 0x02FB);
+    memory[(size_t)ds * 16U + 0x5E8CU] = 4;
+    memory[(size_t)ds * 16U + 0x5E8DU] = 0;
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x26, &operands));
+    assert(operands.handler_address == 0x26F8);
+    assert(operands.descriptor_count == 3);
+    assert(operands.descriptor_id[0] == 0x0057);
+    assert(operands.descriptor_id[1] == 0x030D);
+    assert(operands.descriptor_id[2] == 0x02FB);
+    memory[(size_t)ds * 16U + 0x5EF4U] = 1;
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x1C, &operands));
+    assert(operands.handler_address == 0x212F);
+    assert(operands.descriptor_count == 5);
+    assert(operands.descriptor_id[0] == 0x003B);
+    assert(operands.descriptor_id[1] == 0x0328);
+    assert(operands.descriptor_id[2] == 0x0331);
+    assert(operands.descriptor_id[3] == 0x033A);
+    assert(operands.descriptor_id[4] == 0x0343);
     window.outside[0][0] = false;
     window.outside[0][1] = false;
     window.raw[0][0] = 0x1B;

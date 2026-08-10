@@ -410,6 +410,12 @@ The same `0x20E4` path is now decoded for `0x206A` (`0x6B` / `0x74`) and
 effects and do not supply descriptor IDs, so the analysis exposes only the two
 actual operands from each handler and keeps the original rejection rule.
 
+The shared `0x2089` state-table path is decoded for `0x2065` and `0x21A0`.
+`0x26F8` and `0x2701` additionally expose their `0x2715` operand before the
+same two `0x2089` operands. `0x212F` exposes its `0x2715` operand plus the two
+or four `0x20E4` operands selected by `DS:5EF4` bit 0. The state table remains
+caller-owned (`DS:0E3F:93AE`); an absent state match yields no fabricated ID.
+
 The dump tool now also evaluates the shared `0x1C90` helper. It preserves
 CAPPO's three-byte row padding: a neighbour read landing in that padding, or
 outside the 5×5 copied window, is reported as `unknown`, never as a fake cell.

@@ -23,6 +23,62 @@ static bool captive_bp_20f3(uint8_t input, uint8_t *adjusted) {
     return true;
 }
 
+static bool captive_descriptor_append(CaptiveDosDescriptorOperands *out,
+                                      uint16_t descriptor_id) {
+    if (!out || out->descriptor_count >= CAPTIVE_DOS_DESCRIPTOR_OPERAND_MAX)
+        return false;
+    out->descriptor_id[out->descriptor_count++] = descriptor_id;
+    return true;
+}
+
+static bool captive_2089_operands(
+    const uint8_t *memory, size_t memory_size,
+    const CaptiveDosDispatchRecord *record,
+    CaptiveDosDescriptorOperands *out) {
+    /* CAPPO 0x2089 switches DS to 0x0E3F, finds the current state in the
+     * four-entry table at DS:93AE, and emits two 0x20E4 operands. */
+    const size_t base = (size_t)0x0E3FU * 16U;
+    if (!range_inside(base + 0x5E95U, 2, memory_size) ||
+        !range_inside(base + 0x93AEU, 16, memory_size))
+        return false;
+    uint16_t state = (uint16_t)(memory[base + 0x5E95U] |
+                                ((uint16_t)memory[base + 0x5E96U] << 8));
+    for (size_t i = 0; i < 4U; ++i) {
+        size_t entry = base + 0x93AEU + i * 4U;
+        uint16_t key = (uint16_t)(memory[entry] |
+                                  ((uint16_t)memory[entry + 1U] << 8));
+        if (key != state) continue;
+        uint8_t direction = (uint8_t)((memory[entry + 2U] -
+                                       record->byte_at_5) & 3U);
+        uint8_t bp;
+        if (captive_bp_20e4(record->byte_at_4, &bp)) {
+            if (!captive_descriptor_append(out,
+                    (uint16_t)(0x301U + (uint16_t)direction * 9U + bp)))
+                return false;
+            if (!captive_descriptor_append(out, (uint16_t)(0x2F8U + bp)))
+                return false;
+        }
+        return true;
+    }
+    return true;
+}
+
+static bool captive_2715_operand(
+    const uint8_t *memory, size_t memory_size, uint16_t ds_segment,
+    const CaptiveDosDispatchRecord *record, uint16_t descriptor_base,
+    CaptiveDosDescriptorOperands *out) {
+    size_t base = (size_t)ds_segment * 16U;
+    if (!range_inside(base + 0x5E8CU, 2, memory_size)) return false;
+    uint16_t dx = (uint16_t)(record->byte_at_5 & 7U);
+    uint16_t state = (uint16_t)(memory[base + 0x5E8CU] |
+                                ((uint16_t)memory[base + 0x5E8DU] << 8));
+    dx = (uint16_t)(dx - state);
+    uint16_t adjustment = (dx & 4U) ? 1U : 0U;
+    return captive_descriptor_append(out,
+        (uint16_t)(descriptor_base + (uint16_t)record->byte_at_4 * 2U +
+                   adjustment));
+}
+
 bool captive_dos_map_decode(const uint8_t *memory, size_t memory_size,
                             uint16_t ds_segment, CaptiveDosMapState *out) {
     if (!memory || !out || memory_size < DOS_MEMORY_SIZE) return false;
@@ -284,6 +340,41 @@ bool captive_dos_dispatch_descriptor_operands(
         out->descriptor_id[0] = (uint16_t)(0x086U + bp);
         out->descriptor_id[1] = (uint16_t)(0x07DU + bp);
         out->descriptor_count = 2;
+        return true;
+    }
+
+    if (route == CAPTIVE_DOS_CELL_ROUTE_2065 ||
+        route == CAPTIVE_DOS_CELL_ROUTE_21A0) {
+        return captive_2089_operands(memory, memory_size, record, out);
+    }
+
+    if (route == CAPTIVE_DOS_CELL_ROUTE_26F8 ||
+        route == CAPTIVE_DOS_CELL_ROUTE_2701) {
+        uint16_t descriptor_base =
+            route == CAPTIVE_DOS_CELL_ROUTE_26F8 ? 0x50U : 0x34U;
+        if (!captive_2715_operand(memory, memory_size, ds_segment, record,
+                                  descriptor_base, out))
+            return false;
+        return captive_2089_operands(memory, memory_size, record, out);
+    }
+
+    if (route == CAPTIVE_DOS_CELL_ROUTE_212F) {
+        if (!captive_2715_operand(memory, memory_size, ds_segment, record,
+                                  0x34U, out))
+            return false;
+        uint8_t bp;
+        if (captive_bp_20e4(record->byte_at_4, &bp)) {
+            if (!captive_descriptor_append(out, (uint16_t)(0x325U + bp)) ||
+                !captive_descriptor_append(out, (uint16_t)(0x32EU + bp)))
+                return false;
+            size_t base = (size_t)ds_segment * 16U;
+            if (!range_inside(base + 0x5EF4U, 1, memory_size)) return false;
+            if ((memory[base + 0x5EF4U] & 1U) != 0U) {
+                if (!captive_descriptor_append(out, (uint16_t)(0x337U + bp)) ||
+                    !captive_descriptor_append(out, (uint16_t)(0x340U + bp)))
+                    return false;
+            }
+        }
         return true;
     }
 
