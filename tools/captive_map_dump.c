@@ -1,4 +1,5 @@
 #include "captive_dos_map.h"
+#include "captive_dos_descriptor.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -14,8 +15,9 @@ static bool read_file(const char *path, uint8_t *buffer, size_t size) {
 }
 
 int main(int argc, char **argv) {
-    if (argc < 2 || argc > 3) {
-        fprintf(stderr, "usage: %s MEMDUMP.BIN [DS-segment-hex]\n", argv[0]);
+    if (argc < 2 || argc > 4) {
+        fprintf(stderr, "usage: %s MEMDUMP.BIN [DS-segment-hex] "
+                "[source-bank-segment-hex]\n", argv[0]);
         return 2;
     }
     uint16_t ds = 0x2942;
@@ -27,6 +29,16 @@ int main(int argc, char **argv) {
             return 2;
         }
         ds = (uint16_t)value;
+    }
+    uint16_t source_bank_segment = 0x0824;
+    if (argc == 4) {
+        char *end = NULL;
+        unsigned long value = strtoul(argv[3], &end, 16);
+        if (!end || *end || value > 0xFFFFUL) {
+            fprintf(stderr, "invalid source-bank segment: %s\n", argv[3]);
+            return 2;
+        }
+        source_bank_segment = (uint16_t)value;
     }
 
     uint8_t *memory = malloc(0x100000u);
@@ -101,6 +113,25 @@ int main(int argc, char **argv) {
                 for (uint8_t n = 0; n < operands.descriptor_count; ++n)
                     printf(" %04X", operands.descriptor_id[n]);
                 puts(" (handler-preconditions-pass)");
+                for (uint8_t n = 0; n < operands.descriptor_count; ++n) {
+                    CaptiveDosDescriptor descriptor;
+                    if (!captive_dos_descriptor_read(
+                            memory, 0x100000u, ds, source_bank_segment,
+                            operands.descriptor_id[n], &descriptor)) {
+                        printf("   descriptor %04X: unavailable\n",
+                               operands.descriptor_id[n]);
+                        continue;
+                    }
+                    const char *sentinel =
+                        descriptor.width_bytes == 0 || descriptor.height == 0
+                        ? "sentinel/non-drawable" : "drawable-record";
+                    printf("   descriptor %04X: src=%04X dst=%04X "
+                           "size=%ux%u flags=%02X bank=%u %s\n",
+                           operands.descriptor_id[n], descriptor.source_offset,
+                           descriptor.destination_offset,
+                           descriptor.width_bytes, descriptor.height,
+                           descriptor.flags, descriptor.source_bank, sentinel);
+                }
             }
             CaptiveDos1c90Result guard =
                 captive_dos_1c90_evaluate(&window, &record, raw);

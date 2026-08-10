@@ -22,6 +22,10 @@
 - `captive_map_dump` now evaluates the recovered handler preconditions and
   keeps the shared `0x1C90` helper explicit. The verified capture emits
   real sequences including `01DC 01E3`, `0406` and `0405`.
+- The dump tool now decodes each recovered operand as a real CAPPO descriptor
+  record and reports its source/destination/size/flags and zero-dimension
+  sentinel state instead of assuming that an ID outside the static table is
+  invalid.
 - Local Debug build and all 64 CTest targets pass.
 
 ## 2026-08-10 (Captive navigation-first capture)

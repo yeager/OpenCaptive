@@ -791,7 +791,7 @@ add_executable(captive_descriptor_match tools/captive_descriptor_match.c
 target_include_directories(captive_descriptor_match PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 add_executable(captive_map_dump tools/captive_map_dump.c
-    src/data/captive_dos_map.c)
+    src/data/captive_dos_map.c src/data/captive_dos_descriptor.c)
 target_include_directories(captive_map_dump PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 add_executable(dump_pge tools/dump_pge.c

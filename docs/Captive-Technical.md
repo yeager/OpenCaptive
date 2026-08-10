@@ -331,7 +331,8 @@ ceiling, door, creature and object pixels are not shown as Captive content.
 
 ### Raw DOSBox-X map inspection
 
-`captive_map_dump MEMDUMP.BIN [DS-segment-hex]` is an analysis-only tool. It
+`captive_map_dump MEMDUMP.BIN [DS-segment-hex] [source-bank-segment-hex]` is an
+analysis-only tool. It
 reads a caller-supplied, complete 1 MiB DOSBox-X memory dump and prints the
 original 64×32 byte map at `DS:7CB3`, the active coordinates at `DS:5E80` and
 `DS:5E82`, and the orientation field at `DS:5E84`. It deliberately preserves
@@ -367,6 +368,12 @@ visual meaning across both branches.
 The dump tool also prints a 5×5 matrix of these handler addresses, so an
 emulator dump can be compared directly with the disassembly before any
 viewport pixels are composed.
+When a recovered handler operand exists, it additionally decodes the real
+eight-byte descriptor record and reports its source offset, destination,
+dimensions, flags, source bank and whether the record is drawable or a zero
+dimension sentinel. The default source-bank segment `0x0824` is the segment
+observed in the supplied runtime fixture and can be overridden for another
+real dump.
 
 The next analysis boundary recovers descriptor operands for handlers whose
 immediate formulas are now complete. For `0x1D17`, the operand is the
