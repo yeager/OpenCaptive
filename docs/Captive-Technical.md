@@ -390,6 +390,14 @@ as `01DC 01E3` (the `DS:1276[3]` path) and `0406`/`0405` (the `DS:5CC2`
 path). No descriptor ID is synthesized when a source table marks a route as
 inactive.
 
+Overlay handler `0x2103` is also decoded. CAPPO selects base `0x2E6` or
+`0x2EF` from the relocated `0x8CFD` mode and the real planet-coordinate
+parity, then applies `0x20E4`'s BP range rule (`0`, `>10` and `4` reject;
+`5..10` decrement). The resulting descriptor operand is reported only when
+those exact conditions are satisfied. This remains an analysis path; it does
+not substitute generated object or sprite data for an unresolved overlay
+band.
+
 The dump tool now also evaluates the shared `0x1C90` helper. It preserves
 CAPPO's three-byte row padding: a neighbour read landing in that padding, or
 outside the 5×5 copied window, is reported as `unknown`, never as a fake cell.

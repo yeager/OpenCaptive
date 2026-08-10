@@ -197,6 +197,38 @@ bool captive_dos_dispatch_descriptor_operands(
     out->handler_address = route_address(route);
     out->calls_1c90_first = out->handler_address != 0;
 
+    /* CAPPO 0x2103 calls 0x2761, then selects 0x2E6 or 0x2EF from the real
+     * planet/state parity before entering 0x20E4.  0x20E4 rejects BP=0, BP>10
+     * and BP=4, decrements BP for values 5..10, and adds it to the base. */
+    if (route == CAPTIVE_DOS_CELL_ROUTE_2103) {
+        uint8_t bp = record->byte_at_4;
+        if (bp == 0U || bp > 10U || bp == 4U) return true;
+        size_t base = (size_t)ds_segment * 16U;
+        if (!range_inside(base + 0x8CFDU, 2, memory_size) ||
+            !range_inside(base + CAPTIVE_DOS_POSITION_X_OFFSET, 2,
+                          memory_size) ||
+            !range_inside(base + 0x5E8CU, 1, memory_size))
+            return false;
+        uint16_t mode = (uint16_t)(memory[base + 0x8CFDU] |
+                                   ((uint16_t)memory[base + 0x8CFEU] << 8));
+        uint16_t planet_sum = (uint16_t)(memory[base +
+                                                CAPTIVE_DOS_POSITION_X_OFFSET] |
+                                         ((uint16_t)memory[base +
+                                            CAPTIVE_DOS_POSITION_X_OFFSET + 1U] << 8));
+        uint16_t y_word = (uint16_t)(memory[base +
+                                             CAPTIVE_DOS_POSITION_Y_OFFSET] |
+                                     ((uint16_t)memory[base +
+                                        CAPTIVE_DOS_POSITION_Y_OFFSET + 1U] << 8));
+        planet_sum = (uint16_t)(planet_sum + y_word);
+        uint16_t descriptor_base;
+        if (mode == 3U) descriptor_base = 0x2EFU;
+        else descriptor_base = (planet_sum & 1U) ? 0x2EFU : 0x2E6U;
+        if (bp > 4U) --bp;
+        out->descriptor_id[0] = (uint16_t)(descriptor_base + bp);
+        out->descriptor_count = 1;
+        return true;
+    }
+
     /* CAPPO 0x1D17: after the 0x1C90 call, AL is byte 6 and the
      * orientation-adjusted word at DS:5CC2 is added before 0x2DD7. */
     if (route == CAPTIVE_DOS_CELL_ROUTE_1D17) {

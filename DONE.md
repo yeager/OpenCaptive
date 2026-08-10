@@ -12,6 +12,15 @@
   draw-order record.
 - Local Debug build and all 64 CTest targets pass.
 
+## 2026-08-10 (Captive overlay 0x2103 operand)
+
+- Recovered the `0x2103` overlay handler's real base selection (`0x2E6` /
+  `0x2EF`) from relocated mode and planet-coordinate parity.
+- Reproduced the `0x20E4` BP acceptance/decrement rule and added a regression
+  vector for the resulting descriptor operand.
+- No overlay pixels or replacement data are enabled by this analysis path.
+- Local Debug build and all 64 CTest targets pass.
+
 ## 2026-08-10 (Captive descriptor operand recovery)
 
 - Added an analysis-only decoder for the recovered CAPPO descriptor operands

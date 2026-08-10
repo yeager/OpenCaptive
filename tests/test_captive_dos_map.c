@@ -88,6 +88,15 @@ int main(void) {
     assert(operands.handler_address == 0x1E35);
     assert(operands.descriptor_id[0] == 0x01DC);
     assert(operands.descriptor_id[1] == 0x01E3);
+    record.byte_at_4 = 3;
+    record.byte_at_5 = 0x08;
+    memory[base + 0x8CFD] = 3;
+    memory[base + 0x8CFE] = 0;
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x28, &operands));
+    assert(operands.handler_address == 0x2103);
+    assert(operands.descriptor_count == 1);
+    assert(operands.descriptor_id[0] == 0x02F2);
     window.outside[0][0] = false;
     window.outside[0][1] = false;
     window.raw[0][0] = 0x1B;
