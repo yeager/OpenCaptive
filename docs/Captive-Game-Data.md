@@ -599,6 +599,21 @@ P — Pause
 ESC — Menu
 ```
 
+Inside a dungeon, the original numeric keypad is relative to the current
+facing direction:
+
+```
+NUMPAD 1 — Climb up when standing on an up ladder
+NUMPAD 2 — Move backwards
+NUMPAD 3 — Climb down when standing on a down ladder
+NUMPAD 4 — Move left
+NUMPAD 5 — No action
+NUMPAD 6 — Move right
+NUMPAD 7 — Turn left
+NUMPAD 8 — Move forwards
+NUMPAD 9 — Turn right
+```
+
 Original CAPPO holomap controls (also supported by OpenCaptive):
 
 ```

@@ -2015,6 +2015,42 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
     int dx = 0, dy = 0;
 
     switch (event->key.key) {
+        /* CAPTIVE's original help table uses the numeric keypad for the
+         * dungeon viewport. Keep these distinct from the number-row droid
+         * selectors: 1/3 climb only when the current cell is a ladder,
+         * 2/4/6/8 move relative to facing, and 7/9 turn. */
+        case SDLK_KP_1:
+            if (combat_change_floor_if_clear(gs, &creatures, -1))
+                stair_flash_ttl = 6;
+            return;
+        case SDLK_KP_3:
+            if (combat_change_floor_if_clear(gs, &creatures, 1))
+                stair_flash_ttl = 6;
+            return;
+        case SDLK_KP_2:
+            dx = -(int[]){0,1,0,-1}[gs->party_dir];
+            dy = -(int[]){-1,0,1,0}[gs->party_dir];
+            break;
+        case SDLK_KP_4:
+            dx = -(int[]){0,1,0,-1}[(gs->party_dir+1)%4];
+            dy = -(int[]){-1,0,1,0}[(gs->party_dir+1)%4];
+            break;
+        case SDLK_KP_5:
+            return;
+        case SDLK_KP_6:
+            dx = (int[]){0,1,0,-1}[(gs->party_dir+1)%4];
+            dy = (int[]){-1,0,1,0}[(gs->party_dir+1)%4];
+            break;
+        case SDLK_KP_7:
+            gs->party_dir = (gs->party_dir + 3) % 4;
+            return;
+        case SDLK_KP_8:
+            dx = (int[]){0,1,0,-1}[gs->party_dir];
+            dy = (int[]){-1,0,1,0}[gs->party_dir];
+            break;
+        case SDLK_KP_9:
+            gs->party_dir = (gs->party_dir + 1) % 4;
+            return;
         case SDLK_W:
         case SDLK_UP:
             dx = (int[]){0,1,0,-1}[gs->party_dir];
