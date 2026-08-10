@@ -2773,15 +2773,10 @@ int main(int argc, char *argv[]) {
     captive_holamap_target_reference = load_verified_captive_frame(
         "assets/captive/holamap-target.png", &captive_holamap_target_width,
         &captive_holamap_target_height);
-    if (captive_holamap_target_reference) {
-        /* Mission 0001 opens on the real CAPPO planet-selection surface.
-         * Keep the separate space-map capture available for later runtime
-         * decoding, but do not flash or composite it over this surface. */
-        holamap_set_reference_frame(&captive_holamap,
-                                    captive_holamap_target_reference,
-                                    captive_holamap_target_width,
-                                    captive_holamap_target_height);
-    }
+    /* Keep the verified target checkpoint available for the decoded mission
+     * flow, but do not replace Mission 0001's opening frame with it.  The
+     * original CAPPO opens on holamap-initial.png; replacing it here made the
+     * startup state disagree with the DOSBox-X reference. */
     captive_orbit_reference = load_verified_captive_frame(
         "assets/captive/orbit-reference.png", &captive_orbit_reference_width,
         &captive_orbit_reference_height);
