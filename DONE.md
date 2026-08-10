@@ -71,6 +71,14 @@
 - Added a regression vector from the CAPPO overlay dispatch and retained the
   full local test suite.
 
+## 2026-08-10 (Captive synthetic viewport fallback removal)
+
+- Removed procedural colored rectangles used when real `OBJECTS.PL5` sprites
+  or door assets were absent in the compatibility viewport.
+- Missing source data now produces no invented pixels; the renderer remains
+  asset-backed and the original descriptor path is unchanged.
+- Focused viewport tests and the full 64-test suite pass.
+
 ## 2026-08-10 (Captive navigation-first capture)
 
 - Corrected direct Captive frame capture to start in the verified holomap

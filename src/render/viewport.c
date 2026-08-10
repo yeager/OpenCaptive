@@ -27,17 +27,6 @@ static void put_pixel_vp(uint32_t *fb, int fb_w, int fb_h,
         fb[y * fb_w + x] = color;
 }
 
-static void fill_rect_vp(uint32_t *fb, int fb_w, int fb_h,
-                          int x, int y, int w, int h, uint32_t color) {
-    for (int py = y; py < y + h; py++) {
-        if (py < 0 || py >= fb_h) continue;
-        for (int px = x; px < x + w; px++) {
-            if (px >= 0 && px < fb_w)
-                fb[py * fb_w + px] = color;
-        }
-    }
-}
-
 /* Object sprite frame indices in OBJECTS.PL5 (20-column, 16x16 grid).
  * Mapped from the original sprite sheet layout. */
 #define OBJ_STAIRS_UP    0
@@ -662,14 +651,6 @@ void viewport_render(const CaptiveViewWindow *window,
                 draw_door(framebuffer, fb_width, fb_height, atlas,
                           door_x, door_y, door_w, door_h, vp_x, vp_y);
 
-                if (cell->type == CELL_DOOR_LOCKED) {
-                    int lock_sz = door_w / 6;
-                    if (lock_sz < 2) lock_sz = 2;
-                    fill_rect_vp(framebuffer, fb_width, fb_height,
-                                 vp_x + door_x + door_w / 2 - lock_sz / 2,
-                                 vp_y + door_y + door_h / 2 - lock_sz / 2,
-                                 lock_sz, lock_sz, 0xFFFF4444);
-                }
             }
 
             /* Special cell objects — use OBJECTS.PL5 sprites when loaded */
@@ -686,10 +667,6 @@ void viewport_render(const CaptiveViewWindow *window,
                 if (has_obj) {
                     blit_object_scaled(atlas, fi, framebuffer, fb_width, fb_height,
                                        vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
-                } else {
-                    uint32_t color = cell->type == CELL_STAIRS_UP ? 0xFF44FF44 : 0xFF4444FF;
-                    fill_rect_vp(framebuffer, fb_width, fb_height,
-                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, color);
                 }
             }
 
@@ -700,12 +677,6 @@ void viewport_render(const CaptiveViewWindow *window,
                 if (has_obj) {
                     blit_object_scaled(atlas, OBJ_TELEPORTER, framebuffer, fb_width, fb_height,
                                        vp_x + obj_x, vp_y + rp->top_y, obj_w, obj_h);
-                } else {
-                    for (int ty = 0; ty < obj_h; ty++) {
-                        uint32_t c = ((ty / 3) & 1) ? 0xFF9933CC : 0xFF6622AA;
-                        fill_rect_vp(framebuffer, fb_width, fb_height,
-                                     vp_x + obj_x, vp_y + rp->top_y + ty, obj_w, 1, c);
-                    }
                 }
             }
 
@@ -717,12 +688,6 @@ void viewport_render(const CaptiveViewWindow *window,
                 if (has_obj) {
                     blit_object_scaled(atlas, OBJ_GENERATOR, framebuffer, fb_width, fb_height,
                                        vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
-                } else {
-                    fill_rect_vp(framebuffer, fb_width, fb_height,
-                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, 0xFFFF2222);
-                    fill_rect_vp(framebuffer, fb_width, fb_height,
-                                 vp_x + obj_x + 1, vp_y + obj_y + 1,
-                                 obj_w - 2, obj_h - 2, 0xFFAA0000);
                 }
             }
 
@@ -734,9 +699,6 @@ void viewport_render(const CaptiveViewWindow *window,
                 if (has_obj) {
                     blit_object_scaled(atlas, OBJ_SHOP_SIGN, framebuffer, fb_width, fb_height,
                                        vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
-                } else {
-                    fill_rect_vp(framebuffer, fb_width, fb_height,
-                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, 0xFFAAAA33);
                 }
             }
 
@@ -748,12 +710,6 @@ void viewport_render(const CaptiveViewWindow *window,
                 if (has_obj) {
                     blit_object_scaled(atlas, OBJ_TERMINAL, framebuffer, fb_width, fb_height,
                                        vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
-                } else {
-                    fill_rect_vp(framebuffer, fb_width, fb_height,
-                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, 0xFF003300);
-                    fill_rect_vp(framebuffer, fb_width, fb_height,
-                                 vp_x + obj_x + 1, vp_y + obj_y + 1,
-                                 obj_w - 2, obj_h - 2, 0xFF00AA00);
                 }
             }
 
@@ -765,9 +721,6 @@ void viewport_render(const CaptiveViewWindow *window,
                 if (has_obj) {
                     blit_object_scaled(atlas, OBJ_PIT, framebuffer, fb_width, fb_height,
                                        vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
-                } else {
-                    fill_rect_vp(framebuffer, fb_width, fb_height,
-                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, 0xFF111111);
                 }
             }
 
@@ -780,9 +733,6 @@ void viewport_render(const CaptiveViewWindow *window,
                 if (has_obj) {
                     blit_object_scaled(atlas, OBJ_PRESSURE, framebuffer, fb_width, fb_height,
                                        vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
-                } else {
-                    fill_rect_vp(framebuffer, fb_width, fb_height,
-                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, 0xFF888844);
                 }
             }
 
@@ -796,9 +746,6 @@ void viewport_render(const CaptiveViewWindow *window,
                 if (has_obj) {
                     blit_object_scaled(atlas, OBJ_FLOOR_ITEM, framebuffer, fb_width, fb_height,
                                        vp_x + obj_x, vp_y + obj_y, obj_w, obj_h);
-                } else {
-                    fill_rect_vp(framebuffer, fb_width, fb_height,
-                                 vp_x + obj_x, vp_y + obj_y, obj_w, obj_h, 0xFF44DDFF);
                 }
             }
         }

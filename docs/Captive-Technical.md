@@ -422,6 +422,12 @@ or `0x2AD/0x2AE` from `AX & 7`, then always calls the shared `0x2089` path.
 The other `0x21D1` branches depend on additional runtime state and remain
 unresolved rather than being filled with guessed descriptors.
 
+The compatibility viewport no longer fills missing object/lock sprites with
+procedural colored rectangles. It draws only decoded pixels from the verified
+`OBJECTS.PL5`/door sheets; absent real source data leaves the corresponding
+area untouched. This prevents synthetic content from being mistaken for
+Captive artwork while the raw CAPPO compositor is still being completed.
+
 The dump tool now also evaluates the shared `0x1C90` helper. It preserves
 CAPPO's three-byte row padding: a neighbour read landing in that padding, or
 outside the 5×5 copied window, is reported as `unknown`, never as a fake cell.
