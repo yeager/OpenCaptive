@@ -74,11 +74,22 @@ static void test_widescreen_texture_maps_to_canvas(void) {
     assert(near(cx, 160.0f) && near(cy, 100.0f));
 }
 
+/* The actual Captive HD path uploads a 3x xBRZ framebuffer.  The navigation
+ * controls remain in the original 320x200 coordinate system. */
+static void test_hd_upscale_maps_to_canvas(void) {
+    float cx = -1, cy = -1;
+    bool ok = renderer_map_point(960, 600, 960, 600, 960, 600, 320, 200,
+                                 true, 681.0f, 222.0f, &cx, &cy);
+    assert(ok);
+    assert(cx >= 218.0f && cx < 236.0f && cy >= 65.0f && cy < 83.0f);
+}
+
 int main(void) {
     test_retina_integer_scaled_game_canvas();
     test_letterbox_integer_scale_offset();
     test_launcher_canvas_not_floored();
     test_widescreen_texture_maps_to_canvas();
+    test_hd_upscale_maps_to_canvas();
     printf("All renderer_map tests passed\n");
     return 0;
 }

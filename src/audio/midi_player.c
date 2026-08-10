@@ -334,6 +334,13 @@ void midi_stop(MIDIPlayer *player) {
         opl2_note_off(&player->opl, i);
         player->voices[i].active = false;
     }
+    /* A MIDI stop is an immediate transport stop, not a request to leave
+     * OPL2 envelopes ringing.  Reinitialise the verified software chip state
+     * so a malformed/aborted track cannot leave a constant carrier tone in
+     * the SDL stream.  The next midi_play() reloads the same real patch/data. */
+    uint32_t sample_rate = player->sample_rate;
+    opl2_init(&player->opl);
+    player->opl.sample_rate = sample_rate > 0 ? sample_rate : OPL2_SAMPLE_RATE;
 }
 
 void midi_set_volume(MIDIPlayer *player, float vol) {

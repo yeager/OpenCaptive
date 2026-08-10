@@ -2923,6 +2923,15 @@ int main(int argc, char *argv[]) {
 
     while (running) {
         uint64_t frame_started = SDL_GetTicks();
+        /* Captive's original holomap/orbit controls use an absolute mouse
+         * pointer.  Do not let the optional FPS mouse-look mode hide/capture
+         * it while the player is in the real navigation surface. */
+        if (gs.game_type == GAME_CAPTIVE &&
+            (gs.mode == STATE_HOLAMAP || gs.mode == STATE_ORBIT ||
+             gs.mode == STATE_LANDING)) {
+            SDL_SetWindowRelativeMouseMode(renderer.window, false);
+            SDL_ShowCursor();
+        }
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 running = false;

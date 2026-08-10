@@ -291,10 +291,25 @@ bool renderer_map_point(int window_w, int window_h, int output_w, int output_h,
     float py = window_y * (float)output_h / (float)window_h;
     float tx = (px - off_x) / scale;
     float ty = (py - off_y) / scale;
+    /* renderer_present() may upload an xBRZ framebuffer at an integer scale.
+     * Convert the uploaded texture back to its logical coordinate space before
+     * removing widescreen padding.  Treating the 3x/4x texture as a native
+     * 320x200 texture makes every small control hitbox miss on Retina Macs. */
+    float texture_scale = (float)texture_h / (float)canvas_h;
+    if (texture_scale >= 2.0f &&
+        fabsf(texture_scale - roundf(texture_scale)) < 0.001f) {
+        tx /= texture_scale;
+        ty /= texture_scale;
+        texture_scale = roundf(texture_scale);
+    } else {
+        texture_scale = 1.0f;
+    }
+    float logical_texture_w = (float)texture_w / texture_scale;
+    float logical_texture_h = (float)texture_h / texture_scale;
     /* Shift a widescreen texture back to canvas space so callers can use native
      * 320x200 hit boxes regardless of pillar width. */
-    float cx = tx - (float)(texture_w - canvas_w) / 2.0f;
-    float cy = ty - (float)(texture_h - canvas_h) / 2.0f;
+    float cx = tx - (logical_texture_w - canvas_w) / 2.0f;
+    float cy = ty - (logical_texture_h - canvas_h) / 2.0f;
     if (cx < 0.0f || cx >= canvas_w || cy < 0.0f || cy >= canvas_h) return false;
     *canvas_x = cx;
     *canvas_y = cy;

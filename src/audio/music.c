@@ -210,6 +210,8 @@ void music_set_volume(MusicSystem *mus, float volume) {
 void music_stop(MusicSystem *mus) {
     if (!mus) return;
     midi_stop(&mus->player);
+    memset(mus->mix_buf, 0, sizeof(mus->mix_buf));
+    mus->mix_pending = false;
     free(mus->owned_data);
     mus->owned_data = NULL;
     mus->current_track = MUSIC_NONE;
