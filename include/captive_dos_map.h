@@ -75,4 +75,9 @@ bool captive_dos_view_window_build(const CaptiveDosMapState *state,
 /* Apply CAPPO's proven `raw & 0x7f` dispatch gate from 0x1A93. */
 CaptiveDosCellRoute captive_dos_cell_route(uint8_t raw);
 
+/* Return the original CAPPO handler address for a dispatch route.  Zero is
+ * reserved for the proven no-route case; addresses are labels from the
+ * unpacked CAPPO.EXE, not semantic guesses. */
+uint16_t captive_dos_cell_route_address(uint8_t raw);
+
 #endif

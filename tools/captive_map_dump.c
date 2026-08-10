@@ -65,6 +65,15 @@ int main(int argc, char **argv) {
             }
             putchar('\n');
         }
+        puts("CAPPO dispatch handlers:");
+        for (int y = 0; y < 5; ++y) {
+            for (int x = 0; x < 5; ++x) {
+                if (window.outside[y][x]) fputs("------", stdout);
+                else printf("%04X", captive_dos_cell_route_address(window.raw[y][x]));
+                if (x != 4) putchar(' ');
+            }
+            putchar('\n');
+        }
     }
     for (int y = 0; y < CAPTIVE_DOS_MAP_HEIGHT; ++y) {
         printf("%02d ", y);

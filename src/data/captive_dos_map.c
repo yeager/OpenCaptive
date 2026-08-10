@@ -125,3 +125,29 @@ CaptiveDosCellRoute captive_dos_cell_route(uint8_t raw) {
         default: return CAPTIVE_DOS_CELL_ROUTE_NONE;
     }
 }
+
+uint16_t captive_dos_cell_route_address(uint8_t raw) {
+    switch (captive_dos_cell_route(raw)) {
+        case CAPTIVE_DOS_CELL_ROUTE_1E35: return 0x1E35;
+        case CAPTIVE_DOS_CELL_ROUTE_1DFC: return 0x1DFC;
+        case CAPTIVE_DOS_CELL_ROUTE_1E13: return 0x1E13;
+        case CAPTIVE_DOS_CELL_ROUTE_1DC9: return 0x1DC9;
+        case CAPTIVE_DOS_CELL_ROUTE_1D72: return 0x1D72;
+        case CAPTIVE_DOS_CELL_ROUTE_212F: return 0x212F;
+        case CAPTIVE_DOS_CELL_ROUTE_2701: return 0x2701;
+        case CAPTIVE_DOS_CELL_ROUTE_2171: return 0x2171;
+        case CAPTIVE_DOS_CELL_ROUTE_21A0: return 0x21A0;
+        case CAPTIVE_DOS_CELL_ROUTE_26F8: return 0x26F8;
+        case CAPTIVE_DOS_CELL_ROUTE_2103: return 0x2103;
+        case CAPTIVE_DOS_CELL_ROUTE_206A: return 0x206A;
+        case CAPTIVE_DOS_CELL_ROUTE_20C7: return 0x20C7;
+        case CAPTIVE_DOS_CELL_ROUTE_201C: return 0x201C;
+        case CAPTIVE_DOS_CELL_ROUTE_218C: return 0x218C;
+        case CAPTIVE_DOS_CELL_ROUTE_445A: return 0x445A;
+        case CAPTIVE_DOS_CELL_ROUTE_2065: return 0x2065;
+        case CAPTIVE_DOS_CELL_ROUTE_21A9: return 0x21A9;
+        case CAPTIVE_DOS_CELL_ROUTE_272E: return 0x272E;
+        case CAPTIVE_DOS_CELL_ROUTE_NONE: return 0;
+    }
+    return 0;
+}

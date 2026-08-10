@@ -353,6 +353,9 @@ The first raw dispatch gate is also recorded without semantic renaming:
 `0x272E` or `0x445A`. The route API exposes these as handler identifiers;
 descriptor IDs and visual meanings are deliberately left unresolved until
 the corresponding original table operands are verified.
+The dump tool also prints a 5×5 matrix of these handler addresses, so an
+emulator dump can be compared directly with the disassembly before any
+viewport pixels are composed.
 
 ## SFX system
 

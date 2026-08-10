@@ -40,10 +40,14 @@ int main(void) {
     assert(captive_dos_view_window_build(&state, &window));
     assert(window.outside[0][0]);
     assert(captive_dos_cell_route(0x10) == CAPTIVE_DOS_CELL_ROUTE_1E35);
+    assert(captive_dos_cell_route_address(0x10) == 0x1E35);
     assert(captive_dos_cell_route(0x90) == CAPTIVE_DOS_CELL_ROUTE_1E35);
     assert(captive_dos_cell_route(0x34) == CAPTIVE_DOS_CELL_ROUTE_201C);
+    assert(captive_dos_cell_route_address(0x34) == 0x201C);
     assert(captive_dos_cell_route(0x5F) == CAPTIVE_DOS_CELL_ROUTE_21A9);
+    assert(captive_dos_cell_route_address(0x5F) == 0x21A9);
     assert(captive_dos_cell_route(0x3F) == CAPTIVE_DOS_CELL_ROUTE_NONE);
+    assert(captive_dos_cell_route_address(0x3F) == 0);
     assert(captive_dos_cell_route(0x00) == CAPTIVE_DOS_CELL_ROUTE_NONE);
     assert(!captive_dos_map_decode(memory, 0xFFFFFu, ds, &state));
     free(memory);
