@@ -10,6 +10,19 @@ static bool range_inside(size_t offset, size_t length, size_t size) {
 
 static uint16_t route_address(CaptiveDosCellRoute route);
 
+static bool captive_bp_20e4(uint8_t input, uint8_t *adjusted) {
+    if (!adjusted || input == 0U || input > 10U || input == 4U)
+        return false;
+    *adjusted = input > 4U ? (uint8_t)(input - 1U) : input;
+    return true;
+}
+
+static bool captive_bp_20f3(uint8_t input, uint8_t *adjusted) {
+    if (!adjusted || input == 4U) return false;
+    *adjusted = input > 4U ? (uint8_t)(input - 1U) : input;
+    return true;
+}
+
 bool captive_dos_map_decode(const uint8_t *memory, size_t memory_size,
                             uint16_t ds_segment, CaptiveDosMapState *out) {
     if (!memory || !out || memory_size < DOS_MEMORY_SIZE) return false;
@@ -202,7 +215,7 @@ bool captive_dos_dispatch_descriptor_operands(
      * and BP=4, decrements BP for values 5..10, and adds it to the base. */
     if (route == CAPTIVE_DOS_CELL_ROUTE_2103) {
         uint8_t bp = record->byte_at_4;
-        if (bp == 0U || bp > 10U || bp == 4U) return true;
+        if (!captive_bp_20e4(bp, &bp)) return true;
         size_t base = (size_t)ds_segment * 16U;
         if (!range_inside(base + 0x8CFDU, 2, memory_size) ||
             !range_inside(base + CAPTIVE_DOS_POSITION_X_OFFSET, 2,
@@ -223,9 +236,31 @@ bool captive_dos_dispatch_descriptor_operands(
         uint16_t descriptor_base;
         if (mode == 3U) descriptor_base = 0x2EFU;
         else descriptor_base = (planet_sum & 1U) ? 0x2EFU : 0x2E6U;
-        if (bp > 4U) --bp;
         out->descriptor_id[0] = (uint16_t)(descriptor_base + bp);
         out->descriptor_count = 1;
+        return true;
+    }
+
+    /* CAPPO 0x2171 surrounds both 0x20E4 calls with BP saves, so both
+     * descriptor bases use the original record byte +4 and the same exact
+     * adjustment. */
+    if (route == CAPTIVE_DOS_CELL_ROUTE_2171) {
+        uint8_t bp = record->byte_at_4;
+        if (!captive_bp_20e4(bp, &bp)) return true;
+        out->descriptor_id[0] = (uint16_t)(0x349U + bp);
+        out->descriptor_id[1] = (uint16_t)(0x352U + bp);
+        out->descriptor_count = 2;
+        return true;
+    }
+
+    /* CAPPO 0x218C uses 0x20F3, whose only rejection is BP==4; values above
+     * four are decremented before the two descriptor calls. */
+    if (route == CAPTIVE_DOS_CELL_ROUTE_218C) {
+        uint8_t bp = record->byte_at_4;
+        if (!captive_bp_20f3(bp, &bp)) return true;
+        out->descriptor_id[0] = (uint16_t)(0x35BU + bp);
+        out->descriptor_id[1] = (uint16_t)(0x367U + bp);
+        out->descriptor_count = 2;
         return true;
     }
 

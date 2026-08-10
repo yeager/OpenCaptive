@@ -97,6 +97,19 @@ int main(void) {
     assert(operands.handler_address == 0x2103);
     assert(operands.descriptor_count == 1);
     assert(operands.descriptor_id[0] == 0x02F2);
+    record.byte_at_4 = 3;
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x22, &operands));
+    assert(operands.handler_address == 0x2171);
+    assert(operands.descriptor_count == 2);
+    assert(operands.descriptor_id[0] == 0x034C);
+    assert(operands.descriptor_id[1] == 0x0355);
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x36, &operands));
+    assert(operands.handler_address == 0x218C);
+    assert(operands.descriptor_count == 2);
+    assert(operands.descriptor_id[0] == 0x035E);
+    assert(operands.descriptor_id[1] == 0x036A);
     window.outside[0][0] = false;
     window.outside[0][1] = false;
     window.raw[0][0] = 0x1B;

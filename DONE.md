@@ -21,6 +21,14 @@
 - No overlay pixels or replacement data are enabled by this analysis path.
 - Local Debug build and all 64 CTest targets pass.
 
+## 2026-08-10 (Captive overlay 0x2171/0x218C operands)
+
+- Recovered both descriptor base pairs from the real CAPPO handlers: `0x349` /
+  `0x352` through `0x20E4`, and `0x35B` / `0x367` through `0x20F3`.
+- Added exact BP acceptance/decrement rules and regression vectors for both
+  overlay routes, without creating replacement graphics or map data.
+- Local Debug build and all 64 CTest targets pass.
+
 ## 2026-08-10 (Captive descriptor operand recovery)
 
 - Added an analysis-only decoder for the recovered CAPPO descriptor operands

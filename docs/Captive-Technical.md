@@ -398,6 +398,13 @@ those exact conditions are satisfied. This remains an analysis path; it does
 not substitute generated object or sprite data for an unresolved overlay
 band.
 
+Overlay handlers `0x2171` and `0x218C` now expose their two real descriptor
+operands each. `0x2171` calls `0x20E4` for bases `0x349` and `0x352`; `0x218C`
+calls `0x20F3` for bases `0x35B` and `0x367`. The BP acceptance and decrement
+rules are applied exactly as in CAPPO, and rejected values produce no operand.
+These are still source-locked operand paths only: no pixels or replacement
+object data are invented while the remaining overlay handlers are unresolved.
+
 The dump tool now also evaluates the shared `0x1C90` helper. It preserves
 CAPPO's three-byte row padding: a neighbour read landing in that padding, or
 outside the 5×5 copied window, is reported as `unknown`, never as a fake cell.
