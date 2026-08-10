@@ -453,3 +453,4 @@
 - [x] About/Credits screen (original game credits, technology, version)
 - [x] Controls reference screen (keyboard shortcuts, F1 shortcut)
 - [x] Data scanner (D key, scan ~/.opencaptive for verified game files)
+- [x] Keep Captive transit input separate from Liberation's thrust model

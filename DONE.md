@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (Captive transit input separation)
+
+- Captive's authenticated transit frame no longer consumes Liberation thrust,
+  velocity, or fuel input.
+- Escape remains available to return to the holomap; no generated movement is
+  applied while the CAPPO reference frame is displayed.
+- Local Debug build and all 64 CTest targets pass.
+
 ## 2026-08-10 (Captive authenticated ORBIT transit)
 
 - Connected the real `holamap-target.png` checkpoint to Captive's ORBIT transit

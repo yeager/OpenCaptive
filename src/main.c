@@ -3769,6 +3769,17 @@ int main(int argc, char *argv[]) {
                     break;
                 case STATE_SPACE_FLIGHT:
                     if (event.type == SDL_EVENT_KEY_DOWN) {
+                        if (gs.game_type == GAME_CAPTIVE) {
+                            /* Captive's DOS flight phase is driven by CAPPO's
+                             * navigation state, not by Liberation's modern
+                             * thrust model.  Do not mutate fuel/velocity or
+                             * expose synthetic controls while the verified
+                             * CAPPO transit frame is on screen. */
+                            if (event.key.key == SDLK_ESCAPE) {
+                                gs.mode = STATE_HOLAMAP;
+                            }
+                            break;
+                        }
                         switch (event.key.key) {
                             case SDLK_UP: case SDLK_W:
                                 if (gs.space_fuel > 0) {
