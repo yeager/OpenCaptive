@@ -16,6 +16,12 @@
 #define CAPTIVE_DOS_POSITION_X_OFFSET 0x5E80u
 #define CAPTIVE_DOS_POSITION_Y_OFFSET 0x5E82u
 #define CAPTIVE_DOS_FACING_OFFSET 0x5E84u
+#define CAPTIVE_DOS_DISPATCH_RECORD_OFFSET 0x5B82u
+#define CAPTIVE_DOS_DISPATCH_RECORD_END 0x5CB2u
+#define CAPTIVE_DOS_DISPATCH_RECORD_SIZE 8u
+#define CAPTIVE_DOS_DISPATCH_RECORD_COUNT \
+    ((CAPTIVE_DOS_DISPATCH_RECORD_END - CAPTIVE_DOS_DISPATCH_RECORD_OFFSET) / \
+     CAPTIVE_DOS_DISPATCH_RECORD_SIZE)
 
 typedef struct {
     uint16_t ds_segment;
@@ -33,6 +39,18 @@ typedef struct {
     bool outside[5][5];
     uint8_t facing;
 } CaptiveDosViewWindow;
+
+/* One raw eight-byte record consumed by CAPPO at 0x1A4F/0x1A93.  The field
+ * names remain byte/word offsets because the disassembly does not establish
+ * higher-level meanings for every field. */
+typedef struct {
+    uint16_t word_at_0;
+    uint16_t word_at_2;
+    uint8_t byte_at_4;
+    uint8_t byte_at_5;
+    uint8_t byte_at_6;
+    uint8_t window_index;
+} CaptiveDosDispatchRecord;
 
 /* First-stage CAPPO raw-cell dispatch.  These names intentionally describe
  * code addresses, not guessed gameplay meanings. */
@@ -75,6 +93,14 @@ bool captive_dos_map_cell(const CaptiveDosMapState *state, int x, int y,
  * CAPPO.EXE: 0x1818, orientation branches 0x1837/0x18BC/0x1925/0x199F. */
 bool captive_dos_view_window_build(const CaptiveDosMapState *state,
                                    CaptiveDosViewWindow *out);
+
+/* Read the original draw-order records iterated by CAPPO 0x2D09. */
+bool captive_dos_dispatch_record_read(const uint8_t *memory, size_t memory_size,
+                                      uint16_t ds_segment, size_t ordinal,
+                                      CaptiveDosDispatchRecord *out);
+
+/* Convert the record's DS:12F1 byte index to a 5x5 position. */
+bool captive_dos_dispatch_window_xy(uint8_t window_index, int *x, int *y);
 
 /* Apply CAPPO's proven `raw & 0x7f` dispatch gate from 0x1A93. */
 CaptiveDosCellRoute captive_dos_cell_route(uint8_t raw);

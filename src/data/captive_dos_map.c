@@ -87,6 +87,36 @@ bool captive_dos_view_window_build(const CaptiveDosMapState *state,
     return true;
 }
 
+bool captive_dos_dispatch_record_read(const uint8_t *memory, size_t memory_size,
+                                      uint16_t ds_segment, size_t ordinal,
+                                      CaptiveDosDispatchRecord *out) {
+    if (!memory || !out || ordinal >= CAPTIVE_DOS_DISPATCH_RECORD_COUNT ||
+        memory_size < DOS_MEMORY_SIZE)
+        return false;
+    size_t offset = (size_t)ds_segment * 16U +
+                    CAPTIVE_DOS_DISPATCH_RECORD_OFFSET +
+                    ordinal * CAPTIVE_DOS_DISPATCH_RECORD_SIZE;
+    if (!range_inside(offset, CAPTIVE_DOS_DISPATCH_RECORD_SIZE, memory_size))
+        return false;
+    const uint8_t *raw = memory + offset;
+    out->word_at_0 = (uint16_t)(raw[0] | ((uint16_t)raw[1] << 8));
+    out->word_at_2 = (uint16_t)(raw[2] | ((uint16_t)raw[3] << 8));
+    out->byte_at_4 = raw[4];
+    out->byte_at_5 = raw[5];
+    out->byte_at_6 = raw[6];
+    out->window_index = raw[7];
+    return true;
+}
+
+bool captive_dos_dispatch_window_xy(uint8_t window_index, int *x, int *y) {
+    if (!x || !y || window_index >= 40U ||
+        (window_index % 8U) >= 5U)
+        return false;
+    *x = window_index % 8U;
+    *y = window_index / 8U;
+    return true;
+}
+
 CaptiveDosCellRoute captive_dos_cell_route(uint8_t raw) {
     switch (raw & 0x7FU) {
         case 0x10: case 0x11: case 0x12: case 0x13:

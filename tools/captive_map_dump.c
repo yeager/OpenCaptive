@@ -48,8 +48,6 @@ int main(int argc, char **argv) {
         free(memory);
         return 1;
     }
-    free(memory);
-
     uint8_t current = state.cells[state.player_y * CAPTIVE_DOS_MAP_WIDTH +
                                    state.player_x];
     printf("DS:%04X player=(%u,%u) facing=%u raw=%02X\n", state.ds_segment,
@@ -74,6 +72,28 @@ int main(int argc, char **argv) {
             }
             putchar('\n');
         }
+        puts("CAPPO draw-order records:");
+        for (size_t i = 0; i < CAPTIVE_DOS_DISPATCH_RECORD_COUNT; ++i) {
+            CaptiveDosDispatchRecord record;
+            int x = 0, y = 0;
+            if (!captive_dos_dispatch_record_read(
+                    memory, 0x100000u, ds, i, &record))
+                break;
+            if (!captive_dos_dispatch_window_xy(record.window_index, &x, &y)) {
+                printf("%02zu index=%02X invalid-window-index\n", i,
+                       record.window_index);
+                continue;
+            }
+            uint8_t raw = window.raw[y][x];
+            uint16_t handler = (record.byte_at_5 & 0x08U)
+                ? captive_dos_cell_route_address(raw)
+                : captive_dos_cell_route_normal_address(raw);
+            printf("%02zu index=%02X cell=%02X flags=%02X handler=%04X "
+                   "w0=%04X w2=%04X b4=%02X b6=%02X\n", i,
+                   record.window_index, raw, record.byte_at_5, handler,
+                   record.word_at_0, record.word_at_2, record.byte_at_4,
+                   record.byte_at_6);
+        }
     }
     for (int y = 0; y < CAPTIVE_DOS_MAP_HEIGHT; ++y) {
         printf("%02d ", y);
@@ -81,5 +101,6 @@ int main(int argc, char **argv) {
             printf("%02X", state.cells[y * CAPTIVE_DOS_MAP_WIDTH + x]);
         putchar('\n');
     }
+    free(memory);
     return 0;
 }

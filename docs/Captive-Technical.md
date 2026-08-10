@@ -346,6 +346,12 @@ are reported separately instead of being replaced with a guessed wall or
 floor. This makes the raw viewport input testable without claiming that the
 later cell-code-to-descriptor dispatch is complete.
 
+CAPPO's draw-order input is also exposed as 38 raw eight-byte records at
+`DS:5B82..5CB2`, the list iterated by `0x2D09`. Each record is linked to its
+`DS:12F1` window index and routed through the correct normal or overlay
+handler. `captive_map_dump` prints this sequence from a supplied DOSBox-X
+dump; the fields remain raw offsets until the handler operands are verified.
+
 The first raw dispatch gate is also recorded without semantic renaming. CAPPO
 has two branches: the normal branch at `0x1AC0` and the overlay/object branch
 entered when `DL & 0x08` is nonzero at `0x1ABB`:

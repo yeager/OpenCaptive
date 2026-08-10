@@ -54,6 +54,13 @@ int main(void) {
     assert(captive_dos_cell_route_normal_address(0x0F) == 0x1D17);
     assert(captive_dos_cell_route_normal(0x3E) == CAPTIVE_DOS_CELL_ROUTE_1DF2);
     assert(captive_dos_cell_route_normal_address(0x3E) == 0x1DF2);
+    assert(CAPTIVE_DOS_DISPATCH_RECORD_COUNT == 38);
+    int x = 0, y = 0;
+    assert(captive_dos_dispatch_window_xy(0, &x, &y));
+    assert(x == 0 && y == 0);
+    assert(captive_dos_dispatch_window_xy(12, &x, &y));
+    assert(x == 4 && y == 1);
+    assert(!captive_dos_dispatch_window_xy(5, &x, &y));
     assert(captive_dos_cell_route(0x00) == CAPTIVE_DOS_CELL_ROUTE_NONE);
     assert(!captive_dos_map_decode(memory, 0xFFFFFu, ds, &state));
     free(memory);
