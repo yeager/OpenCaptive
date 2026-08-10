@@ -4734,6 +4734,9 @@ int main(int argc, char *argv[]) {
 
             case STATE_DEMO:
                 if (gs.game_type == GAME_CAPTIVE) {
+                    /* Captive has no original attract-mode data in the
+                     * verified media set.  Never show the old generated
+                     * demo canvas when a stale state reaches this branch. */
                     if (hud_bg)
                         memcpy(framebuffer, hud_bg,
                                CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT *
@@ -4813,6 +4816,15 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_STORY:
+                /* The old scrolling story was handwritten placeholder text;
+                 * CAPPO's real opening is the decoded ANM above.  If an old
+                 * save or stale event reaches this state, fail closed to the
+                 * verified media path instead of rendering synthetic prose. */
+                if (gs.game_type == GAME_CAPTIVE) {
+                    captive_holamap_reset(gs.mission);
+                    gs.mode = STATE_HOLAMAP;
+                    break;
+                }
                 memset(framebuffer, 0, sizeof(framebuffer));
                 story_scroll_y--;
                 {
@@ -4854,6 +4866,15 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_LOADING:
+                /* Loading is used by Liberation's verified presentation
+                 * pipeline. Captive enters through its real ANM and CAPPO
+                 * checkpoints; do not paint a generated starfield or status
+                 * copy into that runtime. */
+                if (gs.game_type == GAME_CAPTIVE) {
+                    captive_holamap_reset(gs.mission);
+                    gs.mode = STATE_HOLAMAP;
+                    break;
+                }
                 memset(framebuffer, 0, sizeof(framebuffer));
                 loading_frames++;
                 {

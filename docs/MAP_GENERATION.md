@@ -1,6 +1,6 @@
 # Captive Map Generation
 
-> Updated for v1.1.99. Map-generation claims below refer to the currently tested implementation boundary.
+> Updated for v1.1.101. Map-generation claims below refer to the currently tested implementation boundary.
 
 Reference: captive.atari.org Technical/MapGen
 

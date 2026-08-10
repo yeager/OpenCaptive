@@ -48,8 +48,8 @@
 - [x] Recover generator placement algorithm from 0x1C3C
 - [x] Wire CA map output to DungeonLevel conversion (10×56 → 64×32 cells)
 - [x] Implement feature placement pipeline from 0x33D7 (doors, puzzles, traps)
-- [x] Validate MapGen output against original dumps
-- [x] Verify exterior generation stage
+- [ ] Validate MapGen output against original dumps
+- [ ] Verify exterior generation stage
 - [x] Generate a reachable locked Captive door for puzzle controls
 
 ### Items

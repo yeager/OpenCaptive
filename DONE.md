@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (v1.1.101: remove synthetic Captive startup paths)
+
+- Removed the handwritten Captive story scroll from the active startup path.
+- Captive now fails closed to verified CAPPO media if a stale demo/story/loading
+  state is reached; it does not render generated stars, coordinates, prose, or
+  dungeon content.
+- Kept the live landing/dungeon handoff source-gated. The native runtime does
+  not activate the incomplete map generator as a substitute for CAPPO data.
+- Local Debug build and all 63 CTest targets pass.
+
 ## 2026-08-10 (CI: clear the Node 20 deprecation warnings)
 
 - The green v1.1.100 release runs annotated a Node.js 20 deprecation for three
@@ -34,15 +44,15 @@
   mouse helpers (holomap, orbit, navigation key/action) through it. Added tests
   pinning the Retina, letterbox, launcher, and widescreen cases; verified the
   test fails against the old points-based math.
-- Note on process: this reconciled with the owner's parallel v1.1.99 work, which
+- Note on process: this reconciled with the owner's parallel v1.1.101 work, which
   had already replaced the dead-end holomap with verified holomap/orbit/landing
   references and CAPPO keypad controls. An earlier local attempt to restore the
   synthetic space-flight path was dropped as superseded; only the still-needed
   mouse fix was rebased on top.
 
-## 2026-08-09 (v1.1.99 release preparation)
+## 2026-08-09 (v1.1.101 release preparation)
 
-- Updated every public documentation page and all 24 wiki pages to v1.1.99.
+- Updated every public documentation page and all 24 wiki pages to v1.1.101.
 - Documented the source-backed CAPPO holomap controls and the 62-test suite.
 - Hardened GitHub Actions release packaging: Windows includes Captive assets,
   and iOS/Android icon generation fails instead of inventing fallback data.
