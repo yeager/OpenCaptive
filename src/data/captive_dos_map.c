@@ -86,3 +86,42 @@ bool captive_dos_view_window_build(const CaptiveDosMapState *state,
     }
     return true;
 }
+
+CaptiveDosCellRoute captive_dos_cell_route(uint8_t raw) {
+    switch (raw & 0x7FU) {
+        case 0x10: case 0x11: case 0x12: case 0x13:
+        case 0x14: case 0x15: case 0x16: case 0x17:
+            return CAPTIVE_DOS_CELL_ROUTE_1E35;
+        case 0x18: return CAPTIVE_DOS_CELL_ROUTE_1DFC;
+        case 0x19: return CAPTIVE_DOS_CELL_ROUTE_1E13;
+        case 0x1A: return CAPTIVE_DOS_CELL_ROUTE_1DC9;
+        case 0x1B: return CAPTIVE_DOS_CELL_ROUTE_1D72;
+        case 0x1C: return CAPTIVE_DOS_CELL_ROUTE_212F;
+        case 0x1E: return CAPTIVE_DOS_CELL_ROUTE_2701;
+        case 0x22: return CAPTIVE_DOS_CELL_ROUTE_2171;
+        case 0x24: return CAPTIVE_DOS_CELL_ROUTE_21A0;
+        case 0x26: return CAPTIVE_DOS_CELL_ROUTE_26F8;
+        case 0x28: return CAPTIVE_DOS_CELL_ROUTE_2103;
+        case 0x2C: return CAPTIVE_DOS_CELL_ROUTE_206A;
+        case 0x2E: return CAPTIVE_DOS_CELL_ROUTE_20C7;
+        case 0x2F: case 0x30: case 0x31: case 0x32:
+        case 0x33: case 0x34:
+            return CAPTIVE_DOS_CELL_ROUTE_201C;
+        case 0x36: return CAPTIVE_DOS_CELL_ROUTE_218C;
+        case 0x37: case 0x38: case 0x39: case 0x3A:
+            return CAPTIVE_DOS_CELL_ROUTE_445A;
+        case 0x3C: case 0x3E:
+            return CAPTIVE_DOS_CELL_ROUTE_2065;
+        case 0x40: case 0x41: case 0x42: case 0x43:
+        case 0x44: case 0x45: case 0x46: case 0x47:
+        case 0x48: case 0x49: case 0x4A: case 0x4B:
+        case 0x4C: case 0x4D: case 0x4E: case 0x4F:
+        case 0x50: case 0x51: case 0x52: case 0x53:
+        case 0x54: case 0x55: case 0x56: case 0x57:
+        case 0x58: case 0x59: case 0x5A: case 0x5B:
+        case 0x5C: case 0x5D: case 0x5E: case 0x5F:
+            return CAPTIVE_DOS_CELL_ROUTE_21A9;
+        case 0x60: return CAPTIVE_DOS_CELL_ROUTE_272E;
+        default: return CAPTIVE_DOS_CELL_ROUTE_NONE;
+    }
+}

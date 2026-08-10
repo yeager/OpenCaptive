@@ -346,6 +346,14 @@ are reported separately instead of being replaced with a guessed wall or
 floor. This makes the raw viewport input testable without claiming that the
 later cell-code-to-descriptor dispatch is complete.
 
+The first raw dispatch gate is also recorded without semantic renaming:
+`raw & 0x7F` routes recognized values to CAPPO handlers at `0x1D72`, `0x1DFC`,
+`0x1E13`, `0x1E35`, `0x201C`, `0x2065`, `0x206A`, `0x20C7`, `0x2103`,
+`0x212F`, `0x2171`, `0x218C`, `0x21A0`, `0x21A9`, `0x26F8`, `0x2701`,
+`0x272E` or `0x445A`. The route API exposes these as handler identifiers;
+descriptor IDs and visual meanings are deliberately left unresolved until
+the corresponding original table operands are verified.
+
 ## SFX system
 
 10 game-level SFX types mapped to CAP_A.BIN AdLib sequences via INT 61h disassembly:

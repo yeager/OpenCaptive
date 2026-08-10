@@ -34,6 +34,31 @@ typedef struct {
     uint8_t facing;
 } CaptiveDosViewWindow;
 
+/* First-stage CAPPO raw-cell dispatch.  These names intentionally describe
+ * code addresses, not guessed gameplay meanings. */
+typedef enum {
+    CAPTIVE_DOS_CELL_ROUTE_NONE = 0,
+    CAPTIVE_DOS_CELL_ROUTE_1E35,
+    CAPTIVE_DOS_CELL_ROUTE_1DFC,
+    CAPTIVE_DOS_CELL_ROUTE_1E13,
+    CAPTIVE_DOS_CELL_ROUTE_1DC9,
+    CAPTIVE_DOS_CELL_ROUTE_1D72,
+    CAPTIVE_DOS_CELL_ROUTE_212F,
+    CAPTIVE_DOS_CELL_ROUTE_2701,
+    CAPTIVE_DOS_CELL_ROUTE_2171,
+    CAPTIVE_DOS_CELL_ROUTE_21A0,
+    CAPTIVE_DOS_CELL_ROUTE_26F8,
+    CAPTIVE_DOS_CELL_ROUTE_2103,
+    CAPTIVE_DOS_CELL_ROUTE_206A,
+    CAPTIVE_DOS_CELL_ROUTE_20C7,
+    CAPTIVE_DOS_CELL_ROUTE_201C,
+    CAPTIVE_DOS_CELL_ROUTE_218C,
+    CAPTIVE_DOS_CELL_ROUTE_445A,
+    CAPTIVE_DOS_CELL_ROUTE_2065,
+    CAPTIVE_DOS_CELL_ROUTE_21A9,
+    CAPTIVE_DOS_CELL_ROUTE_272E,
+} CaptiveDosCellRoute;
+
 /* Decode only the proven CAPPO fields from one complete 1 MiB dump. */
 bool captive_dos_map_decode(const uint8_t *memory, size_t memory_size,
                             uint16_t ds_segment, CaptiveDosMapState *out);
@@ -46,5 +71,8 @@ bool captive_dos_map_cell(const CaptiveDosMapState *state, int x, int y,
  * CAPPO.EXE: 0x1818, orientation branches 0x1837/0x18BC/0x1925/0x199F. */
 bool captive_dos_view_window_build(const CaptiveDosMapState *state,
                                    CaptiveDosViewWindow *out);
+
+/* Apply CAPPO's proven `raw & 0x7f` dispatch gate from 0x1A93. */
+CaptiveDosCellRoute captive_dos_cell_route(uint8_t raw);
 
 #endif
