@@ -1,5 +1,21 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (CI: clear the Node 20 deprecation warnings)
+
+- The green v1.1.100 release runs annotated a Node.js 20 deprecation for three
+  actions still on the node20 runtime (forced onto node24 by GitHub with a
+  warning). Bumped to the current majors, which ship node24 natively:
+  actions/upload-artifact v4→v7, actions/download-artifact v4→v8,
+  softprops/action-gh-release v2→v3, and actions/setup-java v4→v5 while nearby.
+  actions/checkout was already v6 (node24).
+- Verified the inputs each action is invoked with are stable across the bumps:
+  unique artifact names (so upload-artifact's no-auto-merge is moot), the
+  no-name "download all into artifacts/<name>/" layout the release job depends
+  on, and the setup-java/gh-release fields. Both workflow files still parse.
+- CI-only change; the built artifacts are unchanged, so no version bump. The
+  release pipeline was re-verified end to end by a workflow_dispatch of the
+  existing v1.1.100.
+
 ## 2026-08-09 (MacBook Pro mouse hit-testing, v1.1.100)
 
 - Field report: on a MacBook Pro the mouse "didn't work". Root cause was the
