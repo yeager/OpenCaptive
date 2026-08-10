@@ -4303,10 +4303,11 @@ int main(int argc, char *argv[]) {
                     }
                     gs.tick++;
                     if (gs.move_cooldown > 0) gs.move_cooldown--;
-                    if (gs.tick % 600 == 0) {
-                        SfxType ambient[] = {SFX_AMBIENT_DRIP, SFX_AMBIENT_HUM, SFX_AMBIENT_WIND};
-                        sfx_play(&sfx, ambient[gs.tick / 600 % 3]);
-                    }
+                    /* Do not synthesize a Captive ambient loop.  The three
+                     * ambient enum values are compatibility aliases, not
+                     * authenticated CAPPO sequences; triggering one here
+                     * produced the continuous high-pitched tone reported on
+                     * macOS.  Verified event SFX remain edge-triggered below. */
                     if (gs.tick % 300 == 0) {
                         for (int di = 0; di < 4; di++) {
                             if (gs.droids[di].hp > 0) {

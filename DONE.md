@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (Captive audio feedback correction)
+
+- Removed the unverified periodic ambient-SFX trigger from the Captive loop.
+- The old trigger reused compatibility aliases for drip/hum/wind and could
+  leave a continuous high-pitched OPL2 tone; authenticated event sounds remain
+  enabled for movement, combat, doors and interactions.
+
+
 ## 2026-08-10 (launcher cover crop)
 
 - Reduced the launcher cards' black side bars by applying a modest crop to the
