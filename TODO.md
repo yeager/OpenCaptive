@@ -360,7 +360,9 @@
 - [x] Implement multiple save slots (original supported several)
 
 ### Audio (ambient)
-- [x] Implement ambient dungeon sounds (dripping, wind, electrical hum)
+- [ ] Recover and verify CAPPO ambient dungeon sounds (dripping, wind,
+      electrical hum); compatibility aliases are intentionally disabled until
+      the original sequences are identified.
 
 ### HUD
 - [x] Implement message log scrollback (review past messages)
