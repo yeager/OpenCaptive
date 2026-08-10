@@ -48,6 +48,12 @@ int main(void) {
     assert(captive_dos_cell_route_address(0x5F) == 0x21A9);
     assert(captive_dos_cell_route(0x3F) == CAPTIVE_DOS_CELL_ROUTE_NONE);
     assert(captive_dos_cell_route_address(0x3F) == 0);
+    assert(captive_dos_cell_route_normal(0x00) == CAPTIVE_DOS_CELL_ROUTE_1C90);
+    assert(captive_dos_cell_route_normal_address(0x00) == 0x1C90);
+    assert(captive_dos_cell_route_normal(0x0F) == CAPTIVE_DOS_CELL_ROUTE_1D17);
+    assert(captive_dos_cell_route_normal_address(0x0F) == 0x1D17);
+    assert(captive_dos_cell_route_normal(0x3E) == CAPTIVE_DOS_CELL_ROUTE_1DF2);
+    assert(captive_dos_cell_route_normal_address(0x3E) == 0x1DF2);
     assert(captive_dos_cell_route(0x00) == CAPTIVE_DOS_CELL_ROUTE_NONE);
     assert(!captive_dos_map_decode(memory, 0xFFFFFu, ds, &state));
     free(memory);

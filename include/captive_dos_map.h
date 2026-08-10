@@ -38,6 +38,10 @@ typedef struct {
  * code addresses, not guessed gameplay meanings. */
 typedef enum {
     CAPTIVE_DOS_CELL_ROUTE_NONE = 0,
+    CAPTIVE_DOS_CELL_ROUTE_1C90,
+    CAPTIVE_DOS_CELL_ROUTE_1D17,
+    CAPTIVE_DOS_CELL_ROUTE_1B06,
+    CAPTIVE_DOS_CELL_ROUTE_1DF2,
     CAPTIVE_DOS_CELL_ROUTE_1E35,
     CAPTIVE_DOS_CELL_ROUTE_1DFC,
     CAPTIVE_DOS_CELL_ROUTE_1E13,
@@ -75,9 +79,17 @@ bool captive_dos_view_window_build(const CaptiveDosMapState *state,
 /* Apply CAPPO's proven `raw & 0x7f` dispatch gate from 0x1A93. */
 CaptiveDosCellRoute captive_dos_cell_route(uint8_t raw);
 
+/* Apply the non-overlay branch at 0x1AC0.  The overlay branch is exposed by
+ * captive_dos_cell_route(); CAPPO selects it when DL bit 3 is set at 0x1ABB.
+ * Keeping both branches explicit prevents a raw cell code from being given a
+ * false universal visual meaning. */
+CaptiveDosCellRoute captive_dos_cell_route_normal(uint8_t raw);
+
 /* Return the original CAPPO handler address for a dispatch route.  Zero is
  * reserved for the proven no-route case; addresses are labels from the
  * unpacked CAPPO.EXE, not semantic guesses. */
 uint16_t captive_dos_cell_route_address(uint8_t raw);
+
+uint16_t captive_dos_cell_route_normal_address(uint8_t raw);
 
 #endif

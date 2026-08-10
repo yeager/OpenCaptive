@@ -346,13 +346,18 @@ are reported separately instead of being replaced with a guessed wall or
 floor. This makes the raw viewport input testable without claiming that the
 later cell-code-to-descriptor dispatch is complete.
 
-The first raw dispatch gate is also recorded without semantic renaming:
+The first raw dispatch gate is also recorded without semantic renaming. CAPPO
+has two branches: the normal branch at `0x1AC0` and the overlay/object branch
+entered when `DL & 0x08` is nonzero at `0x1ABB`:
 `raw & 0x7F` routes recognized values to CAPPO handlers at `0x1D72`, `0x1DFC`,
 `0x1E13`, `0x1E35`, `0x201C`, `0x2065`, `0x206A`, `0x20C7`, `0x2103`,
 `0x212F`, `0x2171`, `0x218C`, `0x21A0`, `0x21A9`, `0x26F8`, `0x2701`,
 `0x272E` or `0x445A`. The route API exposes these as handler identifiers;
 descriptor IDs and visual meanings are deliberately left unresolved until
-the corresponding original table operands are verified.
+the corresponding original table operands are verified. The normal branch is
+exposed separately for raw `0x00..0x1B` and `0x3E`, including its `0x1C90`,
+`0x1D17` and `0x1DF2` entry points; a raw byte is not assigned one universal
+visual meaning across both branches.
 The dump tool also prints a 5×5 matrix of these handler addresses, so an
 emulator dump can be compared directly with the disassembly before any
 viewport pixels are composed.
