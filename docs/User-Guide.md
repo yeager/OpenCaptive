@@ -66,7 +66,7 @@ opencaptive --data /path/to/your/media --lang sv
 
 | Flag | Description |
 | --- | --- |
-| `--data <path>` | Path to game data directory |
+| `--data <path>` | Path to game data directory or one ZIP archive |
 | `--game <name>` | Select game: `captive` or `liberation` |
 | `--lang <code>` | Language code (see Internationalization below) |
 | `--verify-data <scope>` | Verify data integrity: `captive`, `liberation`, or `all` |
@@ -245,7 +245,7 @@ OpenCaptive identifies all game files by SHA-256 content hash, never by filename
 
 ### Supplying data
 
-Place ZIP archives containing your original game media in the data directory. OpenCaptive transparently scans:
+Place ZIP archives containing your original game media in the data directory, or pass one archive directly with `--data`. OpenCaptive transparently scans:
 
 - ZIP archives (including nested ZIPs)
 - ADF disk images

@@ -127,13 +127,13 @@ ctest --test-dir build -j4 --output-on-failure
 | Linux / macOS | `~/.opencaptive` |
 | Windows | `<install dir>\data` |
 
-Place your game data files (ZIP archives, loose files, ADF disk images) in the data directory. Files are identified by SHA-256 content hash — filenames don't matter. Nested ZIPs, ADF disk images, and ISO tracks are scanned automatically. The scanner reuses cached results for unchanged files and rescans only files whose size, timestamp, or identity changed.
+Place your game data files (ZIP archives, loose files, ADF disk images) in the data directory, or pass one ZIP archive directly to `--data`. Files are identified by SHA-256 content hash — filenames don't matter. Nested ZIPs, ADF disk images, and ISO tracks are scanned automatically. The scanner reuses cached results for unchanged files and rescans only files whose size, timestamp, or identity changed.
 
 ### Command-line options
 
 | Flag | Description |
 |------|-------------|
-| `--data <path>` | Path to game data directory |
+| `--data <path>` | Path to game data directory or one ZIP archive |
 | `--game captive\|liberation` | Start specific game directly |
 | `--platform dos` | Captive runtime platform (the current playable renderer) |
 | `--scale <N>` | Window scale factor, 1-5 (default: `3`) |

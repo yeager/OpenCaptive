@@ -532,7 +532,16 @@ static void scan_for_zips_recursive(DataVFS *vfs, const char *path, int depth) {
 static void scan_for_zips(DataVFS *vfs) {
     if (!vfs) return;
     vfs->num_zips = 0;
-    scan_for_zips_recursive(vfs, vfs->data_path, 0);
+    struct stat st;
+    /* A user may select the preservation archive itself, not only the
+     * directory containing it.  Keep archive identity content-addressed; the
+     * path is only the VFS source location. */
+    if (stat(vfs->data_path, &st) == 0 && S_ISREG(st.st_mode) &&
+        has_zip_extension(vfs->data_path)) {
+        append_zip_path(vfs, vfs->data_path);
+    } else {
+        scan_for_zips_recursive(vfs, vfs->data_path, 0);
+    }
 }
 
 bool vfs_init(DataVFS *vfs, const char *data_path) {
@@ -690,6 +699,12 @@ static void vfs_cache_signature(const DataVFS *vfs, char out[65]) {
     SHA256Context ctx;
     uint8_t digest[32];
     sha256_init(&ctx);
+    /* The source interpretation is part of the cache contract.  In
+     * particular, a direct archive path used to be mistaken for a directory;
+     * invalidate old negative entries when that behavior changes. */
+    static const char cache_format[] = "opencaptive-v3-direct-archive\0";
+    sha256_update(&ctx, (const uint8_t *)cache_format,
+                  sizeof(cache_format));
     sha256_update(&ctx, (const uint8_t *)vfs->data_path,
                   strlen(vfs->data_path) + 1);
     /* Negative cache entries must notice content replacements in nested

@@ -157,6 +157,23 @@ static void test_reads_zip_in_nested_data_directory(void) {
     assert(TEST_RMDIR("test-vfs-nested") == 0);
 }
 
+static void test_reads_when_archive_is_selected_directly(void) {
+    const unsigned char payload[] = { 0x5a, 0xa5, 0x33, 0xcc };
+    const char *archive = "test-vfs-direct.zip";
+    write_stored_zip(archive, "CAPICS/DIRECT.BIN", payload, sizeof(payload));
+
+    DataVFS vfs;
+    assert(vfs_init(&vfs, archive));
+    assert(vfs.num_zips == 1);
+    size_t size = 0;
+    uint8_t *result = vfs_read_file(&vfs, "capics/direct.bin", &size);
+    assert(result && size == sizeof(payload));
+    assert(memcmp(result, payload, sizeof(payload)) == 0);
+    free(result);
+    vfs_free(&vfs);
+    assert(remove(archive) == 0);
+}
+
 static void test_replacing_zip_invalidates_live_cache(void) {
     const unsigned char original[] = { 1, 2, 3, 4 };
     /* A size change makes the source fingerprint change on every supported
@@ -386,6 +403,7 @@ int main(void) {
     test_reads_prefixed_case_insensitive_zip_entry();
     test_replacing_zip_invalidates_live_cache();
     test_reads_zip_in_nested_data_directory();
+    test_reads_when_archive_is_selected_directly();
     test_rejects_overlong_archive_names();
     test_rejects_invalid_hash_text();
     test_rejects_overlong_data_path();

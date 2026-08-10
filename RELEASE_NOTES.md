@@ -17,6 +17,9 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
 
 ### Changed
 
+- **(Infrastructure)** `--data` now accepts a ZIP archive directly as well as a
+  data directory; cached verification remains content-addressed and is
+  invalidated when the VFS source contract changes.
 - **(Captive)** Startup uses the decoded original ANM when present, then the
   verified DOSBox-X holomap and landing checkpoints.
 - **(Captive)** Headless frame verification now selects the authenticated
