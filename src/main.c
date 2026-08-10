@@ -59,7 +59,6 @@ static int fade_direction = 0;
 static GameStateMode fade_target = STATE_GAME;
 static uint32_t menu_idle_ticks;
 static int demo_tick;
-static int story_scroll_y;
 static int loading_frames;
 static GameState demo_gs;
 static bool demo_gs_ready = false;
@@ -3269,6 +3268,18 @@ int main(int argc, char *argv[]) {
                 case STATE_GAME:
                     if (event.type == SDL_EVENT_KEY_DOWN &&
                         event.key.key == SDLK_ESCAPE) {
+                        if (gs.game_type == GAME_CAPTIVE &&
+                            captive_landed_reference_active) {
+                            /* The original landed frame is a real CAPPO
+                             * checkpoint. Until live dungeon records are
+                             * decoded, Escape is the safe state change from
+                             * this authenticated presentation. */
+                            captive_landed_reference_active = false;
+                            captive_holamap_reset(gs.mission);
+                            gs.mode = STATE_HOLAMAP;
+                            music_play(&music_sys, MUSIC_HOLOMAP);
+                            break;
+                        }
                         if (gs.game_type == GAME_LIBERATION && liberation_intro_active) {
                             liberation_intro_active = false;
                             liberation_mission_menu_active =
@@ -3366,22 +3377,15 @@ int main(int argc, char *argv[]) {
                             }
                         }
                     } else {
-                        /* Keep the input/state loop live while the final
-                         * source-panel compositor is being recovered.  The
-                         * controls operate on the same game state consumed by
-                         * the 19-cell view window; disabling them made
-                         * Captive appear frozen even where its original-data
-                         * shell and verified map path were loaded. */
-                        if (gs.game_type == GAME_CAPTIVE) {
-                            captive_holamap_reset(gs.mission);
-                            gs.mode = STATE_HOLAMAP;
+                        /* Captive's original arrow controls are also the
+                         * dungeon movement controls. Do not route every key
+                         * back to the holomap: that made the native viewport
+                         * look frozen and made mouse-arrow clicks unusable
+                         * after entering a real dungeon frame. */
+                        game_handle_input(&gs, &event);
+                        popup_apply_cheats(&gs);
+                        if (gs.mode == STATE_HOLAMAP)
                             music_play(&music_sys, MUSIC_HOLOMAP);
-                        } else {
-                            game_handle_input(&gs, &event);
-                            popup_apply_cheats(&gs);
-                            if (gs.mode == STATE_HOLAMAP)
-                                music_play(&music_sys, MUSIC_HOLOMAP);
-                        }
                     }
                     break;
                 case STATE_BAR:
@@ -3984,6 +3988,10 @@ int main(int argc, char *argv[]) {
                      * are recovered; map_gen output is never a fallback. */
                     captive_landed_reference_active =
                         captive_landed_dungeon_reference != NULL;
+                    if (captive_landed_reference_active) {
+                        gs.mode = STATE_GAME;
+                        music_play(&music_sys, MUSIC_BASE);
+                    }
                 } else if (game_state_new_mission(&gs, gs.mission + 1)) {
                     automap_init(&automap_state);
                     gs.mode = STATE_DROID_CONFIG;
@@ -4362,26 +4370,40 @@ int main(int argc, char *argv[]) {
                     }
                     for (int mi = 0; mi < MSG_LOG_SIZE; mi++)
                         if (msg_log[mi].ttl > 0) msg_log[mi].ttl--;
-                    /* Captive: the verified original GAME SCRN shell. */
-                    if (hud_bg) {
-                        memcpy(framebuffer, hud_bg,
-                               CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
-                    }
+                    /* Captive's landed checkpoint is a real captured dungeon
+                     * frame. Keep it intact until the CAPPO dungeon records
+                     * are decoded; never replace it with generated geometry. */
                     if (gs.game_type == GAME_CAPTIVE &&
-                        config.render_mode == CAPTIVE_RENDER_ORIGINAL &&
-                        textures_loaded) {
-                        CaptiveViewWindow original_view;
-                        captive_view_window_build(&gs, &original_view);
-                        viewport_render_original_descriptors(
-                            &original_view, &atlas, framebuffer,
-                            CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
-                    }
-                    if (config.render_mode == CAPTIVE_RENDER_ENHANCED) {
-                        /* Enhanced mode may add presentation effects, but it
-                         * must not invent a dungeon viewport. The original
-                         * descriptor compositor is not complete yet. */
-                        hud_render(&gs, framebuffer,
-                                   CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                        captive_landed_reference_active &&
+                        captive_landed_dungeon_reference) {
+                        holamap_render_reference_frame(
+                            captive_landed_dungeon_reference,
+                            captive_landed_dungeon_reference_width,
+                            captive_landed_dungeon_reference_height,
+                            framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                            CAPTIVE_ORIGINAL_HEIGHT);
+                    } else {
+                        /* Captive: the verified original GAME SCRN shell. */
+                        if (hud_bg) {
+                            memcpy(framebuffer, hud_bg,
+                                   CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                        }
+                        if (gs.game_type == GAME_CAPTIVE &&
+                            config.render_mode == CAPTIVE_RENDER_ORIGINAL &&
+                            textures_loaded) {
+                            CaptiveViewWindow original_view;
+                            captive_view_window_build(&gs, &original_view);
+                            viewport_render_original_descriptors(
+                                &original_view, &atlas, framebuffer,
+                                CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                        }
+                        if (config.render_mode == CAPTIVE_RENDER_ENHANCED) {
+                            /* Enhanced mode may add presentation effects, but it
+                             * must not invent a dungeon viewport. The original
+                             * descriptor compositor is not complete yet. */
+                            hud_render(&gs, framebuffer,
+                                       CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                        }
                     }
                     if (msg_scroll_offset > 0) {
                         int start = msg_history_count - MSG_LOG_SIZE - msg_scroll_offset;
@@ -4847,53 +4869,13 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_STORY:
-                /* The old scrolling story was handwritten placeholder text;
-                 * CAPPO's real opening is the decoded ANM above.  If an old
-                 * save or stale event reaches this state, fail closed to the
-                 * verified media path instead of rendering synthetic prose. */
-                if (gs.game_type == GAME_CAPTIVE) {
+                /* No generated story fallback. Captive's opening is the
+                 * verified ANM; stale story state returns to the verified
+                 * navigation surface. Liberation has its own verified
+                 * intro/menu path and must not inherit this state. */
+                if (gs.game_type == GAME_CAPTIVE)
                     captive_holamap_reset(gs.mission);
-                    gs.mode = STATE_HOLAMAP;
-                    break;
-                }
-                memset(framebuffer, 0, sizeof(framebuffer));
-                story_scroll_y--;
-                {
-                    const char *story[] = {
-                        "C A P T I V E",
-                        "",
-                        "You are a prisoner aboard",
-                        "a space station.",
-                        "",
-                        "Your captors have left you",
-                        "alone with a computer terminal.",
-                        "",
-                        "Using it, you discover how to",
-                        "remote-control four service",
-                        "droids stored in the station.",
-                        "",
-                        "You must guide them through",
-                        "hostile bases on nearby planets",
-                        "to find and destroy the power",
-                        "generators that maintain your",
-                        "prison cell's force field.",
-                        "",
-                        "Only then can you escape...",
-                    };
-                    int nlines = (int)(sizeof(story) / sizeof(story[0]));
-                    for (int i = 0; i < nlines; i++) {
-                        int ty = story_scroll_y + i * 12 + CAPTIVE_ORIGINAL_HEIGHT;
-                        if (ty >= -10 && ty < CAPTIVE_ORIGINAL_HEIGHT)
-                            draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH,
-                                          CAPTIVE_ORIGINAL_HEIGHT, ty, story[i],
-                                          i == 0 ? 0xFF44AAFF : 0xFFCCCCCC, i == 0 ? 2 : 1);
-                    }
-                    if (story_scroll_y + nlines * 12 + CAPTIVE_ORIGINAL_HEIGHT < 0) {
-                        gs.mode = post_story_mode;
-                        if (post_story_mode == STATE_DROID_CONFIG)
-                            droid_config_cursor = 0;
-                    }
-                }
+                gs.mode = gs.game_type == GAME_CAPTIVE ? STATE_HOLAMAP : STATE_GAME;
                 break;
 
             case STATE_LOADING:

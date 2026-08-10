@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (Captive landing/input correction)
+
+- Captive game input now remains in the dungeon state instead of resetting to
+  the holomap on every key event.
+- The authenticated landing checkpoint now transitions into the game state,
+  renders the real landed dungeon frame without synthetic overlays, and uses
+  Escape to return to the real holomap.
+- Removed the obsolete handwritten story fallback; stale Captive story state
+  returns to verified media only.
+- Local Debug build and all 63 CTest targets pass.
+
 ## 2026-08-10 (v1.1.101: remove synthetic Captive startup paths)
 
 - Removed the handwritten Captive story scroll from the active startup path.
