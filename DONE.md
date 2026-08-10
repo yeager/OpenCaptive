@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (launcher cover crop)
+
+- Reduced the launcher cards' black side bars by applying a modest crop to the
+  real Captive and Liberation cover assets at render time.
+- Preserved aspect ratio and kept the crop top-weighted so the original cover
+  titles and logos remain visible; no replacement or generated artwork was
+  added.
+- Local Debug build and all 63 CTest targets pass.
+
 ## 2026-08-10 (Captive landing/input correction)
 
 - Captive game input now remains in the dungeon state instead of resetting to

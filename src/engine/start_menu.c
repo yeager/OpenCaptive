@@ -231,6 +231,34 @@ static void blit_aspect_fit(uint32_t *dst, int dw, int dh,
                 src, sw, sh);
 }
 
+/* The supplied covers are portrait artwork placed in a wide launcher card.
+ * A plain aspect-fit therefore leaves large black side bars.  Use a modest,
+ * top-weighted vertical crop from the real cover, then fit that crop without
+ * stretching it.  Keeping the crop here preserves the original asset and
+ * avoids inventing a second, preprocessed image file. */
+static void blit_cover_crop(uint32_t *dst, int dw, int dh,
+                            int dx, int dy, int tw, int th,
+                            const uint32_t *src, int sw, int sh) {
+    if (!dst || !src || dw <= 0 || dh <= 0 || tw <= 0 || th <= 0 ||
+        sw <= 0 || sh <= 0) return;
+
+    int crop_h = (sh * 76) / 100;
+    if (crop_h < 1) crop_h = sh;
+    int crop_y = (sh - crop_h) / 6; /* retain the cover title and logo */
+    const uint32_t *cropped = src + (size_t)crop_y * (size_t)sw;
+
+    int draw_w = tw;
+    int draw_h = (int)((int64_t)crop_h * draw_w / sw);
+    if (draw_h > th) {
+        draw_h = th;
+        draw_w = (int)((int64_t)sw * draw_h / crop_h);
+    }
+    if (draw_w < 1 || draw_h < 1) return;
+    blit_scaled(dst, dw, dh, dx + (tw - draw_w) / 2,
+                dy + (th - draw_h) / 2, draw_w, draw_h,
+                cropped, sw, crop_h);
+}
+
 static void draw_border(uint32_t *pixels, int pw, int ph,
                         int x, int y, int w, int h, uint32_t color, int t) {
     draw_rect(pixels, pw, ph, x, y, w, t, color);
@@ -1521,7 +1549,7 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
     if (menu->captive_img && menu->captive_img_w > 0 && menu->captive_img_h > 0) {
         draw_rect(pixels, width, height, cx0, card_y, card_w, card_h,
                   0xFF1A1020);
-        blit_aspect_fit(pixels, width, height, cx0, card_y, card_w, card_h,
+        blit_cover_crop(pixels, width, height, cx0, card_y, card_w, card_h,
                         menu->captive_img, menu->captive_img_w,
                         menu->captive_img_h);
     } else {
@@ -1539,7 +1567,7 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
         menu->liberation_img_h > 0) {
         draw_rect(pixels, width, height, cx1, card_y, card_w, card_h,
                   0xFF0C1020);
-        blit_aspect_fit(pixels, width, height, cx1, card_y, card_w, card_h,
+        blit_cover_crop(pixels, width, height, cx1, card_y, card_w, card_h,
                         menu->liberation_img, menu->liberation_img_w,
                         menu->liberation_img_h);
     } else {
