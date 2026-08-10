@@ -15,9 +15,9 @@ void map_generate(DungeonLevel *level, uint32_t seed, int level_num);
 void map_generate_base(DungeonLevel levels[MAX_LEVELS], int *out_num_levels,
                        uint32_t seed);
 
-/* Exact 16-bit Architect PRNG recovered from the verified Amiga MapGen HUNK.
- * Exposed as a sequence helper so ports can validate phase work before map
- * output fixtures are available. */
+/* Exact 16-bit Captive DOS PRNG recovered from CAPPO.EXE at 0x8878.
+ * Exposed as a sequence helper so map-generation phases can be checked
+ * against the original routine before map-output fixtures are available. */
 void mapgen_original_prng_sequence(uint16_t seed, uint16_t *out, size_t count);
 
 /* Generate the exterior landing zone level prepended to a base.

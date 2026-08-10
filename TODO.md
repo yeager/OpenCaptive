@@ -46,6 +46,8 @@
       the verified `DS:0x9A5A` offset table is currently data-only in runtime.
 
 ### Map generation
+- [x] Recover the CAPPO DOS map-generation PRNG at `0x8878` (three `ROR`
+      steps plus `XOR AH,0x08`) and lock its regression vector
 - [x] Recover cellular automaton rule types from 0x39CC-0x3C21 (maze/rooms/open/mixed)
 - [x] Recover generator placement algorithm from 0x1C3C
 - [x] Wire CA map output to DungeonLevel conversion (10×56 → 64×32 cells)

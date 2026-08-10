@@ -54,11 +54,12 @@ These observations establish control-flow facts only. They do not assign a
 specific game feature to each loop and must not be used to alter the C
 prototype until an original map output can confirm the associated phase.
 
-The PRNG itself is no longer a hypothesis. At `0x44a0`–`0x44b8`, the original
-loads the 16-bit state, multiplies by `0x5e5`, adds `0x29`, stores the low word,
-rotates that word right by four and XORs `0x0800`. `mapgen_original_prng_sequence`
-has a regression vector for seed 179: `89f4, 1e39, e65d, f75b, 40f0, d82b,
-aa43, b0a0` (hexadecimal). The rest of the C map implementation is still not
+The PRNG itself is no longer a hypothesis. In the unpacked DOS `CAPPO.EXE`
+routine at `0x8878`, the original loads the 16-bit state, multiplies by
+`0x5e5`, adds `0x29`, stores the low word, performs three one-bit rotates
+right, and XORs `0x0800` through `XOR AH,0x08`. `mapgen_original_prng_sequence`
+has a regression vector for seed 179: `0be9, 2472, d4bb, f6b7, 99e0, a857,
+4c87, 7941` (hexadecimal). The rest of the C map implementation is still not
 validated against original output.
 
 ## Seed formula

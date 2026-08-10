@@ -2,9 +2,9 @@
 #include "mapgen_ca.h"
 #include <string.h>
 
-/* Exact 16-bit Architect PRNG recovered at offsets 0x44a0-0x44b8 in the
- * hash-verified Amiga MapGen HUNK: state = state * 0x5e5 + 0x29; then
- * ROR.W #4 and EORI.W #0x800. Map construction below remains incomplete. */
+/* Exact 16-bit Captive DOS PRNG recovered from CAPPO.EXE at 0x8878:
+ * state = state * 0x5e5 + 0x29; ROR AX three times; XOR AH,0x08.
+ * This is the routine used by the original map-generation path. */
 static uint16_t prng_state;
 
 static uint16_t ror16(uint16_t value, unsigned count) {
@@ -13,7 +13,7 @@ static uint16_t ror16(uint16_t value, unsigned count) {
 
 static uint16_t prng_next(void) {
     prng_state = (uint16_t)(prng_state * 1509u + 41u);
-    return (uint16_t)(ror16(prng_state, 4) ^ 0x0800u);
+    return (uint16_t)(ror16(prng_state, 3) ^ 0x0800u);
 }
 
 static void prng_seed(uint32_t seed) {
@@ -25,7 +25,7 @@ void mapgen_original_prng_sequence(uint16_t seed, uint16_t *out, size_t count) {
     uint16_t state = seed;
     for (size_t i = 0; i < count; ++i) {
         state = (uint16_t)(state * 0x5e5u + 0x29u);
-        out[i] = (uint16_t)(ror16(state, 4) ^ 0x0800u);
+        out[i] = (uint16_t)(ror16(state, 3) ^ 0x0800u);
     }
 }
 

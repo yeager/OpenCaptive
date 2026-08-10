@@ -277,8 +277,10 @@ bitmask buffer (20 bytes per row, stride 0xA0 in viewport mode). Key stages:
    each). Values: 0x00=wall, 0x20=floor, 0x44=door. Checks grid boundaries
    at CX=0x40 (width 64) and BX=0x20 (height 32).
 
-The PRNG at 0x8E78 is the DOS variant: `state = state * 0x5E5 + 0x29` (no
-rotation or XOR), stored at `[0x12DE]`.
+The map-generation PRNG at `0x8878` is the DOS variant: it computes
+`state = state * 0x5E5 + 0x29`, performs three `ROR AX,1` operations, then
+executes `XOR AH,0x08`; the low word is stored at `[0x92F8]`. CAPPO also has a
+second unrotated helper at `0x889A`; it is not the map-generation entry.
 
 The technical reference used for this boundary is the documented
 [MapGen introduction](https://captive.atari.org/Technical/MapGen/Introduction.php)
