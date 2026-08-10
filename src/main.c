@@ -3671,8 +3671,19 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 case STATE_HOLAMAP:
-                    if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
-                        event.button.button == SDL_BUTTON_LEFT) {
+                    if (event.type == SDL_EVENT_MOUSE_MOTION) {
+                        float cx, cy;
+                        if (window_to_canvas(&renderer, event.motion.x,
+                                             event.motion.y, &cx, &cy))
+                            (void)holamap_set_cursor_from_frame(
+                                &captive_holamap, (int)cx, (int)cy);
+                    } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
+                               event.button.button == SDL_BUTTON_LEFT) {
+                        float cx, cy;
+                        if (window_to_canvas(&renderer, event.button.x,
+                                             event.button.y, &cx, &cy))
+                            (void)holamap_set_cursor_from_frame(
+                                &captive_holamap, (int)cx, (int)cy);
                         (void)captive_holamap_mouse_move(&renderer,
                                                          &event.button,
                                                          &captive_holamap, &gs);

@@ -67,6 +67,17 @@ static void test_cursor_movement_is_clamped(void) {
     assert(hm.cursor_y == HOLAMAP_HEIGHT - 1);
 }
 
+static void test_absolute_frame_cursor_uses_real_map_panel(void) {
+    Holamap hm;
+    holamap_init(&hm, 1);
+    assert(!holamap_set_cursor_from_frame(&hm, 27, 100));
+    assert(holamap_set_cursor_from_frame(&hm, 28, 65));
+    assert(hm.cursor_x == 0 && hm.cursor_y == 0);
+    assert(holamap_set_cursor_from_frame(&hm, 179, 164));
+    assert(hm.cursor_x == HOLAMAP_WIDTH - 2);
+    assert(hm.cursor_y == HOLAMAP_HEIGHT - 2);
+}
+
 static void test_pyramid_centers_cursor(void) {
     Holamap hm;
     holamap_init(&hm, 99);
@@ -152,6 +163,7 @@ int main(void) {
     test_invalid_base_count_does_not_escape_array();
     test_reveal();
     test_cursor_movement_is_clamped();
+    test_absolute_frame_cursor_uses_real_map_panel();
     test_pyramid_centers_cursor();
     test_zoom_is_clamped();
     test_render();

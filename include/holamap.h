@@ -47,6 +47,9 @@ void holamap_render_reference_frame(const uint8_t *rgba, int reference_width,
 /* Apply one original navigation-arrow action to the real holomap cursor.
  * This changes input state only; it never creates surface or base data. */
 void holamap_move_cursor(Holamap *hm, int dx, int dy);
+/* Map an absolute point in CAPPO's verified 320x200 holomap frame to the
+ * original cursor coordinates. Returns false outside the map panel. */
+bool holamap_set_cursor_from_frame(Holamap *hm, int frame_x, int frame_y);
 void holamap_center_cursor(Holamap *hm);
 void holamap_zoom_in(Holamap *hm);
 void holamap_zoom_out(Holamap *hm);

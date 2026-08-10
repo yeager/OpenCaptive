@@ -79,6 +79,29 @@ void holamap_move_cursor(Holamap *hm, int dx, int dy) {
     hm->cursor_y = y;
 }
 
+bool holamap_set_cursor_from_frame(Holamap *hm, int frame_x, int frame_y) {
+    /* These bounds are the map rectangle in the authenticated
+     * assets/captive/holamap-initial.png / holamap-target.png captures.
+     * CAPPO's 256x128 cursor space is scaled into that original panel; no
+     * surface, base, or target data is inferred by this conversion. */
+    const int map_left = 28;
+    const int map_top = 65;
+    const int map_right = 180;
+    const int map_bottom = 165;
+    if (!hm || frame_x < map_left || frame_x >= map_right ||
+        frame_y < map_top || frame_y >= map_bottom)
+        return false;
+    int x = (frame_x - map_left) * HOLAMAP_WIDTH /
+            (map_right - map_left);
+    int y = (frame_y - map_top) * HOLAMAP_HEIGHT /
+            (map_bottom - map_top);
+    if (x >= HOLAMAP_WIDTH) x = HOLAMAP_WIDTH - 1;
+    if (y >= HOLAMAP_HEIGHT) y = HOLAMAP_HEIGHT - 1;
+    hm->cursor_x = x;
+    hm->cursor_y = y;
+    return true;
+}
+
 void holamap_center_cursor(Holamap *hm) {
     if (!hm) return;
     /* CAPPO's Pyramid command returns the cursor to The Swan.  This only

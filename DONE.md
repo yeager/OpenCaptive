@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (Captive absolute holomap mouse input)
+
+- Mouse motion and clicks inside the authenticated 320x200 holomap panel now
+  update CAPPO's cursor coordinates.
+- The conversion only changes selection state; it does not synthesize map
+  cells, targets, markers, or rendered pixels.
+- Added boundary tests for the real captured map rectangle.
+
 ## 2026-08-10 (CAPPO 0x21D1 even branches)
 
 - Recovered the real 0x22AA and 0x229A descriptor pairs from CAPPO's
