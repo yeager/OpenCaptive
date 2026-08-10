@@ -340,6 +340,12 @@ The default segment is `0x2942`, matching the verified relocated runtime
 fixture. No dump bytes are bundled and the tool is never used as runtime game
 data.
 
+The same boundary now reproduces CAPPO's 5×5 copied neighbourhood from
+`DS:7CB3` using the four orientation branches at `0x1818`. Outside-map cells
+are reported separately instead of being replaced with a guessed wall or
+floor. This makes the raw viewport input testable without claiming that the
+later cell-code-to-descriptor dispatch is complete.
+
 ## SFX system
 
 10 game-level SFX types mapped to CAP_A.BIN AdLib sequences via INT 61h disassembly:

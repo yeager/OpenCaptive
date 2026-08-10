@@ -41,3 +41,48 @@ bool captive_dos_map_cell(const CaptiveDosMapState *state, int x, int y,
     *out_raw = state->cells[y * CAPTIVE_DOS_MAP_WIDTH + x];
     return true;
 }
+
+bool captive_dos_view_window_build(const CaptiveDosMapState *state,
+                                   CaptiveDosViewWindow *out) {
+    if (!state || !out || state->facing > 3) return false;
+    memset(out, 0, sizeof(*out));
+    out->facing = state->facing;
+
+    for (int row = 0; row < 5; ++row) {
+        for (int col = 0; col < 5; ++col) {
+            int x = state->player_x;
+            int y = state->player_y;
+            /* The four branches in CAPPO 0x1818 write the same 5x5
+             * neighbourhood in different traversal orders. */
+            switch (state->facing) {
+                case 0:
+                    x -= 2 + row;
+                    y -= 4 - col;
+                    break;
+                case 1:
+                    x -= 4 - row;
+                    y += 2 - col;
+                    break;
+                case 2:
+                    x += 2 - row;
+                    y += 4 - col;
+                    break;
+                case 3:
+                    x += 4 - row;
+                    y -= 2 - col;
+                    break;
+                default:
+                    return false;
+            }
+            if (x < 0 || x >= CAPTIVE_DOS_MAP_WIDTH ||
+                y < 0 || y >= CAPTIVE_DOS_MAP_HEIGHT) {
+                out->outside[row][col] = true;
+                /* Keep an outside cell distinguishable from a real 0x00
+                 * CAPPO cell.  No guessed map value is emitted. */
+                continue;
+            }
+            out->raw[row][col] = state->cells[y * CAPTIVE_DOS_MAP_WIDTH + x];
+        }
+    }
+    return true;
+}

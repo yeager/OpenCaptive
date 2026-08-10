@@ -54,6 +54,18 @@ int main(int argc, char **argv) {
                                    state.player_x];
     printf("DS:%04X player=(%u,%u) facing=%u raw=%02X\n", state.ds_segment,
            state.player_x, state.player_y, state.facing, current);
+    CaptiveDosViewWindow window;
+    if (captive_dos_view_window_build(&state, &window)) {
+        puts("CAPPO raw 5x5 window:");
+        for (int y = 0; y < 5; ++y) {
+            for (int x = 0; x < 5; ++x) {
+                if (window.outside[y][x]) fputs("..", stdout);
+                else printf("%02X", window.raw[y][x]);
+                if (x != 4) putchar(' ');
+            }
+            putchar('\n');
+        }
+    }
     for (int y = 0; y < CAPTIVE_DOS_MAP_HEIGHT; ++y) {
         printf("%02d ", y);
         for (int x = 0; x < CAPTIVE_DOS_MAP_WIDTH; ++x)
