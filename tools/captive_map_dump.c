@@ -100,13 +100,13 @@ int main(int argc, char **argv) {
                 printf("   descriptor-operands:");
                 for (uint8_t n = 0; n < operands.descriptor_count; ++n)
                     printf(" %04X", operands.descriptor_id[n]);
-                puts(" (1C90-conditional)");
+                puts(" (handler-preconditions-unresolved)");
             }
-            CaptiveDosGuardResult guard =
-                captive_dos_dispatch_visibility_guard(&window, &record, raw);
-            printf("   1C90-guard: %s\n",
-                   guard == CAPTIVE_DOS_GUARD_PASS ? "pass" :
-                   guard == CAPTIVE_DOS_GUARD_FAIL ? "fail" : "unknown");
+            CaptiveDos1c90Result guard =
+                captive_dos_1c90_evaluate(&window, &record, raw);
+            printf("   1C90-helper: %s\n",
+                   guard == CAPTIVE_DOS_1C90_PASS ? "would-draw" :
+                   guard == CAPTIVE_DOS_1C90_FAIL ? "no-draw" : "unknown");
         }
     }
     for (int y = 0; y < CAPTIVE_DOS_MAP_HEIGHT; ++y) {

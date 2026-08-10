@@ -1,14 +1,14 @@
 # OpenCaptive — Completed work
 
-## 2026-08-10 (Captive 0x1C90 visibility guard)
+## 2026-08-10 (Captive 0x1C90 helper analysis)
 
-- Reproduced CAPPO's shared `0x1C90` neighbour tests for direction values 1,
+- Reproduced CAPPO's shared `0x1C90` neighbour helper for direction values 1,
   2 and 3, including the original special-cell bypasses and the record
   byte+4 zero guard.
 - Preserved the copied window's three-byte row padding and report
   `pass/fail/unknown`; unknown or out-of-window data is never converted to a
   generated map cell.
-- `captive_map_dump` now reports the guard result beside each real
+- `captive_map_dump` now reports the helper result beside each real
   draw-order record.
 - Local Debug build and all 64 CTest targets pass.
 
@@ -19,8 +19,8 @@
 - The decoder reads the real `DS:5CC2` and `DS:1276` tables from a supplied
   DOSBox-X memory dump; it does not create replacement IDs or activate a
   guessed viewport renderer.
-- `captive_map_dump` now reports the conditional operand sequence and keeps
-  the shared `0x1C90` visibility guard explicit. The verified capture emits
+- `captive_map_dump` now reports the unresolved handler-precondition sequence
+  and keeps the shared `0x1C90` helper explicit. The verified capture emits
   real sequences including `01DC 01E3`, `0406` and `0405`.
 - Local Debug build and all 64 CTest targets pass.
 

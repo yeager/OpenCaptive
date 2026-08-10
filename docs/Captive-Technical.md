@@ -374,22 +374,25 @@ orientation-selected word at `DS:5CC2` plus record byte 6. For `0x1E35`,
 record byte 6 indexes the real `DS:1276` table; CAPPO adds `0x17E`/`0x18B`
 when flag bit 2 is set, or `0x192`/`0x199` on the ordinary path. `0x1DFC`
 and `0x1E13` expose their corresponding `+0x1ED` and `+0x157` operands.
-The API and dump tool label these as `1C90-conditional`: the IDs are the
-actual operands from the supplied dump, but CAPPO may reject the cell before
-the descriptor call because of the shared visibility and neighbour checks.
+The API and dump tool label these as `handler-preconditions-unresolved`: the
+IDs are the actual operands from the supplied dump, while handler-local table,
+orientation and state checks still need to be evaluated before claiming a
+descriptor call.
 For the captured navigation frame this produces real operand sequences such
 as `01DC 01E3` (the `DS:1276[3]` path) and `0406`/`0405` (the `DS:5CC2`
 path). No descriptor ID is synthesized when a source table marks a route as
 inactive.
 
-The dump tool now also evaluates the shared `0x1C90` guard. It preserves
+The dump tool now also evaluates the shared `0x1C90` helper. It preserves
 CAPPO's three-byte row padding: a neighbour read landing in that padding, or
 outside the 5×5 copied window, is reported as `unknown`, never as a fake cell.
 For direction values 1, 3 and 2 it reproduces the original `[di+9]`,
 `[di+1]`, `[di+7]` and `[di-1]` comparisons against `0x1A`, including the
-special raw-code bypasses (`0x1A`, `0x1C`, `0x22`, `0x24`). This separates a
-descriptor operand from a proven descriptor call and is the next input needed
-before enabling the active compositor.
+special raw-code bypasses (`0x1A`, `0x1C`, `0x22`, `0x24`). The result is a
+helper outcome, not a universal handler gate: `0x1D17` and `0x1E35` continue
+after calling `0x1C90`. This separates its possible special-case descriptor
+from the handler's own descriptor operands and is the next input needed before
+enabling the active compositor.
 
 ## SFX system
 

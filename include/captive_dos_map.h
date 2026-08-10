@@ -55,21 +55,20 @@ typedef struct {
 #define CAPTIVE_DOS_DESCRIPTOR_OPERAND_MAX 2u
 
 /* Descriptor operands emitted by one recovered CAPPO cell handler.  These
- * are analysis results, not a renderer command: CAPPO still applies the
- * shared 0x1C90 visibility/neighbor guard before the handler reaches its
- * descriptor call. */
+ * are analysis results, not renderer commands: CAPPO calls 0x1C90 first, but
+ * the handler may continue with its own descriptor logic afterward. */
 typedef struct {
     uint16_t handler_address;
     uint16_t descriptor_id[CAPTIVE_DOS_DESCRIPTOR_OPERAND_MAX];
     uint8_t descriptor_count;
-    bool requires_1c90_pass;
+    bool calls_1c90_first;
 } CaptiveDosDescriptorOperands;
 
 typedef enum {
-    CAPTIVE_DOS_GUARD_UNKNOWN = 0,
-    CAPTIVE_DOS_GUARD_FAIL,
-    CAPTIVE_DOS_GUARD_PASS,
-} CaptiveDosGuardResult;
+    CAPTIVE_DOS_1C90_UNKNOWN = 0,
+    CAPTIVE_DOS_1C90_FAIL,
+    CAPTIVE_DOS_1C90_PASS,
+} CaptiveDos1c90Result;
 
 /* First-stage CAPPO raw-cell dispatch.  These names intentionally describe
  * code addresses, not guessed gameplay meanings. */
@@ -130,11 +129,11 @@ bool captive_dos_dispatch_descriptor_operands(
     const CaptiveDosDispatchRecord *record, uint8_t raw,
     CaptiveDosDescriptorOperands *out);
 
-/* Evaluate CAPPO 0x1C90 against the copied 5x5 window.  UNKNOWN is returned
- * whenever the original neighbour offset lands in the three-byte row
- * padding or outside the supplied window; callers must not turn it into a
- * wall, floor, or visible sprite. */
-CaptiveDosGuardResult captive_dos_dispatch_visibility_guard(
+/* Evaluate CAPPO 0x1C90's own special-case helper against the copied 5x5
+ * window. UNKNOWN is returned whenever the original neighbour offset lands
+ * in the three-byte row padding or outside the supplied window; callers must
+ * not turn it into a wall, floor, or visible sprite. */
+CaptiveDos1c90Result captive_dos_1c90_evaluate(
     const CaptiveDosViewWindow *window,
     const CaptiveDosDispatchRecord *record, uint8_t raw);
 

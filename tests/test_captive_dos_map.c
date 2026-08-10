@@ -87,14 +87,14 @@ int main(void) {
     record.window_index = 0;
     record.byte_at_4 = 1;
     record.byte_at_5 = 3;
-    assert(captive_dos_dispatch_visibility_guard(
-               &window, &record, 0x10) == CAPTIVE_DOS_GUARD_FAIL);
+    assert(captive_dos_1c90_evaluate(
+               &window, &record, 0x10) == CAPTIVE_DOS_1C90_FAIL);
     window.raw[0][1] = 0x1B;
-    assert(captive_dos_dispatch_visibility_guard(
-               &window, &record, 0x10) == CAPTIVE_DOS_GUARD_PASS);
+    assert(captive_dos_1c90_evaluate(
+               &window, &record, 0x10) == CAPTIVE_DOS_1C90_PASS);
     record.window_index = 4;
-    assert(captive_dos_dispatch_visibility_guard(
-               &window, &record, 0x10) == CAPTIVE_DOS_GUARD_UNKNOWN);
+    assert(captive_dos_1c90_evaluate(
+               &window, &record, 0x10) == CAPTIVE_DOS_1C90_UNKNOWN);
     assert(!captive_dos_map_decode(memory, 0xFFFFFu, ds, &state));
     free(memory);
     return 0;

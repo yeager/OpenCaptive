@@ -119,66 +119,66 @@ bool captive_dos_dispatch_window_xy(uint8_t window_index, int *x, int *y) {
     return true;
 }
 
-static CaptiveDosGuardResult window_relative_byte(
+static CaptiveDos1c90Result window_relative_byte(
     const CaptiveDosViewWindow *window, uint8_t window_index, int delta,
     uint8_t *out) {
     if (!window || !out || window_index >= 40U ||
         (window_index % 8U) >= 5U)
-        return CAPTIVE_DOS_GUARD_UNKNOWN;
+        return CAPTIVE_DOS_1C90_UNKNOWN;
     int offset = (int)window_index + delta;
     if (offset < 0 || offset >= 40 || (offset % 8) >= 5)
-        return CAPTIVE_DOS_GUARD_UNKNOWN;
+        return CAPTIVE_DOS_1C90_UNKNOWN;
     int x = offset % 8;
     int y = offset / 8;
-    if (window->outside[y][x]) return CAPTIVE_DOS_GUARD_UNKNOWN;
+    if (window->outside[y][x]) return CAPTIVE_DOS_1C90_UNKNOWN;
     *out = window->raw[y][x];
-    return CAPTIVE_DOS_GUARD_PASS;
+    return CAPTIVE_DOS_1C90_PASS;
 }
 
-CaptiveDosGuardResult captive_dos_dispatch_visibility_guard(
+CaptiveDos1c90Result captive_dos_1c90_evaluate(
     const CaptiveDosViewWindow *window,
     const CaptiveDosDispatchRecord *record, uint8_t raw) {
-    if (!window || !record) return CAPTIVE_DOS_GUARD_UNKNOWN;
+    if (!window || !record) return CAPTIVE_DOS_1C90_UNKNOWN;
     /* CAPPO 0x1C90 starts with `or bp,bp`; BP is record byte +4. */
-    if (record->byte_at_4 == 0U) return CAPTIVE_DOS_GUARD_FAIL;
+    if (record->byte_at_4 == 0U) return CAPTIVE_DOS_1C90_FAIL;
 
     raw &= 0x7FU;
     uint8_t neighbour = 0;
     switch (record->byte_at_5) {
         case 1:
             /* `raw == 1A || [di+9] > 1A`. */
-            if (raw == 0x1AU) return CAPTIVE_DOS_GUARD_PASS;
+            if (raw == 0x1AU) return CAPTIVE_DOS_1C90_PASS;
             if (window_relative_byte(window, record->window_index, 9,
-                                     &neighbour) != CAPTIVE_DOS_GUARD_PASS)
-                return CAPTIVE_DOS_GUARD_UNKNOWN;
-            return neighbour > 0x1AU ? CAPTIVE_DOS_GUARD_PASS
-                                     : CAPTIVE_DOS_GUARD_FAIL;
+                                     &neighbour) != CAPTIVE_DOS_1C90_PASS)
+                return CAPTIVE_DOS_1C90_UNKNOWN;
+            return neighbour > 0x1AU ? CAPTIVE_DOS_1C90_PASS
+                                     : CAPTIVE_DOS_1C90_FAIL;
         case 3:
             /* `raw == 1C || [di+1] > 1A`. */
-            if (raw == 0x1CU) return CAPTIVE_DOS_GUARD_PASS;
+            if (raw == 0x1CU) return CAPTIVE_DOS_1C90_PASS;
             if (window_relative_byte(window, record->window_index, 1,
-                                     &neighbour) != CAPTIVE_DOS_GUARD_PASS)
-                return CAPTIVE_DOS_GUARD_UNKNOWN;
-            return neighbour > 0x1AU ? CAPTIVE_DOS_GUARD_PASS
-                                     : CAPTIVE_DOS_GUARD_FAIL;
+                                     &neighbour) != CAPTIVE_DOS_1C90_PASS)
+                return CAPTIVE_DOS_1C90_UNKNOWN;
+            return neighbour > 0x1AU ? CAPTIVE_DOS_1C90_PASS
+                                     : CAPTIVE_DOS_1C90_FAIL;
         case 2:
             /* `raw == 22 || [di+7] > 1A`, then
              * `raw == 24 || [di-1] > 1A`. */
             if (raw != 0x22U) {
                 if (window_relative_byte(window, record->window_index, 7,
-                                          &neighbour) != CAPTIVE_DOS_GUARD_PASS)
-                    return CAPTIVE_DOS_GUARD_UNKNOWN;
-                if (neighbour <= 0x1AU) return CAPTIVE_DOS_GUARD_FAIL;
+                                          &neighbour) != CAPTIVE_DOS_1C90_PASS)
+                    return CAPTIVE_DOS_1C90_UNKNOWN;
+                if (neighbour <= 0x1AU) return CAPTIVE_DOS_1C90_FAIL;
             }
             if (raw != 0x24U) {
                 if (window_relative_byte(window, record->window_index, -1,
-                                          &neighbour) != CAPTIVE_DOS_GUARD_PASS)
-                    return CAPTIVE_DOS_GUARD_UNKNOWN;
-                if (neighbour <= 0x1AU) return CAPTIVE_DOS_GUARD_FAIL;
+                                          &neighbour) != CAPTIVE_DOS_1C90_PASS)
+                    return CAPTIVE_DOS_1C90_UNKNOWN;
+                if (neighbour <= 0x1AU) return CAPTIVE_DOS_1C90_FAIL;
             }
-            return CAPTIVE_DOS_GUARD_PASS;
+            return CAPTIVE_DOS_1C90_PASS;
         default:
-            return CAPTIVE_DOS_GUARD_FAIL;
+            return CAPTIVE_DOS_1C90_FAIL;
     }
 }
 
@@ -195,7 +195,7 @@ bool captive_dos_dispatch_descriptor_operands(
         ? captive_dos_cell_route(raw)
         : captive_dos_cell_route_normal(raw);
     out->handler_address = route_address(route);
-    out->requires_1c90_pass = out->handler_address != 0;
+    out->calls_1c90_first = out->handler_address != 0;
 
     /* CAPPO 0x1D17: after the 0x1C90 call, AL is byte 6 and the
      * orientation-adjusted word at DS:5CC2 is added before 0x2DD7. */
