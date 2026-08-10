@@ -97,6 +97,17 @@ path uses `0x53a0`. The selected base depends on the cell, range and
 orientation. A single completed VGA frame can confirm source coverage, but
 cannot reveal every per-call base or the draw order.
 
+### CAPPO map state recovered from disassembly
+
+The expanded CAPPO executable also establishes the original dungeon-map
+addressing without requiring generated data. At `0x4936`, CAPPO accesses its
+map byte array at `DS:0x7CB3`; the helper at `0x4949` computes the byte index as
+`(y << 6) + x` and rejects coordinates above `x=63` or `y=31`. The active
+coordinates are read from `DS:0x5E80` and `DS:0x5E82`. This proves the original
+64×32 map layout and the live coordinate fields. The byte values are CAPPO's
+cell/object codes, not OpenCaptive's native `CellType` enum, so no partial
+interpretation is used until each code and its render path is source-verified.
+
 ### Panel matches against the captured frame
 
 The fixture and the 320×200 VGA frame with SHA-256
