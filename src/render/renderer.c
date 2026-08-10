@@ -245,6 +245,80 @@ bool renderer_set_widescreen(OpenCaptiveRenderer *r, bool enabled, int width) {
     return true;
 }
 
+/* Compute the on-screen destination rectangle for the framebuffer texture, in
+ * render-output pixels.  renderer_present() and the mouse mapping below must
+ * agree on this exactly, or hit-testing drifts from what is drawn. */
+static void renderer_destination_rect(const OpenCaptiveRenderer *r,
+                                      int output_w, int output_h,
+                                      float *out_scale,
+                                      float *out_x, float *out_y) {
+    float scale_x = (float)output_w / r->texture_width;
+    float scale_y = (float)output_h / r->texture_height;
+    float scale = scale_x < scale_y ? scale_x : scale_y;
+    if (r->integer_scaling && scale >= 1.0f &&
+        r->canvas_width <= 640 && r->canvas_height <= 400) {
+        scale = (float)(int)scale;
+    }
+    if (out_scale) *out_scale = scale;
+    if (out_x) *out_x = (output_w - r->texture_width * scale) / 2.0f;
+    if (out_y) *out_y = (output_h - r->texture_height * scale) / 2.0f;
+}
+
+/* SDL-free inverse of the presentation transform, exposed for testing.
+ * window_(w,h) in points, output_(w,h) in pixels (HiDPI-aware). */
+bool renderer_map_point(int window_w, int window_h, int output_w, int output_h,
+                        int texture_w, int texture_h,
+                        int canvas_w, int canvas_h, bool integer_scaling,
+                        float window_x, float window_y,
+                        float *canvas_x, float *canvas_y) {
+    if (!canvas_x || !canvas_y || window_w <= 0 || window_h <= 0 ||
+        output_w <= 0 || output_h <= 0 || texture_w <= 0 || texture_h <= 0 ||
+        canvas_w <= 0 || canvas_h <= 0) return false;
+
+    float scale_x = (float)output_w / texture_w;
+    float scale_y = (float)output_h / texture_h;
+    float scale = scale_x < scale_y ? scale_x : scale_y;
+    if (integer_scaling && scale >= 1.0f && canvas_w <= 640 && canvas_h <= 400)
+        scale = (float)(int)scale;
+    if (!(scale > 0.0f)) return false;
+    float off_x = (output_w - texture_w * scale) / 2.0f;
+    float off_y = (output_h - texture_h * scale) / 2.0f;
+
+    /* Points -> render-output pixels, then invert the letterbox.  SDL mouse
+     * events and window size are in points while the render output is in
+     * pixels, so a Retina display carries a factor the old mapping ignored. */
+    float px = window_x * (float)output_w / (float)window_w;
+    float py = window_y * (float)output_h / (float)window_h;
+    float tx = (px - off_x) / scale;
+    float ty = (py - off_y) / scale;
+    /* Shift a widescreen texture back to canvas space so callers can use native
+     * 320x200 hit boxes regardless of pillar width. */
+    float cx = tx - (float)(texture_w - canvas_w) / 2.0f;
+    float cy = ty - (float)(texture_h - canvas_h) / 2.0f;
+    if (cx < 0.0f || cx >= canvas_w || cy < 0.0f || cy >= canvas_h) return false;
+    *canvas_x = cx;
+    *canvas_y = cy;
+    return true;
+}
+
+/* Map a window-relative mouse position (SDL logical points) to a canvas pixel,
+ * mirroring renderer_present().  Returns false when the click is outside the
+ * presented image. */
+bool renderer_window_to_canvas(const OpenCaptiveRenderer *r,
+                               float window_x, float window_y,
+                               float *canvas_x, float *canvas_y) {
+    if (!r || !r->renderer) return false;
+    int window_w = 0, window_h = 0;
+    SDL_GetWindowSize(r->window, &window_w, &window_h);
+    int output_w = 0, output_h = 0;
+    SDL_GetRenderOutputSize(r->renderer, &output_w, &output_h);
+    return renderer_map_point(window_w, window_h, output_w, output_h,
+                              r->texture_width, r->texture_height,
+                              r->canvas_width, r->canvas_height,
+                              r->integer_scaling, window_x, window_y,
+                              canvas_x, canvas_y);
+}
+
 void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
     if (!r || !r->renderer || !r->framebuffer) return;
     if (pixels) {
@@ -347,20 +421,14 @@ void renderer_present(OpenCaptiveRenderer *r, const uint32_t *pixels) {
     int output_width = r->texture_width;
     int output_height = r->texture_height;
     SDL_GetRenderOutputSize(r->renderer, &output_width, &output_height);
-    float scale_x = (float)output_width / r->texture_width;
-    float scale_y = (float)output_height / r->texture_height;
-    float scale = scale_x < scale_y ? scale_x : scale_y;
-    /* The launcher uses a 960x600 canvas and must fill a normal 1280x800
-     * window. Integer scaling is useful for the original 320x200/320x256
-     * game canvases, but forcing 1x on the launcher leaves large unused
-     * borders around the entire menu. */
-    if (r->integer_scaling && scale >= 1.0f &&
-        r->canvas_width <= 640 && r->canvas_height <= 400) {
-        scale = (float)(int)scale;
-    }
+    /* Integer scaling helps the 320x200/320x256 game canvases but must not
+     * pin the 960x600 launcher to 1x; renderer_destination_rect() applies that
+     * rule, and mouse hit-testing reuses the exact same helper. */
+    float scale, dst_x, dst_y;
+    renderer_destination_rect(r, output_width, output_height,
+                              &scale, &dst_x, &dst_y);
     SDL_FRect destination = {
-        (output_width - r->texture_width * scale) / 2.0f,
-        (output_height - r->texture_height * scale) / 2.0f,
+        dst_x, dst_y,
         r->texture_width * scale,
         r->texture_height * scale,
     };

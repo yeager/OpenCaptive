@@ -111,30 +111,16 @@ static void captive_holamap_reset(uint32_t mission_seed) {
 
 static uint32_t framebuffer[MENU_WIDTH * MENU_HEIGHT];
 
-/* renderer_present() preserves the canvas aspect ratio and centers it inside
- * the window.  SDL mouse coordinates are window-relative, so direct
- * width/height scaling is wrong whenever the window has letterbox bars. */
-static bool window_to_canvas(SDL_Window *window, float window_x, float window_y,
-                             int canvas_width, int canvas_height,
+/* Map a window-relative mouse position to a canvas pixel.  Delegates to the
+ * renderer so the letterbox math, integer scaling, and HiDPI points->pixels
+ * ratio match exactly what was drawn — the old standalone copy computed its
+ * scale from logical window points with no integer flooring, so it agreed with
+ * the renderer only for exact integer-multiple windows and broke hit-testing
+ * on external monitors, odd resolutions, and resized windows. */
+static bool window_to_canvas(const OpenCaptiveRenderer *r,
+                             float window_x, float window_y,
                              float *canvas_x, float *canvas_y) {
-    if (!window || !canvas_x || !canvas_y || canvas_width <= 0 || canvas_height <= 0)
-        return false;
-    int window_width, window_height;
-    SDL_GetWindowSize(window, &window_width, &window_height);
-    if (window_width <= 0 || window_height <= 0) return false;
-    float scale_x = (float)window_width / canvas_width;
-    float scale_y = (float)window_height / canvas_height;
-    float scale = scale_x < scale_y ? scale_x : scale_y;
-    if (!(scale > 0.0f)) return false;
-    float offset_x = (window_width - canvas_width * scale) / 2.0f;
-    float offset_y = (window_height - canvas_height * scale) / 2.0f;
-    float x = (window_x - offset_x) / scale;
-    float y = (window_y - offset_y) / scale;
-    if (x < 0.0f || x >= canvas_width || y < 0.0f || y >= canvas_height)
-        return false;
-    *canvas_x = x;
-    *canvas_y = y;
-    return true;
+    return renderer_window_to_canvas(r, window_x, window_y, canvas_x, canvas_y);
 }
 
 /* Captive's original GAME SCRN puts the navigation arrows in the right-hand
@@ -143,15 +129,13 @@ static bool window_to_canvas(SDL_Window *window, float window_x, float window_y,
  * function deliberately has no rendering fallback: the cursor is only
  * committed to the decoded holomap once the original surface compositor is
  * available. */
-static bool captive_navigation_mouse_key(SDL_Window *window,
+static bool captive_navigation_mouse_key(const OpenCaptiveRenderer *r,
                                          const SDL_MouseButtonEvent *button,
                                          SDL_Keycode *key) {
-    if (!window || !button || !key || button->button != SDL_BUTTON_LEFT)
+    if (!r || !button || !key || button->button != SDL_BUTTON_LEFT)
         return false;
     float x, y;
-    if (!window_to_canvas(window, button->x, button->y,
-                          CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                          &x, &y))
+    if (!window_to_canvas(r, button->x, button->y, &x, &y))
         return false;
 
     /* Native coordinates from the original 320x200 control bank. */
@@ -178,25 +162,23 @@ static bool captive_navigation_mouse_key(SDL_Window *window,
     return false;
 }
 
-static bool captive_navigation_mouse_action(SDL_Window *window,
+static bool captive_navigation_mouse_action(const OpenCaptiveRenderer *r,
                                             const SDL_MouseButtonEvent *button,
                                             CaptiveNavigationAction *action) {
-    if (!window || !button || !action || button->button != SDL_BUTTON_LEFT)
+    if (!r || !button || !action || button->button != SDL_BUTTON_LEFT)
         return false;
     float x, y;
-    if (!window_to_canvas(window, button->x, button->y,
-                          CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                          &x, &y)) return false;
+    if (!window_to_canvas(r, button->x, button->y, &x, &y)) return false;
     *action = captive_navigation_action_at((int)x, (int)y);
     return *action != CAPTIVE_NAV_ACTION_NONE;
 }
 
-static bool captive_holamap_mouse_move(SDL_Window *window,
+static bool captive_holamap_mouse_move(const OpenCaptiveRenderer *r,
                                        const SDL_MouseButtonEvent *button,
                                        Holamap *holamap, GameState *gs) {
     CaptiveNavigationAction action;
     if (!holamap || !gs ||
-        !captive_navigation_mouse_action(window, button, &action))
+        !captive_navigation_mouse_action(r, button, &action))
         return false;
     switch (action) {
         case CAPTIVE_NAV_ACTION_UP:    holamap_move_cursor(holamap, 0, -1); break;
@@ -221,11 +203,11 @@ static bool captive_holamap_mouse_move(SDL_Window *window,
     return true;
 }
 
-static bool captive_orbit_mouse_move(SDL_Window *window,
+static bool captive_orbit_mouse_move(const OpenCaptiveRenderer *r,
                                      const SDL_MouseButtonEvent *button,
                                      GameState *gs) {
     CaptiveNavigationAction action;
-    if (!gs || !captive_navigation_mouse_action(window, button, &action))
+    if (!gs || !captive_navigation_mouse_action(r, button, &action))
         return false;
     if (action == CAPTIVE_NAV_ACTION_LAND && captive_landing_reference) {
         /* The white point is the original landing target.  CAPPO changes
@@ -2983,17 +2965,13 @@ int main(int argc, char *argv[]) {
                     MenuResult result;
                     if (event.type == SDL_EVENT_MOUSE_MOTION) {
                         float mx, my;
-                        if (window_to_canvas(renderer.window, event.motion.x,
-                                             event.motion.y, MENU_WIDTH,
-                                             MENU_HEIGHT, &mx, &my))
+                        if (window_to_canvas(&renderer, event.motion.x, event.motion.y, &mx, &my))
                             start_menu_handle_mouse_motion(&menu, mx, my);
                         result = MENU_RESULT_NONE;
                     } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                         event.button.button == SDL_BUTTON_LEFT) {
                         float x, y;
-                        result = window_to_canvas(renderer.window, event.button.x,
-                                                  event.button.y, MENU_WIDTH,
-                                                  MENU_HEIGHT, &x, &y)
+                        result = window_to_canvas(&renderer, event.button.x, event.button.y, &x, &y)
                             ? start_menu_handle_click(&menu, x, y)
                             : MENU_RESULT_NONE;
                     } else {
@@ -3283,7 +3261,7 @@ int main(int argc, char *argv[]) {
                          * boxes into the same key action used by the native
                          * keyboard path; this creates no game data. */
                         SDL_Keycode navigation_key;
-                        if (captive_navigation_mouse_key(renderer.window,
+                        if (captive_navigation_mouse_key(&renderer,
                                                          &event.button,
                                                          &navigation_key)) {
                             SDL_Event navigation = {0};
@@ -3306,11 +3284,7 @@ int main(int argc, char *argv[]) {
                                    event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                                    event.button.button == SDL_BUTTON_LEFT) {
                             float canvas_x, canvas_y;
-                            if (!window_to_canvas(renderer.window, event.button.x,
-                                                  event.button.y,
-                                                  LIBERATION_SCREEN_WIDTH,
-                                                  LIBERATION_SCREEN_HEIGHT,
-                                                  &canvas_x, &canvas_y))
+                            if (!window_to_canvas(&renderer, event.button.x, event.button.y, &canvas_x, &canvas_y))
                                 break;
                             int x = (int)canvas_x;
                             int y = (int)canvas_y;
@@ -3466,8 +3440,7 @@ int main(int argc, char *argv[]) {
                         event.button.button == SDL_BUTTON_LEFT &&
                         gs.game_type == GAME_CAPTIVE) {
                         float cx, cy;
-                        if (window_to_canvas(renderer.window, event.button.x, event.button.y,
-                                             CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT, &cx, &cy))
+                        if (window_to_canvas(&renderer, event.button.x, event.button.y, &cx, &cy))
                             droid_ui_handle_click(&droid_ui, &gs, &item_db, (int)cx, (int)cy,
                                                   CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                     }
@@ -3623,7 +3596,7 @@ int main(int argc, char *argv[]) {
                 case STATE_HOLAMAP:
                     if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                         event.button.button == SDL_BUTTON_LEFT) {
-                        (void)captive_holamap_mouse_move(renderer.window,
+                        (void)captive_holamap_mouse_move(&renderer,
                                                          &event.button,
                                                          &captive_holamap, &gs);
                     } else if (event.type == SDL_EVENT_KEY_DOWN) {
@@ -3686,7 +3659,7 @@ int main(int argc, char *argv[]) {
                 case STATE_ORBIT:
                     if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                         event.button.button == SDL_BUTTON_LEFT) {
-                        (void)captive_orbit_mouse_move(renderer.window,
+                        (void)captive_orbit_mouse_move(&renderer,
                                                        &event.button, &gs);
                     } else if (event.type == SDL_EVENT_KEY_DOWN) {
                         switch (event.key.key) {
@@ -3808,10 +3781,7 @@ int main(int argc, char *argv[]) {
                         int canvas_height = (gs.game_type == GAME_LIBERATION && !lib_in_dungeon)
                             ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
                         float canvas_x, my;
-                        if (!window_to_canvas(renderer.window, event.motion.x,
-                                              event.motion.y,
-                                              CAPTIVE_ORIGINAL_WIDTH,
-                                              canvas_height, &canvas_x, &my))
+                        if (!window_to_canvas(&renderer, event.motion.x, event.motion.y, &canvas_x, &my))
                             break;
                         for (int i = 0; i < 3; i++) {
                             int iy = 90 + i * 20;
@@ -3825,10 +3795,7 @@ int main(int argc, char *argv[]) {
                         int canvas_height = (gs.game_type == GAME_LIBERATION && !lib_in_dungeon)
                             ? LIBERATION_SCREEN_HEIGHT : CAPTIVE_ORIGINAL_HEIGHT;
                         float canvas_x, my;
-                        if (!window_to_canvas(renderer.window, event.button.x,
-                                              event.button.y,
-                                              CAPTIVE_ORIGINAL_WIDTH,
-                                              canvas_height, &canvas_x, &my))
+                        if (!window_to_canvas(&renderer, event.button.x, event.button.y, &canvas_x, &my))
                             break;
                         int clicked = -1;
                         for (int i = 0; i < 3; i++) {

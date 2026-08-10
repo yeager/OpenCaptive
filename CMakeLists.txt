@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.99 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.100 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -574,6 +574,12 @@ if(UNIX)
     target_link_libraries(test_adlib_sfx PRIVATE ${MATH_LIBRARY})
 endif()
 add_test(NAME adlib_sfx COMMAND test_adlib_sfx)
+
+add_executable(test_renderer_map tests/test_renderer_map.c src/render/renderer.c
+    src/custom/upscale_xbrz.c)
+target_include_directories(test_renderer_map PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test_renderer_map PRIVATE SDL3::SDL3 ${MATH_LIBRARY})
+add_test(NAME renderer_map COMMAND test_renderer_map)
 
 # The tests use assert() for both execution and verification.  Release builds
 # define NDEBUG, which would otherwise turn those test expressions into no-ops.

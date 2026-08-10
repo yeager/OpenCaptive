@@ -1,5 +1,25 @@
 # OpenCaptive — Completed work
 
+## 2026-08-09 (MacBook Pro mouse hit-testing, v1.1.100)
+
+- Field report: on a MacBook Pro the mouse "didn't work". Root cause was the
+  window-to-canvas mapping computing its scale from logical window points with
+  no integer flooring, while renderer_present scales in output pixels and floors
+  the game canvas. They coincide only for exact integer-multiple windows (why it
+  worked at scale 3 and fullscreen 16:10), and diverge on external monitors, odd
+  --resolution values, and resized windows — so the new holomap/orbit/landing
+  navigation controls could not be clicked there.
+- Extracted the presentation transform into one shared, SDL-free
+  renderer_map_point() used by both draw and hit-test, and routed the main.c
+  mouse helpers (holomap, orbit, navigation key/action) through it. Added tests
+  pinning the Retina, letterbox, launcher, and widescreen cases; verified the
+  test fails against the old points-based math.
+- Note on process: this reconciled with the owner's parallel v1.1.99 work, which
+  had already replaced the dead-end holomap with verified holomap/orbit/landing
+  references and CAPPO keypad controls. An earlier local attempt to restore the
+  synthetic space-flight path was dropped as superseded; only the still-needed
+  mouse fix was rebased on top.
+
 ## 2026-08-09 (v1.1.99 release preparation)
 
 - Updated every public documentation page and all 24 wiki pages to v1.1.99.
