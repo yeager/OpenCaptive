@@ -98,7 +98,11 @@ bool renderer_init(OpenCaptiveRenderer *r, const OpenCaptiveConfig *config) {
     int w = config->window_width > 0 ? config->window_width : 1280;
     int h = config->window_height > 0 ? config->window_height : 800;
 
-    r->window = SDL_CreateWindow("OpenCaptive", w, h, SDL_WINDOW_RESIZABLE);
+    char window_title[64];
+    snprintf(window_title, sizeof(window_title), "OpenCaptive v%d.%d.%d",
+             OPENCAPTIVE_VERSION_MAJOR, OPENCAPTIVE_VERSION_MINOR,
+             OPENCAPTIVE_VERSION_PATCH);
+    r->window = SDL_CreateWindow(window_title, w, h, SDL_WINDOW_RESIZABLE);
     if (!r->window) {
         fprintf(stderr, "SDL_CreateWindow: %s\n", SDL_GetError());
         return false;
