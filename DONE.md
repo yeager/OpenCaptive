@@ -29,6 +29,14 @@
   overlay routes, without creating replacement graphics or map data.
 - Local Debug build and all 64 CTest targets pass.
 
+## 2026-08-10 (Captive overlay 0x206A/0x20C7 operands)
+
+- Recovered both descriptor pairs from the real CAPPO handlers: `0x6B` /
+  `0x74` and `0x86` / `0x7D`, each through the exact `0x20E4` BP rule.
+- Kept the handlers' `0x2768` renderer side effect separate from operand
+  decoding; no synthetic image or object data is introduced.
+- Added regression vectors and retained 64/64 local CTest coverage.
+
 ## 2026-08-10 (Captive descriptor operand recovery)
 
 - Added an analysis-only decoder for the recovered CAPPO descriptor operands

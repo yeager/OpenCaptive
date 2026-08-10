@@ -110,6 +110,18 @@ int main(void) {
     assert(operands.descriptor_count == 2);
     assert(operands.descriptor_id[0] == 0x035E);
     assert(operands.descriptor_id[1] == 0x036A);
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x2C, &operands));
+    assert(operands.handler_address == 0x206A);
+    assert(operands.descriptor_count == 2);
+    assert(operands.descriptor_id[0] == 0x006E);
+    assert(operands.descriptor_id[1] == 0x0077);
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x2E, &operands));
+    assert(operands.handler_address == 0x20C7);
+    assert(operands.descriptor_count == 2);
+    assert(operands.descriptor_id[0] == 0x0089);
+    assert(operands.descriptor_id[1] == 0x0080);
     window.outside[0][0] = false;
     window.outside[0][1] = false;
     window.raw[0][0] = 0x1B;

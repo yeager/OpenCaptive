@@ -405,6 +405,11 @@ rules are applied exactly as in CAPPO, and rejected values produce no operand.
 These are still source-locked operand paths only: no pixels or replacement
 object data are invented while the remaining overlay handlers are unresolved.
 
+The same `0x20E4` path is now decoded for `0x206A` (`0x6B` / `0x74`) and
+`0x20C7` (`0x86` / `0x7D`). Their preceding `0x2768` calls are renderer-side
+effects and do not supply descriptor IDs, so the analysis exposes only the two
+actual operands from each handler and keeps the original rejection rule.
+
 The dump tool now also evaluates the shared `0x1C90` helper. It preserves
 CAPPO's three-byte row padding: a neighbour read landing in that padding, or
 outside the 5×5 copied window, is reported as `unknown`, never as a fake cell.

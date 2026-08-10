@@ -264,6 +264,29 @@ bool captive_dos_dispatch_descriptor_operands(
         return true;
     }
 
+    /* CAPPO 0x206A enters 0x207C, which makes two 0x20E4 calls. The
+     * preceding 0x2768 call is a renderer-side side effect, not an operand
+     * source or a condition for these two real descriptor IDs. */
+    if (route == CAPTIVE_DOS_CELL_ROUTE_206A) {
+        uint8_t bp = record->byte_at_4;
+        if (!captive_bp_20e4(bp, &bp)) return true;
+        out->descriptor_id[0] = (uint16_t)(0x06BU + bp);
+        out->descriptor_id[1] = (uint16_t)(0x074U + bp);
+        out->descriptor_count = 2;
+        return true;
+    }
+
+    /* CAPPO 0x20C7 enters 0x20D9, again producing two descriptors through
+     * 0x20E4 after its mode-dependent 0x2768 side effect. */
+    if (route == CAPTIVE_DOS_CELL_ROUTE_20C7) {
+        uint8_t bp = record->byte_at_4;
+        if (!captive_bp_20e4(bp, &bp)) return true;
+        out->descriptor_id[0] = (uint16_t)(0x086U + bp);
+        out->descriptor_id[1] = (uint16_t)(0x07DU + bp);
+        out->descriptor_count = 2;
+        return true;
+    }
+
     /* CAPPO 0x1D17: after the 0x1C90 call, AL is byte 6 and the
      * orientation-adjusted word at DS:5CC2 is added before 0x2DD7. */
     if (route == CAPTIVE_DOS_CELL_ROUTE_1D17) {
