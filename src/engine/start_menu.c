@@ -754,7 +754,7 @@ void start_menu_free(StartMenu *menu) {
 }
 
 static int hit_test_main_menu(const StartMenu *menu, float x, float y) {
-    int card_w = 390, card_h = 280, gap = 30;
+    int card_w = 410, card_h = 300, gap = 20;
     int total_w = card_w * 2 + gap;
     int cx0 = (MENU_WIDTH - total_w) / 2, cx1 = cx0 + card_w + gap;
     int logo_h_used = start_menu_logo_height(menu, MENU_WIDTH);
@@ -762,7 +762,9 @@ static int hit_test_main_menu(const StartMenu *menu, float x, float y) {
     int label_y = card_y + card_h + 4;
     int year_y = label_y + 22;
     int continue_y = year_y + 22;
-    int bottom_y = continue_y + 26;
+    /* Give the larger artwork a little breathing room before the secondary
+     * actions.  Settings/About intentionally move down with the cards. */
+    int bottom_y = continue_y + 34;
     int bottom2_y = bottom_y + 28;
 
     if (y >= card_y && y < card_y + card_h) {
@@ -1511,7 +1513,7 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
     }
     ttf_text_centered(pixels, width, height, logo_h_used, _("BY DANIEL NYLANDER"), small, 0xFF666688);
 
-    int card_w = 390, card_h = 280, card_y = logo_h_used + 18, gap = 30;
+    int card_w = 410, card_h = 300, card_y = logo_h_used + 18, gap = 20;
     int total_w = card_w * 2 + gap;
     int cx0 = (width - total_w) / 2;
     int cx1 = cx0 + card_w + gap;
@@ -1635,7 +1637,7 @@ void start_menu_render(StartMenu *menu, uint32_t *pixels, int width, int height)
     }
 
     // Row: Settings / About
-    int bottom_y = continue_y + 26;
+    int bottom_y = continue_y + 34;
     {
         const char *btns1[] = { _("SETTINGS"), _("ABOUT") };
         int bidx1[] = { 4, 5 };
