@@ -374,10 +374,10 @@ orientation-selected word at `DS:5CC2` plus record byte 6. For `0x1E35`,
 record byte 6 indexes the real `DS:1276` table; CAPPO adds `0x17E`/`0x18B`
 when flag bit 2 is set, or `0x192`/`0x199` on the ordinary path. `0x1DFC`
 and `0x1E13` expose their corresponding `+0x1ED` and `+0x157` operands.
-The API and dump tool label these as `handler-preconditions-unresolved`: the
-IDs are the actual operands from the supplied dump, while handler-local table,
-orientation and state checks still need to be evaluated before claiming a
-descriptor call.
+The API and dump tool emit these only after the recovered handler-local table,
+orientation and state checks pass, and label them `handler-preconditions-pass`.
+The IDs are the actual operands from the supplied dump; descriptor-table
+sentinel validation and the remaining overlay bands are still separate work.
 For the captured navigation frame this produces real operand sequences such
 as `01DC 01E3` (the `DS:1276[3]` path) and `0406`/`0405` (the `DS:5CC2`
 path). No descriptor ID is synthesized when a source table marks a route as

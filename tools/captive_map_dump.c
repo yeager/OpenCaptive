@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
                 printf("   descriptor-operands:");
                 for (uint8_t n = 0; n < operands.descriptor_count; ++n)
                     printf(" %04X", operands.descriptor_id[n]);
-                puts(" (handler-preconditions-unresolved)");
+                puts(" (handler-preconditions-pass)");
             }
             CaptiveDos1c90Result guard =
                 captive_dos_1c90_evaluate(&window, &record, raw);

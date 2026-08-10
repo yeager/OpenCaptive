@@ -203,6 +203,29 @@ bool captive_dos_dispatch_descriptor_operands(
         size_t base = (size_t)ds_segment * 16U;
         uint8_t direction = (uint8_t)((record->byte_at_5 -
                                        (memory[base + CAPTIVE_DOS_FACING_OFFSET] & 3U)) & 3U);
+        if (record->byte_at_6 > 0x0CU) return true;
+        if (!range_inside(base + 0x144EU + direction, 1, memory_size) ||
+            !(memory[base + 0x144EU + direction] &
+              (uint8_t)record->word_at_0))
+            return true;
+        uint16_t state = (uint16_t)(memory[base + 0x5E95U] |
+                                    ((uint16_t)memory[base + 0x5E96U] << 8));
+        uint16_t cached = (uint16_t)(memory[base + 0x5FF7U] |
+                                     ((uint16_t)memory[base + 0x5FF8U] << 8));
+        bool cache_match = state == cached;
+        if (!cache_match) {
+            for (size_t i = 0; i < 100U; ++i) {
+                size_t entry = base + 0x6025U + i * 4U;
+                if (!range_inside(entry, 4, memory_size)) return false;
+                uint16_t key = (uint16_t)(memory[entry] |
+                                          ((uint16_t)memory[entry + 1] << 8));
+                if (key == state) {
+                    cache_match = true;
+                    break;
+                }
+            }
+        }
+        if (!cache_match) return true;
         size_t table = base + 0x5CC2u + (size_t)direction * 2U;
         if (!range_inside(table, 2, memory_size)) return false;
         uint16_t adjustment = (uint16_t)(memory[table] |
@@ -216,11 +239,20 @@ bool captive_dos_dispatch_descriptor_operands(
      * caller-owned DS:1276 table with record byte 6; that table value, not
      * the cell code, is the operand carried into 0x2DD7. */
     if (route == CAPTIVE_DOS_CELL_ROUTE_1E35) {
+        if (record->byte_at_6 > 0x0CU) return true;
         size_t table = (size_t)ds_segment * 16U + 0x1276u +
                        (size_t)record->byte_at_6;
         if (!range_inside(table, 1, memory_size)) return false;
         uint8_t table_value = memory[table];
         if (table_value & 0x80U) return true;
+        size_t orientation_table = (size_t)ds_segment * 16U + 0x1296U +
+                                    (size_t)record->byte_at_5;
+        if (!range_inside(orientation_table, 1, memory_size)) return false;
+        uint8_t orientation = memory[orientation_table];
+        uint8_t facing = memory[(size_t)ds_segment * 16U +
+                                CAPTIVE_DOS_FACING_OFFSET] & 3U;
+        if (((uint8_t)(raw - 0x12U - orientation - facing) & 3U) != 0U)
+            return true;
         if (record->byte_at_5 & 0x04U) {
             out->descriptor_id[0] = (uint16_t)(table_value + 0x17EU);
             out->descriptor_id[1] = (uint16_t)(table_value + 0x18BU);

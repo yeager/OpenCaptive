@@ -63,12 +63,19 @@ int main(void) {
     assert(!captive_dos_dispatch_window_xy(5, &x, &y));
     assert(captive_dos_cell_route(0x00) == CAPTIVE_DOS_CELL_ROUTE_NONE);
     CaptiveDosDispatchRecord record = {
+        .word_at_0 = 0x03,
         .byte_at_5 = 0x03,
         .byte_at_6 = 0x03,
     };
     memory[base + 0x5CC2] = 0x03;
     memory[base + 0x5CC3] = 0x04;
+    memory[base + CAPTIVE_DOS_FACING_OFFSET] = 1;
+    memory[base + 0x5CC2 + 4] = 0x03;
+    memory[base + 0x5CC2 + 5] = 0x04;
     memory[base + 0x1276 + 3] = 0x4A;
+    memory[base + 0x1296 + 3] = 0x15;
+    memory[base + 0x144E] = 0xFF;
+    memory[base + 0x144E + 2] = 0xFF;
     CaptiveDosDescriptorOperands operands;
     assert(captive_dos_dispatch_descriptor_operands(
         memory, 0x100000u, ds, &record, 0x03, &operands));

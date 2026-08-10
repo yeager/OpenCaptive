@@ -19,8 +19,8 @@
 - The decoder reads the real `DS:5CC2` and `DS:1276` tables from a supplied
   DOSBox-X memory dump; it does not create replacement IDs or activate a
   guessed viewport renderer.
-- `captive_map_dump` now reports the unresolved handler-precondition sequence
-  and keeps the shared `0x1C90` helper explicit. The verified capture emits
+- `captive_map_dump` now evaluates the recovered handler preconditions and
+  keeps the shared `0x1C90` helper explicit. The verified capture emits
   real sequences including `01DC 01E3`, `0406` and `0405`.
 - Local Debug build and all 64 CTest targets pass.
 
