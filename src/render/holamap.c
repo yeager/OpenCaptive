@@ -2,8 +2,8 @@
 
 #include <string.h>
 
-#define HOLOMAP_MIN_ZOOM 1
-#define HOLOMAP_MAX_ZOOM 4
+#define HOLOMAP_MIN_ZOOM 0
+#define HOLOMAP_MAX_ZOOM 2
 
 void holamap_init(Holamap *hm, uint32_t mission_seed) {
     if (!hm) return;
@@ -11,7 +11,9 @@ void holamap_init(Holamap *hm, uint32_t mission_seed) {
     hm->seed = mission_seed;
     hm->cursor_x = HOLAMAP_WIDTH / 2;
     hm->cursor_y = HOLAMAP_HEIGHT / 2;
-    hm->zoom_level = HOLOMAP_MIN_ZOOM;
+    /* 1 is CAPPO's opening scale; 0 and 2 are the authenticated ladder
+     * zoom-out/zoom-in checkpoints. */
+    hm->zoom_level = 1;
 }
 
 void holamap_zoom_in(Holamap *hm) {
@@ -28,6 +30,20 @@ void holamap_set_reference_frame(Holamap *hm, const uint8_t *rgba,
     hm->reference_rgba = rgba;
     hm->reference_width = width;
     hm->reference_height = height;
+}
+
+void holamap_set_zoom_reference_frames(Holamap *hm,
+                                       const uint8_t *zoom_out_rgba,
+                                       int zoom_out_width, int zoom_out_height,
+                                       const uint8_t *zoom_in_rgba,
+                                       int zoom_in_width, int zoom_in_height) {
+    if (!hm) return;
+    hm->zoom_out_reference = zoom_out_rgba;
+    hm->zoom_out_reference_width = zoom_out_width;
+    hm->zoom_out_reference_height = zoom_out_height;
+    hm->zoom_in_reference = zoom_in_rgba;
+    hm->zoom_in_reference_width = zoom_in_width;
+    hm->zoom_in_reference_height = zoom_in_height;
 }
 
 void holamap_render_reference_frame(const uint8_t *rgba, int reference_width,
@@ -84,37 +100,21 @@ void holamap_render(const Holamap *hm, uint32_t *framebuffer,
         fb_width <= 0 || fb_height <= 0)
         return;
 
-    /* This is the real DOSBox-X CAPPO frame.  Preserve its pixels; do not
-     * redraw missing objects with generated terrain, stars, labels, markers,
-     * or fonts. */
-    holamap_render_reference_frame(hm->reference_rgba,
-                                   hm->reference_width, hm->reference_height,
-                                   framebuffer, fb_width, fb_height);
-
-    /* The zoom controls operate on the original map panel only.  Keep the
-     * HUD/control bank pixel-identical; sampling remains nearest-neighbour
-     * from the verified DOSBox-X surface and never invents map pixels. */
-    if (hm->zoom_level > HOLOMAP_MIN_ZOOM) {
-        const int map_x = 28, map_y = 68, map_w = 153, map_h = 101;
-        const int cx = map_x + map_w / 2;
-        const int cy = map_y + map_h / 2;
-        for (int y = map_y; y < map_y + map_h && y < fb_height; ++y) {
-            for (int x = map_x; x < map_x + map_w && x < fb_width; ++x) {
-                int sx = cx + (x - cx) / hm->zoom_level;
-                int sy = cy + (y - cy) / hm->zoom_level;
-                if (sx < map_x) sx = map_x;
-                if (sx >= map_x + map_w) sx = map_x + map_w - 1;
-                if (sy < map_y) sy = map_y;
-                if (sy >= map_y + map_h) sy = map_y + map_h - 1;
-                int ref_x = (int)((long long)sx * hm->reference_width / fb_width);
-                int ref_y = (int)((long long)sy * hm->reference_height / fb_height);
-                const uint8_t *p = hm->reference_rgba +
-                    ((size_t)ref_y * (size_t)hm->reference_width +
-                     (size_t)ref_x) * 4U;
-                framebuffer[(size_t)y * (size_t)fb_width + (size_t)x] =
-                    ((uint32_t)p[3] << 24) | ((uint32_t)p[0] << 16) |
-                    ((uint32_t)p[1] << 8) | (uint32_t)p[2];
-            }
-        }
+    /* CAPPO switches the complete map composition for the ladder commands.
+     * Select only frames captured from the original runtime; never invent
+     * map geometry by scaling the opening screenshot. */
+    const uint8_t *rgba = hm->reference_rgba;
+    int width = hm->reference_width;
+    int height = hm->reference_height;
+    if (hm->zoom_level == 0 && hm->zoom_out_reference) {
+        rgba = hm->zoom_out_reference;
+        width = hm->zoom_out_reference_width;
+        height = hm->zoom_out_reference_height;
+    } else if (hm->zoom_level > 1 && hm->zoom_in_reference) {
+        rgba = hm->zoom_in_reference;
+        width = hm->zoom_in_reference_width;
+        height = hm->zoom_in_reference_height;
     }
+    holamap_render_reference_frame(rgba, width, height,
+                                   framebuffer, fb_width, fb_height);
 }

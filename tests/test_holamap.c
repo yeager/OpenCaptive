@@ -18,11 +18,11 @@ static void test_zoom_is_clamped(void) {
     Holamap hm;
     holamap_init(&hm, 1);
     holamap_zoom_out(&hm);
-    assert(hm.zoom_level == 1);
+    assert(hm.zoom_level == 0);
     for (int i = 0; i < 20; i++) holamap_zoom_in(&hm);
-    assert(hm.zoom_level == 4);
+    assert(hm.zoom_level == 2);
     for (int i = 0; i < 20; i++) holamap_zoom_out(&hm);
-    assert(hm.zoom_level == 1);
+    assert(hm.zoom_level == 0);
 }
 
 static void test_deterministic(void) {
@@ -100,6 +100,27 @@ static void test_reference_frame(void) {
     assert(fb[1] == 0xFFA0B0C0U);
 }
 
+static void test_zoom_reference_frames_are_selected_without_resampling(void) {
+    Holamap hm;
+    uint8_t normal[4] = {0x10, 0x20, 0x30, 0xFF};
+    uint8_t zoom_out[4] = {0x40, 0x50, 0x60, 0xFF};
+    uint8_t zoom_in[4] = {0x70, 0x80, 0x90, 0xFF};
+    uint32_t pixel = 0;
+    holamap_init(&hm, 1);
+    holamap_set_reference_frame(&hm, normal, 1, 1);
+    holamap_set_zoom_reference_frames(&hm, zoom_out, 1, 1,
+                                      zoom_in, 1, 1);
+    holamap_render(&hm, &pixel, 1, 1);
+    assert(pixel == 0xFF102030U);
+    holamap_zoom_in(&hm);
+    holamap_render(&hm, &pixel, 1, 1);
+    assert(pixel == 0xFF708090U);
+    holamap_zoom_out(&hm);
+    holamap_zoom_out(&hm);
+    holamap_render(&hm, &pixel, 1, 1);
+    assert(pixel == 0xFF405060U);
+}
+
 static void test_standalone_reference_frame(void) {
     uint8_t rgba[4] = { 0x12, 0x34, 0x56, 0xFF };
     uint32_t fb = 0;
@@ -135,6 +156,7 @@ int main(void) {
     test_zoom_is_clamped();
     test_render();
     test_reference_frame();
+    test_zoom_reference_frames_are_selected_without_resampling();
     test_standalone_reference_frame();
     test_surface_variety();
     test_base_coordinates_seed_sweep();

@@ -4403,3 +4403,11 @@ respawn.
 - Updated all wiki and technical documentation baselines from v1.1.89 to the
   published v1.1.90 release without changing the documented parity boundaries.
 - Local CTest remains 61/61.
+
+# 2026-08-10 (Captive holomap zoom parity)
+
+Captured the original CAPPO `NUMPAD 1` and `NUMPAD 3` holomap views in
+DOSBox-X and added their 320×200 frames as hash-recorded runtime assets.
+OpenCaptive now selects those authenticated frames instead of enlarging the
+opening bitmap. Regression coverage verifies that zoom selection never
+resamples or invents map pixels; local CTest passes 63/63.

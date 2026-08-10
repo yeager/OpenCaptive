@@ -18,11 +18,18 @@ The original arrow controls remain interactive. Mouse coordinates are mapped
 through the centered native canvas and use the original 18×18 control regions;
 keyboard arrows and the original numeric keypad controls use the same state
 path. OpenCaptive maps `NUMPAD 2/4/6/8` to cursor movement, `NUMPAD 7` to
-`ORBIT`, and `NUMPAD 9` to `LAND`. The two original ladder hitboxes now change
-nearest-neighbour zoom on the verified map panel while leaving the HUD and
-control bank untouched.
+`ORBIT`, and `NUMPAD 9` to `LAND`. The ladder commands select complete,
+authenticated CAPPO frames captured from DOSBox-X; OpenCaptive does not
+enlarge the opening bitmap or synthesize map detail.
 
-The complete verified checkpoint is now available as four real CAPPO frames:
+The zoom captures are:
+
+- `assets/captive/holamap-zoom-out.png` — `NUMPAD 1`
+  (`4f2dbe1f997fcbd22c5bb029cf3afd8685f5f8ef1177c9868ec5c4e6b08102bc`);
+- `assets/captive/holamap-zoom-in.png` — `NUMPAD 3`
+  (`40330335de7d8daa76e2d634680f1c630be834cfb27f53951812815660c39303`).
+
+The complete verified checkpoint is now available as six real CAPPO frames:
 
 - `assets/captive/holamap-target.png` — the frame in which the green target
   point is visible (`b068a7b898db1b9db78bab52b700a57d4248d7b2038758a5eb73d96dd0697362`);

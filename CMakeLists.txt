@@ -184,6 +184,12 @@ if(NOT ANDROID)
             "${CMAKE_SOURCE_DIR}/assets/captive/holamap-initial.png"
             "$<TARGET_FILE_DIR:opencaptive>/assets/captive/holamap-initial.png"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/assets/captive/holamap-zoom-out.png"
+            "$<TARGET_FILE_DIR:opencaptive>/assets/captive/holamap-zoom-out.png"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/assets/captive/holamap-zoom-in.png"
+            "$<TARGET_FILE_DIR:opencaptive>/assets/captive/holamap-zoom-in.png"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_SOURCE_DIR}/assets/captive/holamap-target.png"
             "$<TARGET_FILE_DIR:opencaptive>/assets/captive/holamap-target.png"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different

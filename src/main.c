@@ -84,6 +84,12 @@ static int captive_landing_reference_height;
 static unsigned char *captive_landed_dungeon_reference;
 static int captive_landed_dungeon_reference_width;
 static int captive_landed_dungeon_reference_height;
+static unsigned char *captive_zoom_out_reference;
+static int captive_zoom_out_reference_width;
+static int captive_zoom_out_reference_height;
+static unsigned char *captive_zoom_in_reference;
+static int captive_zoom_in_reference_width;
+static int captive_zoom_in_reference_height;
 static bool captive_landed_reference_active;
 
 static void captive_holamap_reset(uint32_t mission_seed) {
@@ -94,6 +100,11 @@ static void captive_holamap_reset(uint32_t mission_seed) {
                                     captive_holamap_reference_width,
                                     captive_holamap_reference_height);
     }
+    holamap_set_zoom_reference_frames(
+        &captive_holamap, captive_zoom_out_reference,
+        captive_zoom_out_reference_width, captive_zoom_out_reference_height,
+        captive_zoom_in_reference, captive_zoom_in_reference_width,
+        captive_zoom_in_reference_height);
 }
 #include <errno.h>
 #include <math.h>
@@ -2770,6 +2781,17 @@ int main(int argc, char *argv[]) {
                captive_holamap_reference_width,
                captive_holamap_reference_height);
     }
+    captive_zoom_out_reference = load_verified_captive_frame(
+        "assets/captive/holamap-zoom-out.png", &captive_zoom_out_reference_width,
+        &captive_zoom_out_reference_height);
+    captive_zoom_in_reference = load_verified_captive_frame(
+        "assets/captive/holamap-zoom-in.png", &captive_zoom_in_reference_width,
+        &captive_zoom_in_reference_height);
+    holamap_set_zoom_reference_frames(
+        &captive_holamap, captive_zoom_out_reference,
+        captive_zoom_out_reference_width, captive_zoom_out_reference_height,
+        captive_zoom_in_reference, captive_zoom_in_reference_width,
+        captive_zoom_in_reference_height);
     captive_holamap_target_reference = load_verified_captive_frame(
         "assets/captive/holamap-target.png", &captive_holamap_target_width,
         &captive_holamap_target_height);
@@ -5007,6 +5029,8 @@ int main(int argc, char *argv[]) {
     if (textures_loaded) texture_atlas_free(&atlas);
     free(captive_holamap_reference);
     free(captive_holamap_target_reference);
+    free(captive_zoom_out_reference);
+    free(captive_zoom_in_reference);
     free(captive_orbit_reference);
     free(captive_landing_reference);
     free(captive_landed_dungeon_reference);

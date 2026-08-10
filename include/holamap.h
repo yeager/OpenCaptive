@@ -26,11 +26,20 @@ typedef struct {
     /* Verified DOSBox-X frame captured from the original CAPPO holomap. */
     const uint8_t *reference_rgba;
     int reference_width, reference_height;
+    const uint8_t *zoom_out_reference;
+    int zoom_out_reference_width, zoom_out_reference_height;
+    const uint8_t *zoom_in_reference;
+    int zoom_in_reference_width, zoom_in_reference_height;
 } Holamap;
 
 void holamap_init(Holamap *hm, uint32_t mission_seed);
 void holamap_set_reference_frame(Holamap *hm, const uint8_t *rgba,
                                  int width, int height);
+void holamap_set_zoom_reference_frames(Holamap *hm,
+                                       const uint8_t *zoom_out_rgba,
+                                       int zoom_out_width, int zoom_out_height,
+                                       const uint8_t *zoom_in_rgba,
+                                       int zoom_in_width, int zoom_in_height);
 /* Copy an authenticated original frame without drawing anything on top of it. */
 void holamap_render_reference_frame(const uint8_t *rgba, int reference_width,
                                     int reference_height, uint32_t *framebuffer,
