@@ -58,10 +58,7 @@ static int fade_alpha = 0;
 static int fade_direction = 0;
 static GameStateMode fade_target = STATE_GAME;
 static uint32_t menu_idle_ticks;
-static int demo_tick;
 static int loading_frames;
-static GameState demo_gs;
-static bool demo_gs_ready = false;
 static GameStateMode post_story_mode = STATE_DROID_CONFIG;
 /* Captive can open the same shop from active gameplay or from the mission
  * Holomap.  Keep the caller state so Escape never drops the player into the
@@ -3864,7 +3861,6 @@ int main(int argc, char *argv[]) {
                     if (event.type == SDL_EVENT_KEY_DOWN) {
                         gs.mode = STATE_MENU;
                         start_menu_reinit(&menu);
-                        demo_gs_ready = false;
                     }
                     break;
                 case STATE_STORY:
@@ -4856,86 +4852,12 @@ int main(int argc, char *argv[]) {
             }
 
             case STATE_DEMO:
-                if (gs.game_type == GAME_CAPTIVE) {
-                    /* Captive has no original attract-mode data in the
-                     * verified media set.  Never show the old generated
-                     * demo canvas when a stale state reaches this branch. */
-                    if (hud_bg)
-                        memcpy(framebuffer, hud_bg,
-                               CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT *
-                               sizeof(uint32_t));
-                    holamap_render(&captive_holamap, framebuffer,
-                                   CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
-                    break;
-                }
-                memset(framebuffer, 0, sizeof(framebuffer));
-                demo_tick++;
-                if (!demo_gs_ready) {
-                    /* Attract-mode dungeon is generated once from a fixed
-                     * seed and driven independently of the real session
-                     * (gs), so idling at the menu never disturbs a paused
-                     * game underneath. */
-                    game_state_init(&demo_gs, GAME_CAPTIVE, 1);
-                    if (!game_state_new_mission_seeded(&demo_gs, 1, 0xD3D0CAFE))
-                        game_state_new_mission(&demo_gs, 1);
-                    demo_gs_ready = true;
-                }
-                if (demo_gs_ready && demo_gs.num_levels > 0 && (demo_tick % 20) == 0) {
-                    /* Scripted walkthrough: advance if the cell ahead is
-                     * open floor, otherwise turn to face a new direction. */
-                    static const int ddx[4] = {0, 1, 0, -1};
-                    static const int ddy[4] = {-1, 0, 1, 0};
-                    int nx = demo_gs.party_x + ddx[demo_gs.party_dir];
-                    int ny = demo_gs.party_y + ddy[demo_gs.party_dir];
-                    MapCell *ahead = NULL;
-                    if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT)
-                        ahead = &demo_gs.levels[demo_gs.current_level].cells[ny][nx];
-                    if (ahead && (ahead->type == CELL_FLOOR || ahead->type == CELL_DOOR)) {
-                        demo_gs.party_x = nx;
-                        demo_gs.party_y = ny;
-                        /* Auto-"combat": a creature standing in the cell we
-                         * just entered would trigger an encounter in real
-                         * play. This is a no-op stub for the attract mode. */
-                        if (ahead->creature_id != 0) {
-                            (void)0; /* stub: real combat is not simulated in demo mode */
-                        }
-                    } else {
-                        demo_gs.party_dir = (Direction)((demo_gs.party_dir + 1) % 4);
-                    }
-                }
-                {
-                    uint32_t ds = (uint32_t)demo_tick * 0x5E5 + 7;
-                    for (int si = 0; si < 40; si++) {
-                        ds = ds * 1103515245 + 12345;
-                        int sx = (int)(ds % CAPTIVE_ORIGINAL_WIDTH);
-                        ds = ds * 1103515245 + 12345;
-                        int sy = (int)(ds % CAPTIVE_ORIGINAL_HEIGHT);
-                        if (sx >= 0 && sx < CAPTIVE_ORIGINAL_WIDTH &&
-                            sy >= 0 && sy < CAPTIVE_ORIGINAL_HEIGHT)
-                            framebuffer[sy * CAPTIVE_ORIGINAL_WIDTH + sx] = 0xFFCCCCCC;
-                    }
-                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                                  80, _("CAPTIVE"), 0xFF44AAFF, 3);
-                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                                  120, _("DEMO MODE"), 0xFFAAAAAA, 1);
-                    draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
-                                  150, _("PRESS ANY KEY"), 0xFF666666, 1);
-                    if (demo_gs_ready) {
-                        char pos[32];
-                        snprintf(pos, sizeof(pos), "LEVEL %d  X:%d Y:%d",
-                                 demo_gs.current_level + 1, demo_gs.party_x,
-                                 demo_gs.party_y);
-                        draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH,
-                                      CAPTIVE_ORIGINAL_HEIGHT, 170, pos, 0xFF66CC66, 1);
-                    }
-                }
-                if (demo_tick > 900) {
-                    gs.mode = STATE_MENU;
-                    start_menu_reinit(&menu);
-                    sync_menu_from_config(&menu, &config, &custom,
-                                          true, true);
-                    demo_gs_ready = false;
-                }
+                /* No attract-mode art is shipped.  The former branch
+                 * generated a fake Captive dungeon, stars and status text.
+                 * Authentic media must be used instead. */
+                gs.mode = STATE_MENU;
+                start_menu_reinit(&menu);
+                sync_menu_from_config(&menu, &config, &custom, true, true);
                 break;
 
             case STATE_STORY:
