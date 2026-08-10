@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
         return 2;
     }
     uint16_t ds = 0x2942;
-    if (argc == 3) {
+    if (argc >= 3) {
         char *end = NULL;
         unsigned long value = strtoul(argv[2], &end, 16);
         if (!end || *end || value > 0xFFFFUL) {
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
         ds = (uint16_t)value;
     }
     uint16_t source_bank_segment = 0x0824;
-    if (argc == 4) {
+    if (argc >= 4) {
         char *end = NULL;
         unsigned long value = strtoul(argv[3], &end, 16);
         if (!end || *end || value > 0xFFFFUL) {

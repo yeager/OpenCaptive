@@ -43,9 +43,11 @@ The complete verified checkpoint is now available as six real CAPPO frames:
   (`df8f1e669072e84edfbc85af26a698c8bb34eb690900ef6083cbf07eca087939`).
 
 `ORBIT` and `LAND` use these authenticated frames and never fall through to
-procedural space, planet, or landing art. The native implementation remains
-at the landed reference until the CAPPO mission/runtime decoder can supply
-the live dungeon state; it does not enter a generated dungeon.
+procedural space, planet, or landing art. `ORBIT` now presents the authenticated
+green-target frame during the transit phase and then enters the authenticated
+orbit frame. The landed surface remains a real checkpoint until the CAPPO
+mission/runtime decoder can supply live dungeon state; no generated dungeon is
+used.
 
 The DOSBox-X verification sequence used for the current reference is:
 

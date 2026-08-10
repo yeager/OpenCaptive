@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (Captive authenticated ORBIT transit)
+
+- Connected the real `holamap-target.png` checkpoint to Captive's ORBIT transit
+  state; the app no longer jumps directly from the holomap to the orbit frame.
+- The transit advances only the state machine and then enters the real orbit
+  checkpoint; it does not render procedural space or create target data.
+- Fixed `captive_map_dump` so an explicitly supplied DS segment is honored when
+  a source-bank segment is supplied as well.
+- Local Debug build and all 64 CTest targets pass.
+
 ## 2026-08-10 (Captive 0x1C90 helper analysis)
 
 - Reproduced CAPPO's shared `0x1C90` neighbour helper for direction values 1,

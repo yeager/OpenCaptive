@@ -90,9 +90,22 @@ static unsigned char *captive_zoom_in_reference;
 static int captive_zoom_in_reference_width;
 static int captive_zoom_in_reference_height;
 static bool captive_landed_reference_active;
+static unsigned captive_flight_tick;
+
+/* CAPPO's ORBIT command is a real transit phase: the selected green target
+ * is shown while the ship is travelling, then the orbit checkpoint becomes
+ * available.  The pixels for both phases are authenticated captures; this
+ * counter only advances the state machine between those captured frames. */
+static void captive_begin_flight(GameState *gs) {
+    if (!gs || !captive_holamap_target_reference) return;
+    captive_landed_reference_active = false;
+    captive_flight_tick = 0;
+    gs->mode = STATE_SPACE_FLIGHT;
+}
 
 static void captive_holamap_reset(uint32_t mission_seed) {
     holamap_init(&captive_holamap, mission_seed);
+    captive_flight_tick = 0;
     if (captive_holamap_reference) {
         holamap_set_reference_frame(&captive_holamap,
                                     captive_holamap_reference,
@@ -202,9 +215,7 @@ static bool captive_holamap_mouse_move(const OpenCaptiveRenderer *r,
             /* This is the verified original map action: the green blinking
              * target is already selected by CAPPO's mission records. */
             if (!captive_orbit_reference) return false;
-            captive_landed_reference_active = false;
-            gs->mode = STATE_ORBIT;
-            gs->orbit_angle = 0.0f;
+            captive_begin_flight(gs);
             return true;
         case CAPTIVE_NAV_ACTION_LAND:
         case CAPTIVE_NAV_ACTION_NONE:
@@ -3684,11 +3695,8 @@ int main(int argc, char *argv[]) {
                                 holamap_move_cursor(&captive_holamap, 1, 0);
                                 break;
                             case SDLK_KP_7:
-                                if (captive_orbit_reference) {
-                                    captive_landed_reference_active = false;
-                                    gs.mode = STATE_ORBIT;
-                                    gs.orbit_angle = 0.0f;
-                                }
+                                if (captive_orbit_reference)
+                                    captive_begin_flight(&gs);
                                 break;
                             case SDLK_KP_1:
                                 holamap_zoom_out(&captive_holamap);
@@ -3999,19 +4007,22 @@ int main(int argc, char *argv[]) {
         if (gs.mode == STATE_MENU)
             start_menu_update(&menu);
 
-        if (gs.game_type == GAME_CAPTIVE &&
-            gs.mode == STATE_SPACE_FLIGHT) {
-            /* The old procedural space-flight module is not a Captive data
-             * source. Never let a stale transition reach that renderer. */
-            gs.mode = STATE_HOLAMAP;
-        }
         if (gs.mode == STATE_SPACE_FLIGHT) {
-            space_flight_update(&gs);
-            float dx = gs.space_target_x - gs.space_x;
-            float dy = gs.space_target_y - gs.space_y;
-            if (sqrtf(dx * dx + dy * dy) < SPACE_ARRIVAL_DIST) {
-                gs.mode = STATE_ORBIT;
-                gs.orbit_angle = 0.0f;
+            if (gs.game_type == GAME_CAPTIVE) {
+                if (captive_flight_tick < LANDING_TICKS)
+                    captive_flight_tick++;
+                if (captive_flight_tick >= LANDING_TICKS) {
+                    gs.mode = STATE_ORBIT;
+                    gs.orbit_angle = 0.0f;
+                }
+            } else {
+                space_flight_update(&gs);
+                float dx = gs.space_target_x - gs.space_x;
+                float dy = gs.space_target_y - gs.space_y;
+                if (sqrtf(dx * dx + dy * dy) < SPACE_ARRIVAL_DIST) {
+                    gs.mode = STATE_ORBIT;
+                    gs.orbit_angle = 0.0f;
+                }
             }
         }
         if (gs.mode == STATE_ORBIT) {
@@ -4622,9 +4633,11 @@ int main(int argc, char *argv[]) {
 
             case STATE_SPACE_FLIGHT:
                 if (gs.game_type == GAME_CAPTIVE) {
-                    holamap_render(&captive_holamap, framebuffer,
-                                   CAPTIVE_ORIGINAL_WIDTH,
-                                   CAPTIVE_ORIGINAL_HEIGHT);
+                    holamap_render_reference_frame(
+                        captive_holamap_target_reference,
+                        captive_holamap_target_width,
+                        captive_holamap_target_height, framebuffer,
+                        CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 } else {
                     space_flight_render(&gs, &starfield, framebuffer,
                                         CAPTIVE_ORIGINAL_WIDTH,
