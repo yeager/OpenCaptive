@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (Captive navigation-first capture)
+
+- Corrected direct Captive frame capture to start in the verified holomap
+  navigation state instead of forcing the landed dungeon checkpoint.
+- Confirmed the captured 320×200 frame uses the real holomap reference and
+  authentic GAME SCRN controls; no generated map or text is introduced.
+- Local Debug build and all 64 CTest targets pass.
+
 ## 2026-08-10 (Captive audio feedback correction)
 
 - Removed the unverified periodic ambient-SFX trigger from the Captive loop.

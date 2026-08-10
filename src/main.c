@@ -2912,16 +2912,15 @@ int main(int argc, char *argv[]) {
              * Captive in the menu; without this the prepared mission was
              * hidden behind the start screen. */
             if (capture_frame_path) {
-                /* A capture used as an original-parity reference must not
-                 * silently include the experimental perspective renderer. */
+                /* A capture must begin at the same original navigation state
+                 * as a normal Captive launch.  The previous shortcut forced
+                 * the landed dungeon checkpoint here, which made
+                 * --capture-frame contradict the actual startup sequence and
+                 * hid the holomap controls from verification. */
                 config.render_mode = CAPTIVE_RENDER_ORIGINAL;
-                /* Never generate a substitute mission for a parity capture.
-                 * Until the original mission/runtime state is decoded, use
-                 * the real landed CAPPO checkpoint rather than exposing the
-                 * unfinished descriptor-selection prototype. */
-                captive_landed_reference_active =
-                    captive_landed_dungeon_reference != NULL;
-                gs.mode = STATE_GAME;
+                captive_landed_reference_active = false;
+                captive_holamap_reset(gs.mission);
+                gs.mode = STATE_HOLAMAP;
             } else {
                 /* Captive's verified startup destination is the navigation
                  * view.  The original runtime does not drop the player into
