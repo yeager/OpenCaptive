@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-10 (CAPPO 0x21D1 even branches)
+
+- Recovered the real 0x22AA and 0x229A descriptor pairs from CAPPO's
+  disassembly: `D0/E2` and `F4/106`, including the original 0x20E4 BP rule.
+- Added regression vectors against the descriptor decoder without fabricating
+  map cells, textures, or runtime table values.
+
 ## 2026-08-10 (Captive LAND input parity)
 
 - Captive orbit now accepts LAND only from keypad 9 or the authenticated

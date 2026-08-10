@@ -91,7 +91,35 @@ static bool captive_21d1_2259_operands(
     uint8_t dh = memory[base + CAPTIVE_DOS_FACING_OFFSET];
     if (low == 1U) ax = (uint16_t)(ax + 8U);
     if (ax & 8U) ++dh;
-    if ((dh & 1U) == 0U || record->byte_at_4 != 0x0CU) return true;
+    if ((dh & 1U) == 0U) {
+        /* CAPPO 0x21D1's even-facing branch has two fully resolved paths:
+         * 0x22AA (AX&7 == 2) calls 0x236E with D0/E2, and 0x229A
+         * (AX&7 == 4) calls it with F4/106.  0x236E -> 0x2578 sees DH=0
+         * on both paths, so 0x20E4 applies the ordinary BP acceptance and
+         * decrement rule to each operand.  Do not infer the remaining
+         * branches here: 0x2220/0x232F/0x2345 depend on runtime tables. */
+        if (record->byte_at_4 == 0U) return true;
+        uint8_t bp;
+        if (!captive_bp_20e4(record->byte_at_4, &bp)) return true;
+        switch ((uint8_t)(ax & 7U)) {
+            case 2U:
+                if (!captive_descriptor_append(out,
+                        (uint16_t)(0x0D0U + bp)) ||
+                    !captive_descriptor_append(out,
+                        (uint16_t)(0x0E2U + bp))) return false;
+                break;
+            case 4U:
+                if (!captive_descriptor_append(out,
+                        (uint16_t)(0x0F4U + bp)) ||
+                    !captive_descriptor_append(out,
+                        (uint16_t)(0x106U + bp))) return false;
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+    if (record->byte_at_4 != 0x0CU) return true;
 
     /* CAPPO 0x2259 is reached only for BP=0x0C. Its 0x2DD7 calls select
      * fixed pairs from AX&7; other 0x21D1 branches remain unresolved. */

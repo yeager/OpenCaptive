@@ -163,6 +163,24 @@ int main(void) {
     assert(operands.descriptor_count == 2);
     assert(operands.descriptor_id[0] == 0x02AD);
     assert(operands.descriptor_id[1] == 0x02AE);
+    /* CAPPO 0x21D1 even-facing branches 0x22AA and 0x229A resolve through
+     * 0x20E4 to the real D0/E2 and F4/106 descriptor pairs. */
+    memory[0x0E3FU * 16U + 0x93AEU] = 0x99;
+    memory[0x0E3FU * 16U + 0x93AFU] = 0x99;
+    memory[(size_t)ds * 16U + CAPTIVE_DOS_FACING_OFFSET] = 0;
+    record.byte_at_4 = 3;
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x42, &operands));
+    assert(operands.handler_address == 0x21A9);
+    assert(operands.descriptor_count == 2);
+    assert(operands.descriptor_id[0] == 0x00D3);
+    assert(operands.descriptor_id[1] == 0x00E5);
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x44, &operands));
+    assert(operands.handler_address == 0x21A9);
+    assert(operands.descriptor_count == 2);
+    assert(operands.descriptor_id[0] == 0x00F7);
+    assert(operands.descriptor_id[1] == 0x0109);
     window.outside[0][0] = false;
     window.outside[0][1] = false;
     window.raw[0][0] = 0x1B;

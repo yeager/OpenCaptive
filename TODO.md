@@ -455,3 +455,4 @@
 - [x] Data scanner (D key, scan ~/.opencaptive for verified game files)
 - [x] Keep Captive transit input separate from Liberation's thrust model
 - [x] Keep ENTER distinct from Captive's keypad-9 LAND command
+- [x] Decode CAPPO 0x21D1 even branches 0x22AA and 0x229A
