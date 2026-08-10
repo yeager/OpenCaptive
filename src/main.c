@@ -3027,13 +3027,11 @@ int main(int argc, char *argv[]) {
                                 captive_holamap_reset(gs.mission);
                                 gs.mode = STATE_HOLAMAP;
                             }
-                            /* Show the backstory scroll first; it hands off
-                             * to whichever mode was just computed above
-                             * (the intro cutscene, or droid config directly
-                             * when no intro animation could be loaded). */
+                            /* Captive startup must use the verified original
+                             * ANM when available, then continue to the real
+                             * holomap.  The old replacement story scroll was
+                             * generated text and was never part of CAPPO. */
                             post_story_mode = gs.mode;
-                            gs.mode = STATE_STORY;
-                            story_scroll_y = 0;
                             break;
                         case MENU_RESULT_START_LIBERATION:
                             /* A fresh Liberation game must not inherit the

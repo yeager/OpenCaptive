@@ -5,15 +5,12 @@ original CAPPO holomap while the original vector/object decoder is being
 recovered. It is reference media from the supplied original runtime, not
 generated terrain, labels, stars, markers, or replacement text.
 
-Source capture:
-
-- `capture/cappo_000.png`
-- 640×400 DOSBox-X frame, SHA-256
-  `62490ac991bcc6928f486b9ad0b06083bfa80d38b7540500c06d0c81cc02a199`
-
-The checked-in runtime asset `assets/captive/holamap-initial.png` is the same
-frame reduced 2× to the native 320×200 canvas. Its SHA-256 is
-`8766657baa32ffda4ba5d106d148a63d194b27bc81e2e782cf4006ab45eb88ec`.
+Source capture: the supplied `CAPPO.EXE` session in DOSBox-X, after the
+original `INTRO.EXE` and `FILEPLAY.EXE` complete, showing `CAPTIVE MISSION
+0001` in the navigation view. The checked-in runtime asset
+`assets/captive/holamap-initial.png` is that real frame reduced 2× to the
+native 320×200 canvas. Its SHA-256 is
+`7ba17570145bbdb186330f5a3aeb7152e7966a7c41a279fc49d8f1ec4bf1272b`.
 Nearest-neighbour sampling preserves the original pixel values at native
 resolution.
 
