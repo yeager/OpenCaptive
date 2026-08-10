@@ -31,8 +31,9 @@ The zoom captures are:
 
 The complete verified checkpoint is now available as six real CAPPO frames:
 
-- `assets/captive/holamap-target.png` — the frame in which the green target
-  point is visible (`b068a7b898db1b9db78bab52b700a57d4248d7b2038758a5eb73d96dd0697362`);
+- `assets/captive/holamap-target.png` — the source-authenticated Butre-route
+  navigation frame, where the green point identifies the planet destination
+  (`b068a7b898db1b9db78bab52b700a57d4248d7b2038758a5eb73d96dd0697362`);
 - `assets/captive/orbit-reference.png` — the original orbit view after
   `ORBIT` reaches that target (`4f483a01a6cca9f9aafa2e740294ec160c0b42a2d68f27086c4eb4e9a6495caa`);
 - `assets/captive/landing-transition-reference.png` — the original landing
@@ -43,9 +44,10 @@ The complete verified checkpoint is now available as six real CAPPO frames:
   (`df8f1e669072e84edfbc85af26a698c8bb34eb690900ef6083cbf07eca087939`).
 
 `ORBIT` and `LAND` use these authenticated frames and never fall through to
-procedural space, planet, or landing art. `ORBIT` now presents the authenticated
-green-target frame during the transit phase and then enters the authenticated
-orbit frame. The landed surface remains a real checkpoint until the CAPPO
+procedural space, planet, or landing art. `ORBIT` presents the authenticated
+Butre-route frame during the transit phase and then enters the authenticated
+orbit frame, where the white circle identifies the valid landing point. The
+landed surface remains a real checkpoint until the CAPPO
 mission/runtime decoder can supply live dungeon state; no generated dungeon is
 used.
 
@@ -55,10 +57,12 @@ The DOSBox-X verification sequence used for the current reference is:
 2. Select VGA, then the original sound and music devices.
 3. Allow `INTRO.EXE` and `FILEPLAY.EXE` to finish; CAPPO then opens on
    `CAPTIVE MISSION 0001` in the real navigation view.
-4. The green blinking point is the flight target. Press `ORBIT` to fly there;
-   in the orbit view the white point is the valid landing point. Press `LAND`
-   and wait for the land-level frame. If a landing shows only water, it is the
-   wrong point and must not be accepted as Captive mission data.
+4. Fly to the real Butre destination recorded by the original mission state,
+   identified by the green planet point, and press `ORBIT`. In the orbit view
+   the white circle is the valid landing point. Press `LAND` and wait for the
+   land-level frame. If a landing shows only water, it is the wrong point and
+   must not be accepted as Captive mission data. OpenCaptive must not invent
+   either marker; both must come from original media/data.
 
 All four checked-in frames were captured from the supplied CAPPO runtime in
 DOSBox-X and reduced with nearest-neighbour sampling. Do not replace them

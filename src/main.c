@@ -92,10 +92,10 @@ static int captive_zoom_in_reference_height;
 static bool captive_landed_reference_active;
 static unsigned captive_flight_tick;
 
-/* CAPPO's ORBIT command is a real transit phase: the selected green target
- * is shown while the ship is travelling, then the orbit checkpoint becomes
- * available.  The pixels for both phases are authenticated captures; this
- * counter only advances the state machine between those captured frames. */
+/* CAPPO's ORBIT command is a real transit phase: the green planet marker
+ * identifies the destination selected by the original mission/map state.
+ * Once there, the orbit frame supplies the white landing circle.  Both are
+ * source-authenticated pixels; do not draw or infer either marker here. */
 static void captive_begin_flight(GameState *gs) {
     if (!gs || !captive_holamap_target_reference) return;
     captive_landed_reference_active = false;
@@ -212,8 +212,9 @@ static bool captive_holamap_mouse_move(const OpenCaptiveRenderer *r,
         case CAPTIVE_NAV_ACTION_ZOOM_OUT: holamap_zoom_out(holamap); break;
         case CAPTIVE_NAV_ACTION_PYRAMID:  holamap_center_cursor(holamap); break;
         case CAPTIVE_NAV_ACTION_ORBIT:
-            /* This is the verified original map action: the green blinking
-             * target is already selected by CAPPO's mission records. */
+            /* This is the verified original map action.  CAPPO already has
+             * the planet destination in its mission records; the green point
+             * and the later white landing circle remain original media. */
             if (!captive_orbit_reference) return false;
             captive_begin_flight(gs);
             return true;

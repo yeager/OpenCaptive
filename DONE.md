@@ -4565,3 +4565,11 @@ DOSBox-X and added their 320×200 frames as hash-recorded runtime assets.
 OpenCaptive now selects those authenticated frames instead of enlarging the
 opening bitmap. Regression coverage verifies that zoom selection never
 resamples or invents map pixels; local CTest passes 63/63.
+
+# 2026-08-10 (Captive Butre route markers)
+
+Verified the original DOSBox Captive sequence through the Butre destination:
+the green holomap point identifies the planet, and the white orbit circle
+identifies the valid landing point. Updated the runtime comments and holomap
+reference documentation to describe those source-authenticated markers
+without generating replacement map data. Local CTest passes 64/64.

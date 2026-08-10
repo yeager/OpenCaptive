@@ -457,3 +457,4 @@
 - [x] Keep ENTER distinct from Captive's keypad-9 LAND command
 - [x] Decode CAPPO 0x21D1 even branches 0x22AA and 0x229A
 - [x] Route absolute mouse movement through the verified CAPPO holomap panel
+- [x] Document original Captive planet target (green point) and landing target (white circle)
