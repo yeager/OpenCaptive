@@ -81,6 +81,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/dos_vga_reference.c
     src/data/captive_dos_map.c
     src/data/captive_dos_descriptor.c
+    src/render/captive_dos_runtime.c
     src/data/captive_cappo_descriptors.c
     src/data/adf_reader.c
     src/data/iso9660_reader.c
@@ -793,6 +794,12 @@ target_include_directories(captive_descriptor_match PRIVATE ${CMAKE_SOURCE_DIR}/
 add_executable(captive_map_dump tools/captive_map_dump.c
     src/data/captive_dos_map.c src/data/captive_dos_descriptor.c)
 target_include_directories(captive_map_dump PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+add_executable(captive_runtime_render tools/captive_runtime_render.c
+    src/render/captive_dos_runtime.c
+    src/data/captive_dos_map.c src/data/captive_dos_descriptor.c
+    src/render/captive_compositor.c src/data/pl5_decoder.c)
+target_include_directories(captive_runtime_render PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 add_executable(dump_pge tools/dump_pge.c
     src/data/liberation_data.c src/data/liberation_string_tables.c

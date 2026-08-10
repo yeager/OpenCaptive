@@ -428,6 +428,23 @@ procedural colored rectangles. It draws only decoded pixels from the verified
 area untouched. This prevents synthetic content from being mistaken for
 Captive artwork while the raw CAPPO compositor is still being completed.
 
+### Raw runtime compositor
+
+`captive_dos_runtime_render()` is now the first executable bridge for a
+complete DOSBox-X memory image. It consumes CAPPO's live DS map, copied 5×5
+window, 38 draw-order records, descriptor table and packed source banks, then
+executes those original descriptor copies into the 160-byte work buffer. It
+does not convert cells to `GameState`, use `map_gen`, or add a replacement
+background. Unknown handler paths simply draw nothing, matching the current
+evidence boundary.
+
+The `captive_runtime_render` tool exercises this bridge against a caller-owned
+`MEMDUMP.BIN`. The dump is deliberately not shipped or scanned as game data;
+it is only an emulator observation. The next parity gate is a fresh DOSBox-X
+dump taken after each real movement input, followed by an exact 144×112
+viewport comparison. Until that gate passes, the production Captive path does
+not claim live-dungeon parity.
+
 The dump tool now also evaluates the shared `0x1C90` helper. It preserves
 CAPPO's three-byte row padding: a neighbour read landing in that padding, or
 outside the 5×5 copied window, is reported as `unknown`, never as a fake cell.
