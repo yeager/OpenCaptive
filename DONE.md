@@ -62,6 +62,15 @@
 - Expanded the analysis result to five operands and added source-locked
   regression vectors; local Debug build and all 64 CTest targets pass.
 
+## 2026-08-10 (Captive 0x21A9 fixed 0x21D1 branch)
+
+- Recovered the exact odd-direction `BP=0x0C` branch and its fixed descriptor
+  selections (`0x0D0`, `0x119/0x11A`, `0x2AD/0x2AE`).
+- Kept the remaining runtime-state-dependent `0x21D1` branches unresolved;
+  no descriptor or graphics data is synthesized for them.
+- Added a regression vector from the CAPPO overlay dispatch and retained the
+  full local test suite.
+
 ## 2026-08-10 (Captive navigation-first capture)
 
 - Corrected direct Captive frame capture to start in the verified holomap

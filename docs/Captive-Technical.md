@@ -416,6 +416,12 @@ same two `0x2089` operands. `0x212F` exposes its `0x2715` operand plus the two
 or four `0x20E4` operands selected by `DS:5EF4` bit 0. The state table remains
 caller-owned (`DS:0E3F:93AE`); an absent state match yields no fabricated ID.
 
+For `0x21A9`, the fixed odd-direction `0x21D1` branch is also exposed when
+its exact `BP=0x0C` precondition holds. CAPPO selects `0x0D0`, `0x119/0x11A`
+or `0x2AD/0x2AE` from `AX & 7`, then always calls the shared `0x2089` path.
+The other `0x21D1` branches depend on additional runtime state and remain
+unresolved rather than being filled with guessed descriptors.
+
 The dump tool now also evaluates the shared `0x1C90` helper. It preserves
 CAPPO's three-byte row padding: a neighbour read landing in that padding, or
 outside the 5×5 copied window, is reported as `unknown`, never as a fake cell.

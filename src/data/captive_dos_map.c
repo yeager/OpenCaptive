@@ -79,6 +79,38 @@ static bool captive_2715_operand(
                    adjustment));
 }
 
+static bool captive_21d1_2259_operands(
+    const uint8_t *memory, size_t memory_size, uint16_t ds_segment,
+    const CaptiveDosDispatchRecord *record, uint8_t raw,
+    CaptiveDosDescriptorOperands *out) {
+    size_t base = (size_t)ds_segment * 16U;
+    if (!range_inside(base + CAPTIVE_DOS_FACING_OFFSET, 1, memory_size))
+        return false;
+    uint16_t ax = raw;
+    uint8_t low = (uint8_t)(ax & 0x0FU);
+    uint8_t dh = memory[base + CAPTIVE_DOS_FACING_OFFSET];
+    if (low == 1U) ax = (uint16_t)(ax + 8U);
+    if (ax & 8U) ++dh;
+    if ((dh & 1U) == 0U || record->byte_at_4 != 0x0CU) return true;
+
+    /* CAPPO 0x2259 is reached only for BP=0x0C. Its 0x2DD7 calls select
+     * fixed pairs from AX&7; other 0x21D1 branches remain unresolved. */
+    switch ((uint8_t)(ax & 7U)) {
+        case 2U:
+            if (!captive_descriptor_append(out, 0x119U) ||
+                !captive_descriptor_append(out, 0x11AU)) return false;
+            break;
+        case 7U:
+            if (!captive_descriptor_append(out, 0x2ADU) ||
+                !captive_descriptor_append(out, 0x2AEU)) return false;
+            break;
+        default:
+            if (!captive_descriptor_append(out, 0x0D0U)) return false;
+            break;
+    }
+    return true;
+}
+
 bool captive_dos_map_decode(const uint8_t *memory, size_t memory_size,
                             uint16_t ds_segment, CaptiveDosMapState *out) {
     if (!memory || !out || memory_size < DOS_MEMORY_SIZE) return false;
@@ -378,6 +410,14 @@ bool captive_dos_dispatch_descriptor_operands(
         return true;
     }
 
+    if (route == CAPTIVE_DOS_CELL_ROUTE_21A9) {
+        if (!captive_21d1_2259_operands(memory, memory_size, ds_segment,
+                                       record, raw, out))
+            return false;
+        /* CAPPO 0x21A9 always calls 0x2089 after 0x21D1. */
+        return captive_2089_operands(memory, memory_size, record, out);
+    }
+
     /* CAPPO 0x1D17: after the 0x1C90 call, AL is byte 6 and the
      * orientation-adjusted word at DS:5CC2 is added before 0x2DD7. */
     if (route == CAPTIVE_DOS_CELL_ROUTE_1D17) {
@@ -489,7 +529,7 @@ CaptiveDosCellRoute captive_dos_cell_route(uint8_t raw) {
             return CAPTIVE_DOS_CELL_ROUTE_445A;
         case 0x3C: case 0x3E:
             return CAPTIVE_DOS_CELL_ROUTE_2065;
-        case 0x40: case 0x41: case 0x42: case 0x43:
+        case 0x3F: case 0x40: case 0x41: case 0x42: case 0x43:
         case 0x44: case 0x45: case 0x46: case 0x47:
         case 0x48: case 0x49: case 0x4A: case 0x4B:
         case 0x4C: case 0x4D: case 0x4E: case 0x4F:

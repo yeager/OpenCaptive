@@ -46,8 +46,8 @@ int main(void) {
     assert(captive_dos_cell_route_address(0x34) == 0x201C);
     assert(captive_dos_cell_route(0x5F) == CAPTIVE_DOS_CELL_ROUTE_21A9);
     assert(captive_dos_cell_route_address(0x5F) == 0x21A9);
-    assert(captive_dos_cell_route(0x3F) == CAPTIVE_DOS_CELL_ROUTE_NONE);
-    assert(captive_dos_cell_route_address(0x3F) == 0);
+    assert(captive_dos_cell_route(0x3F) == CAPTIVE_DOS_CELL_ROUTE_21A9);
+    assert(captive_dos_cell_route_address(0x3F) == 0x21A9);
     assert(captive_dos_cell_route_normal(0x00) == CAPTIVE_DOS_CELL_ROUTE_1C90);
     assert(captive_dos_cell_route_normal_address(0x00) == 0x1C90);
     assert(captive_dos_cell_route_normal(0x0F) == CAPTIVE_DOS_CELL_ROUTE_1D17);
@@ -154,6 +154,15 @@ int main(void) {
     assert(operands.descriptor_id[2] == 0x0331);
     assert(operands.descriptor_id[3] == 0x033A);
     assert(operands.descriptor_id[4] == 0x0343);
+    memory[(size_t)ds * 16U + CAPTIVE_DOS_FACING_OFFSET] = 0;
+    record.byte_at_4 = 0x0C;
+    record.byte_at_5 = 0x08;
+    assert(captive_dos_dispatch_descriptor_operands(
+        memory, 0x100000u, ds, &record, 0x3F, &operands));
+    assert(operands.handler_address == 0x21A9);
+    assert(operands.descriptor_count == 2);
+    assert(operands.descriptor_id[0] == 0x02AD);
+    assert(operands.descriptor_id[1] == 0x02AE);
     window.outside[0][0] = false;
     window.outside[0][1] = false;
     window.raw[0][0] = 0x1B;
