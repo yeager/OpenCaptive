@@ -12,9 +12,13 @@
   unique artifact names (so upload-artifact's no-auto-merge is moot), the
   no-name "download all into artifacts/<name>/" layout the release job depends
   on, and the setup-java/gh-release fields. Both workflow files still parse.
-- CI-only change; the built artifacts are unchanged, so no version bump. The
-  release pipeline was re-verified end to end by a workflow_dispatch of the
-  existing v1.1.100.
+- CI-only change; the built artifacts are unchanged, so no version bump.
+- The verification dispatch surfaced a separate, pre-existing flake: the macOS
+  "Create DMG" step failed with `hdiutil: create failed - Resource busy`, a
+  transient disk-lock on the runner unrelated to the action bumps (the same step
+  passed on the push-triggered run minutes earlier, and the upload step never
+  ran). Wrapped `hdiutil create` in a 5-attempt retry so a transient busy lock
+  no longer fails an otherwise-good release.
 
 ## 2026-08-09 (MacBook Pro mouse hit-testing, v1.1.100)
 

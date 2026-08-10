@@ -277,8 +277,21 @@ jobs:
           codesign --force --deep -s - "$APP"
       - name: Create DMG
         run: |
-          hdiutil create -volname OpenCaptive -srcfolder OpenCaptive.app \
-            -ov -format UDZO OpenCaptive-macos-arm64.dmg
+          # hdiutil intermittently fails with "Resource busy" on GitHub's macOS
+          # runners when Spotlight or another process holds a transient disk
+          # lock.  It is not a build error, so retry a few times before giving
+          # up rather than failing an otherwise-good release.
+          for attempt in 1 2 3 4 5; do
+            if hdiutil create -volname OpenCaptive -srcfolder OpenCaptive.app \
+                 -ov -format UDZO OpenCaptive-macos-arm64.dmg; then
+              exit 0
+            fi
+            echo "hdiutil create failed (attempt $attempt); retrying in 10s"
+            rm -f OpenCaptive-macos-arm64.dmg
+            sleep 10
+          done
+          echo "hdiutil create failed after 5 attempts" >&2
+          exit 1
       - uses: actions/upload-artifact@v7
         with:
           name: macos-arm64
