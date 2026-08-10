@@ -19,6 +19,9 @@ used. Each item is prefixed with the game it applies to: **(Captive)**, **(Liber
 
 - **(Captive)** Startup uses the decoded original ANM when present, then the
   verified DOSBox-X holomap and landing checkpoints.
+- **(Captive)** Headless frame verification now selects the authenticated
+  landed CAPPO checkpoint instead of exposing the unfinished descriptor
+  viewport prototype.
 - **(Captive)** The native path no longer paints generated stars, coordinates,
   or mission text while entering Captive.
 - **(Documentation)** Public version markers and parity notes now distinguish

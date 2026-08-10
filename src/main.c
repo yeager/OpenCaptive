@@ -2880,8 +2880,11 @@ int main(int argc, char *argv[]) {
                  * silently include the experimental perspective renderer. */
                 config.render_mode = CAPTIVE_RENDER_ORIGINAL;
                 /* Never generate a substitute mission for a parity capture.
-                 * Until the original mission/runtime state is decoded, the
-                 * only honest native capture is the verified GAME SCRN shell. */
+                 * Until the original mission/runtime state is decoded, use
+                 * the real landed CAPPO checkpoint rather than exposing the
+                 * unfinished descriptor-selection prototype. */
+                captive_landed_reference_active =
+                    captive_landed_dungeon_reference != NULL;
                 gs.mode = STATE_GAME;
             } else {
                 /* Captive's verified startup destination is the navigation
