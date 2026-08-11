@@ -231,6 +231,16 @@ static void captive_begin_landing(GameState *gs) {
     gs->mode = STATE_LANDING;
 }
 
+static void captive_begin_orbit(GameState *gs) {
+    if (!gs || !captive_orbit_reference) return;
+    /* The orbit surface is a source-authenticated CAPPO checkpoint.  It is
+     * entered only by the explicit ORBIT command after FLIGHT PATH SET; no
+     * elapsed-time or procedural arrival is allowed here. */
+    captive_landed_reference_active = false;
+    gs->orbit_angle = 0.0f;
+    gs->mode = STATE_ORBIT;
+}
+
 static void captive_holamap_reset(uint32_t mission_seed) {
     holamap_init(&captive_holamap, mission_seed);
     if (captive_holamap_reference) {
@@ -4079,10 +4089,10 @@ int main(int argc, char *argv[]) {
                                     holamap_move_cursor(&captive_holamap, 1, 0);
                                     break;
                                 case CAPTIVE_NAV_ACTION_ORBIT:
-                                    /* CAPPO first reports FLIGHT PATH SET.
-                                     * Arrival is accepted only from a live
-                                     * DOSBox-X VGA handoff, never from a
-                                     * second synthetic button transition. */
+                                    /* CAPPO's explicit ORBIT control advances
+                                     * from the recorded flight-path state to
+                                     * the authenticated orbit checkpoint. */
+                                    captive_begin_orbit(&gs);
                                     break;
                                 default:
                                     break;
@@ -4109,8 +4119,11 @@ int main(int argc, char *argv[]) {
                             } else if (event.key.key == SDLK_KP_6) {
                                 holamap_move_cursor(&captive_holamap, 1, 0);
                             } else if (event.key.key == SDLK_KP_7) {
-                                /* The original CAPPO response is FLIGHT PATH
-                                 * SET; it does not mean SWAN is in orbit. */
+                                /* The first keypad-7 press records FLIGHT PATH
+                                 * SET; while in that flight phase, the same
+                                 * explicit ORBIT command reaches the real
+                                 * orbit checkpoint. */
+                                captive_begin_orbit(&gs);
                             } else if (event.key.key == SDLK_KP_9) {
                                 /* CAPPO reports SWAN NOT YET IN ORBIT here.
                                  * Do not start a false landing transition. */
