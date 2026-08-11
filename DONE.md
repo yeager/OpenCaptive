@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-11 (No timer-driven Captive landing)
+
+- Removed the native 900 ms landing shortcut. OpenCaptive now holds the
+  authenticated landing-transition frame until a real CAPPO/DOSBox-X state
+  handoff proves that the original runtime has landed.
+- This prevents a captured dungeon image from being presented as live game
+  state and keeps the Captive path free of synthetic transitions.
+- Debug build and all 64 CTest targets pass.
+
 ## 2026-08-11 (Isolated DOSBox-X VGA profile)
 
 - Added a dedicated DOSBox-X Captive profile with VGA-only hardware, surface

@@ -101,7 +101,6 @@ static bool captive_dos_runtime_reported;
 static uint16_t captive_dos_ds_segment = 0x2942;
 static uint16_t captive_dos_source_bank_segment = 0x0824;
 static uint64_t captive_dos_dump_mtime_ns;
-static uint32_t captive_landing_started_ms;
 static bool captive_target_cursor_valid;
 static int captive_target_cursor_x;
 static int captive_target_cursor_y;
@@ -187,7 +186,6 @@ static void captive_begin_landing(GameState *gs) {
     if (!gs || !captive_landing_reference) return;
     gs->landing_tick = 0;
     captive_landed_reference_active = false;
-    captive_landing_started_ms = SDL_GetTicks();
     gs->mode = STATE_LANDING;
 }
 
@@ -4280,19 +4278,11 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-        if (gs.mode == STATE_LANDING && gs.game_type == GAME_CAPTIVE &&
-            !captive_dos_memory_active && captive_landing_reference &&
-            captive_landed_dungeon_reference) {
-            /* The transition and landed frame are both source-authenticated
-             * CAPPO captures.  Hold the real transition for its observed
-             * short landing phase, then enter the real dungeon checkpoint;
-             * never fabricate a timer-driven map or mission state. */
-            if (SDL_GetTicks() - captive_landing_started_ms >= 900U) {
-                captive_landed_reference_active = true;
-                gs.mode = STATE_GAME;
-                music_play_for_game(&gs, MUSIC_BASE);
-            }
-        }
+        /* Captive cannot advance from the landing transition on a wall-clock
+         * timer.  The original CAPPO runtime owns the landing result and the
+         * post-landing dungeon state; a still image captured from that
+         * runtime is evidence, not an event source.  Keep STATE_LANDING until
+         * a real DOSBox-X memory/state handoff proves that CAPPO landed. */
 
         switch (gs.mode) {
             case STATE_MENU:

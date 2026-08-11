@@ -117,6 +117,11 @@ selection and ORBIT input delivery; it does not yet claim that the subsequent
 space-flight, keypad-9 landing, and post-landing dungeon viewport have been
 decoded into the native runtime.
 
+The native fallback does not convert the landing transition into `STATE_GAME`
+after a fixed delay. A captured dungeon frame is evidence of what CAPPO
+displayed, not proof that the live runtime has reached that state; the landed
+frame therefore remains gated on a real DOSBox-X/CAPPO state handoff.
+
 ## PL5 graphics
 
 A PL5 image is 40,000 bytes: 320×200 pixels at five bits per pixel. Every five

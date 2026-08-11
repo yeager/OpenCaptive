@@ -51,6 +51,10 @@ landed surface remains a real checkpoint until the CAPPO
 mission/runtime decoder can supply live dungeon state; no generated dungeon is
 used.
 
+The native fallback keeps the landing transition open until a live
+CAPPO/DOSBox-X handoff proves the landing. It does not use a wall-clock delay
+to turn the captured dungeon frame into a false runtime event.
+
 The DOSBox-X verification sequence used for the current reference is:
 
 1. Run `CAPTIVE.BAT 1` from the directory containing the supplied `CAPPO.EXE`;

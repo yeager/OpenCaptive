@@ -32,7 +32,9 @@
 - [x] Map the original holomap ladder controls to authenticated CAPPO zoom frames
 - [x] Present the authenticated green-target frame during the Captive ORBIT transit
 - [ ] Keep Captive dungeon key input in the live CAPPO state after authenticated landing
-- [x] Transition the authenticated landing checkpoint into the real landed frame
+- [ ] Transition the authenticated landing checkpoint into the real landed frame
+      only after a live CAPPO/DOSBox-X state handoff; a captured frame alone is
+      not a runtime event
 - [ ] Keep Captive playable with a source-backed viewport fallback in both modes
 - [x] Draw Captive creature sprites back-to-front by forward depth
 - [x] Use the disassembly creature `frame_index` when selecting ALIEN sheet frames
