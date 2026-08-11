@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-11 (Strict CAPPO landing handoff)
+
+- Added a strict live handoff for native `STATE_LANDING`: a reloaded DOSBox-X
+  `MEMDUMP.BIN` can enter the landed view only when its complete real 320×200
+  VGA surface exactly matches the tracked landed checkpoint.
+- Timer-driven transitions, guessed memory fields, and generated dungeon data
+  remain excluded.
+
 ## 2026-08-11 (No timer-driven Captive landing)
 
 - Removed the native 900 ms landing shortcut. OpenCaptive now holds the

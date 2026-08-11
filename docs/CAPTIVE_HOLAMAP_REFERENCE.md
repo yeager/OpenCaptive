@@ -44,16 +44,18 @@ The complete verified checkpoint is now available as six real CAPPO frames:
   (`df8f1e669072e84edfbc85af26a698c8bb34eb690900ef6083cbf07eca087939`).
 
 `ORBIT` and `LAND` use these authenticated frames and never fall through to
-procedural space, planet, or landing art. `ORBIT` presents the authenticated
-Butre-route frame during the transit phase and then enters the authenticated
-orbit frame, where the white circle identifies the valid landing point. The
-landed surface remains a real checkpoint until the CAPPO
-mission/runtime decoder can supply live dungeon state; no generated dungeon is
-used.
+procedural space, planet, or landing art. The native fallback presents the
+authenticated Butre-route frame during transit and holds the authenticated
+landing transition until a live CAPPO state handoff proves arrival at the
+orbit frame and the white landing point. The landed surface remains a real
+checkpoint until the CAPPO mission/runtime decoder can supply live dungeon
+state; no generated dungeon is used.
 
 The native fallback keeps the landing transition open until a live
 CAPPO/DOSBox-X handoff proves the landing. It does not use a wall-clock delay
-to turn the captured dungeon frame into a false runtime event.
+to turn the captured dungeon frame into a false runtime event. A reloaded dump
+is accepted only when its complete VGA surface exactly matches the tracked
+landed checkpoint; partial frames and guessed memory fields are rejected.
 
 The DOSBox-X verification sequence used for the current reference is:
 

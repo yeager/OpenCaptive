@@ -122,6 +122,34 @@ static uint64_t captive_dos_dump_stamp(const struct stat *st) {
 #endif
 }
 
+/* A live CAPPO handoff is accepted only when the reloaded DOS VGA surface is
+ * the authenticated landed checkpoint captured from the original runtime.
+ * This is deliberately a complete 320x200 pixel comparison: a timer, a
+ * guessed memory offset, or a compatibility map must never claim that the
+ * ship has landed. */
+static bool captive_dos_memory_matches_landed_frame(const uint8_t *memory) {
+    if (!memory || !captive_landed_dungeon_reference ||
+        captive_landed_dungeon_reference_width != DOS_VGA_FRAME_WIDTH ||
+        captive_landed_dungeon_reference_height != DOS_VGA_FRAME_HEIGHT) {
+        return false;
+    }
+
+    uint32_t pixels[DOS_VGA_FRAME_SIZE];
+    if (!dos_vga_reference_decode(memory, DOS_VGA_MEMORY_SIZE, pixels,
+                                  DOS_VGA_FRAME_SIZE)) {
+        return false;
+    }
+    for (size_t i = 0; i < DOS_VGA_FRAME_SIZE; ++i) {
+        const uint8_t *reference = captive_landed_dungeon_reference + i * 4U;
+        uint32_t expected = ((uint32_t)reference[3] << 24) |
+                            ((uint32_t)reference[0] << 16) |
+                            ((uint32_t)reference[1] << 8) |
+                            (uint32_t)reference[2];
+        if (pixels[i] != expected) return false;
+    }
+    return true;
+}
+
 /* CAPPO's ORBIT command is a real transit phase: the green planet marker
  * identifies the destination selected by the original mission/map state.
  * Once there, the orbit frame supplies the white landing circle.  Both are
@@ -3193,6 +3221,16 @@ int main(int argc, char *argv[]) {
                     captive_dos_dump_mtime_ns = captive_dos_dump_stamp(&dump_stat);
                     captive_dos_runtime_reported = false;
                     printf("Reloaded CAPPO DOSBox-X memory image\n");
+                    if (gs.game_type == GAME_CAPTIVE &&
+                        gs.mode == STATE_LANDING &&
+                        captive_dos_memory_matches_landed_frame(fresh_memory)) {
+                        /* This is the only native transition into the landed
+                         * Captive view.  The frame came from CAPPO's real
+                         * VGA memory after the user's landing action. */
+                        captive_landed_reference_active = true;
+                        gs.mode = STATE_GAME;
+                        printf("CAPPO landed state authenticated from DOSBox-X VGA\n");
+                    }
                 }
             }
         }

@@ -316,10 +316,13 @@ The Captive presentation path is source-backed only. If an original ANM,
 holomap, landing, or dungeon frame is missing or invalid, the renderer clears
 the frame or returns to an authenticated frame; it does not paint replacement
 status text, procedural planets, generated rosters, or a compatibility map.
-The landing action holds the verified CAPPO transition briefly and then enters
-the verified landed-dungeon capture. A complete live handoff still requires a
-DOSBox-X dump recorded after the real landing action, with the original CAPPO
-VGA surface populated at `A000:0000`.
+The native fallback holds the verified CAPPO landing transition and never
+advances it on a timer. A complete live handoff still requires a DOSBox-X dump
+recorded after the real landing action, with the original CAPPO VGA surface
+populated at `A000:0000`. When that dump is reloaded while the native view is
+in `STATE_LANDING`, OpenCaptive compares the complete 320×200 VGA surface
+against the real landed checkpoint. Only an exact match enters the landed
+view; any other dump remains in the landing transition.
 
 The original-mode runtime now executes the recovered descriptor bands through
 the same 160-byte work-row layout used by CAPPO. The compositor is wired after

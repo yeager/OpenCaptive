@@ -33,8 +33,9 @@
 - [x] Present the authenticated green-target frame during the Captive ORBIT transit
 - [ ] Keep Captive dungeon key input in the live CAPPO state after authenticated landing
 - [ ] Transition the authenticated landing checkpoint into the real landed frame
-      only after a live CAPPO/DOSBox-X state handoff; a captured frame alone is
-      not a runtime event
+      only after a live CAPPO/DOSBox-X state handoff; the strict full-VGA
+      checkpoint handoff is in place, but a live post-landing dump still needs
+      to be captured and verified
 - [ ] Keep Captive playable with a source-backed viewport fallback in both modes
 - [x] Draw Captive creature sprites back-to-front by forward depth
 - [x] Use the disassembly creature `frame_index` when selecting ALIEN sheet frames
