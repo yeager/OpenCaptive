@@ -4036,6 +4036,44 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 case STATE_SPACE_FLIGHT:
+                    if (gs.game_type == GAME_CAPTIVE &&
+                        event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
+                        event.button.button == SDL_BUTTON_LEFT) {
+                        CaptiveNavigationAction action;
+                        if (captive_navigation_mouse_action(&renderer,
+                                                             &event.button,
+                                                             &action)) {
+                            switch (action) {
+                                case CAPTIVE_NAV_ACTION_UP:
+                                    holamap_move_cursor(&captive_holamap, 0, -1);
+                                    break;
+                                case CAPTIVE_NAV_ACTION_DOWN:
+                                    holamap_move_cursor(&captive_holamap, 0, 1);
+                                    break;
+                                case CAPTIVE_NAV_ACTION_LEFT:
+                                    holamap_move_cursor(&captive_holamap, -1, 0);
+                                    break;
+                                case CAPTIVE_NAV_ACTION_RIGHT:
+                                    holamap_move_cursor(&captive_holamap, 1, 0);
+                                    break;
+                                case CAPTIVE_NAV_ACTION_ORBIT:
+                                    /* Turn Left is the explicit CAPPO
+                                     * arrival command in space.  The native
+                                     * fallback may enter the authenticated
+                                     * orbit checkpoint only after the real
+                                     * green target has been selected. */
+                                    if (captive_holamap_target_selected() &&
+                                        captive_orbit_reference) {
+                                        gs.mode = STATE_ORBIT;
+                                        gs.orbit_angle = 0.0f;
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        break;
+                    }
                     if (event.type == SDL_EVENT_KEY_DOWN) {
                         if (gs.game_type == GAME_CAPTIVE) {
                             /* Captive's DOS flight phase is driven by CAPPO's
@@ -4046,7 +4084,27 @@ int main(int argc, char *argv[]) {
                             /* CAPPO help: Turn Right (keypad 9) commences
                              * landing at the logged position. Arrival itself
                              * is a DOS runtime state, not a wall-clock timer. */
-                            if (event.key.key == SDLK_KP_9 &&
+                            if (event.key.key == SDLK_KP_8) {
+                                holamap_move_cursor(&captive_holamap, 0, -1);
+                            } else if (event.key.key == SDLK_KP_2) {
+                                holamap_move_cursor(&captive_holamap, 0, 1);
+                            } else if (event.key.key == SDLK_KP_4) {
+                                holamap_move_cursor(&captive_holamap, -1, 0);
+                            } else if (event.key.key == SDLK_KP_6) {
+                                holamap_move_cursor(&captive_holamap, 1, 0);
+                            } else if (event.key.key == SDLK_KP_7) {
+                                /* CAPPO's Turn Left is the action that flies
+                                 * to the already logged cursor position. In
+                                 * the source-backed native fallback, the
+                                 * authenticated orbit frame is the only
+                                 * allowed arrival result; no timer or
+                                 * procedural flight path is introduced. */
+                                if (captive_holamap_target_selected() &&
+                                    captive_orbit_reference) {
+                                    gs.mode = STATE_ORBIT;
+                                    gs.orbit_angle = 0.0f;
+                                }
+                            } else if (event.key.key == SDLK_KP_9 &&
                                 captive_landing_reference) {
                                 captive_begin_landing(&gs);
                             } else if (event.key.key == SDLK_ESCAPE) {

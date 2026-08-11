@@ -122,6 +122,13 @@ after a fixed delay. A captured dungeon frame is evidence of what CAPPO
 displayed, not proof that the live runtime has reached that state; the landed
 frame therefore remains gated on a real DOSBox-X/CAPPO state handoff.
 
+In native reference mode, the space-navigation cluster is no longer a dead
+end: keypad 8/2/4/6 and the corresponding on-screen arrows move the logged
+cursor, keypad 7 enters the authenticated orbit checkpoint when that cursor is
+on the real green target, and keypad 9 starts the authenticated landing
+transition. This is an explicit input-driven reference transition; it does
+not advance on elapsed time or create a substitute planet or dungeon.
+
 ## PL5 graphics
 
 A PL5 image is 40,000 bytes: 320×200 pixels at five bits per pixel. Every five

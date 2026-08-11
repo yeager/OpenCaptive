@@ -8,6 +8,15 @@
 - Timer-driven transitions, guessed memory fields, and generated dungeon data
   remain excluded.
 
+## 2026-08-11 (Captive native space controls)
+
+- Bound native Captive space navigation to the original movement cluster:
+  keypad 8/2/4/6 and mouse arrows move the logged cursor, keypad 7 enters the
+  authenticated orbit checkpoint at the real green target, and keypad 9
+  begins the authenticated landing transition.
+- The path remains reference-backed and input-driven; no procedural space or
+  dungeon scene was added.
+
 ## 2026-08-11 (No timer-driven Captive landing)
 
 - Removed the native 900 ms landing shortcut. OpenCaptive now holds the
