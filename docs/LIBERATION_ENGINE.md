@@ -1,6 +1,6 @@
 # Liberation: implementation status
 
-> Updated for v1.1.104. This status page deliberately separates verified presentation from prototype gameplay systems.
+> Updated for v1.1.105. This status page deliberately separates verified presentation from prototype gameplay systems.
 
 ## What runs today
 

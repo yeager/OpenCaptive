@@ -1,6 +1,6 @@
 # PL5 Graphics Format
 
-> Updated for v1.1.104. Decoder behavior is covered by the release regression suite.
+> Updated for v1.1.105. Decoder behavior is covered by the release regression suite.
 
 Used by Captive DOS for static images (title screen, ending, shop graphics, etc.).
 
