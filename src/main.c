@@ -111,6 +111,12 @@ static uint64_t captive_dos_dump_stamp(const struct stat *st) {
 #if defined(__APPLE__)
     return (uint64_t)st->st_mtimespec.tv_sec * 1000000000ULL +
            (uint64_t)st->st_mtimespec.tv_nsec;
+#elif defined(_WIN32)
+    /* MSVC's struct _stat exposes second-resolution st_mtime only.  The
+     * scanner still invalidates correctly on Windows; the nanosecond scale
+     * keeps the stamp comparable with POSIX builds without reading a
+     * non-existent st_mtim member. */
+    return (uint64_t)st->st_mtime * 1000000000ULL;
 #else
     return (uint64_t)st->st_mtim.tv_sec * 1000000000ULL +
            (uint64_t)st->st_mtim.tv_nsec;
