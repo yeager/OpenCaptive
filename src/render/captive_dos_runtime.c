@@ -51,6 +51,33 @@ bool captive_dos_runtime_render(const uint8_t *memory, size_t memory_size,
         return false;
     }
 
+    /* DOSBox-X's MEMDUMPBIN contains the original CAPPO VGA surface at
+     * A000:0000.  It is the strongest possible parity source: CAPPO has
+     * already executed its real map lookup, descriptor dispatch, masking,
+     * animation and palette work.  Prefer those exact pixels whenever the
+     * dump contains a rendered frame.  The descriptor path below remains an
+     * analysis fallback for a dump captured before VGA was populated; it does
+     * not manufacture a replacement scene. */
+    uint32_t vga[DOS_VGA_FRAME_SIZE];
+    if (dos_vga_reference_decode(memory, memory_size, vga,
+                                 DOS_VGA_FRAME_SIZE)) {
+        bool has_pixels = false;
+        for (size_t i = 0; i < DOS_VGA_FRAME_SIZE; ++i) {
+            if (vga[i] != 0U) {
+                has_pixels = true;
+                break;
+            }
+        }
+        if (has_pixels) {
+            for (int y = 0; y < DOS_VGA_FRAME_HEIGHT; ++y) {
+                memcpy(framebuffer + (size_t)y * (size_t)fb_width,
+                       vga + (size_t)y * DOS_VGA_FRAME_WIDTH,
+                       DOS_VGA_FRAME_WIDTH * sizeof(uint32_t));
+            }
+            return true;
+        }
+    }
+
     CaptiveDosMapState state;
     CaptiveDosViewWindow window;
     if (!captive_dos_map_decode(memory, memory_size, ds_segment, &state) ||

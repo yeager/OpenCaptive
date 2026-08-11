@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.101 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.102 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -142,6 +142,8 @@ set(OPENCAPTIVE_SOURCES
     src/custom/cross_save.c
 )
 
+list(APPEND OPENCAPTIVE_SOURCES src/platform/captive_emulator.c)
+
 if(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     list(APPEND OPENCAPTIVE_SOURCES src/platform/macos_menu.m)
 endif()
@@ -202,7 +204,15 @@ if(NOT ANDROID)
             "$<TARGET_FILE_DIR:opencaptive>/assets/captive/landing-transition-reference.png"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_SOURCE_DIR}/assets/captive/landed-dungeon-reference.png"
-            "$<TARGET_FILE_DIR:opencaptive>/assets/captive/landed-dungeon-reference.png")
+            "$<TARGET_FILE_DIR:opencaptive>/assets/captive/landed-dungeon-reference.png"
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            "$<TARGET_FILE_DIR:opencaptive>/tools"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/tools/dosbox-x-captive.conf"
+            "$<TARGET_FILE_DIR:opencaptive>/tools/dosbox-x-captive.conf"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/tools/dosbox-x-captive.conf"
+            "$<TARGET_FILE_DIR:opencaptive>/assets/captive/dosbox-x-captive.conf")
 endif()
 
 # --- Tests ---
@@ -798,7 +808,8 @@ target_include_directories(captive_map_dump PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_executable(captive_runtime_render tools/captive_runtime_render.c
     src/render/captive_dos_runtime.c
     src/data/captive_dos_map.c src/data/captive_dos_descriptor.c
-    src/render/captive_compositor.c src/data/pl5_decoder.c)
+    src/render/captive_compositor.c src/data/dos_vga_reference.c
+    src/data/pl5_decoder.c)
 target_include_directories(captive_runtime_render PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 add_executable(dump_pge tools/dump_pge.c

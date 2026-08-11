@@ -1,5 +1,159 @@
 # OpenCaptive — Completed work
 
+## 2026-08-11 (Isolated DOSBox-X VGA profile)
+
+- Added a dedicated DOSBox-X Captive profile with VGA-only hardware, surface
+  output, fixed 640×400 windowing, disabled aspect correction and normal2x
+  scaling.
+- Added `tools/run_captive_dosbox_x.sh` so emulator captures do not inherit
+  unrelated global SVGA/debugger settings.
+- Verified the profile parses and initializes DOSBox-X without changing the
+  user's global preferences.
+- Disabled the DOSBox-X planar-memory optimization that produced repeated-glyph
+  and arrow corruption in CAPPO, and made the helper default to `CAPTIVE.BAT 1`.
+- Direct `CAPPO.EXE` launches are rejected by the helper because they skip the
+  original video-mode initialization and are not valid parity evidence.
+- The helper now selects the current Homebrew DOSBox-X on macOS (or an
+  explicit `DOSBOX_X_BIN`) and prints the binary/version, preventing an older
+  PATH installation from silently being used.
+- Manual emulator verification reached the authentic INTRO and `CAPPO.EXE`
+  Mission 0001 using the supplied data directory. The original VGA HUD,
+  five-panel layout, holomap, green destination marker and `FLIGHT PATH SET`
+  response rendered cleanly with no repeated-glyph or arrow corruption.
+- Corrected the debugger harness to wait for the actual DOSBox-X prompt rather
+  than matching instruction-address text. The full eight-choice INTRO path now
+  completes reliably.
+- Added an emulator-only IRQ1 queue probe that writes raw scan `0x47` to the
+  verified `0824:004e..0057` CAPPO queue. This verifies the input injection
+  boundary without pretending that native OpenCaptive input is connected yet.
+- Added `--captive-authentic`, which launches the original `CAPTIVE.BAT 1`
+  through the copied isolated profile. A fresh macOS run reached the original
+  INTRO and Mission 0001 holomap from the built binary; no native or generated
+  Captive state was involved.
+
+## 2026-08-11 (Captive synthetic input/audio guard)
+
+- Captive mouse and keyboard events no longer mutate the provisional
+  `GameState` behind an authentic CAPPO frame.
+- Captive music and cheat application are disabled until the live DOS runtime
+  is connected, removing the synthetic continuous audio path and hidden state
+  mutations.
+- The source-backed path now fails closed; live IRQ1 transport remains an
+  explicit parity task rather than being simulated.
+- Debug build, all 64 CTest targets and the exact DOS VGA comparison pass.
+
+## 2026-08-11 (Authentic green target detection)
+
+- ORBIT gating now locates the bright green destination marker directly in
+  the verified CAPPO target frame instead of assuming the cursor starts at map
+  center.
+- The real marker resolves to frame `(63,150)` and CAPPO cursor `(58,108)` in
+  the current Mission 0001 reference; arbitrary planets remain rejected.
+
+## 2026-08-11 (CAPPO IRQ1 runtime address)
+
+- Confirmed against the real DOSBox-X memory image that the relocated CAPPO
+  keyboard handler is at `0824:065c`, with its raw scan-byte queue at
+  `0824:004e..0057`.
+- Confirmed that a breakpoint on BIOS `INT 09` stops in the BIOS rather than
+  CAPPO; future live input transport must target the relocated handler/queue,
+  not the ordinary DOS keyboard buffer.
+- Headless startup prints the recovered marker and all 64 CTest targets pass.
+
+## 2026-08-11 (Captive synthetic renderer guard)
+
+- Legacy procedural space, orbit and landing renderers now fail closed for
+  `GAME_CAPTIVE`; they cannot accidentally paint a generated Captive frame.
+- Their compatibility tests explicitly run as `GAME_LIBERATION`, while the
+  Captive path remains limited to original media or real DOSBox-X VGA data.
+- All 64 CTest targets pass.
+- Added a regression assertion that all three legacy render calls leave a
+  Captive framebuffer untouched.
+
+## 2026-08-11 (Exact DOS VGA bridge comparison)
+
+- Extracting the real DOSBox-X `MEMDUMP.BIN` VGA surface with the CLI decoder
+  and rendering the same dump through `captive_runtime_render` produced byte-
+  identical PPM output (`0256b00c715e55a9499b55806da28fb4d1f4efbf9f9ead4cd4f5c92a47df71d4`).
+- The source dump is the authentic 1 MiB CAPPO capture with SHA-256
+  `6b460945370e9987444b7de9438faf22dab73f50e494668612ebcc5a7b677daa`.
+- All 64 CTest targets pass after the comparison.
+
+## 2026-08-11 (Application end-to-end dump capture)
+
+- OpenCaptive was started headlessly with the real `.opencaptive` Captive
+  data directory and the authentic DOSBox-X memory image.
+- Its native `--capture-frame` output was byte-identical to the standalone VGA
+  extraction and the runtime bridge (`0256b00c...7df71d4`, 320×200 PPM).
+- SDL video and audio were both set to dummy drivers for this verification;
+  no game data or rendered pixels were substituted.
+- Added `tools/verify_captive_dos_dump.sh` to reproduce the exact three-way
+  comparison from a user-supplied DOSBox-X dump.
+
+## 2026-08-11 (Live dump timestamp precision)
+
+- DOSBox-X memory-image reloads now compare nanosecond file timestamps, so
+  successive real emulator states written within one second are not skipped.
+- The dump remains guarded by the exact 1 MiB size check before decoding.
+- Debug build and all 64 CTest targets pass.
+
+## 2026-08-11 (Captive fail-closed media boundary)
+
+- Captive no longer paints replacement status text when the original ANM is
+  missing or invalid; it returns to the verified holomap instead.
+- Captive game-over and holomap states now clear the frame when their real
+  source frame is unavailable rather than reusing generated map content.
+- The authenticated landing transition now advances to the captured landed
+  dungeon frame; no timer-driven map, planet, roster or mission data is made.
+- Debug build, all 64 CTest targets and `git diff --check` pass locally.
+
+## 2026-08-11 (Original CAPPO startup and target gate)
+
+- DOSBox-X verification now reaches the real `CAPTIVE MISSION 0001`
+  holomap after the authentic INTRO selections `1, 4, 3, 3`.
+- Captive ORBIT is accepted only when the cursor is on the authenticated
+  mission target marker; arbitrary coordinates cannot start a fabricated
+  flight.
+- The original holomap was captured with DOSBox-X `DX-CAPTURE`; no generated
+  map or planet data was used.
+
+## 2026-08-11 (Captive compatibility simulation disabled)
+
+- Captive no longer advances the shared generated GameState tick while in the
+  original presentation path.
+- Generated regeneration, combat messages, compatibility SFX and other native
+  state mutations cannot appear over an authentic CAPPO frame.
+- The change was verified with a clean Debug build and all 64 CTest targets.
+
+## 2026-08-11 (CAPPO VGA dump parity path)
+
+- The real `A000:0000` VGA surface in a DOSBox-X memory dump is now preferred
+  by the runtime bridge over the incomplete descriptor reconstruction.
+- The bridge therefore reproduces CAPPO's already-executed map lookup,
+  masking, animation, palette and HUD pixels exactly when a rendered frame is
+  present; no synthetic dungeon pixels are introduced.
+- The standalone runtime renderer and the application build both link the
+  shared DOS VGA decoder. All 64 local CTest targets pass.
+
+## 2026-08-11 (Live DOSBox-X dump synchronization)
+
+- `--captive-dos-dump` now watches the caller-owned 1 MiB dump and reloads a
+  complete replacement after DOSBox-X records another real emulator state.
+- Partial writes are ignored until the file reaches the exact dump size, so a
+  debugger write cannot be mistaken for a game frame.
+- The reload path was exercised with a real CAPPO dump copy; all 64 local CTest
+  targets pass.
+
+## 2026-08-11 (Captive synthetic roster removal)
+
+- Captive startup now clears the shared test initializer's generated droid
+  names, hit points, energy and equipment before entering the original
+  presentation path.
+- The common `GameState` initializer remains unchanged for tests and
+  Liberation; Captive runtime data still has to come from verified CAPPO
+  mission/save state or a real DOSBox-X memory image.
+- Local Debug build and all 64 CTest targets pass.
+
 ## 2026-08-10 (Captive absolute holomap mouse input)
 
 - Mouse motion and clicks inside the authenticated 320x200 holomap panel now

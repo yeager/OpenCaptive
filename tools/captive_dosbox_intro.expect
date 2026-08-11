@@ -1,0 +1,89 @@
+#!/usr/bin/expect -f
+
+# Emulator-only harness. It injects the original INTRO.EXE choices into the
+# emulated BIOS keyboard ring, then leaves CAPTIVE.BAT 1 running. It does not
+# create, alter, or synthesize Captive game data.
+
+set timeout 20
+if {$argc < 1} {
+    puts stderr "usage: $argv0 DATA_DIR"
+    exit 2
+}
+
+set data_dir [lindex $argv 0]
+set script_dir [file dirname [file normalize $argv0]]
+set profile [file join $script_dir dosbox-x-captive.conf]
+if {![file isdirectory $data_dir] || ![file exists $profile]} {
+    puts stderr "missing Captive data directory or DOSBox-X profile"
+    exit 2
+}
+
+proc resume_emulation {} {
+    send "\033\[15~"
+}
+
+proc wait_for_timer_break {} {
+    expect {
+        # The debugger prompt is emitted after the interrupt breakpoint. The
+        # callback label is not redrawn on every ncurses refresh, so matching
+        # it would lose later timer breaks. The prompt is safe here because
+        # the only active breakpoint is INT 08.
+        -re {I->} {}
+        timeout {
+            puts stderr "DOSBox-X did not reach the timer breakpoint"
+            exit 1
+        }
+        eof { exit 1 }
+    }
+}
+
+spawn env TERM=xterm-256color dosbox-x -break-start -conf $profile \
+    -c "mount c $data_dir" -c "c:" -c "CAPTIVE.BAT 1"
+
+expect {
+    -re {I->} {}
+    timeout {
+        puts stderr "DOSBox-X debugger did not start"
+        exit 1
+    }
+}
+
+# Pause at the BIOS timer between each injected key. This is required because
+# debugger commands are accepted only while DOSBox-X is paused.
+send "BPINT 08\r"
+resume_emulation
+wait_for_timer_break
+
+# BIOS keyboard ring starts at 0040:001E after a clean DOS boot. Each entry is
+# stored as ASCII followed by the XT scan byte, and the tail advances by two.
+send "SM 0040 001A 1E 00\r"
+set tail 0x1e
+set choices {1 enter 4 enter 3 enter 3 enter}
+foreach key $choices {
+    # Remove the previous breakpoint before changing the two-byte BIOS ring
+    # entry, so the debugger never observes a half-written key.
+    send "BPDEL 00\r"
+    switch -- $key {
+        1     { set ascii 0x31; set scan 0x02 }
+        3     { set ascii 0x33; set scan 0x04 }
+        4     { set ascii 0x34; set scan 0x05 }
+        enter { set ascii 0x0d; set scan 0x1c }
+        default {
+            puts stderr "unsupported input token: $key"
+            exit 2
+        }
+    }
+    send [format "SM 0040 %04X %02X %02X\r" $tail $ascii $scan]
+    incr tail 2
+    if {$tail >= 0x40} { set tail 0x1e }
+    send [format "SM 0040 001C %02X 00\r" $tail]
+    send "BPINT 08\r"
+    resume_emulation
+    wait_for_timer_break
+}
+
+# Let INTRO/FILEPLAY/CAPPO continue normally after the real choices.
+send "BPDEL 00\r"
+resume_emulation
+puts stderr "CAPTIVE.BAT 1 started with original INTRO choices"
+interact

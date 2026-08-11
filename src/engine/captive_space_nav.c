@@ -195,7 +195,12 @@ static void draw_cockpit(uint32_t *fb, int w, int h, const GameState *gs) {
 
 void space_flight_render(const GameState *gs, const Starfield *sf,
                          uint32_t *fb, int fb_w, int fb_h) {
-    if (!gs || !sf || !fb || fb_w <= 0 || fb_h <= 0) return;
+    /* Captive's original flight surface must come from CAPPO media or a real
+     * DOSBox-X VGA dump. This legacy renderer remains available to the
+     * generic non-Captive compatibility path, but may never paint a
+     * synthetic Captive frame. */
+    if (!gs || gs->game_type == GAME_CAPTIVE || !sf || !fb || fb_w <= 0 ||
+        fb_h <= 0) return;
 
     memset(fb, 0, (size_t)fb_w * (size_t)fb_h * sizeof(uint32_t));
 
@@ -258,7 +263,8 @@ void space_flight_render(const GameState *gs, const Starfield *sf,
 
 void orbit_render(const GameState *gs, const Holamap *hm,
                   uint32_t *fb, int fb_w, int fb_h) {
-    if (!gs || !fb || fb_w <= 0 || fb_h <= 0) return;
+    if (!gs || gs->game_type == GAME_CAPTIVE || !fb || fb_w <= 0 ||
+        fb_h <= 0) return;
 
     memset(fb, 0, (size_t)fb_w * (size_t)fb_h * sizeof(uint32_t));
 
@@ -348,7 +354,8 @@ void orbit_render(const GameState *gs, const Holamap *hm,
 
 void landing_render(const GameState *gs,
                     uint32_t *fb, int fb_w, int fb_h) {
-    if (!gs || !fb || fb_w <= 0 || fb_h <= 0) return;
+    if (!gs || gs->game_type == GAME_CAPTIVE || !fb || fb_w <= 0 ||
+        fb_h <= 0) return;
 
     memset(fb, 0, (size_t)fb_w * (size_t)fb_h * sizeof(uint32_t));
 

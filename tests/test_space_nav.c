@@ -6,6 +6,10 @@
 int main(void) {
     static GameState gs;
     memset(&gs, 0, sizeof(gs));
+    /* These legacy procedural renderers are only valid for the generic
+     * compatibility path. Captive itself must use CAPPO media or a real
+     * DOSBox-X VGA dump. */
+    gs.game_type = GAME_LIBERATION;
     gs.mission = 1;
     gs.mission_seed = 42;
 
@@ -33,6 +37,14 @@ int main(void) {
     }
 
     static uint32_t fb[320 * 200];
+    gs.game_type = GAME_CAPTIVE;
+    memset(fb, 0, sizeof(fb));
+    space_flight_render(&gs, &sf, fb, 320, 200);
+    orbit_render(&gs, NULL, fb, 320, 200);
+    landing_render(&gs, fb, 320, 200);
+    for (int i = 0; i < 320 * 200; i++) assert(fb[i] == 0);
+
+    gs.game_type = GAME_LIBERATION;
     memset(fb, 0, sizeof(fb));
     space_flight_render(&gs, &sf, fb, 320, 200);
     int nonblack = 0;

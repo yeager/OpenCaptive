@@ -43,12 +43,17 @@
 #include "amos_sprite.h"
 #include "dos_vga_reference.h"
 #include "captive_space_nav.h"
+#include "captive_dos_runtime.h"
+#include "captive_emulator.h"
 #include "viewport.h"
 #include "frame_compare.h"
 #include "custom_features.h"
 #include "i18n.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <time.h>
 
 extern unsigned char *load_png_file(const char *path, int *w, int *h);
 
@@ -87,22 +92,101 @@ static unsigned char *captive_zoom_in_reference;
 static int captive_zoom_in_reference_width;
 static int captive_zoom_in_reference_height;
 static bool captive_landed_reference_active;
-static unsigned captive_flight_tick;
+/* Optional caller-owned CAPPO memory image.  This is a diagnostic/runtime
+ * bridge only: when present, Captive's viewport is decoded from the exact
+ * DOSBox-X memory image and never falls back to map_gen or a generated scene. */
+static uint8_t *captive_dos_memory;
+static bool captive_dos_memory_active;
+static bool captive_dos_runtime_reported;
+static uint16_t captive_dos_ds_segment = 0x2942;
+static uint16_t captive_dos_source_bank_segment = 0x0824;
+static uint64_t captive_dos_dump_mtime_ns;
+static uint32_t captive_landing_started_ms;
+static bool captive_target_cursor_valid;
+static int captive_target_cursor_x;
+static int captive_target_cursor_y;
+
+static uint64_t captive_dos_dump_stamp(const struct stat *st) {
+    if (!st) return 0;
+#if defined(__APPLE__)
+    return (uint64_t)st->st_mtimespec.tv_sec * 1000000000ULL +
+           (uint64_t)st->st_mtimespec.tv_nsec;
+#else
+    return (uint64_t)st->st_mtim.tv_sec * 1000000000ULL +
+           (uint64_t)st->st_mtim.tv_nsec;
+#endif
+}
 
 /* CAPPO's ORBIT command is a real transit phase: the green planet marker
  * identifies the destination selected by the original mission/map state.
  * Once there, the orbit frame supplies the white landing circle.  Both are
  * source-authenticated pixels; do not draw or infer either marker here. */
+static bool captive_holamap_target_selected(void) {
+    /* The target is measured from the real green marker in
+     * assets/captive/holamap-target.png at startup; never invent a planet
+     * coordinate or assume that the cursor starts on the destination. */
+    if (!captive_target_cursor_valid) return false;
+    const int cell_radius = 8;
+    return abs(captive_holamap.cursor_x - captive_target_cursor_x) <=
+               cell_radius &&
+           abs(captive_holamap.cursor_y - captive_target_cursor_y) <=
+               cell_radius;
+}
+
+static void captive_locate_target_cursor(const uint8_t *rgba, int width,
+                                         int height) {
+    const int map_left = 28;
+    const int map_top = 65;
+    const int map_right = 180;
+    const int map_bottom = 165;
+    long sum_x = 0;
+    long sum_y = 0;
+    int count = 0;
+    if (!rgba || width <= 0 || height <= 0) return;
+    for (int y = map_top; y < map_bottom && y < height; ++y) {
+        for (int x = map_left; x < map_right && x < width; ++x) {
+            const uint8_t *p = rgba +
+                ((size_t)y * (size_t)width + (size_t)x) * 4U;
+            if (p[1] >= 180U && p[1] > p[0] * 1.7f &&
+                p[1] > p[2] * 1.25f) {
+                sum_x += x;
+                sum_y += y;
+                ++count;
+            }
+        }
+    }
+    if (count == 0) return;
+    const int frame_x = (int)(sum_x / count);
+    const int frame_y = (int)(sum_y / count);
+    captive_target_cursor_x = (frame_x - map_left) * HOLAMAP_WIDTH /
+                              (map_right - map_left);
+    captive_target_cursor_y = (frame_y - map_top) * HOLAMAP_HEIGHT /
+                              (map_bottom - map_top);
+    if (captive_target_cursor_x < 0 || captive_target_cursor_x >= HOLAMAP_WIDTH ||
+        captive_target_cursor_y < 0 || captive_target_cursor_y >= HOLAMAP_HEIGHT)
+        return;
+    captive_target_cursor_valid = true;
+    printf("CAPPO target marker: frame=(%d,%d) cursor=(%d,%d)\n",
+           frame_x, frame_y, captive_target_cursor_x, captive_target_cursor_y);
+}
+
 static void captive_begin_flight(GameState *gs) {
-    if (!gs || !captive_holamap_target_reference) return;
+    if (!gs || !captive_holamap_target_reference ||
+        !captive_holamap_target_selected()) return;
     captive_landed_reference_active = false;
-    captive_flight_tick = 0;
     gs->mode = STATE_SPACE_FLIGHT;
+}
+
+static void captive_begin_landing(GameState *gs) {
+    if (!gs || !captive_landing_reference) return;
+    gs->landing_tick = 0;
+    captive_landed_reference_active = false;
+    captive_landing_started_ms = SDL_GetTicks();
+    gs->mode = STATE_LANDING;
 }
 
 static void captive_holamap_reset(uint32_t mission_seed) {
     holamap_init(&captive_holamap, mission_seed);
-    captive_flight_tick = 0;
     if (captive_holamap_reference) {
         holamap_set_reference_frame(&captive_holamap,
                                     captive_holamap_reference,
@@ -212,7 +296,8 @@ static bool captive_holamap_mouse_move(const OpenCaptiveRenderer *r,
             /* This is the verified original map action.  CAPPO already has
              * the planet destination in its mission records; the green point
              * and the later white landing circle remain original media. */
-            if (!captive_orbit_reference) return false;
+            if (!captive_orbit_reference ||
+                !captive_holamap_target_selected()) return false;
             captive_begin_flight(gs);
             return true;
         case CAPTIVE_NAV_ACTION_LAND:
@@ -231,9 +316,7 @@ static bool captive_orbit_mouse_move(const OpenCaptiveRenderer *r,
     if (action == CAPTIVE_NAV_ACTION_LAND && captive_landing_reference) {
         /* The white point is the original landing target.  CAPPO changes
          * phase only after LAND is pressed in this view. */
-        gs->landing_tick = 0;
-        captive_landed_reference_active = false;
-        gs->mode = STATE_LANDING;
+        captive_begin_landing(gs);
         return true;
     }
     return false;
@@ -336,6 +419,32 @@ static bool write_dos_vga_reference(const char *dump_path, const char *output_pa
     if (ok)
         printf("DOS VGA reference SHA-256: %s\n", digest_text);
     return ok;
+}
+
+static uint8_t *load_captive_dos_dump(const char *dump_path) {
+    if (!dump_path) return NULL;
+    FILE *file = fopen(dump_path, "rb");
+    if (!file) {
+        fprintf(stderr, "Unable to open CAPPO DOSBox-X memory dump: %s\n",
+                dump_path);
+        return NULL;
+    }
+    uint8_t *memory = malloc(DOS_VGA_MEMORY_SIZE);
+    if (!memory) {
+        fclose(file);
+        return NULL;
+    }
+    size_t read = fread(memory, 1, DOS_VGA_MEMORY_SIZE, file);
+    int trailing = read == DOS_VGA_MEMORY_SIZE ? fgetc(file) : 0;
+    bool ok = read == DOS_VGA_MEMORY_SIZE && trailing == EOF;
+    if (fclose(file) != 0) ok = false;
+    if (!ok) {
+        fprintf(stderr, "CAPPO DOSBox-X dump must be exactly %u bytes\n",
+                (unsigned)DOS_VGA_MEMORY_SIZE);
+        free(memory);
+        return NULL;
+    }
+    return memory;
 }
 
 static uint32_t *read_ppm_frame(const char *path, int *out_width, int *out_height) {
@@ -819,13 +928,22 @@ static bool liberation_intro_active;
 static bool liberation_mission_menu_active;
 static bool skip_liberation_intro_requested;
 
+/* Captive's audio engine is not driven by the native compatibility state.
+ * Until a live CAPPO session supplies its own AdLib/CDDA events, silence is
+ * the only source-faithful result.  The old music call here produced the
+ * continuous synthetic tone reported on macOS. */
+static void music_play_for_game(const GameState *gs, MusicTrack track) {
+    if (gs && gs->game_type == GAME_CAPTIVE) return;
+    music_play(&music_sys, track);
+}
+
 static void open_captive_shop(GameState *gs, int level) {
     if (!gs) return;
     shop_return_mode = STATE_GAME;
     shop_init(&shop, &item_db, level, gs->mission_seed);
     shop.gold = gs->gold;
     gs->mode = STATE_SHOP;
-    music_play(&music_sys, MUSIC_SHOP);
+    music_play_for_game(gs, MUSIC_SHOP);
     sfx_play(&sfx, SFX_DOOR_OPEN);
 }
 
@@ -1172,7 +1290,7 @@ static const char *popup_brightness(int value) {
 }
 
 static void popup_apply_cheats(GameState *gs) {
-    if (!gs) return;
+    if (!gs || gs->game_type == GAME_CAPTIVE) return;
     bool restored_health = false;
     if (runtime_popup.invulnerable) {
         for (int i = 0; i < 4; ++i) gs->droids[i].hp = gs->droids[i].hp_max;
@@ -1233,10 +1351,12 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
         case POPUP_MUSIC: music_set_enabled(&music_sys, !music_sys.enabled); break;
         case POPUP_SFX: sound_set_enabled(&sound_sys, !sound_sys.enabled); break;
         case POPUP_INVULNERABLE:
-            runtime_popup.invulnerable = !runtime_popup.invulnerable;
+            if (gs->game_type != GAME_CAPTIVE)
+                runtime_popup.invulnerable = !runtime_popup.invulnerable;
             break;
         case POPUP_INFINITE_ENERGY:
-            runtime_popup.infinite_energy = !runtime_popup.infinite_energy;
+            if (gs->game_type != GAME_CAPTIVE)
+                runtime_popup.infinite_energy = !runtime_popup.infinite_energy;
             break;
         case POPUP_MINIMAP:
             if (features) features->minimap = !features->minimap;
@@ -1248,7 +1368,8 @@ static void popup_handle_event(GameState *gs, OpenCaptiveConfig *config,
             if (features) features->debug_hud = !features->debug_hud;
             break;
         case POPUP_COMPLETE_OBJECTIVE:
-            if (gs->game_type == GAME_CAPTIVE && gs->generators_total > 0) {
+            /* No synthetic mission completion is permitted for Captive. */
+            if (gs->game_type != GAME_CAPTIVE && gs->generators_total > 0) {
                 gs->generators_destroyed = gs->generators_total;
                 game_state_complete_mission(gs);
             }
@@ -2417,12 +2538,14 @@ int main(int argc, char *argv[]) {
     GameType requested_game = GAME_CAPTIVE;
     bool start_directly = false;
     bool show_liberation_mission_menu_requested = false;
+    bool captive_authentic_requested = false;
     const char *lang_override = NULL;
     const char *verify_data = NULL;
     const char *capture_frame_path = NULL;
     bool capture_failed = false;
     const char *dos_vga_dump_path = NULL;
     const char *dos_vga_output_path = NULL;
+    const char *captive_dos_dump_path = NULL;
     const char *expected_frame_path = NULL;
     const char *actual_frame_path = NULL;
     int compare_rect[4] = {0};
@@ -2457,6 +2580,7 @@ int main(int argc, char *argv[]) {
                 "  --brightness <n>      Brightness 0-100 (default 50)\n"
                 "  --contrast <n>        Contrast 0-100 (default 50)\n"
                 "  --game <name>         Start game directly: captive, liberation\n"
+                "  --captive-authentic  Launch the original Captive runtime in DOSBox-X\n"
                 "  --lang <code>         Language: en, sv, de, fr, es, it, etc.\n"
                 "  --scan-data           Scan and verify all supported game data\n"
                 "  --scan-game-data      Alias for --scan-data\n\n"
@@ -2483,6 +2607,9 @@ int main(int argc, char *argv[]) {
                 "  --verify-data <name>  Verify data by SHA-256: captive, liberation, all\n\n"
                 "  --capture-frame <ppm> Save one unscaled native game frame, then exit\n\n"
                 "  --extract-dos-vga <dump> <ppm>  Extract a 320x200 DOS VGA reference frame\n\n"
+                "  --captive-dos-dump <dump>  Decode/reload a real DOSBox-X CAPPO memory image\n"
+                "  --captive-dos-ds <hex>     CAPPO data segment for the dump (default 2942)\n"
+                "  --captive-dos-source-bank <hex>  CAPPO source-bank segment (default 0824)\n\n"
                 "  --compare-frames <expected> <actual>  Compare two native PPM frames\n"
                 "  --compare-frames-rect <expected> <actual> <x> <y> <w> <h>\n"
                 "                         Compare one native frame rectangle exactly\n\n"
@@ -2659,6 +2786,10 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "Unknown game: %s (expected captive or liberation)\n", game);
                 return 2;
             }
+        } else if (strcmp(argv[i], "--captive-authentic") == 0) {
+            requested_game = GAME_CAPTIVE;
+            start_directly = true;
+            captive_authentic_requested = true;
         } else if (strcmp(argv[i], "--scan-data") == 0 ||
                    strcmp(argv[i], "--scan-game-data") == 0) {
             verify_data = "all";
@@ -2675,6 +2806,26 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "--extract-dos-vga") == 0 && i + 2 < argc) {
             dos_vga_dump_path = argv[++i];
             dos_vga_output_path = argv[++i];
+        } else if (strcmp(argv[i], "--captive-dos-dump") == 0 && i + 1 < argc) {
+            captive_dos_dump_path = argv[++i];
+            requested_game = GAME_CAPTIVE;
+            start_directly = true;
+        } else if (strcmp(argv[i], "--captive-dos-ds") == 0 && i + 1 < argc) {
+            char *end = NULL;
+            unsigned long value = strtoul(argv[++i], &end, 16);
+            if (!end || *end != '\0' || value > UINT16_MAX) {
+                fprintf(stderr, "--captive-dos-ds must be a 16-bit hexadecimal segment\n");
+                return 2;
+            }
+            captive_dos_ds_segment = (uint16_t)value;
+        } else if (strcmp(argv[i], "--captive-dos-source-bank") == 0 && i + 1 < argc) {
+            char *end = NULL;
+            unsigned long value = strtoul(argv[++i], &end, 16);
+            if (!end || *end != '\0' || value > UINT16_MAX) {
+                fprintf(stderr, "--captive-dos-source-bank must be a 16-bit hexadecimal segment\n");
+                return 2;
+            }
+            captive_dos_source_bank_segment = (uint16_t)value;
         } else if (strcmp(argv[i], "--compare-frames") == 0 && i + 2 < argc) {
             expected_frame_path = argv[++i];
             actual_frame_path = argv[++i];
@@ -2735,6 +2886,20 @@ int main(int argc, char *argv[]) {
         return compare_ppm_frames(expected_frame_path, actual_frame_path,
                                   compare_rect_set ? compare_rect : NULL,
                                   compare_rect_set ? compare_actual_rect : NULL);
+
+    if (captive_authentic_requested)
+        return captive_emulator_launch(config.data_path) ? 0 : 1;
+
+    if (captive_dos_dump_path) {
+        captive_dos_memory = load_captive_dos_dump(captive_dos_dump_path);
+        if (!captive_dos_memory) return 1;
+        captive_dos_memory_active = true;
+        struct stat dump_stat;
+        if (stat(captive_dos_dump_path, &dump_stat) == 0)
+            captive_dos_dump_mtime_ns = captive_dos_dump_stamp(&dump_stat);
+        printf("Loaded caller-supplied CAPPO DOSBox-X memory image (DS=%04X source-bank=%04X)\n",
+               captive_dos_ds_segment, captive_dos_source_bank_segment);
+    }
 
     if (verify_data) {
         DataVFS verify_vfs;
@@ -2813,6 +2978,11 @@ int main(int argc, char *argv[]) {
      * renderer has even started. */
     static GameState gs;
     game_state_init(&gs, GAME_CAPTIVE, 1);
+    /* CAPPO supplies the droid roster from its mission/save runtime.  The
+     * shared GameState test initializer has defaults for other callers, but
+     * those generated names/status values are not valid Captive data and must
+     * not be allowed into the original presentation path. */
+    memset(gs.droids, 0, sizeof(gs.droids));
     captive_holamap_reset(gs.mission);
     captive_holamap_reference = load_verified_captive_holamap(
         &captive_holamap_reference_width, &captive_holamap_reference_height);
@@ -2839,6 +3009,9 @@ int main(int argc, char *argv[]) {
     captive_holamap_target_reference = load_verified_captive_frame(
         "assets/captive/holamap-target.png", &captive_holamap_target_width,
         &captive_holamap_target_height);
+    captive_locate_target_cursor(captive_holamap_target_reference,
+                                 captive_holamap_target_width,
+                                 captive_holamap_target_height);
     /* Keep the verified target checkpoint available for the decoded mission
      * flow, but do not replace Mission 0001's opening frame with it.  The
      * original CAPPO opens on holamap-initial.png; replacing it here made the
@@ -2915,12 +3088,20 @@ int main(int argc, char *argv[]) {
             capture_failed = capture_frame_path != NULL;
         } else {
             gs.game_type = GAME_CAPTIVE;
-            music_play(&music_sys, MUSIC_BASE);
+            music_play_for_game(&gs, MUSIC_BASE);
             /* game_state_init() starts at the menu.  A direct command-line
              * launch must make the same state transition as selecting
              * Captive in the menu; without this the prepared mission was
              * hidden behind the start screen. */
-            if (capture_frame_path) {
+            if (captive_dos_memory_active) {
+                /* A DOSBox-X dump is an already-running CAPPO state.  Start
+                 * at the native viewport so the supplied bytes are the only
+                 * source of dungeon content; do not advance through the
+                 * launcher or construct a mission from GameState. */
+                config.render_mode = CAPTIVE_RENDER_ORIGINAL;
+                captive_landed_reference_active = false;
+                gs.mode = STATE_GAME;
+            } else if (capture_frame_path) {
                 /* A capture must begin at the same original navigation state
                  * as a normal Captive launch.  The previous shortcut forced
                  * the landed dungeon checkpoint here, which made
@@ -2991,6 +3172,26 @@ int main(int argc, char *argv[]) {
 
     while (running) {
         uint64_t frame_started = SDL_GetTicks();
+        /* A DOSBox-X debugger session can overwrite MEMDUMP.BIN after each
+         * real keypad/mouse action.  Reload only after the file is complete;
+         * this keeps the application synchronized with original CAPPO state
+         * without inventing a local flight, map or dungeon model. */
+        if (captive_dos_memory_active && captive_dos_dump_path) {
+            struct stat dump_stat;
+            if (stat(captive_dos_dump_path, &dump_stat) == 0 &&
+                dump_stat.st_size == (off_t)DOS_VGA_MEMORY_SIZE &&
+                captive_dos_dump_stamp(&dump_stat) != captive_dos_dump_mtime_ns) {
+                uint8_t *fresh_memory =
+                    load_captive_dos_dump(captive_dos_dump_path);
+                if (fresh_memory) {
+                    free(captive_dos_memory);
+                    captive_dos_memory = fresh_memory;
+                    captive_dos_dump_mtime_ns = captive_dos_dump_stamp(&dump_stat);
+                    captive_dos_runtime_reported = false;
+                    printf("Reloaded CAPPO DOSBox-X memory image\n");
+                }
+            }
+        }
         /* Captive's original holomap/orbit controls use an absolute mouse
          * pointer.  Do not let the optional FPS mouse-look mode hide/capture
          * it while the player is in the real navigation surface. */
@@ -3056,6 +3257,11 @@ int main(int argc, char *argv[]) {
                              * Continue uses load_game() below and therefore
                              * deliberately does not take this path. */
                             game_state_init(&gs, GAME_CAPTIVE, 1);
+                            /* The shared initializer is useful to tests and
+                             * Liberation, but CAPPO owns this roster.  Do
+                             * not carry generated names/status into a new
+                             * original Captive session. */
+                            memset(gs.droids, 0, sizeof(gs.droids));
                             captive_holamap_reset(gs.mission);
                             combat_init(&creatures);
                             puzzle_init(&puzzles);
@@ -3076,6 +3282,16 @@ int main(int argc, char *argv[]) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
+                            /* The original DOS data has a complete CAPPO
+                             * runtime. Hand the new-game action to DOSBox-X
+                             * instead of entering the input-less native
+                             * compatibility shell. If DOSBox-X or CAPTIVE.BAT
+                             * is unavailable, retain the authenticated
+                             * reference-frame fallback below. */
+                            if (captive_emulator_launch(config.data_path)) {
+                                running = false;
+                                break;
+                            }
                             textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg, &shop_bg);
                             if (!textures_loaded) {
                                 show_missing_data_dialog(config.data_path);
@@ -3092,7 +3308,7 @@ int main(int argc, char *argv[]) {
                                 intro_last_tick = SDL_GetTicks();
                             }
                             if (!intro_loaded) {
-                                music_play(&music_sys, MUSIC_BASE);
+                                music_play_for_game(&gs, MUSIC_BASE);
                                 /* Without decoded intro media, continue to
                                  * the verified navigation surface.  Never
                                  * expose the generated droid-config shell. */
@@ -3166,7 +3382,7 @@ int main(int argc, char *argv[]) {
                                 if (!loaded) loaded = load_game(&gs, &creatures, &puzzles, "opencaptive.sav");
                                 if (loaded) {
                                     automap_init(&automap_state);
-                                    music_play(&music_sys, MUSIC_BASE);
+                                    music_play_for_game(&gs, MUSIC_BASE);
                                     gs.mode = STATE_GAME;
                                 } else {
                                     /* The menu may have seen a save file
@@ -3175,6 +3391,7 @@ int main(int argc, char *argv[]) {
                                      * configuration continue with a stale
                                      * dungeon from the previous session. */
                                     game_state_init(&gs, GAME_CAPTIVE, 1);
+                                    memset(gs.droids, 0, sizeof(gs.droids));
                                     gs.config = config;
                                     combat_init(&creatures);
                                     puzzle_init(&puzzles);
@@ -3242,7 +3459,7 @@ int main(int argc, char *argv[]) {
                             intro_loaded = false;
                         }
                         intro_frame = 0;
-                        music_play(&music_sys, MUSIC_BASE);
+                        music_play_for_game(&gs, MUSIC_BASE);
                         captive_holamap_reset(gs.mission);
                         gs.mode = STATE_HOLAMAP;
                     }
@@ -3324,7 +3541,7 @@ int main(int argc, char *argv[]) {
                             captive_landed_reference_active = false;
                             captive_holamap_reset(gs.mission);
                             gs.mode = STATE_HOLAMAP;
-                            music_play(&music_sys, MUSIC_HOLOMAP);
+                            music_play_for_game(&gs, MUSIC_HOLOMAP);
                             break;
                         }
                         if (gs.game_type == GAME_LIBERATION && liberation_intro_active) {
@@ -3346,10 +3563,13 @@ int main(int argc, char *argv[]) {
                         if (captive_navigation_mouse_key(&renderer,
                                                          &event.button,
                                                          &navigation_key)) {
-                            SDL_Event navigation = {0};
-                            navigation.type = SDL_EVENT_KEY_DOWN;
-                            navigation.key.key = navigation_key;
-                            game_handle_input(&gs, &navigation);
+                            /* The arrows are CAPPO controls, not a request to
+                             * mutate OpenCaptive's provisional GameState. A
+                             * real DOS runtime transport must receive the raw
+                             * scan byte; until that transport is attached,
+                             * fail closed instead of creating synthetic
+                             * movement, combat or map state. */
+                            (void)navigation_key;
                         }
                     } else if (gs.game_type == GAME_LIBERATION) {
                         if (liberation_intro_active && event.type == SDL_EVENT_KEY_DOWN) {
@@ -3423,16 +3643,15 @@ int main(int argc, char *argv[]) {
                                 popup_apply_cheats(&gs);
                             }
                         }
+                    } else if (gs.game_type == GAME_CAPTIVE) {
+                        /* No native compatibility input is allowed in the
+                         * source-backed Captive path.  Without a live CAPPO
+                         * process, forwarding keys would mutate generated
+                         * GameState values while leaving the real VGA frame
+                         * unchanged. */
                     } else {
-                        /* Captive's original arrow controls are also the
-                         * dungeon movement controls. Do not route every key
-                         * back to the holomap: that made the native viewport
-                         * look frozen and made mouse-arrow clicks unusable
-                         * after entering a real dungeon frame. */
                         game_handle_input(&gs, &event);
                         popup_apply_cheats(&gs);
-                        if (gs.mode == STATE_HOLAMAP)
-                            music_play(&music_sys, MUSIC_HOLOMAP);
                     }
                     break;
                 case STATE_BAR:
@@ -3641,7 +3860,7 @@ int main(int argc, char *argv[]) {
                                 gs.gold = shop.gold;
                                 gs.mode = shop_return_mode;
                                 shop_return_mode = STATE_GAME;
-                                music_play(&music_sys,
+                                music_play_for_game(&gs,
                                            gs.mode == STATE_HOLAMAP ?
                                            MUSIC_HOLOMAP : MUSIC_BASE);
                                 break;
@@ -3704,8 +3923,7 @@ int main(int argc, char *argv[]) {
                                 holamap_move_cursor(&captive_holamap, 1, 0);
                                 break;
                             case SDLK_KP_7:
-                                if (captive_orbit_reference)
-                                    captive_begin_flight(&gs);
+                                captive_begin_flight(&gs);
                                 break;
                             case SDLK_KP_1:
                                 holamap_zoom_out(&captive_holamap);
@@ -3722,11 +3940,10 @@ int main(int argc, char *argv[]) {
                                 holamap_center_cursor(&captive_holamap);
                                 break;
                             case SDLK_S:
-                                shop_return_mode = STATE_HOLAMAP;
-                                gs.mode = STATE_SHOP;
-                                shop_init(&shop, &item_db, gs.mission, gs.mission_seed);
-                                shop.gold = gs.gold;
-                                music_play(&music_sys, MUSIC_SHOP);
+                                /* CAPPO opens shops from a landed base, not
+                                 * from the holomap.  The old shortcut opened
+                                 * the modern synthetic shop here; ignore it
+                                 * until the real CAPPO shop state is decoded. */
                                 break;
                             case SDLK_ESCAPE:
                                 gs.mode = STATE_MENU;
@@ -3757,10 +3974,7 @@ int main(int argc, char *argv[]) {
                              * command, so it must not bypass the white
                              * landing-point control. */
                             case SDLK_KP_9:
-                                if (captive_landing_reference) {
-                                    gs.landing_tick = 0;
-                                    gs.mode = STATE_LANDING;
-                                }
+                                captive_begin_landing(&gs);
                                 break;
                             case SDLK_ESCAPE:
                                 gs.mode = STATE_HOLAMAP;
@@ -3787,7 +4001,13 @@ int main(int argc, char *argv[]) {
                              * thrust model.  Do not mutate fuel/velocity or
                              * expose synthetic controls while the verified
                              * CAPPO transit frame is on screen. */
-                            if (event.key.key == SDLK_ESCAPE) {
+                            /* CAPPO help: Turn Right (keypad 9) commences
+                             * landing at the logged position. Arrival itself
+                             * is a DOS runtime state, not a wall-clock timer. */
+                            if (event.key.key == SDLK_KP_9 &&
+                                captive_landing_reference) {
+                                captive_begin_landing(&gs);
+                            } else if (event.key.key == SDLK_ESCAPE) {
                                 gs.mode = STATE_HOLAMAP;
                             }
                             break;
@@ -4030,14 +4250,7 @@ int main(int argc, char *argv[]) {
             start_menu_update(&menu);
 
         if (gs.mode == STATE_SPACE_FLIGHT) {
-            if (gs.game_type == GAME_CAPTIVE) {
-                if (captive_flight_tick < LANDING_TICKS)
-                    captive_flight_tick++;
-                if (captive_flight_tick >= LANDING_TICKS) {
-                    gs.mode = STATE_ORBIT;
-                    gs.orbit_angle = 0.0f;
-                }
-            } else {
+            if (gs.game_type != GAME_CAPTIVE) {
                 space_flight_update(&gs);
                 float dx = gs.space_target_x - gs.space_x;
                 float dy = gs.space_target_y - gs.space_y;
@@ -4050,25 +4263,28 @@ int main(int argc, char *argv[]) {
         if (gs.mode == STATE_ORBIT) {
             gs.orbit_angle += ORBIT_SPEED;
         }
-        if (gs.mode == STATE_LANDING) {
+        if (gs.mode == STATE_LANDING && gs.game_type != GAME_CAPTIVE) {
             gs.landing_tick++;
             if (gs.landing_tick >= LANDING_TICKS) {
-                if (gs.game_type == GAME_CAPTIVE) {
-                    /* Keep the real landed frame visible. A decoded CAPPO
-                     * dungeon may replace it only after its runtime records
-                     * are recovered; map_gen output is never a fallback. */
-                    captive_landed_reference_active =
-                        captive_landed_dungeon_reference != NULL;
-                    if (captive_landed_reference_active) {
-                        gs.mode = STATE_GAME;
-                        music_play(&music_sys, MUSIC_BASE);
-                    }
-                } else if (game_state_new_mission(&gs, gs.mission + 1)) {
+                if (game_state_new_mission(&gs, gs.mission + 1)) {
                     automap_init(&automap_state);
                     gs.mode = STATE_DROID_CONFIG;
                     droid_config_cursor = 0;
-                    music_play(&music_sys, MUSIC_BASE);
+                    music_play_for_game(&gs, MUSIC_BASE);
                 }
+            }
+        }
+        if (gs.mode == STATE_LANDING && gs.game_type == GAME_CAPTIVE &&
+            !captive_dos_memory_active && captive_landing_reference &&
+            captive_landed_dungeon_reference) {
+            /* The transition and landed frame are both source-authenticated
+             * CAPPO captures.  Hold the real transition for its observed
+             * short landing phase, then enter the real dungeon checkpoint;
+             * never fabricate a timer-driven map or mission state. */
+            if (SDL_GetTicks() - captive_landing_started_ms >= 900U) {
+                captive_landed_reference_active = true;
+                gs.mode = STATE_GAME;
+                music_play_for_game(&gs, MUSIC_BASE);
             }
         }
 
@@ -4093,7 +4309,7 @@ int main(int argc, char *argv[]) {
                         anm_free(&intro_anim);
                         intro_loaded = false;
                     }
-                    music_play(&music_sys, MUSIC_BASE);
+                    music_play_for_game(&gs, MUSIC_BASE);
                     captive_holamap_reset(gs.mission);
                     gs.mode = STATE_HOLAMAP;
                     break;
@@ -4108,7 +4324,7 @@ int main(int argc, char *argv[]) {
                         if (advance >= remaining) {
                             anm_free(&intro_anim);
                             intro_loaded = false;
-                            music_play(&music_sys, MUSIC_BASE);
+                            music_play_for_game(&gs, MUSIC_BASE);
                             captive_holamap_reset(gs.mission);
                             gs.mode = STATE_HOLAMAP;
                             break;
@@ -4130,7 +4346,29 @@ int main(int argc, char *argv[]) {
                 /* Cheats stay live while the F10 overlay is open as well;
                  * changing a toggle takes effect on the very next frame. */
                 popup_apply_cheats(&gs);
-                if (gs.game_type == GAME_LIBERATION && !lib_in_dungeon) {
+                if (gs.game_type == GAME_CAPTIVE && captive_dos_memory_active) {
+                    /* The memory image is the complete authority for this
+                     * diagnostic session.  The HUD is decoded original
+                     * media; the viewport is the raw CAPPO draw list.  A
+                     * failed decode remains visibly empty instead of being
+                     * replaced by GameState/map_gen content. */
+                    if (hud_bg)
+                        memcpy(framebuffer, hud_bg,
+                               CAPTIVE_ORIGINAL_WIDTH *
+                               CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                    else
+                        memset(framebuffer, 0, sizeof(framebuffer));
+                    bool rendered = captive_dos_runtime_render(
+                        captive_dos_memory, DOS_VGA_MEMORY_SIZE,
+                        captive_dos_ds_segment,
+                        captive_dos_source_bank_segment, framebuffer,
+                        CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                    if (!rendered && !captive_dos_runtime_reported) {
+                        fprintf(stderr,
+                                "CAPPO DOSBox-X viewport decode failed; no synthetic fallback enabled\n");
+                        captive_dos_runtime_reported = true;
+                    }
+                } else if (gs.game_type == GAME_LIBERATION && !lib_in_dungeon) {
                     memset(framebuffer, 0, sizeof(framebuffer));
                     if (liberation_intro_active) {
                         if (liberation_data.intro_frame.bitplanes) {
@@ -4358,7 +4596,32 @@ int main(int argc, char *argv[]) {
                                       0xFFCCDDEE, 1);
                     }
                 } else {
-                    /* Captive game tick: energy regen every ~5 seconds */
+                    /* Captive has no native OpenCaptive simulation here.
+                     * CAPPO's real tick, combat, energy, messages and
+                     * viewport are owned by the DOS runtime dump.  Running
+                     * the shared compatibility tick would mutate generated
+                     * GameState values and could also trigger synthetic SFX.
+                     * Keep this branch limited to the authenticated landed
+                     * frame until live CAPPO input/state transport exists. */
+                    if (gs.game_type == GAME_CAPTIVE) {
+                        if (captive_landed_reference_active &&
+                            captive_landed_dungeon_reference) {
+                            holamap_render_reference_frame(
+                                captive_landed_dungeon_reference,
+                                captive_landed_dungeon_reference_width,
+                                captive_landed_dungeon_reference_height,
+                                framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                                CAPTIVE_ORIGINAL_HEIGHT);
+                        } else if (hud_bg) {
+                            memcpy(framebuffer, hud_bg,
+                                   CAPTIVE_ORIGINAL_WIDTH *
+                                   CAPTIVE_ORIGINAL_HEIGHT * sizeof(uint32_t));
+                        }
+                        break;
+                    }
+
+                    /* Liberation compatibility tick: energy regen every
+                     * ~5 seconds. */
                     if (custom.replay_playback && gs.game_type == GAME_CAPTIVE &&
                         gs.mode == STATE_GAME) {
                         const ReplayInput *input;
@@ -4563,6 +4826,23 @@ int main(int argc, char *argv[]) {
                     draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                   LIBERATION_SCREEN_HEIGHT, 10, 250,
                                   "1-4:DROID ENTER:GIVE E:EQUIP U:UNEQUIP", 0xFF666688, 1);
+                } else if (gs.game_type == GAME_CAPTIVE) {
+                    /* CAPPO parity boundary: this state may only be backed
+                     * by a real DOS runtime frame.  The native droid UI
+                     * consumes GameState defaults and was part of the retired
+                     * procedural dungeon path; rendering it here would put
+                     * invented names, HP and energy on top of Captive.
+                     *
+                     * ReDMCSB/ CAPPO keeps the live dungeon in its DOS
+                     * viewport records.  Until those records are supplied
+                     * by the runtime bridge, retain the captured landed
+                     * checkpoint and never fabricate a replacement view.
+                     */
+                    holamap_render_reference_frame(
+                        captive_landed_dungeon_reference,
+                        captive_landed_dungeon_reference_width,
+                        captive_landed_dungeon_reference_height, framebuffer,
+                        CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 } else {
                     droid_ui_render(&droid_ui, &gs, &item_db, framebuffer,
                                     CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
@@ -4612,15 +4892,10 @@ int main(int argc, char *argv[]) {
                      * dungeon prototype, not to a verified CAPPO frame.  A
                      * Captive state may only show decoded original media;
                      * never invent a mission result on top of it. */
-                    if (hud_bg) {
-                        memcpy(framebuffer, hud_bg,
-                               CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT *
-                               sizeof(uint32_t));
-                    } else {
-                        memset(framebuffer, 0, sizeof(framebuffer));
-                    }
-                    holamap_render(&captive_holamap, framebuffer,
-                                   CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                    memset(framebuffer, 0, sizeof(framebuffer));
+                    if (captive_holamap_reference)
+                        holamap_render(&captive_holamap, framebuffer,
+                                       CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 } else {
                     memset(framebuffer, 0, sizeof(framebuffer));
                     draw_centered(framebuffer, CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT,
@@ -4633,19 +4908,13 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_HOLAMAP: {
-                /* Holamap uses the same verified GAME SCRN shell as the
-                 * original runtime.  Keep the shell even while the original
-                 * planet surface/base table is still being decoded; a blank
-                 * synthetic canvas would hide the real controls and HUD. */
-                if (hud_bg) {
-                    memcpy(framebuffer, hud_bg,
-                           CAPTIVE_ORIGINAL_WIDTH * CAPTIVE_ORIGINAL_HEIGHT *
-                           sizeof(uint32_t));
-                } else {
-                    memset(framebuffer, 0, sizeof(framebuffer));
-                }
-                holamap_render(&captive_holamap, framebuffer,
-                               CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                /* Holamap is rendered only from the captured CAPPO surface.
+                 * If that original asset is unavailable, fail closed rather
+                 * than hiding the missing data behind a generated canvas. */
+                memset(framebuffer, 0, sizeof(framebuffer));
+                if (captive_holamap_reference)
+                    holamap_render(&captive_holamap, framebuffer,
+                                   CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 /* Do not add launcher text here. The original holomap
                  * controls, planet surface, cursor and mission labels must
                  * all come from verified Captive media; placeholders are

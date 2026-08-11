@@ -2,6 +2,24 @@
 
 ## Captive parity
 
+### Runtime data boundary
+- [x] Provide an isolated DOSBox-X VGA profile for reproducible captures
+- [x] Disable DOSBox-X `memory io optimization 1` and reject direct CAPPO
+      launches so parity runs use the original VGA initialization chain
+- [x] Keep generated droid names/status out of the Captive presentation path
+- [x] Prefer the exact CAPPO VGA surface from a real DOSBox-X memory dump
+- [x] Reload complete DOSBox-X memory dumps after real emulator input
+- [ ] Drive CAPPO's relocated IRQ1 scan-byte queue from an unlocked DOSBox-X session
+- [x] Verify raw scan-byte placement at the relocated queue with the
+      emulator-only `captive_dosbox_queue.expect` probe
+- [ ] Attach OpenCaptive mouse/key events to that live CAPPO IRQ1 queue without
+      mutating the native compatibility GameState
+- [x] Route a new DOS Captive selection from the graphical start menu to the
+      authenticated DOSBox-X runtime when original CAPTIVE.BAT data is present
+- [x] Disable the native compatibility tick and its synthetic Captive state/SFX
+- [x] Disable synthetic Captive music until CAPPO audio is driven by the emulator
+- [ ] Feed the Captive droid roster from a verified CAPPO save or memory dump
+
 ### Viewport
 - [x] Preserve the verified original `GAME SCRN` HUD shell at its native position
 - [x] Recover 19-cell sampling and ordered visibility cleanup for analysis
@@ -13,7 +31,7 @@
 - [x] Align the complete descriptor table to DOSBox-X runtime DS:00c0 (959 original records)
 - [x] Map the original holomap ladder controls to authenticated CAPPO zoom frames
 - [x] Present the authenticated green-target frame during the Captive ORBIT transit
-- [x] Keep Captive dungeon key input in the game state after authenticated landing
+- [ ] Keep Captive dungeon key input in the live CAPPO state after authenticated landing
 - [x] Transition the authenticated landing checkpoint into the real landed frame
 - [ ] Keep Captive playable with a source-backed viewport fallback in both modes
 - [x] Draw Captive creature sprites back-to-front by forward depth

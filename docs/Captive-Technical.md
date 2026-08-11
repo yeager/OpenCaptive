@@ -1,6 +1,6 @@
 # Captive technical notes
 
-> Documentation baseline: v1.1.101. Runtime parity claims remain scoped to the verified boundaries described below.
+> Documentation baseline: v1.1.102. Runtime parity claims remain scoped to the verified boundaries described below.
 
 ## Runtime model
 
@@ -9,6 +9,113 @@ HUD shell, the documented visibility rules, and a source-backed compatibility
 viewport. Legacy `DungeonLevel` and gameplay structures remain in the source
 tree as reverse-engineering notes; they are not decoded original map or save
 state.
+
+### CAPPO keyboard path recovered from disassembly
+
+For an authentic runtime capture, run the real `CAPPO.EXE` in DOSBox-X and
+open its debugger with `Alt+Pause`. At the debugger prompt, use
+`MEMDUMPBIN 0 0 100000` and copy the resulting `MEMDUMP.BIN` without changing
+its contents. This is the emulator-memory capture consumed by the OpenCaptive
+runtime bridge; it must be captured after the desired real keypad action, not
+replaced by a generated map or a hand-written state file.
+
+Use `tools/run_captive_dosbox_x.sh DATA_DIR` for a clean Mission 0001 emulator
+profile. It launches the real `CAPTIVE.BAT 1` chain unless a different command
+is explicitly supplied. It
+forces VGA-only hardware, `surface` output, integer `normal2x` scaling,
+disabled aspect correction, and disables DOSBox-X's `[video]` `memory io
+optimization 1`. The latter is important for CAPPO's planar VGA writes: with
+the optimization enabled DOSBox-X emits the characteristic repeated-glyph and
+arrow corruption instead of the real game pixels. The profile also avoids
+inheriting unrelated global settings such as `svga_s3`, stretched output or
+the debugger terminal as the game surface. On macOS the helper selects
+`/opt/homebrew/bin/dosbox-x` when present, or the path in `DOSBOX_X_BIN`, and
+prints the selected version. This prevents an older PATH installation from
+silently being used. The helper rejects direct `CAPPO.EXE` launches because
+they skip the original video-mode initialization and are not valid parity
+runs.
+
+The built OpenCaptive binary exposes the same source-faithful path directly:
+
+```sh
+./build/opencaptive --data-dir DATA_DIR --captive-authentic
+```
+
+This starts the original `CAPTIVE.BAT 1` in DOSBox-X and leaves the original
+window in control of input, rendering, audio, landing and dungeon state. It
+does not enter the native compatibility state or manufacture a replacement
+map or roster. The isolated profile is copied beside the development binary;
+`DOSBOX_X_BIN` can select another verified DOSBox-X executable.
+
+The same handoff occurs automatically when a new DOS Captive game is selected
+from the graphical start menu and `CAPTIVE.BAT` is present. If the original
+DOS runtime is unavailable, the menu retains the source-authenticated
+reference-frame fallback rather than inventing gameplay state.
+
+The startup harness can reproduce the original INTRO selections without
+inventing input files:
+
+```sh
+tools/captive_dosbox_intro.expect DATA_DIR
+```
+
+For the already verified Mission 0001 segment, the separate queue probe sends
+one raw scan byte through CAPPO's actual IRQ1 queue while DOSBox-X is paused:
+
+```sh
+tools/captive_dosbox_queue.expect DATA_DIR 47
+```
+
+This is an emulator/disassembly probe only. It does not claim that the native
+OpenCaptive event loop is already attached to CAPPO, and it never synthesizes
+a map, save, droid roster or dungeon state.
+
+The unpacked DOS executable installs its keyboard IRQ1 handler at relative
+offset `0x065c`. In the verified Mission 0001 DOSBox-X memory image the
+relocated runtime segment is `0824`, so the handler is observable at
+`0824:065c` and its queue is at `0824:004e..0057`. The handler reads raw XT/AT
+scan bytes using byte `CS:0x004e` as the queued-byte count, byte `CS:0x004f` as
+the ring index, and eight bytes at `CS:0x0050`. The game loop consumes that queue
+through the matrix conversion at `0x0203`; it does not use the ordinary DOS
+keyboard buffer while CAPPO is running. This explains why a generic BIOS-buffer
+injector cannot verify keypad navigation.
+
+The verified keypad mapping is therefore raw scan code `0x47` for keypad 7
+(ORBIT) and `0x49` for keypad 9 (LAND), with the original `0x01` escape code.
+These findings are a disassembly reference for the live emulator bridge; no
+input state is fabricated in the game runtime. A live post-landing dump is
+still required before claiming full viewport parity.
+
+The application bridge has also been exercised end-to-end with:
+
+```sh
+SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy ./build/opencaptive \
+  --data-dir /Users/bosse/.opencaptive/captivedebug/captive \
+  --captive-dos-dump capture/original-captive/captive/MEMDUMP.BIN \
+  --capture-frame /tmp/cappo-live.ppm
+```
+
+The resulting native frame matched the standalone DOS-VGA extraction byte for
+byte. This validates the bridge, but it is still a single captured emulator
+state rather than full mission playthrough evidence.
+
+The same check is reproducible with
+`tools/verify_captive_dos_dump.sh MEMDUMP.BIN DATA_DIR [BUILD_DIR]`. The script
+rejects any dump that is not exactly 1 MiB and only compares decoded frames;
+it never creates or modifies game data.
+
+The Mission 0001 ORBIT gate also derives its target from the verified green
+marker in `holamap-target.png`: frame coordinate `(63,150)` maps to CAPPO cursor
+coordinate `(58,108)` using the original map window. The prior center-coordinate
+assumption was removed because it could accept the wrong planet.
+
+The live DOSBox-X check now reproduces the first navigation action with the
+original numpad path: three keypad-left inputs, three keypad-down inputs, one
+keypad-up input, then keypad 7 with the cursor on the green marker. CAPPO
+responds with its own `FLIGHT PATH SET` message. This proves original target
+selection and ORBIT input delivery; it does not yet claim that the subsequent
+space-flight, keypad-9 landing, and post-landing dungeon viewport have been
+decoded into the native runtime.
 
 ## PL5 graphics
 
@@ -197,6 +304,17 @@ rectangles, destinations, transparency convention and per-cell state table;
 sampling fixed-size tiles cannot reproduce the reference viewport.
 
 ### Live descriptor compositor
+
+#### Fail-closed runtime boundary
+
+The Captive presentation path is source-backed only. If an original ANM,
+holomap, landing, or dungeon frame is missing or invalid, the renderer clears
+the frame or returns to an authenticated frame; it does not paint replacement
+status text, procedural planets, generated rosters, or a compatibility map.
+The landing action holds the verified CAPPO transition briefly and then enters
+the verified landed-dungeon capture. A complete live handoff still requires a
+DOSBox-X dump recorded after the real landing action, with the original CAPPO
+VGA surface populated at `A000:0000`.
 
 The original-mode runtime now executes the recovered descriptor bands through
 the same 160-byte work-row layout used by CAPPO. The compositor is wired after
@@ -455,6 +573,14 @@ helper outcome, not a universal handler gate: `0x1D17` and `0x1E35` continue
 after calling `0x1C90`. This separates its possible special-case descriptor
 from the handler's own descriptor operands and is the next input needed before
 enabling the active compositor.
+
+The native OpenCaptive compatibility tick is disabled for Captive. It must not
+invent droid names, hit points, energy regeneration, combat events, messages or
+sound effects while the original CAPPO runtime is not driving the state. A
+Captive game frame is therefore accepted only from a real DOSBox-X memory dump
+or from a hash-verified original reference frame. Missing runtime bytes leave
+the unsupported portion empty; they are never replaced by a generated map,
+landing point, dungeon, roster or story sequence.
 
 ## SFX system
 
@@ -841,16 +967,16 @@ viewport fills exactly 144×112 pixels.
 
 ## Current runtime boundary
 
-Captive accepts movement, rotation, interaction, inventory, terminal, save and
-F10 runtime controls. These currently operate on OpenCaptive's provisional map
-state and must not be mistaken for an original-state recovery. The runtime
-displays verified intro/HUD data and the source-backed compatibility viewport;
-the earlier approximation based on scaled PL5 fragments remains enabled only
-as a clearly non-parity fallback.
+Captive's source-backed path currently accepts navigation-screen selection and
+renders only authenticated CAPPO media or a caller-supplied DOSBox-X memory
+image. It does not forward dungeon keys into the provisional `GameState`,
+because doing so would change synthetic state behind an unchanged original
+VGA frame. A live CAPPO input transport is therefore still required for
+movement, rotation, interaction, inventory, terminal and save parity.
 
-The F10 menu provides God Mode, Infinite Energy and Complete Objective for the
-active local Captive state. They are runtime conveniences, not original-game
-commands or evidence of gameplay parity.
+The F10 menu is not evidence of original-game parity. Its compatibility cheats
+remain available only to isolated non-Captive/test paths; the source-backed
+Captive path never applies them to generated state.
 
 ## Spawn placement algorithm
 

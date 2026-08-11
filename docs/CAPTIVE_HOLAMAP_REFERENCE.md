@@ -53,7 +53,8 @@ used.
 
 The DOSBox-X verification sequence used for the current reference is:
 
-1. Run `CAPTIVE.BAT` from the directory containing the supplied `CAPPO.EXE`.
+1. Run `CAPTIVE.BAT 1` from the directory containing the supplied `CAPPO.EXE`;
+   the batch file passes the mission argument through to CAPPO.
 2. Select VGA, then the original sound and music devices.
 3. Allow `INTRO.EXE` and `FILEPLAY.EXE` to finish; CAPPO then opens on
    `CAPTIVE MISSION 0001` in the real navigation view.
