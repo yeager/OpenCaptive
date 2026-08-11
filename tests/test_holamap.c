@@ -132,6 +132,24 @@ static void test_zoom_reference_frames_are_selected_without_resampling(void) {
     assert(pixel == 0xFF405060U);
 }
 
+static void test_target_reference_is_selected_at_real_cursor(void) {
+    Holamap hm;
+    uint8_t normal[4] = {0x10, 0x20, 0x30, 0xFF};
+    uint8_t target[4] = {0x40, 0x50, 0x60, 0xFF};
+    uint32_t pixel = 0;
+    holamap_init(&hm, 1);
+    holamap_set_reference_frame(&hm, normal, 1, 1);
+    holamap_set_target_reference(&hm, target, 1, 1, 128, 64);
+    hm.cursor_x = 0;
+    hm.cursor_y = 0;
+    holamap_render(&hm, &pixel, 1, 1);
+    assert(pixel == 0xFF102030U);
+    hm.cursor_x = 128;
+    hm.cursor_y = 64;
+    holamap_render(&hm, &pixel, 1, 1);
+    assert(pixel == 0xFF405060U);
+}
+
 static void test_standalone_reference_frame(void) {
     uint8_t rgba[4] = { 0x12, 0x34, 0x56, 0xFF };
     uint32_t fb = 0;
@@ -169,6 +187,7 @@ int main(void) {
     test_render();
     test_reference_frame();
     test_zoom_reference_frames_are_selected_without_resampling();
+    test_target_reference_is_selected_at_real_cursor();
     test_standalone_reference_frame();
     test_surface_variety();
     test_base_coordinates_seed_sweep();

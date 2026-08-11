@@ -22,6 +22,12 @@ path. OpenCaptive maps `NUMPAD 2/4/6/8` to cursor movement, `NUMPAD 7` to
 authenticated CAPPO frames captured from DOSBox-X; OpenCaptive does not
 enlarge the opening bitmap or synthesize map detail.
 
+When the cursor reaches the recorded Mission 0001 target coordinate, the
+renderer selects the complete authenticated target frame from CAPPO. This is
+an exact source checkpoint, not a generated green marker or a procedural map
+update; arbitrary cursor positions remain gated until the original runtime
+decoder is recovered.
+
 The zoom captures are:
 
 - `assets/captive/holamap-zoom-out.png` — `NUMPAD 1`

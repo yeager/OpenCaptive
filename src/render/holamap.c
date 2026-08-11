@@ -1,6 +1,7 @@
 #include "holamap.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 #define HOLOMAP_MIN_ZOOM 0
 #define HOLOMAP_MAX_ZOOM 2
@@ -44,6 +45,18 @@ void holamap_set_zoom_reference_frames(Holamap *hm,
     hm->zoom_in_reference = zoom_in_rgba;
     hm->zoom_in_reference_width = zoom_in_width;
     hm->zoom_in_reference_height = zoom_in_height;
+}
+
+void holamap_set_target_reference(Holamap *hm, const uint8_t *rgba,
+                                  int width, int height,
+                                  int cursor_x, int cursor_y) {
+    if (!hm) return;
+    hm->target_reference = rgba;
+    hm->target_reference_width = width;
+    hm->target_reference_height = height;
+    hm->target_cursor_x = cursor_x;
+    hm->target_cursor_y = cursor_y;
+    hm->target_cursor_valid = rgba && width > 0 && height > 0;
 }
 
 void holamap_render_reference_frame(const uint8_t *rgba, int reference_width,
@@ -129,7 +142,16 @@ void holamap_render(const Holamap *hm, uint32_t *framebuffer,
     const uint8_t *rgba = hm->reference_rgba;
     int width = hm->reference_width;
     int height = hm->reference_height;
-    if (hm->zoom_level == 0 && hm->zoom_out_reference) {
+    if (hm->zoom_level == 1 && hm->target_cursor_valid &&
+        hm->target_reference &&
+        abs(hm->cursor_x - hm->target_cursor_x) <= 8 &&
+        abs(hm->cursor_y - hm->target_cursor_y) <= 8) {
+        /* This is the only visible cursor transition available from the
+         * captured source set. Keep it as a whole authentic CAPPO frame. */
+        rgba = hm->target_reference;
+        width = hm->target_reference_width;
+        height = hm->target_reference_height;
+    } else if (hm->zoom_level == 0 && hm->zoom_out_reference) {
         rgba = hm->zoom_out_reference;
         width = hm->zoom_out_reference_width;
         height = hm->zoom_out_reference_height;

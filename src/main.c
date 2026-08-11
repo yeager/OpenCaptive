@@ -254,6 +254,12 @@ static void captive_holamap_reset(uint32_t mission_seed) {
         captive_zoom_out_reference_width, captive_zoom_out_reference_height,
         captive_zoom_in_reference, captive_zoom_in_reference_width,
         captive_zoom_in_reference_height);
+    if (captive_holamap_target_reference && captive_target_cursor_valid) {
+        holamap_set_target_reference(
+            &captive_holamap, captive_holamap_target_reference,
+            captive_holamap_target_width, captive_holamap_target_height,
+            captive_target_cursor_x, captive_target_cursor_y);
+    }
 }
 #include <errno.h>
 #include <math.h>
@@ -3068,6 +3074,12 @@ int main(int argc, char *argv[]) {
     captive_locate_target_cursor(captive_holamap_target_reference,
                                  captive_holamap_target_width,
                                  captive_holamap_target_height);
+    if (captive_holamap_target_reference && captive_target_cursor_valid) {
+        holamap_set_target_reference(
+            &captive_holamap, captive_holamap_target_reference,
+            captive_holamap_target_width, captive_holamap_target_height,
+            captive_target_cursor_x, captive_target_cursor_y);
+    }
     /* Keep the verified target checkpoint available for the decoded mission
      * flow, but do not replace Mission 0001's opening frame with it.  The
      * original CAPPO opens on holamap-initial.png; replacing it here made the
