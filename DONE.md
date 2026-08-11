@@ -17,6 +17,14 @@
 - The path remains reference-backed and input-driven; no procedural space or
   dungeon scene was added.
 
+## 2026-08-11 (Strict CAPPO orbit gate)
+
+- Kept the native fallback in the authentic `FLIGHT PATH SET` phase after
+  keypad 7. Keypad 9 no longer starts a false landing before CAPPO reports
+  orbit, matching the original `SWAN NOT YET IN ORBIT` response.
+- Orbit now requires a complete DOSBox-X VGA dump that exactly matches the
+  authenticated orbit checkpoint, just like the landed-state handoff.
+
 ## 2026-08-11 (No timer-driven Captive landing)
 
 - Removed the native 900 ms landing shortcut. OpenCaptive now holds the

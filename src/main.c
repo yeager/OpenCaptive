@@ -123,14 +123,15 @@ static uint64_t captive_dos_dump_stamp(const struct stat *st) {
 }
 
 /* A live CAPPO handoff is accepted only when the reloaded DOS VGA surface is
- * the authenticated landed checkpoint captured from the original runtime.
- * This is deliberately a complete 320x200 pixel comparison: a timer, a
- * guessed memory offset, or a compatibility map must never claim that the
- * ship has landed. */
-static bool captive_dos_memory_matches_landed_frame(const uint8_t *memory) {
-    if (!memory || !captive_landed_dungeon_reference ||
-        captive_landed_dungeon_reference_width != DOS_VGA_FRAME_WIDTH ||
-        captive_landed_dungeon_reference_height != DOS_VGA_FRAME_HEIGHT) {
+ * an authenticated checkpoint captured from the original runtime. This is
+ * deliberately a complete 320x200 pixel comparison: a timer, a guessed
+ * memory offset, or a compatibility state must never advance navigation. */
+static bool captive_dos_memory_matches_frame(const uint8_t *memory,
+                                             const uint8_t *reference,
+                                             int reference_width,
+                                             int reference_height) {
+    if (!memory || !reference || reference_width != DOS_VGA_FRAME_WIDTH ||
+        reference_height != DOS_VGA_FRAME_HEIGHT) {
         return false;
     }
 
@@ -140,14 +141,27 @@ static bool captive_dos_memory_matches_landed_frame(const uint8_t *memory) {
         return false;
     }
     for (size_t i = 0; i < DOS_VGA_FRAME_SIZE; ++i) {
-        const uint8_t *reference = captive_landed_dungeon_reference + i * 4U;
-        uint32_t expected = ((uint32_t)reference[3] << 24) |
-                            ((uint32_t)reference[0] << 16) |
-                            ((uint32_t)reference[1] << 8) |
-                            (uint32_t)reference[2];
+        const uint8_t *pixel = reference + i * 4U;
+        uint32_t expected = ((uint32_t)pixel[3] << 24) |
+                            ((uint32_t)pixel[0] << 16) |
+                            ((uint32_t)pixel[1] << 8) |
+                            (uint32_t)pixel[2];
         if (pixels[i] != expected) return false;
     }
     return true;
+}
+
+static bool captive_dos_memory_matches_orbit_frame(const uint8_t *memory) {
+    return captive_dos_memory_matches_frame(
+        memory, captive_orbit_reference, captive_orbit_reference_width,
+        captive_orbit_reference_height);
+}
+
+static bool captive_dos_memory_matches_landed_frame(const uint8_t *memory) {
+    return captive_dos_memory_matches_frame(
+        memory, captive_landed_dungeon_reference,
+        captive_landed_dungeon_reference_width,
+        captive_landed_dungeon_reference_height);
 }
 
 /* CAPPO's ORBIT command is a real transit phase: the green planet marker
@@ -3222,6 +3236,14 @@ int main(int argc, char *argv[]) {
                     captive_dos_runtime_reported = false;
                     printf("Reloaded CAPPO DOSBox-X memory image\n");
                     if (gs.game_type == GAME_CAPTIVE &&
+                        gs.mode == STATE_SPACE_FLIGHT &&
+                        captive_dos_memory_matches_orbit_frame(fresh_memory)) {
+                        /* CAPPO must really have arrived at the planet. The
+                         * native path never treats NUMPAD 7 as arrival. */
+                        gs.mode = STATE_ORBIT;
+                        gs.orbit_angle = 0.0f;
+                        printf("CAPPO orbit state authenticated from DOSBox-X VGA\n");
+                    } else if (gs.game_type == GAME_CAPTIVE &&
                         gs.mode == STATE_LANDING &&
                         captive_dos_memory_matches_landed_frame(fresh_memory)) {
                         /* This is the only native transition into the landed
@@ -4057,16 +4079,10 @@ int main(int argc, char *argv[]) {
                                     holamap_move_cursor(&captive_holamap, 1, 0);
                                     break;
                                 case CAPTIVE_NAV_ACTION_ORBIT:
-                                    /* Turn Left is the explicit CAPPO
-                                     * arrival command in space.  The native
-                                     * fallback may enter the authenticated
-                                     * orbit checkpoint only after the real
-                                     * green target has been selected. */
-                                    if (captive_holamap_target_selected() &&
-                                        captive_orbit_reference) {
-                                        gs.mode = STATE_ORBIT;
-                                        gs.orbit_angle = 0.0f;
-                                    }
+                                    /* CAPPO first reports FLIGHT PATH SET.
+                                     * Arrival is accepted only from a live
+                                     * DOSBox-X VGA handoff, never from a
+                                     * second synthetic button transition. */
                                     break;
                                 default:
                                     break;
@@ -4093,20 +4109,11 @@ int main(int argc, char *argv[]) {
                             } else if (event.key.key == SDLK_KP_6) {
                                 holamap_move_cursor(&captive_holamap, 1, 0);
                             } else if (event.key.key == SDLK_KP_7) {
-                                /* CAPPO's Turn Left is the action that flies
-                                 * to the already logged cursor position. In
-                                 * the source-backed native fallback, the
-                                 * authenticated orbit frame is the only
-                                 * allowed arrival result; no timer or
-                                 * procedural flight path is introduced. */
-                                if (captive_holamap_target_selected() &&
-                                    captive_orbit_reference) {
-                                    gs.mode = STATE_ORBIT;
-                                    gs.orbit_angle = 0.0f;
-                                }
-                            } else if (event.key.key == SDLK_KP_9 &&
-                                captive_landing_reference) {
-                                captive_begin_landing(&gs);
+                                /* The original CAPPO response is FLIGHT PATH
+                                 * SET; it does not mean SWAN is in orbit. */
+                            } else if (event.key.key == SDLK_KP_9) {
+                                /* CAPPO reports SWAN NOT YET IN ORBIT here.
+                                 * Do not start a false landing transition. */
                             } else if (event.key.key == SDLK_ESCAPE) {
                                 gs.mode = STATE_HOLAMAP;
                             }

@@ -30,7 +30,8 @@
 - [x] Connect the recovered descriptor compositor to the original-mode Captive runtime
 - [x] Align the complete descriptor table to DOSBox-X runtime DS:00c0 (959 original records)
 - [x] Map the original holomap ladder controls to authenticated CAPPO zoom frames
-- [x] Present the authenticated green-target frame during the Captive ORBIT transit
+- [x] Present the authenticated green-target frame during the Captive flight-path transit
+- [ ] Authenticate the live CAPPO orbit frame after `FLIGHT PATH SET`
 - [ ] Keep Captive dungeon key input in the live CAPPO state after authenticated landing
 - [ ] Transition the authenticated landing checkpoint into the real landed frame
       only after a live CAPPO/DOSBox-X state handoff; the strict full-VGA

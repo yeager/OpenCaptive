@@ -124,10 +124,12 @@ frame therefore remains gated on a real DOSBox-X/CAPPO state handoff.
 
 In native reference mode, the space-navigation cluster is no longer a dead
 end: keypad 8/2/4/6 and the corresponding on-screen arrows move the logged
-cursor, keypad 7 enters the authenticated orbit checkpoint when that cursor is
-on the real green target, and keypad 9 starts the authenticated landing
-transition. This is an explicit input-driven reference transition; it does
-not advance on elapsed time or create a substitute planet or dungeon.
+cursor, and keypad 7 records the original `FLIGHT PATH SET` action when that
+cursor is on the real green target. Orbit arrival is accepted only after a
+live DOSBox-X VGA handoff matches the authenticated orbit frame; keypad 9
+before that point remains the original `SWAN NOT YET IN ORBIT` condition. This
+is an explicit input-driven reference transition; it does not advance on
+elapsed time or create a substitute planet or dungeon.
 
 ## PL5 graphics
 
@@ -323,13 +325,14 @@ The Captive presentation path is source-backed only. If an original ANM,
 holomap, landing, or dungeon frame is missing or invalid, the renderer clears
 the frame or returns to an authenticated frame; it does not paint replacement
 status text, procedural planets, generated rosters, or a compatibility map.
-The native fallback holds the verified CAPPO landing transition and never
-advances it on a timer. A complete live handoff still requires a DOSBox-X dump
-recorded after the real landing action, with the original CAPPO VGA surface
-populated at `A000:0000`. When that dump is reloaded while the native view is
-in `STATE_LANDING`, OpenCaptive compares the complete 320×200 VGA surface
-against the real landed checkpoint. Only an exact match enters the landed
-view; any other dump remains in the landing transition.
+The native fallback holds the verified CAPPO flight and landing transitions
+and never advances them on a timer. A complete live handoff still requires a
+DOSBox-X dump recorded after the real orbit or landing action, with the
+original CAPPO VGA surface populated at `A000:0000`. When that dump is
+reloaded, OpenCaptive compares the complete 320×200 VGA surface against the
+corresponding real checkpoint. Only an exact orbit match enters orbit, and
+only an exact landed match enters the landed view; any other dump remains in
+the current transition.
 
 The original-mode runtime now executes the recovered descriptor bands through
 the same 160-byte work-row layout used by CAPPO. The compositor is wired after
