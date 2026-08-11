@@ -44,8 +44,9 @@ The built OpenCaptive binary exposes the same source-faithful path directly:
 This starts the original `CAPTIVE.BAT 1` in DOSBox-X and leaves the original
 window in control of input, rendering, audio, landing and dungeon state. It
 does not enter the native compatibility state or manufacture a replacement
-map or roster. The isolated profile is copied beside the development binary;
-`DOSBOX_X_BIN` can select another verified DOSBox-X executable.
+map or roster. The isolated profile is copied beside development binaries and
+inside the macOS app bundle's Resources; `DOSBOX_X_BIN` can select another
+verified DOSBox-X executable.
 
 The same handoff occurs automatically when a new DOS Captive game is selected
 from the graphical start menu and `CAPTIVE.BAT` is present. If the original

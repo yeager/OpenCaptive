@@ -47,6 +47,20 @@ static bool build_profile_path(char *out, size_t out_size) {
             SDL_free((void *)base);
             if (written > 0 && (size_t)written < out_size && file_exists(out)) return true;
         }
+        base = SDL_GetBasePath();
+        if (base) {
+            written = snprintf(out, out_size,
+                               "%s../Resources/tools/dosbox-x-captive.conf", base);
+            SDL_free((void *)base);
+            if (written > 0 && (size_t)written < out_size && file_exists(out)) return true;
+        }
+        base = SDL_GetBasePath();
+        if (base) {
+            written = snprintf(out, out_size,
+                               "%s../Resources/assets/captive/dosbox-x-captive.conf", base);
+            SDL_free((void *)base);
+            if (written > 0 && (size_t)written < out_size && file_exists(out)) return true;
+        }
     }
     int written = snprintf(out, out_size, "tools/dosbox-x-captive.conf");
     return written > 0 && (size_t)written < out_size && file_exists(out);
