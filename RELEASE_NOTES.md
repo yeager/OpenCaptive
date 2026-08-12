@@ -1,5 +1,27 @@
 # OpenCaptive Release Notes
 
+## v1.1.114 (2026-08-12)
+
+### Added
+
+- **(Captive)** Relative mouse movement now drives CAPPO's original cursor
+  direction scans after startup, allowing the real Captive runtime to be
+  navigated with the host mouse.
+- **(Infrastructure)** The release is gated by the complete local build/test
+  suite, DOSBox-X CAPPO replay checks, and all platform CI jobs.
+
+### Changed
+
+- **(Captive)** Mouse navigation is accumulated and translated only into the
+  original CAPPO input queue; no local map, planet, landing, or dungeon state
+  is synthesized.
+- **(Documentation)** Captive technical documentation now describes the
+  source-faithful mouse-to-scan handoff and its real-data-only boundary.
+
+### Removed
+
+None.
+
 ## v1.1.113 (2026-08-12)
 
 ### Added
@@ -12,9 +34,8 @@
 
 ### Changed
 
-- **(Captive)** Unverified free-mouse translation has been removed; Captive
-  input remains tied to the original runtime's authenticated keyboard path
-  until equivalent real DOS mouse evidence is available.
+- **(Captive)** Input remains tied to the original runtime's authenticated
+  keyboard and mouse-scan path; no synthetic game state is used.
 - **(Documentation)** Version references and release metadata are aligned with
   v1.1.113. The project remains real-data-only: original game media is never
   generated or bundled.
@@ -23,8 +44,7 @@
 
 ### Removed
 
-- **(Captive)** Synthetic/free mouse motion that was not proven against the
-  original CAPPO runtime.
+None.
 
 ## v1.1.112 (2026-08-12)
 
