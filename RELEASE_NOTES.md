@@ -1,5 +1,31 @@
 # OpenCaptive Release Notes
 
+## v1.1.113 (2026-08-12)
+
+### Added
+
+- **(Captive)** The release contains the verified `main` runtime boundary for
+  authentic CAPPO startup and DOSBox-X input handoff.
+- **(Infrastructure)** The complete release workflow continues to build Linux
+  tarball/deb/rpm/AppImage, macOS DMG, Windows installer, iOS IPA, and Android
+  APK artifacts.
+
+### Changed
+
+- **(Captive)** Unverified free-mouse translation has been removed; Captive
+  input remains tied to the original runtime's authenticated keyboard path
+  until equivalent real DOS mouse evidence is available.
+- **(Documentation)** Version references and release metadata are aligned with
+  v1.1.113. The project remains real-data-only: original game media is never
+  generated or bundled.
+- **(Infrastructure)** Publishing is gated by the full local test suite, the
+  DOSBox-X CAPPO verification gates, artifact checks, and green GitHub Actions.
+
+### Removed
+
+- **(Captive)** Synthetic/free mouse motion that was not proven against the
+  original CAPPO runtime.
+
 ## v1.1.112 (2026-08-12)
 
 ### Added
