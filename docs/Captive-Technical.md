@@ -139,6 +139,18 @@ The resulting native frame matched the standalone DOS-VGA extraction byte for
 byte. This validates the bridge, but it is still a single captured emulator
 state rather than full mission playthrough evidence.
 
+For a complete local input/viewport gate, use:
+
+```sh
+tools/verify_captive_navigation.sh /path/to/original/captive [BUILD_DIR]
+```
+
+This runs the original `47,49` Orbit-to-Land sequence, then repeats it with
+CAPPO's real keypad-4 move-left scan. Both memory images must pass the byte-exact
+VGA bridge, and the second image must change both the authentic VGA surface and
+the decoded CAPPO map window. The gate is intentionally local-only because
+original game media is player-supplied and is never committed or synthesized.
+
 The same check is reproducible with
 `tools/verify_captive_dos_dump.sh MEMDUMP.BIN DATA_DIR [BUILD_DIR]`. The script
 rejects any dump that is not exactly 1 MiB or lacks CAPPO's own runtime-state
