@@ -73,8 +73,12 @@ a map, save, droid roster or dungeon state.
 
 The unpacked DOS executable installs its keyboard IRQ1 handler at relative
 offset `0x065c`. In the verified Mission 0001 DOSBox-X memory image the
-relocated runtime segment is `0824`, so the handler is observable at
-`0824:065c` and its queue is at `0824:004e..0057`. The handler reads raw XT/AT
+relocated IRQ/source-bank segment is `0824`, so the handler queue is observable
+at `0824:004e..0057`; this is not CAPPO's active code/text segment. CAPPO's
+active relocated code/text image is identified independently by its known
+strings: `FLIGHT PATH SET`, `ARRIVED AT DESTINATION`, and `LANDING SUCCESSFUL`
+all resolve with relocation base `0x7E30`, while the verified data segment is
+`DS=0x2942`. The handler reads raw XT/AT
 scan bytes using byte `CS:0x004e` as the queued-byte count, byte `CS:0x004f` as
 the ring index, and eight bytes at `CS:0x0050`. The game loop consumes that queue
 through the matrix conversion at `0x0203`; it does not use the ordinary DOS
@@ -105,10 +109,12 @@ The same check is reproducible with
 rejects any dump that is not exactly 1 MiB and only compares decoded frames;
 it never creates or modifies game data.
 
-The Mission 0001 ORBIT gate also derives its target from the verified green
-marker in `holamap-target.png`: frame coordinate `(63,150)` maps to CAPPO cursor
-coordinate `(58,108)` using the original map window. The prior center-coordinate
-assumption was removed because it could accept the wrong planet.
+The Mission 0001 reference target is measured from the verified marker in
+`holamap-target.png`: frame coordinate `(63,150)` maps to CAPPO cursor
+coordinate `(58,108)` using the original map window. This is a selection
+reference only. Live CAPPO testing shows that its displayed flight coordinate
+can reach `150E-150N` while the status remains `FLIGHT PATH SET`; coordinate
+equality is therefore not an Orbit/arrival proof.
 
 The live DOSBox-X check now reproduces the first navigation action with the
 original numpad path: three keypad-left inputs, three keypad-down inputs, one

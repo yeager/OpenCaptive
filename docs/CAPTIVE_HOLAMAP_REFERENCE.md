@@ -22,11 +22,13 @@ path. OpenCaptive maps `NUMPAD 2/4/6/8` to cursor movement, `NUMPAD 7` to
 authenticated CAPPO frames captured from DOSBox-X; OpenCaptive does not
 enlarge the opening bitmap or synthesize map detail.
 
-When the cursor reaches the recorded Mission 0001 target coordinate, the
-renderer selects the complete authenticated target frame from CAPPO. This is
-an exact source checkpoint, not a generated green marker or a procedural map
-update; arbitrary cursor positions remain gated until the original runtime
-decoder is recovered.
+The recorded Mission 0001 coordinate is only one part of CAPPO's navigation
+state. A live DOSBox-X run can display the target coordinate while CAPPO is
+still in its `FLIGHT PATH SET` phase; that is not evidence of arrival and must
+not be used to enter Orbit. The native bridge therefore requires the complete
+authenticated CAPPO Orbit VGA handoff, not merely a coordinate or marker
+match. This is an exact source checkpoint, not a generated green marker or a
+procedural map update.
 
 The zoom captures are:
 
@@ -54,8 +56,9 @@ listed below:
 procedural space, planet, or landing art. The native fallback presents the
 authenticated Butre-route frame while CAPPO records the route. A second Orbit
 button press or keypad-7 command is not treated as arrival: the DOSBox-X
-session remains on the holomap with CAPPO's `FLIGHT PATH SET` status. The
-authenticated orbit frame is accepted only after a live CAPPO/DOSBox-X handoff
+session remains on the holomap with CAPPO's `FLIGHT PATH SET` status, even
+after the displayed coordinate reaches the recorded target. The authenticated
+orbit frame is accepted only after a live CAPPO/DOSBox-X handoff
 proves that CAPPO has reached orbit. The landed surface remains a real
 checkpoint until the CAPPO mission/runtime decoder can supply live dungeon
 state; no generated dungeon is used.
@@ -73,12 +76,13 @@ The DOSBox-X verification sequence used for the current reference is:
 2. Select VGA, then the original sound and music devices.
 3. Allow `INTRO.EXE` and `FILEPLAY.EXE` to finish; CAPPO then opens on
    `CAPTIVE MISSION 0001` in the real navigation view.
-4. Fly to the real Butre destination recorded by the original mission state,
-   identified by the green planet point, and press `ORBIT`. In the orbit view
-   the white circle is the valid landing point. Press `LAND` and wait for the
-   land-level frame. If a landing shows only water, it is the wrong point and
-   must not be accepted as Captive mission data. OpenCaptive must not invent
-   either marker; both must come from original media/data.
+4. Fly using CAPPO's real flight controls until CAPPO itself reports arrival;
+   the displayed coordinate and the green/red map markers are useful evidence
+   but are not sufficient on their own. Only then press `ORBIT`. In the Orbit
+   view the white circle is the valid landing point. Press `LAND` and wait for
+   the land-level frame. If a landing shows only water, it is the wrong point
+   and must not be accepted as Captive mission data. OpenCaptive must not
+   invent either marker; both must come from original media/data.
 
 All four checked-in frames were captured from the supplied CAPPO runtime in
 DOSBox-X and reduced with nearest-neighbour sampling. Do not replace them

@@ -1,6 +1,6 @@
 # OpenCaptive
 
-**Current release: v1.1.107**
+**Current release: v1.1.108**
 
 A modern C/SDL3 reimplementation of **Captive** (1990) and **Liberation: Captive 2** (1993) by Antony Crowther, published by Mindscape.
 
