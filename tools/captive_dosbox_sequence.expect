@@ -6,7 +6,7 @@
 
 set timeout 30
 if {$argc < 2} {
-    puts stderr "usage: $argv0 DATA_DIR SCAN_HEX[,SCAN_HEX...] [POST_INTRO_TICKS] [OUTPUT_DIR]"
+    puts stderr [format "usage: %s DATA_DIR SCAN_HEX-list POST_INTRO_TICKS OUTPUT_DIR" $argv0]
     exit 2
 }
 set data_dir [lindex $argv 0]
@@ -79,6 +79,17 @@ foreach key {1 enter 4 enter 3 enter 3 enter} {
     send [format "SM 0040 001C %02X 00\r" $tail]
     advance_timer_ticks 24
 }
+
+# Diagnostic only: record FILEPLAY's active code segment before attempting the
+# handoff.  The value is read from DOSBox-X registers; no memory is modified.
+send "EV CS\r"
+
+# FILEPLAY's IRQ1 handler stores the most recent make scan at CS:0027.  The
+# preceding EV CS read is a runtime receipt: the original DOSBox-X session
+# reports CS=0824 here.  Queue the real spacebar make code in that private
+# field and let FILEPLAY consume it.
+send "SM 0824 0027 39\r"
+advance_timer_ticks 120
 
 # INTRO/FILEPLAY hands control to CAPPO on the original space-bar action.
 # After the intro choices CAPPO owns the relocated IRQ1 queue, so these real

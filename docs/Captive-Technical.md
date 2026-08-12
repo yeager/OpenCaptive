@@ -111,6 +111,16 @@ These findings are a disassembly reference for the live emulator bridge; no
 input state is fabricated in the game runtime. A live post-landing dump is
 still required before claiming full viewport parity.
 
+The authentic startup handoff has also been verified in DOSBox-X. `INTRO.EXE`
+asks the four original choices (`1`, `4`, `3`, `3`) and transfers to
+`FILEPLAY.EXE`. FILEPLAY installs its own IRQ1 handler and stores the latest
+make scan at `CS:0027`; it does not consume the BIOS keyboard ring. The
+space-bar make scan is `0x39`. Supplying that byte at the verified runtime
+segment (`CS=0824`) lets FILEPLAY complete its original animation sequence and
+load `CAPPO.EXE`. The proof is a caller-supplied 1 MiB DOSBox-X dump containing
+CAPPO's own runtime strings; a dump that still contains only FILEPLAY is
+rejected by the authenticity gate.
+
 The application bridge has also been exercised end-to-end with:
 
 ```sh

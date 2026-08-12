@@ -7,7 +7,7 @@
 
 set timeout 30
 if {$argc < 1} {
-    puts stderr "usage: $argv0 DATA_DIR [SCAN_HEX]"
+    puts stderr [format "usage: %s DATA_DIR SCAN_HEX" $argv0]
     exit 2
 }
 
