@@ -393,6 +393,29 @@ static bool captive_live_send_key(SDL_Keycode key) {
     }
 }
 
+/* CAPPO owns the navigation state.  The first ORBIT command records the
+ * route ("FLIGHT PATH SET"); the second starts the transit.  Do not advance
+ * a local state machine here: only the original runtime may produce orbit,
+ * landing, or dungeon frames. */
+static bool captive_holamap_orbit(GameState *gs) {
+    if (!gs || !captive_holamap_target_selected()) return false;
+    if (captive_live_session_active) {
+        if (!captive_live_send_action(CAPTIVE_NAV_ACTION_ORBIT)) return false;
+        if (!captive_flight_path_set) {
+            captive_flight_path_set = true;
+            msg_push(captive_messages[20], 0xFF44FF44);
+        } else {
+            captive_begin_flight(gs);
+        }
+        return true;
+    }
+    if (!captive_flight_path_set) {
+        captive_flight_path_set = true;
+        msg_push(captive_messages[20], 0xFF44FF44);
+    }
+    return true;
+}
+
 static bool captive_holamap_mouse_move(const OpenCaptiveRenderer *r,
                                        const SDL_MouseButtonEvent *button,
                                        Holamap *holamap, GameState *gs) {
@@ -414,13 +437,7 @@ static bool captive_holamap_mouse_move(const OpenCaptiveRenderer *r,
              * and the later white landing circle remain original media. */
             if (!captive_orbit_reference ||
                 !captive_holamap_target_selected()) return false;
-            if (!captive_flight_path_set) {
-                /* The authentic first click is CAPPO's FLIGHT PATH SET
-                 * action; it does not leave the holomap yet. */
-                captive_flight_path_set = true;
-                msg_push(captive_messages[20], 0xFF44FF44);
-            }
-            return true;
+            return captive_holamap_orbit(gs);
         case CAPTIVE_NAV_ACTION_LAND:
         case CAPTIVE_NAV_ACTION_NONE:
         default: return false;
@@ -437,6 +454,8 @@ static bool captive_orbit_mouse_move(const OpenCaptiveRenderer *r,
     if (action == CAPTIVE_NAV_ACTION_LAND && captive_landing_reference) {
         /* The white point is the original landing target.  CAPPO changes
          * phase only after LAND is pressed in this view. */
+        if (captive_live_session_active &&
+            !captive_live_send_action(CAPTIVE_NAV_ACTION_LAND)) return false;
         captive_begin_landing(gs);
         return true;
     }
@@ -4103,14 +4122,9 @@ int main(int argc, char *argv[]) {
                             case SDLK_KP_6:
                                 holamap_move_cursor(&captive_holamap, 1, 0);
                                 break;
-    case SDLK_KP_7:
-        if (captive_holamap_target_selected()) {
-            if (!captive_flight_path_set) {
-                captive_flight_path_set = true;
-                msg_push(captive_messages[20], 0xFF44FF44);
-            }
-        }
-        break;
+                            case SDLK_KP_7:
+                                (void)captive_holamap_orbit(&gs);
+                                break;
                             case SDLK_KP_1:
                                 holamap_zoom_out(&captive_holamap);
                                 break;
@@ -4160,6 +4174,9 @@ int main(int argc, char *argv[]) {
                              * command, so it must not bypass the white
                              * landing-point control. */
                             case SDLK_KP_9:
+                                if (captive_live_session_active &&
+                                    !captive_live_send_action(CAPTIVE_NAV_ACTION_LAND))
+                                    break;
                                 captive_begin_landing(&gs);
                                 break;
                             case SDLK_ESCAPE:
@@ -4188,26 +4205,8 @@ int main(int argc, char *argv[]) {
                                                              &event.button,
                                                              &action)) {
                             switch (action) {
-                                case CAPTIVE_NAV_ACTION_UP:
-                                    holamap_move_cursor(&captive_holamap, 0, -1);
-                                    break;
-                                case CAPTIVE_NAV_ACTION_DOWN:
-                                    holamap_move_cursor(&captive_holamap, 0, 1);
-                                    break;
-                                case CAPTIVE_NAV_ACTION_LEFT:
-                                    holamap_move_cursor(&captive_holamap, -1, 0);
-                                    break;
-                                case CAPTIVE_NAV_ACTION_RIGHT:
-                                    holamap_move_cursor(&captive_holamap, 1, 0);
-                                    break;
-                                case CAPTIVE_NAV_ACTION_ORBIT:
-                                    /* CAPPO keeps the holomap visible while
-                                     * the flight path is being recorded. Do
-                                     * not synthesize arrival from a button;
-                                     * orbit requires a live DOSBox-X/CAPPO
-                                     * handoff. */
-                                    break;
                                 default:
+                                    (void)captive_live_send_action(action);
                                     break;
                             }
                         }
@@ -4223,22 +4222,15 @@ int main(int argc, char *argv[]) {
                             /* CAPPO help: Turn Right (keypad 9) commences
                              * landing at the logged position. Arrival itself
                              * is a DOS runtime state, not a wall-clock timer. */
-                            if (event.key.key == SDLK_KP_8) {
-                                holamap_move_cursor(&captive_holamap, 0, -1);
-                            } else if (event.key.key == SDLK_KP_2) {
-                                holamap_move_cursor(&captive_holamap, 0, 1);
-                            } else if (event.key.key == SDLK_KP_4) {
-                                holamap_move_cursor(&captive_holamap, -1, 0);
-                            } else if (event.key.key == SDLK_KP_6) {
-                                holamap_move_cursor(&captive_holamap, 1, 0);
-                            } else if (event.key.key == SDLK_KP_7) {
-                                /* Do not synthesize arrival from a second
-                                 * keypad-7 command. */
-                            } else if (event.key.key == SDLK_KP_9) {
-                                /* CAPPO reports SWAN NOT YET IN ORBIT here.
-                                 * Do not start a false landing transition. */
+                            if (captive_live_send_key(event.key.key)) {
+                                /* The raw scan is now owned by CAPPO.  The
+                                 * state changes only when its authentic VGA
+                                 * frame is observed by the handoff below. */
                             } else if (event.key.key == SDLK_ESCAPE) {
                                 gs.mode = STATE_HOLAMAP;
+                            } else if (event.key.key == SDLK_KP_7) {
+                                /* No emulator session: fail closed rather
+                                 * than inventing a transit state. */
                             }
                             break;
                         }
