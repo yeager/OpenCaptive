@@ -3161,15 +3161,19 @@ int main(int argc, char *argv[]) {
         if (!validate_data_path(&vfs)) {
             show_missing_data_dialog(config.data_path);
             capture_failed = capture_frame_path != NULL;
-        } else if (!captive_dos_memory_active && !capture_frame_path &&
-                   captive_emulator_launch(config.data_path)) {
+        } else if (!captive_dos_memory_active && !capture_frame_path) {
             /* A normal direct Captive launch must follow the same authentic
              * CAPTIVE.BAT path as the start-menu action.  The native path is
              * reserved for explicit frame/dump analysis, so a desktop
              * shortcut can never silently open the incomplete compatibility
              * shell or a synthetic dungeon. */
-            printf("Handed direct Captive launch to authentic DOSBox-X runtime\n");
-            return 0;
+            if (!captive_emulator_launch(config.data_path)) {
+                show_missing_data_dialog(config.data_path);
+                return 1;
+            } else {
+                printf("Handed direct Captive launch to authentic DOSBox-X runtime\n");
+                return 0;
+            }
         } else if (!textures_loaded) {
             /* The startup hash set is a fast identity gate.  The renderer
              * still needs every decoded PL5 surface; do not enter the game
@@ -3392,43 +3396,16 @@ int main(int argc, char *argv[]) {
                                 break;
                             }
                             /* The original DOS data has a complete CAPPO
-                             * runtime. Hand the new-game action to DOSBox-X
-                             * instead of entering the input-less native
-                             * compatibility shell. If DOSBox-X or CAPTIVE.BAT
-                             * is unavailable, retain the authenticated
-                             * reference-frame fallback below. */
-                            if (captive_emulator_launch(config.data_path)) {
-                                running = false;
-                                break;
-                            }
-                            textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg, &shop_bg);
-                            if (!textures_loaded) {
+                             * runtime. Hand the new-game action to DOSBox-X.
+                             * There is deliberately no native fallback here:
+                             * a failed emulator launch must not expose the old
+                             * compatibility shell or any generated Captive
+                             * space/dungeon state. */
+                            if (!captive_emulator_launch(config.data_path)) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
-                            if (intro_loaded) {
-                                anm_free(&intro_anim);
-                                intro_loaded = false;
-                            }
-                            gs.mode = STATE_INTRO;
-                            if (!intro_loaded) {
-                                intro_loaded = load_intro_anm(&vfs, &intro_anim);
-                                intro_frame = 0;
-                                intro_last_tick = SDL_GetTicks();
-                            }
-                            if (!intro_loaded) {
-                                music_play_for_game(&gs, MUSIC_BASE);
-                                /* Without decoded intro media, continue to
-                                 * the verified navigation surface.  Never
-                                 * expose the generated droid-config shell. */
-                                captive_holamap_reset(gs.mission);
-                                gs.mode = STATE_HOLAMAP;
-                            }
-                            /* Captive startup must use the verified original
-                             * ANM when available, then continue to the real
-                             * holomap.  The old replacement story scroll was
-                             * generated text and was never part of CAPPO. */
-                            post_story_mode = gs.mode;
+                            running = false;
                             break;
                         case MENU_RESULT_START_LIBERATION:
                             /* A fresh Liberation game must not inherit the
