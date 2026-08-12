@@ -1,0 +1,133 @@
+#!/usr/bin/expect -f
+
+# Authentic CAPPO input sequence probe.  Every byte is delivered through the
+# relocated IRQ1 queue observed in DOSBox-X; this harness never writes game
+# files or constructs a compatibility state.
+
+set timeout 30
+if {$argc < 2} {
+    puts stderr "usage: $argv0 DATA_DIR SCAN_HEX[,SCAN_HEX...] [POST_INTRO_TICKS] [OUTPUT_DIR]"
+    exit 2
+}
+set data_dir [lindex $argv 0]
+set sequence [split [lindex $argv 1] ","]
+set post_intro_ticks [expr {$argc > 2 ? [lindex $argv 2] : 240}]
+set output_dir [expr {$argc > 3 ? [file normalize [lindex $argv 3]] : [pwd]}]
+set script_dir [file dirname [file normalize $argv0]]
+set profile [file join $script_dir dosbox-x-captive.conf]
+if {![file isdirectory $data_dir] || ![file exists $profile]} {
+    puts stderr "missing Captive data directory or DOSBox-X profile"
+    exit 2
+}
+foreach scan $sequence {
+    if {![regexp {^[0-9A-Fa-f]{2}$} $scan]} {
+        puts stderr "invalid scan byte: $scan"
+        exit 2
+    }
+}
+if {$post_intro_ticks < 1 || $post_intro_ticks > 2000} {
+    puts stderr "POST_INTRO_TICKS must be between 1 and 2000"
+    exit 2
+}
+if {![file isdirectory $output_dir]} {
+    puts stderr "OUTPUT_DIR does not exist: $output_dir"
+    exit 2
+}
+# DOSBox-X writes MEMDUMPBIN relative to the host working directory.  Make
+# that location explicit so a successful probe cannot silently overwrite a
+# stale dump elsewhere in the repository.
+cd $output_dir
+
+proc resume_emulation {} { send "\033\[15~" }
+proc wait_for_timer_break {} {
+    expect {
+        -re {I->} {}
+        timeout { puts stderr "DOSBox-X did not reach the timer breakpoint"; exit 1 }
+        eof { exit 1 }
+    }
+}
+proc advance_timer_ticks {count} {
+    for {set i 0} {$i < $count} {incr i} {
+        send "BPINT 08\r"
+        resume_emulation
+        wait_for_timer_break
+    }
+}
+
+spawn env TERM=xterm-256color dosbox-x -break-start -conf $profile \
+    -c "mount c $data_dir" -c "c:" -c "CAPTIVE.BAT 1"
+expect {
+    -re {I->} {}
+    timeout { puts stderr "DOSBox-X debugger did not start"; exit 1 }
+}
+
+# Original INTRO choices: 1, 4, 3, 3.
+advance_timer_ticks 120
+send "SM 0040 001A 1E 00\r"
+set tail 0x1e
+foreach key {1 enter 4 enter 3 enter 3 enter} {
+    send "BPDEL 00\r"
+    switch -- $key {
+        1 { set ascii 0x31; set scan_code 0x02 }
+        3 { set ascii 0x33; set scan_code 0x04 }
+        4 { set ascii 0x34; set scan_code 0x05 }
+        enter { set ascii 0x0d; set scan_code 0x1c }
+    }
+    send [format "SM 0040 %04X %02X %02X\r" $tail $ascii $scan_code]
+    incr tail 2
+    if {$tail >= 0x40} { set tail 0x1e }
+    send [format "SM 0040 001C %02X 00\r" $tail]
+    advance_timer_ticks 24
+}
+
+# INTRO/FILEPLAY hands control to CAPPO on the original space-bar action.
+# After the intro choices CAPPO owns the relocated IRQ1 queue, so these real
+# continuation spaces must use the same queue as keypad input. Sending them
+# through the BIOS ring leaves FILEPLAY on its control screen.
+for {set intro_step 0} {$intro_step < 1} {incr intro_step} {
+    send "BPDEL 00\r"
+    send "SM 0824 004E 01\r"
+    send "SM 0824 004F 01\r"
+    send "SM 0824 0050 39\r"
+    advance_timer_ticks $post_intro_ticks
+}
+
+# CAPPO Mission 0001: relocated IRQ1 queue at 0824:004e..0057.
+foreach scan $sequence {
+    send "BPDEL 00\r"
+    send "SM 0824 004E 01\r"
+    send "SM 0824 004F 01\r"
+    send [format "SM 0824 0050 %s\r" $scan]
+    advance_timer_ticks 8
+}
+
+send "BPDEL 00\r"
+send "MEMDUMPBIN 0 0 100000\r"
+expect {
+    -re {Memory dump(?: binary)? success} {}
+    timeout { puts stderr "DOSBox-X did not write MEMDUMP.BIN"; exit 1 }
+    eof { exit 1 }
+}
+set dump_path [file join $output_dir MEMDUMP.BIN]
+if {![file exists $dump_path] || [file size $dump_path] != 1048576} {
+    puts stderr "DOSBox-X did not produce a complete 1 MiB dump at $dump_path"
+    exit 1
+}
+set dump_file [open $dump_path r]
+fconfigure $dump_file -translation binary -encoding binary
+set dump_bytes [read $dump_file]
+close $dump_file
+set has_runtime_signature 0
+foreach signature {"FLIGHT PATH SET" "ARRIVED AT DESTINATION" "LANDING SUCCESSFUL" "SWAN NOT YET IN ORBIT"} {
+    if {[string first $signature $dump_bytes] >= 0} {
+        set has_runtime_signature 1
+        break
+    }
+}
+if {!$has_runtime_signature} {
+    puts stderr "dump has no active CAPPO runtime signature: $dump_path"
+    exit 1
+}
+puts stderr "CAPPO sequence delivered: [join $sequence {, }]"
+puts stderr "Authentic CAPPO dump verified at $dump_path"
+interact

@@ -78,6 +78,18 @@ This is an emulator/disassembly probe only. It does not claim that the native
 OpenCaptive event loop is already attached to CAPPO, and it never synthesizes
 a map, save, droid roster or dungeon state.
 
+The multi-step probe writes to an explicit output directory and rejects its
+own result unless the new 1 MiB dump contains CAPPO's runtime-state strings:
+
+```sh
+tools/captive_dosbox_sequence.expect DATA_DIR 47 480 /tmp/cappo-sequence
+```
+
+The command can therefore produce a useful negative result: a dump with a
+uniform VGA page or without CAPPO state is reported as an incomplete emulator
+phase rather than being accepted as a parity frame. A successful probe still
+requires the normal `tools/verify_captive_dos_dump.sh` byte-exact comparison.
+
 The unpacked DOS executable installs its keyboard IRQ1 handler at relative
 offset `0x065c`. In the verified Mission 0001 DOSBox-X memory image the
 relocated IRQ/source-bank segment is `0824`, so the handler queue is observable
