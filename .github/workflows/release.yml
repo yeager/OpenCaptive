@@ -699,10 +699,11 @@ jobs:
           "
           echo 'android.useAndroidX=true' > apk-project/gradle.properties
 
-          # Build APK
+          # Build APK with the runner-provided Gradle. Generating a wrapper
+          # here adds an unnecessary network dependency on a second Gradle
+          # distribution and can fail before the Android project is built.
           cd apk-project
-          gradle wrapper --gradle-version 8.5
-          ./gradlew assembleRelease
+          gradle assembleRelease
           cd ..
 
           # Copy APK
