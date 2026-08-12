@@ -50,8 +50,9 @@ verified DOSBox-X executable.
 
 The same handoff occurs automatically when a new DOS Captive game is selected
 from the graphical start menu and `CAPTIVE.BAT` is present. If the original
-DOS runtime is unavailable, the menu retains the source-authenticated
-reference-frame fallback rather than inventing gameplay state.
+DOS runtime is unavailable, the launch is rejected with the existing localized
+missing-data error; it never falls back to the native compatibility shell or
+invented gameplay state.
 
 The direct command-line path follows the same rule: `--game captive` hands off
 to the authentic DOSBox-X runtime whenever no explicit `--captive-dos-dump` or

@@ -53,17 +53,18 @@ listed below:
   (`df8f1e669072e84edfbc85af26a698c8bb34eb690900ef6083cbf07eca087939`).
 
 `ORBIT` and `LAND` use these authenticated frames and never fall through to
-procedural space, planet, or landing art. The native fallback presents the
-authenticated Butre-route frame while CAPPO records the route. A second Orbit
-button press or keypad-7 command is not treated as arrival: the DOSBox-X
-session remains on the holomap with CAPPO's `FLIGHT PATH SET` status, even
-after the displayed coordinate reaches the recorded target. The authenticated
-orbit frame is accepted only after a live CAPPO/DOSBox-X handoff
-proves that CAPPO has reached orbit. The landed surface remains a real
-checkpoint until the CAPPO mission/runtime decoder can supply live dungeon
-state; no generated dungeon is used.
+procedural space, planet, or landing art. The native diagnostic path presents
+the authenticated Butre-route frame only when the caller supplies a real CAPPO
+checkpoint; it is not a normal game fallback. A second Orbit button press or
+keypad-7 command is not treated as arrival: the DOSBox-X session remains on
+the holomap with CAPPO's `FLIGHT PATH SET` status, even after the displayed
+coordinate reaches the recorded target. The authenticated orbit frame is
+accepted only after a live CAPPO/DOSBox-X handoff proves that CAPPO has
+reached orbit. The landed surface remains a real checkpoint until the CAPPO
+mission/runtime decoder can supply live dungeon state; no generated dungeon
+is used.
 
-The native fallback keeps the landing transition open until a live
+The native diagnostic path keeps the landing transition open until a live
 CAPPO/DOSBox-X handoff proves the landed state. It does not use a wall-clock
 delay to turn captured frames into false runtime events. A reloaded dump is
 accepted only when its complete VGA surface exactly matches the tracked orbit
