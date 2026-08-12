@@ -146,12 +146,14 @@ tools/verify_captive_navigation.sh /path/to/original/captive [BUILD_DIR]
 ```
 
 This runs the original `47,49` Orbit-to-Land sequence, then repeats it with
-CAPPO's real keypad-4 move-left scan. Both memory images must pass the byte-exact
-VGA bridge, and the second image must change both the authentic VGA surface and
-the decoded CAPPO map window. The gate is intentionally local-only because
+CAPPO's real keypad-8 Forward scan and the original timer window needed to
+complete that movement. Both memory images must pass the byte-exact VGA bridge,
+and the second image must change both the authentic VGA surface and the decoded
+CAPPO map window. The gate is intentionally local-only because
 original game media is player-supplied and is never committed or synthesized.
 
-The normal Captive start-menu action now uses the same transport as this gate.
+The normal Captive start-menu action now uses the same transport and authentic
+movement pacing as this gate.
 OpenCaptive starts the original `INTRO` → `FILEPLAY` → `CAPPO` chain, waits for
 CAPPO's relocated IRQ1 queue, sends the original XT make scan for each arrow or
 numpad action, and reloads the resulting DOSBox-X VGA dump. The OpenCaptive
@@ -174,18 +176,18 @@ reference only. Live CAPPO testing shows that its displayed flight coordinate
 can reach `150E-150N` while the status remains `FLIGHT PATH SET`; coordinate
 equality is therefore not an Orbit/arrival proof.
 
-The live DOSBox-X check now reproduces the first navigation action with the
-original numpad path: three keypad-left inputs, three keypad-down inputs, one
-keypad-up input, then keypad 7 with the cursor on the green marker. CAPPO
-responds with its own `FLIGHT PATH SET` message. This proves original target
-selection and ORBIT input delivery; it does not yet claim that the subsequent
-space-flight, keypad-9 landing, and post-landing dungeon viewport have been
-decoded into the native runtime.
+The live DOSBox-X check reproduces the original numpad path: three keypad-left
+inputs, three keypad-down inputs, one keypad-up input, then keypad 7 with the
+cursor on the green marker. CAPPO responds with its own `FLIGHT PATH SET`
+message. The authenticated Orbit-to-Land gate then delivers keypad 9 and
+accepts the original post-landing VGA surface byte-for-byte. A subsequent
+keypad-8 Forward command, paced through the original timer window, changes
+both the authentic viewport and the decoded CAPPO map state.
 
-The native fallback does not convert the landing transition into `STATE_GAME`
-after a fixed delay. A captured dungeon frame is evidence of what CAPPO
-displayed, not proof that the live runtime has reached that state; the landed
-frame therefore remains gated on a real DOSBox-X/CAPPO state handoff.
+The native compatibility path does not convert the landing transition into
+`STATE_GAME` after a fixed delay. The production live path changes mode only
+after a real DOSBox-X/CAPPO VGA handoff; a captured dungeon frame is accepted
+as runtime evidence only when the original dump passes the authenticity gate.
 
 In native reference mode, the space-navigation cluster is no longer a dead
 end: keypad 8/2/4/6 and the corresponding on-screen arrows move the logged

@@ -161,7 +161,11 @@ bool captive_emulator_session_start(const char *data_path,
     }
     char *const args[] = {
         (char *)find_expect_binary(), sequence, (char *)data_path,
-        (char *)"-", (char *)"12", session->output_dir, (char *)"8",
+        /* CAPPO needs the original timer window to finish one movement
+         * command. Eight ticks only captures an intermediate VGA update;
+         * 120 ticks is the first disassembly/emulator-verified checkpoint
+         * where the live map and viewport agree after keypad 8. */
+        (char *)"-", (char *)"12", session->output_dir, (char *)"120",
         session->fifo_path, NULL
     };
     child = fork();
