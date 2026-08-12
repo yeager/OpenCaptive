@@ -127,9 +127,11 @@ asks the four original choices (`1`, `4`, `3`, `3`) and transfers to
 make scan at `CS:0027`; it does not consume the BIOS keyboard ring. The
 space-bar make scan is `0x39`. Supplying that byte at the verified runtime
 segment (`CS=0824`) lets FILEPLAY complete its original animation sequence and
-load `CAPPO.EXE`. The proof is a caller-supplied 1 MiB DOSBox-X dump containing
-CAPPO's own runtime strings; a dump that still contains only FILEPLAY is
-rejected by the authenticity gate.
+load `CAPPO.EXE`. CAPPO's first continuation is its documented DEL/left-mouse
+action, represented by raw scan `0x53` in the relocated IRQ1 queue; this must be
+consumed before testing keypad navigation. The proof is a caller-supplied 1 MiB
+DOSBox-X dump containing CAPPO's own runtime strings; a dump that still contains
+only FILEPLAY is rejected by the authenticity gate.
 
 The optional final argument to the sequence harness controls only the number
 of original DOSBox-X timer breakpoints advanced after each delivered scan

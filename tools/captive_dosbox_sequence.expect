@@ -108,13 +108,13 @@ send "SM 0824 0027 39\r"
 advance_timer_ticks 120
 
 # INTRO/FILEPLAY hands control to CAPPO on the original space-bar action.
-# After the intro choices CAPPO owns the relocated IRQ1 queue, so these real
-# continuation spaces must use the same queue as keypad input. Sending them
-# through the BIOS ring leaves FILEPLAY on its control screen.
+# CAPPO's first screen is then continued by its documented DEL/left-mouse
+# action.  Do not substitute another keyboard key: that leaves the original
+# runtime in its start-screen phase and consumes the first navigation scan.
 for {set intro_step 0} {$intro_step < 1} {incr intro_step} {
     send "SM 0824 004E 01\r"
     send "SM 0824 004F 01\r"
-    send "SM 0824 0050 39\r"
+    send "SM 0824 0050 53\r"
     advance_timer_ticks $post_intro_ticks
 }
 

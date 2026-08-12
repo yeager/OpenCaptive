@@ -80,8 +80,11 @@ The DOSBox-X verification sequence used for the current reference is:
 2. Select VGA, then the original sound and music devices.
 3. Allow `INTRO.EXE` and `FILEPLAY.EXE` to finish; FILEPLAY uses its own IRQ1
    scan-byte field at `CS:0027`, so the original space-bar make code is
-   `0x39`, not a BIOS-buffer character. CAPPO then opens on
-   `CAPTIVE MISSION 0001` in the real navigation view.
+   `0x39`, not a BIOS-buffer character. CAPPO then opens on its original
+   continuation surface. Send the documented DEL/left-mouse action (`0x53` in
+   CAPPO's relocated IRQ1 queue) once to enter `CAPTIVE MISSION 0001` in the
+   real navigation view. Sending a keypad scan before this continuation is
+   consumed tests the wrong CAPPO phase.
 4. Fly using CAPPO's real flight controls until CAPPO itself reports arrival;
    the displayed coordinate and the green/red map markers are useful evidence
    but are not sufficient on their own. Only then press `ORBIT`. In the Orbit
