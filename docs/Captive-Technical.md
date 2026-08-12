@@ -113,8 +113,10 @@ state rather than full mission playthrough evidence.
 
 The same check is reproducible with
 `tools/verify_captive_dos_dump.sh MEMDUMP.BIN DATA_DIR [BUILD_DIR]`. The script
-rejects any dump that is not exactly 1 MiB and only compares decoded frames;
-it never creates or modifies game data.
+rejects any dump that is not exactly 1 MiB or lacks CAPPO's own runtime-state
+strings before it compares decoded frames; this prevents an early boot/debugger
+buffer from being mistaken for gameplay evidence. It never creates or modifies
+game data.
 
 The Mission 0001 reference target is measured from the verified marker in
 `holamap-target.png`: frame coordinate `(63,150)` maps to CAPPO cursor

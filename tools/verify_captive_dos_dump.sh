@@ -10,7 +10,17 @@ if [ ! -f "$dump" ]; then
     exit 2
 fi
 if [ "$(wc -c < "$dump" | tr -d ' ')" -ne 1048576 ]; then
-    echo "dump must be exactly 1048576 bytes: $dump" >&2
+  echo "dump must be exactly 1048576 bytes: $dump" >&2
+  exit 2
+fi
+
+# A complete DOSBox-X image is not sufficient by itself: an early boot dump
+# or a debugger buffer can also be exactly 1 MiB and still contain no active
+# CAPPO runtime.  Require at least one of CAPPO's own state messages before
+# treating the image as gameplay evidence.  This is a read-only authenticity
+# gate; it never edits or creates game data.
+if ! strings -a "$dump" | grep -Eq 'FLIGHT PATH SET|ARRIVED AT DESTINATION|LANDING SUCCESSFUL|SWAN NOT YET IN ORBIT'; then
+    echo "dump does not contain an active CAPPO runtime signature" >&2
     exit 2
 fi
 
