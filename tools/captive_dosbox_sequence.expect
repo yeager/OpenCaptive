@@ -7,7 +7,7 @@
 
 set timeout 30
 if {$argc < 2} {
-    puts stderr [format "usage: %s DATA_DIR SCAN_HEX-list POST_INTRO_TICKS OUTPUT_DIR POST_SCAN_TICKS" $argv0]
+    puts stderr [format "usage: %s DATA_DIR SCAN_HEX-list POST_INTRO_TICKS OUTPUT_DIR POST_SCAN_TICKS (FIFO_PATH optional)" $argv0]
     exit 2
 }
 set data_dir [lindex $argv 0]
@@ -15,6 +15,7 @@ set sequence [split [lindex $argv 1] ","]
 set post_intro_ticks [expr {$argc > 2 ? [lindex $argv 2] : 240}]
 set output_dir [expr {$argc > 3 ? [file normalize [lindex $argv 3]] : [pwd]}]
 set post_scan_ticks [expr {$argc > 4 ? [lindex $argv 4] : 8}]
+set fifo_path [expr {$argc > 5 ? [file normalize [lindex $argv 5]] : ""}]
 set script_dir [file dirname [file normalize $argv0]]
 set profile [file join $script_dir dosbox-x-captive.conf]
 if {![file isdirectory $data_dir] || ![file exists $profile]} {
@@ -22,6 +23,7 @@ if {![file isdirectory $data_dir] || ![file exists $profile]} {
     exit 2
 }
 foreach scan $sequence {
+    if {$scan eq "-"} { continue }
     if {![regexp {^[0-9A-Fa-f]{2}$} $scan]} {
         puts stderr "invalid scan byte: $scan"
         exit 2
@@ -37,6 +39,10 @@ if {$post_scan_ticks < 1 || $post_scan_ticks > 2000} {
 }
 if {![file isdirectory $output_dir]} {
     puts stderr "OUTPUT_DIR does not exist: $output_dir"
+    exit 2
+}
+if {$fifo_path ne "" && ![file exists $fifo_path]} {
+    puts stderr "FIFO_PATH does not exist: $fifo_path"
     exit 2
 }
 # DOSBox-X writes MEMDUMPBIN relative to the host working directory.  Make
@@ -111,6 +117,7 @@ for {set intro_step 0} {$intro_step < 1} {incr intro_step} {
 
 # CAPPO Mission 0001: relocated IRQ1 queue at 0824:004e..0057.
 foreach scan $sequence {
+    if {$scan eq "-"} { continue }
     send "BPDEL 00\r"
     send "SM 0824 004E 01\r"
     send "SM 0824 004F 01\r"
@@ -118,17 +125,45 @@ foreach scan $sequence {
     advance_timer_ticks $post_scan_ticks
 }
 
-send "BPDEL 00\r"
-send "MEMDUMPBIN 0 0 100000\r"
-expect {
-    -re {Memory dump(?: binary)? success} {}
-    timeout { puts stderr "DOSBox-X did not write MEMDUMP.BIN"; exit 1 }
-    eof { exit 1 }
+proc dump_cappo_memory {output_dir} {
+    send "BPDEL 00\r"
+    send "MEMDUMPBIN 0 0 100000\r"
+    expect {
+        -re {Memory dump(?: binary)? success} {}
+        timeout { puts stderr "DOSBox-X did not write MEMDUMP.BIN"; exit 1 }
+        eof { exit 1 }
+    }
+    set dump_path [file join $output_dir MEMDUMP.BIN]
+    if {![file exists $dump_path] || [file size $dump_path] != 1048576} {
+        puts stderr "DOSBox-X did not produce a complete 1 MiB dump at $dump_path"
+        exit 1
+    }
+    return $dump_path
 }
-set dump_path [file join $output_dir MEMDUMP.BIN]
-if {![file exists $dump_path] || [file size $dump_path] != 1048576} {
-    puts stderr "DOSBox-X did not produce a complete 1 MiB dump at $dump_path"
-    exit 1
+
+set dump_path [dump_cappo_memory $output_dir]
+if {$fifo_path ne ""} {
+    # A FIFO command is a raw XT make scan, not a symbolic game action.  The
+    # CAPPO queue and timer are still owned by the original DOS runtime.
+    set fifo [open $fifo_path r+]
+    fconfigure $fifo -translation lf -encoding ascii -buffering line -blocking 1
+    puts stderr "CAPPO live FIFO ready: $fifo_path"
+    while {[gets $fifo command] >= 0} {
+        set command [string trim $command]
+        if {$command eq "quit"} { break }
+        if {![regexp {^[0-9A-Fa-f]{2}$} $command]} {
+            puts stderr "invalid live CAPPO scan byte: $command"
+            continue
+        }
+        send "BPDEL 00\r"
+        send "SM 0824 004E 01\r"
+        send "SM 0824 004F 01\r"
+        send [format "SM 0824 0050 %s\r" $command]
+        advance_timer_ticks $post_scan_ticks
+        set dump_path [dump_cappo_memory $output_dir]
+        puts stderr "CAPPO live scan delivered: $command"
+    }
+    close $fifo
 }
 set dump_file [open $dump_path r]
 fconfigure $dump_file -translation binary -encoding binary

@@ -1,6 +1,6 @@
 # Data identity and verification
 
-> Updated for v1.1.109. The scanner persists reusable results for unchanged files and invalidates them when file metadata or content identity changes.
+> Updated for v1.1.111. The scanner persists reusable results for unchanged files and invalidates them when file metadata or content identity changes.
 
 ## Principle
 

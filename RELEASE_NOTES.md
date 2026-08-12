@@ -1,5 +1,28 @@
 # OpenCaptive Release Notes
 
+## v1.1.111 (2026-08-12)
+
+### Added
+
+- **(Captive)** The normal Captive start path now keeps the original CAPPO
+  runtime active inside OpenCaptive and forwards authentic keyboard and mouse
+  navigation commands through its IRQ1 input queue.
+- **(Infrastructure)** Desktop release packages include the real DOSBox-X
+  session harness required for the authenticated Captive handoff.
+
+### Changed
+
+- **(Captive)** Numpad 1–9 mappings now follow the original help table,
+  including forward, backward, zoom, Orbit, and Land behavior.
+- **(Captive)** OpenCaptive's native audio mixer is muted while CAPPO owns the
+  runtime, preventing a duplicate soundtrack or continuous mixer noise.
+- **(Infrastructure)** Release packaging verifies the CAPPO harness is present
+  in Linux, macOS, and Windows desktop artifacts.
+
+### Removed
+
+None.
+
 ## v1.1.110 (2026-08-12)
 
 ### Added
@@ -22,7 +45,7 @@
 
 None.
 
-## v1.1.109 (2026-08-12)
+## v1.1.111 (2026-08-12)
 
 ### Added
 
@@ -37,7 +60,7 @@ None.
   produced by CAPPO from a real DOSBox-X memory dump, preserving the original
   viewport pixels and control panel without synthetic replacement artwork.
 - **(Documentation)** The user guide, wiki landing page, technical references,
-  and format notes now identify v1.1.109 and retain the real-data-only boundary.
+  and format notes now identify v1.1.111 and retain the real-data-only boundary.
 
 ### Removed
 

@@ -92,6 +92,8 @@ static unsigned char *captive_zoom_in_reference;
 static int captive_zoom_in_reference_width;
 static int captive_zoom_in_reference_height;
 static bool captive_landed_reference_active;
+static CaptiveEmulatorSession captive_live_session;
+static bool captive_live_session_active;
 /* CAPPO keeps the holomap visible after ORBIT while it records the route.
  * This flag is only an input-phase marker; it contains no generated
  * destination or movement data. */
@@ -345,6 +347,50 @@ static bool captive_navigation_mouse_action(const OpenCaptiveRenderer *r,
     if (!window_to_canvas(r, button->x, button->y, &x, &y)) return false;
     *action = captive_navigation_action_at((int)x, (int)y);
     return *action != CAPTIVE_NAV_ACTION_NONE;
+}
+
+static uint8_t captive_scan_for_action(CaptiveNavigationAction action) {
+    switch (action) {
+        case CAPTIVE_NAV_ACTION_UP:    return 0x4F; /* keypad 1 */
+        case CAPTIVE_NAV_ACTION_DOWN:  return 0x4E; /* keypad 3 */
+        case CAPTIVE_NAV_ACTION_LEFT:  return 0x4B; /* keypad 4 */
+        case CAPTIVE_NAV_ACTION_RIGHT: return 0x4D; /* keypad 6 */
+        case CAPTIVE_NAV_ACTION_ORBIT: return 0x47; /* keypad 7 */
+        case CAPTIVE_NAV_ACTION_LAND:  return 0x49; /* keypad 9 */
+        /* CAPPO help table: keypad 1 zooms out and keypad 3 zooms in while
+         * in space; their XT make scans are 4F and 4E respectively. */
+        case CAPTIVE_NAV_ACTION_ZOOM_OUT: return 0x4F; /* original keypad 1 */
+        case CAPTIVE_NAV_ACTION_ZOOM_IN:  return 0x4E; /* original keypad 3 */
+        default: return 0;
+    }
+}
+
+static bool captive_live_send_scan(uint8_t scan);
+
+static bool captive_live_send_action(CaptiveNavigationAction action) {
+    uint8_t scan = captive_scan_for_action(action);
+    return captive_live_session_active && scan != 0 &&
+           captive_emulator_session_send_scan(&captive_live_session, scan);
+}
+
+static bool captive_live_send_scan(uint8_t scan) {
+    return captive_live_session_active &&
+           captive_emulator_session_send_scan(&captive_live_session, scan);
+}
+
+static bool captive_live_send_key(SDL_Keycode key) {
+    switch (key) {
+        case SDLK_KP_1: case SDLK_UP: return captive_live_send_action(CAPTIVE_NAV_ACTION_UP);
+        case SDLK_KP_2: return captive_live_send_scan(0x50); /* original backward */
+        case SDLK_KP_3: case SDLK_DOWN: return captive_live_send_action(CAPTIVE_NAV_ACTION_DOWN);
+        case SDLK_KP_4: case SDLK_LEFT: return captive_live_send_action(CAPTIVE_NAV_ACTION_LEFT);
+        case SDLK_KP_5: return captive_live_send_scan(0x4C); /* original no-op */
+        case SDLK_KP_6: case SDLK_RIGHT: return captive_live_send_action(CAPTIVE_NAV_ACTION_RIGHT);
+        case SDLK_KP_7: return captive_live_send_action(CAPTIVE_NAV_ACTION_ORBIT);
+        case SDLK_KP_8: return captive_live_send_scan(0x48); /* original forward */
+        case SDLK_KP_9: return captive_live_send_action(CAPTIVE_NAV_ACTION_LAND);
+        default: return false;
+    }
 }
 
 static bool captive_holamap_mouse_move(const OpenCaptiveRenderer *r,
@@ -3167,12 +3213,24 @@ int main(int argc, char *argv[]) {
              * reserved for explicit frame/dump analysis, so a desktop
              * shortcut can never silently open the incomplete compatibility
              * shell or a synthetic dungeon. */
-            if (!captive_emulator_launch(config.data_path)) {
+            if (!captive_emulator_session_start(config.data_path,
+                                                &captive_live_session)) {
                 show_missing_data_dialog(config.data_path);
                 return 1;
             } else {
-                printf("Handed direct Captive launch to authentic DOSBox-X runtime\n");
-                return 0;
+                captive_live_session_active = true;
+                captive_dos_dump_path = captive_live_session.dump_path;
+                captive_dos_memory = load_captive_dos_dump(captive_dos_dump_path);
+                if (!captive_dos_memory) {
+                    captive_emulator_session_stop(&captive_live_session);
+                    captive_live_session_active = false;
+                    show_missing_data_dialog(config.data_path);
+                    return 1;
+                }
+                captive_dos_memory_active = true;
+                gs.game_type = GAME_CAPTIVE;
+                gs.mode = STATE_GAME;
+                printf("Started authentic CAPPO live session in OpenCaptive\n");
             }
         } else if (!textures_loaded) {
             /* The startup hash set is a fast identity gate.  The renderer
@@ -3305,6 +3363,22 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
+        if (captive_live_session_active &&
+            captive_emulator_session_dump_ready(&captive_live_session)) {
+            struct stat live_stat;
+            if (stat(captive_live_session.dump_path, &live_stat) == 0 &&
+                captive_dos_dump_stamp(&live_stat) != captive_dos_dump_mtime_ns) {
+                uint8_t *fresh_memory =
+                    load_captive_dos_dump(captive_live_session.dump_path);
+                if (fresh_memory) {
+                    free(captive_dos_memory);
+                    captive_dos_memory = fresh_memory;
+                    captive_dos_memory_active = true;
+                    captive_dos_dump_mtime_ns = captive_dos_dump_stamp(&live_stat);
+                    captive_dos_runtime_reported = false;
+                }
+            }
+        }
         /* Captive's original holomap/orbit controls use an absolute mouse
          * pointer.  Do not let the optional FPS mouse-look mode hide/capture
          * it while the player is in the real navigation surface. */
@@ -3401,11 +3475,25 @@ int main(int argc, char *argv[]) {
                              * a failed emulator launch must not expose the old
                              * compatibility shell or any generated Captive
                              * space/dungeon state. */
-                            if (!captive_emulator_launch(config.data_path)) {
+                            if (!captive_emulator_session_start(config.data_path,
+                                                                &captive_live_session)) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
-                            running = false;
+                            captive_live_session_active = true;
+                            captive_dos_dump_path = captive_live_session.dump_path;
+                            captive_dos_memory =
+                                load_captive_dos_dump(captive_dos_dump_path);
+                            if (!captive_dos_memory) {
+                                captive_emulator_session_stop(&captive_live_session);
+                                captive_live_session_active = false;
+                                show_missing_data_dialog(config.data_path);
+                                break;
+                            }
+                            captive_dos_memory_active = true;
+                            captive_dos_dump_mtime_ns = 0;
+                            gs.mode = STATE_GAME;
+                            music_stop(&music_sys);
                             break;
                         case MENU_RESULT_START_LIBERATION:
                             /* A fresh Liberation game must not inherit the
@@ -3616,8 +3704,21 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 case STATE_GAME:
-                    if (event.type == SDL_EVENT_KEY_DOWN &&
+                    if (gs.game_type == GAME_CAPTIVE &&
+                        captive_live_session_active &&
+                        event.type == SDL_EVENT_KEY_DOWN &&
                         event.key.key == SDLK_ESCAPE) {
+                        captive_emulator_session_stop(&captive_live_session);
+                        captive_live_session_active = false;
+                        free(captive_dos_memory);
+                        captive_dos_memory = NULL;
+                        captive_dos_memory_active = false;
+                        gs.mode = STATE_MENU;
+                        sync_menu_from_config(&menu, &config, &custom,
+                                              music_sys.enabled,
+                                              sound_sys.enabled);
+                    } else if (event.type == SDL_EVENT_KEY_DOWN &&
+                               event.key.key == SDLK_ESCAPE) {
                         if (gs.game_type == GAME_CAPTIVE &&
                             captive_landed_reference_active) {
                             /* The original landed frame is a real CAPPO
@@ -3639,24 +3740,18 @@ int main(int argc, char *argv[]) {
                             gs.paused = true;
                         }
                     } else if (gs.game_type == GAME_CAPTIVE &&
+                               captive_live_session_active &&
                                event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                                event.button.button == SDL_BUTTON_LEFT) {
-                        /* The original Captive arrows are the primary
-                         * navigation controls. Translate their mouse hit
-                         * boxes into the same key action used by the native
-                         * keyboard path; this creates no game data. */
-                        SDL_Keycode navigation_key;
-                        if (captive_navigation_mouse_key(&renderer,
-                                                         &event.button,
-                                                         &navigation_key)) {
-                            /* The arrows are CAPPO controls, not a request to
-                             * mutate OpenCaptive's provisional GameState. A
-                             * real DOS runtime transport must receive the raw
-                             * scan byte; until that transport is attached,
-                             * fail closed instead of creating synthetic
-                             * movement, combat or map state. */
-                            (void)navigation_key;
-                        }
+                        CaptiveNavigationAction action;
+                        if (captive_navigation_mouse_action(&renderer,
+                                                            &event.button,
+                                                            &action))
+                            (void)captive_live_send_action(action);
+                    } else if (gs.game_type == GAME_CAPTIVE &&
+                               captive_live_session_active &&
+                               event.type == SDL_EVENT_KEY_DOWN) {
+                        (void)captive_live_send_key(event.key.key);
                     } else if (gs.game_type == GAME_LIBERATION) {
                         if (liberation_intro_active && event.type == SDL_EVENT_KEY_DOWN) {
                             liberation_intro_active = false;
@@ -5350,9 +5445,14 @@ int main(int argc, char *argv[]) {
          * second frame, and the caller expects the process to exit now. */
         if (!running && capture_frame_path) break;
 
-        music_update(&music_sys);
-        sfx_update(&sfx);
-        sound_mix(&sound_sys);
+        /* The authentic DOS runtime owns its own audio device. Mixing the
+         * native soundtrack on top produces the continuous whine reported by
+         * users while CAPPO is active. */
+        if (!captive_live_session_active) {
+            music_update(&music_sys);
+            sfx_update(&sfx);
+            sound_mix(&sound_sys);
+        }
         if (fade_direction != 0) {
             fade_alpha += fade_direction * 17;
             if (fade_alpha >= 255) { fade_alpha = 255; fade_direction = -1; gs.mode = fade_target; }
@@ -5404,6 +5504,9 @@ int main(int argc, char *argv[]) {
     free(captive_orbit_reference);
     free(captive_landing_reference);
     free(captive_landed_dungeon_reference);
+    if (captive_live_session_active)
+        captive_emulator_session_stop(&captive_live_session);
+    free(captive_dos_memory);
     renderer_shutdown(&renderer);
     i18n_free();
     SDL_Quit();

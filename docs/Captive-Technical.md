@@ -1,6 +1,6 @@
 # Captive technical notes
 
-> Documentation baseline: v1.1.109. Runtime parity claims remain scoped to the verified boundaries described below.
+> Documentation baseline: v1.1.111. Runtime parity claims remain scoped to the verified boundaries described below.
 
 ## Runtime model
 
@@ -150,6 +150,15 @@ CAPPO's real keypad-4 move-left scan. Both memory images must pass the byte-exac
 VGA bridge, and the second image must change both the authentic VGA surface and
 the decoded CAPPO map window. The gate is intentionally local-only because
 original game media is player-supplied and is never committed or synthesized.
+
+The normal Captive start-menu action now uses the same transport as this gate.
+OpenCaptive starts the original `INTRO` → `FILEPLAY` → `CAPPO` chain, waits for
+CAPPO's relocated IRQ1 queue, sends the original XT make scan for each arrow or
+numpad action, and reloads the resulting DOSBox-X VGA dump. The OpenCaptive
+window therefore displays the original runtime surface after each accepted
+command. If DOSBox-X, `expect`, the FIFO session, or a complete dump is
+unavailable, the Captive session fails closed; it does not switch to the old
+procedural dungeon or invent a replacement frame.
 
 The same check is reproducible with
 `tools/verify_captive_dos_dump.sh MEMDUMP.BIN DATA_DIR [BUILD_DIR]`. The script
