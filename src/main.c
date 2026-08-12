@@ -3259,12 +3259,12 @@ int main(int argc, char *argv[]) {
                 }
                 captive_dos_memory_active = true;
                 gs.game_type = GAME_CAPTIVE;
-                /* CAPPO's process is already running, but OpenCaptive must
-                 * still begin at the original navigation surface.  The
-                 * runtime dump is not permission to skip the holomap or to
-                 * present a dungeon before a verified LAND handoff. */
-                captive_holamap_reset(gs.mission);
-                gs.mode = STATE_HOLAMAP;
+                /* CAPPO's first live frame is its real droid/start screen
+                 * (including "PRESS MOUSE TO CONTINUE").  Keep the active
+                 * emulator surface authoritative instead of replacing it
+                 * with the native holomap before CAPPO receives its mouse
+                 * continuation event. */
+                gs.mode = STATE_GAME;
                 printf("Started authentic CAPPO live session in OpenCaptive\n");
             }
         } else if (!textures_loaded) {
@@ -3527,12 +3527,11 @@ int main(int argc, char *argv[]) {
                             }
                             captive_dos_memory_active = true;
                             captive_dos_dump_mtime_ns = 0;
-                            /* Starting CAPPO prepares the authentic runtime;
-                             * it does not mean the player has landed.  Keep
-                             * the navigation view visible until the raw
-                             * CAPPO VGA handoff authenticates each phase. */
-                            captive_holamap_reset(gs.mission);
-                            gs.mode = STATE_HOLAMAP;
+                            /* The first CAPPO frame is the original droid
+                             * start screen.  Its mouse continuation and all
+                             * later navigation/dungeon frames must remain
+                             * under the live VGA runtime, not a local phase. */
+                            gs.mode = STATE_GAME;
                             music_stop(&music_sys);
                             break;
                         case MENU_RESULT_START_LIBERATION:
