@@ -1,6 +1,6 @@
 # Visuell paritet
 
-> Updated for v1.1.115. This document separates reproducible original frames from prototype graphics.
+> Updated for v1.1.116. This document separates reproducible original frames from prototype graphics.
 
 Paritetskontroller får bara använda avkodade originalresurser eller fångster
 från en sådan avkodningsväg. Den tidigare CI-snapshoten av en hembyggd

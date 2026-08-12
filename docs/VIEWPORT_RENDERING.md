@@ -1,6 +1,6 @@
 # Captive Viewport Rendering
 
-> Updated for v1.1.115. Rendering changes and test coverage are reflected in the release build.
+> Updated for v1.1.116. Rendering changes and test coverage are reflected in the release build.
 
 Reference: captive.atari.org Technical/ViewRendering
 

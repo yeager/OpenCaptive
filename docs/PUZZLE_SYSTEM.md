@@ -1,6 +1,6 @@
 # Puzzle System
 
-> Updated for v1.1.115. Puzzle behavior is documented as implemented prototype functionality unless explicitly marked source-verified.
+> Updated for v1.1.116. Puzzle behavior is documented as implemented prototype functionality unless explicitly marked source-verified.
 
 ## Overview
 

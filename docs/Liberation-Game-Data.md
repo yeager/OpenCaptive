@@ -1,6 +1,6 @@
 # Liberation Game Data
 
-> Documentation baseline: v1.1.115. Liberation media is verified by content identity before use.
+> Documentation baseline: v1.1.116. Liberation media is verified by content identity before use.
 
 Data extracted from the verified CD32 executable `captiveII` (Ratt V2.02, Wyvern V2.00c). The binary is a 245,628-byte Amiga 68000 executable with four hunks.
 

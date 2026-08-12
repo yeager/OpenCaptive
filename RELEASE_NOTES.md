@@ -1,5 +1,30 @@
 # OpenCaptive Release Notes
 
+## v1.1.116 (2026-08-12)
+
+### Added
+
+- **(Captive)** The real DOSBox-X CAPPO startup handoff now continues with the
+  original DEL/left-mouse input after FILEPLAY, preserving the authentic Mission
+  0001 holomap and its live runtime state.
+- **(Infrastructure)** The release workflow packages and verifies the current
+  CAPPO harness and real-data-only verification helpers for every desktop
+  package.
+
+### Changed
+
+- **(Captive)** Navigation verification now distinguishes the authentic
+  `FLIGHT PATH SET` and `SWAN NOT YET IN ORBIT` states from arrival and landing;
+  no synthetic planet, route, landing, or dungeon data is used.
+- **(Documentation)** Captive runtime references and release metadata are
+  synchronized with v1.1.116.
+- **(Infrastructure)** Release publication remains gated by the complete local
+  test suite, release artifact checks, and green GitHub Actions jobs.
+
+### Removed
+
+None.
+
 ## v1.1.115 (2026-08-12)
 
 ### Added
