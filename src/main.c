@@ -97,6 +97,11 @@ static bool captive_live_session_active;
 /* CAPPO's first live frame explicitly waits for the original DEL/left-mouse
  * continuation. Once consumed, ordinary clicks must stay on CAPPO's surface. */
 static bool captive_live_start_screen_active;
+/* CAPPO's manual assigns the cursor keys to the holomap pointer. SDL mouse
+ * motion is translated to those same original scans; no local map position
+ * is maintained. */
+static float captive_live_mouse_dx;
+static float captive_live_mouse_dy;
 /* CAPPO keeps the holomap visible after ORBIT while it records the route.
  * This flag is only an input-phase marker; it contains no generated
  * destination or movement data. */
@@ -405,6 +410,29 @@ static bool captive_live_send_key(SDL_Keycode key) {
         case SDLK_KP_8: return captive_live_send_scan(0x48); /* original forward */
         case SDLK_KP_9: return captive_live_send_action(CAPTIVE_NAV_ACTION_LAND);
         default: return false;
+    }
+}
+
+static void captive_live_send_mouse_motion(float dx, float dy) {
+    const float step = 18.0f;
+    if (!captive_live_session_active || captive_live_start_screen_active) return;
+    captive_live_mouse_dx += dx;
+    captive_live_mouse_dy += dy;
+    while (captive_live_mouse_dx <= -step) {
+        if (!captive_live_send_action(CAPTIVE_NAV_ACTION_LEFT)) break;
+        captive_live_mouse_dx += step;
+    }
+    while (captive_live_mouse_dx >= step) {
+        if (!captive_live_send_action(CAPTIVE_NAV_ACTION_RIGHT)) break;
+        captive_live_mouse_dx -= step;
+    }
+    while (captive_live_mouse_dy <= -step) {
+        if (!captive_live_send_action(CAPTIVE_NAV_ACTION_UP)) break;
+        captive_live_mouse_dy += step;
+    }
+    while (captive_live_mouse_dy >= step) {
+        if (!captive_live_send_action(CAPTIVE_NAV_ACTION_DOWN)) break;
+        captive_live_mouse_dy -= step;
     }
 }
 
@@ -3265,6 +3293,8 @@ int main(int argc, char *argv[]) {
             } else {
                 captive_live_session_active = true;
                 captive_live_start_screen_active = true;
+                captive_live_mouse_dx = 0.0f;
+                captive_live_mouse_dy = 0.0f;
                 captive_dos_dump_path = captive_live_session.dump_path;
                 captive_dos_memory = load_captive_dos_dump(captive_dos_dump_path);
                 if (!captive_dos_memory) {
@@ -3533,6 +3563,8 @@ int main(int argc, char *argv[]) {
                             }
                             captive_live_session_active = true;
                             captive_live_start_screen_active = true;
+                            captive_live_mouse_dx = 0.0f;
+                            captive_live_mouse_dy = 0.0f;
                             captive_dos_dump_path = captive_live_session.dump_path;
                             captive_dos_memory =
                                 load_captive_dos_dump(captive_dos_dump_path);
@@ -3767,6 +3799,8 @@ int main(int argc, char *argv[]) {
                         captive_emulator_session_stop(&captive_live_session);
                         captive_live_session_active = false;
                         captive_live_start_screen_active = false;
+                        captive_live_mouse_dx = 0.0f;
+                        captive_live_mouse_dy = 0.0f;
                         free(captive_dos_memory);
                         captive_dos_memory = NULL;
                         captive_dos_memory_active = false;
@@ -3796,6 +3830,11 @@ int main(int argc, char *argv[]) {
                             gs.mode = STATE_PAUSE;
                             gs.paused = true;
                         }
+                    } else if (gs.game_type == GAME_CAPTIVE &&
+                               captive_live_session_active &&
+                               event.type == SDL_EVENT_MOUSE_MOTION) {
+                        captive_live_send_mouse_motion(event.motion.xrel,
+                                                       event.motion.yrel);
                     } else if (gs.game_type == GAME_CAPTIVE &&
                                captive_live_session_active &&
                                event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&

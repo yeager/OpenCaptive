@@ -75,9 +75,19 @@ one raw scan byte through CAPPO's actual IRQ1 queue while DOSBox-X is paused:
 tools/captive_dosbox_queue.expect DATA_DIR 47
 ```
 
-This is an emulator/disassembly probe only. It does not claim that the native
-OpenCaptive event loop is already attached to CAPPO, and it never synthesizes
-a map, save, droid roster or dungeon state.
+This is an emulator/disassembly probe only, and it never synthesizes a map,
+save, droid roster or dungeon state.
+
+When OpenCaptive owns a live CAPPO session, its Captive mouse path follows the
+same boundary. The first left click sends CAPPO's documented `DEL` action to
+continue the original start surface. After that, mouse motion is accumulated
+and emitted as the original cursor-direction scans once a movement threshold
+is reached; the on-screen control buttons send the original action scans, and
+the live CAPPO VGA dump remains the only rendered surface. No local cursor
+coordinate is applied to the map and no target, planet, landing point or
+dungeon state is synthesized. This is the DOS implementation of the manual's
+"Cursor Keys = Moves the pointer" behaviour; the original runtime remains the
+authority for the resulting pointer and navigation state.
 
 The multi-step probe writes to an explicit output directory and rejects its
 own result unless the new 1 MiB dump contains CAPPO's runtime-state strings:
