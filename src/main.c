@@ -367,6 +367,14 @@ static uint8_t captive_scan_for_action(CaptiveNavigationAction action) {
 
 static bool captive_live_send_scan(uint8_t scan);
 
+/* CAPPO's own HELP screen documents DEL as the left mouse button.  In the
+ * relocated keyboard queue DOSBox-X exposes that original XT make code as
+ * 53.  Keep the startup continuation on the real input path; do not replace
+ * it with a locally authored navigation frame. */
+static bool captive_live_send_left_mouse(void) {
+    return captive_live_send_scan(0x53);
+}
+
 static bool captive_live_send_action(CaptiveNavigationAction action) {
     uint8_t scan = captive_scan_for_action(action);
     return captive_live_session_active && scan != 0 &&
@@ -3785,8 +3793,14 @@ int main(int argc, char *argv[]) {
                         CaptiveNavigationAction action;
                         if (captive_navigation_mouse_action(&renderer,
                                                             &event.button,
-                                                            &action))
+                                                            &action)) {
                             (void)captive_live_send_action(action);
+                        } else {
+                            /* On CAPPO's authentic start screen the game
+                             * waits for DEL/left mouse anywhere on the
+                             * surface before it reveals the mission map. */
+                            (void)captive_live_send_left_mouse();
+                        }
                     } else if (gs.game_type == GAME_CAPTIVE &&
                                captive_live_session_active &&
                                event.type == SDL_EVENT_KEY_DOWN) {
