@@ -1,5 +1,27 @@
 # OpenCaptive Release Notes
 
+## v1.1.112 (2026-08-12)
+
+### Added
+
+- **(Captive)** A local live-replay verification gate now drives repeated
+  authentic CAPPO scan codes through DOSBox-X and validates every resulting
+  1 MiB memory dump and 320×200 VGA frame.
+- **(Infrastructure)** The release packages include the replay verification
+  helper beside the original CAPPO DOSBox-X harness.
+
+### Changed
+
+- **(Captive)** Replay acknowledgement is counted per scan occurrence, so
+  repeated keypad commands are synchronized with the original runtime rather
+  than being mistaken for stale output.
+- **(Infrastructure)** Release packaging and version checks now target
+  v1.1.112; no original game data is included.
+
+### Removed
+
+None.
+
 ## v1.1.111 (2026-08-12)
 
 ### Added

@@ -61,6 +61,7 @@ jobs:
           cp -R assets/menu assets/captive opencaptive-linux-x86_64/assets/
           cp tools/dosbox-x-captive.conf opencaptive-linux-x86_64/assets/captive/dosbox-x-captive.conf
           cp tools/captive_dosbox_sequence.expect opencaptive-linux-x86_64/assets/captive/
+          cp tools/verify_captive_live_replay.sh opencaptive-linux-x86_64/assets/captive/
           cp po/*.po opencaptive-linux-x86_64/po/
           cp README.md LICENSE opencaptive-linux-x86_64/
           tar czf opencaptive-linux-x86_64.tar.gz opencaptive-linux-x86_64/
@@ -85,6 +86,7 @@ jobs:
           cp -R assets/menu assets/captive deb/usr/share/opencaptive/assets/
           cp tools/dosbox-x-captive.conf deb/usr/share/opencaptive/assets/captive/dosbox-x-captive.conf
           cp tools/captive_dosbox_sequence.expect deb/usr/share/opencaptive/assets/captive/
+          cp tools/verify_captive_live_replay.sh deb/usr/share/opencaptive/assets/captive/
           cp po/*.po deb/usr/share/opencaptive/po/
           cp README.md LICENSE deb/usr/share/doc/opencaptive/
           mkdir -p deb/usr/share/icons
@@ -107,6 +109,7 @@ jobs:
           cp -R assets/menu assets/captive rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets/
           cp tools/dosbox-x-captive.conf rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets/captive/dosbox-x-captive.conf
           cp tools/captive_dosbox_sequence.expect rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets/captive/
+          cp tools/verify_captive_live_replay.sh rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets/captive/
           tar czf rpmbuild/SOURCES/opencaptive-${PKG_VERSION}.tar.gz \
             -C rpmbuild/SOURCES opencaptive-${PKG_VERSION}
           printf '%s\n' \
@@ -197,6 +200,7 @@ jobs:
           cp -R assets/menu assets/captive AppDir/usr/share/opencaptive/assets/
           cp tools/dosbox-x-captive.conf AppDir/usr/share/opencaptive/assets/captive/dosbox-x-captive.conf
           cp tools/captive_dosbox_sequence.expect AppDir/usr/share/opencaptive/assets/captive/
+          cp tools/verify_captive_live_replay.sh AppDir/usr/share/opencaptive/assets/captive/
           printf '%s\n' '[Desktop Entry]' 'Name=OpenCaptive' 'Exec=opencaptive' 'Icon=opencaptive' 'Type=Application' 'Categories=Game;' > AppDir/usr/share/applications/opencaptive.desktop
           rsvg-convert -w 256 -h 256 assets/icon.svg -o AppDir/usr/share/icons/hicolor/256x256/apps/opencaptive.png
       - name: Download linuxdeploy
@@ -241,6 +245,7 @@ jobs:
           cp -R assets/menu assets/captive "$APP/Contents/Resources/assets/"
           cp tools/dosbox-x-captive.conf "$APP/Contents/Resources/assets/captive/dosbox-x-captive.conf"
           cp tools/captive_dosbox_sequence.expect "$APP/Contents/Resources/assets/captive/"
+          cp tools/verify_captive_live_replay.sh "$APP/Contents/Resources/assets/captive/"
           test -s "$APP/Contents/Resources/assets/captive/dosbox-x-captive.conf"
           cp po/*.po "$APP/Contents/Resources/po/"
           cp -R assets/lproj/*.lproj "$APP/Contents/Resources/"
@@ -366,6 +371,7 @@ jobs:
           xcopy /E /I /Y assets\captive dist\assets\captive
           copy tools\dosbox-x-captive.conf dist\assets\captive\dosbox-x-captive.conf
           copy tools\captive_dosbox_sequence.expect dist\assets\captive\captive_dosbox_sequence.expect
+          copy tools\verify_captive_live_replay.sh dist\assets\captive\verify_captive_live_replay.sh
           copy po\*.po dist\po\
           copy README.md dist\
           copy LICENSE dist\
@@ -743,8 +749,11 @@ jobs:
           test -s artifacts/ios-arm64/OpenCaptive-ios-arm64.ipa
           test -s artifacts/android/OpenCaptive-android.apk
           tar -tzf artifacts/linux-x86_64/opencaptive-linux-x86_64.tar.gz | grep -F 'assets/captive/captive_dosbox_sequence.expect'
+          tar -tzf artifacts/linux-x86_64/opencaptive-linux-x86_64.tar.gz | grep -F 'assets/captive/verify_captive_live_replay.sh'
           dpkg-deb -c artifacts/linux-x86_64/opencaptive_*.deb | grep -F 'usr/share/opencaptive/assets/captive/captive_dosbox_sequence.expect'
+          dpkg-deb -c artifacts/linux-x86_64/opencaptive_*.deb | grep -F 'usr/share/opencaptive/assets/captive/verify_captive_live_replay.sh'
           rpm -qpl artifacts/linux-x86_64/opencaptive-*.rpm | grep -F '/usr/share/opencaptive/assets/captive/captive_dosbox_sequence.expect'
+          rpm -qpl artifacts/linux-x86_64/opencaptive-*.rpm | grep -F '/usr/share/opencaptive/assets/captive/verify_captive_live_replay.sh'
       - name: Extract version-specific release notes
         shell: bash
         run: |
