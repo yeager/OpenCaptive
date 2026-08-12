@@ -359,8 +359,12 @@ static bool captive_navigation_mouse_action(const OpenCaptiveRenderer *r,
 
 static uint8_t captive_scan_for_action(CaptiveNavigationAction action) {
     switch (action) {
-        case CAPTIVE_NAV_ACTION_UP:    return 0x4F; /* keypad 1 */
-        case CAPTIVE_NAV_ACTION_DOWN:  return 0x4E; /* keypad 3 */
+        /* CAPPO holomap arrows are the original forward/backward scans.
+         * ReDMCSB/CAPPO HELP distinguishes these from keypad 1/3, which are
+         * ladder/space zoom controls. DOSBox-X confirms 48/50 pan the real
+         * map while 4F/4E change its scale. */
+        case CAPTIVE_NAV_ACTION_UP:    return 0x48; /* keypad 8 / forward */
+        case CAPTIVE_NAV_ACTION_DOWN:  return 0x50; /* keypad 2 / backward */
         case CAPTIVE_NAV_ACTION_LEFT:  return 0x4B; /* keypad 4 */
         case CAPTIVE_NAV_ACTION_RIGHT: return 0x4D; /* keypad 6 */
         case CAPTIVE_NAV_ACTION_ORBIT: return 0x47; /* keypad 7 */
@@ -397,10 +401,10 @@ static bool captive_live_send_scan(uint8_t scan) {
 static bool captive_live_send_key(SDL_Keycode key) {
     switch (key) {
         case SDLK_UP: return captive_live_send_action(CAPTIVE_NAV_ACTION_UP);
-        case SDLK_KP_1: return captive_live_send_action(CAPTIVE_NAV_ACTION_UP);
-        case SDLK_KP_2: return captive_live_send_scan(0x50); /* original backward */
+        case SDLK_KP_1: return captive_live_send_action(CAPTIVE_NAV_ACTION_ZOOM_OUT);
+        case SDLK_KP_2: return captive_live_send_action(CAPTIVE_NAV_ACTION_DOWN);
         case SDLK_DOWN: return captive_live_send_action(CAPTIVE_NAV_ACTION_DOWN);
-        case SDLK_KP_3: return captive_live_send_action(CAPTIVE_NAV_ACTION_DOWN);
+        case SDLK_KP_3: return captive_live_send_action(CAPTIVE_NAV_ACTION_ZOOM_IN);
         case SDLK_LEFT: return captive_live_send_action(CAPTIVE_NAV_ACTION_LEFT);
         case SDLK_KP_4: return captive_live_send_action(CAPTIVE_NAV_ACTION_LEFT);
         case SDLK_KP_5: return captive_live_send_scan(0x4C); /* original no-op */
@@ -482,8 +486,16 @@ static bool captive_holamap_mouse_move(const OpenCaptiveRenderer *r,
             else
                 holamap_move_cursor(holamap, 1, 0);
             break;
-        case CAPTIVE_NAV_ACTION_ZOOM_IN:  holamap_zoom_in(holamap); break;
-        case CAPTIVE_NAV_ACTION_ZOOM_OUT: holamap_zoom_out(holamap); break;
+        case CAPTIVE_NAV_ACTION_ZOOM_IN:
+            if (captive_live_session_active &&
+                !captive_live_send_action(action)) return false;
+            holamap_zoom_in(holamap);
+            break;
+        case CAPTIVE_NAV_ACTION_ZOOM_OUT:
+            if (captive_live_session_active &&
+                !captive_live_send_action(action)) return false;
+            holamap_zoom_out(holamap);
+            break;
         case CAPTIVE_NAV_ACTION_PYRAMID:  holamap_center_cursor(holamap); break;
         case CAPTIVE_NAV_ACTION_ORBIT:
             /* This is the verified original map action.  CAPPO already has
@@ -4194,27 +4206,39 @@ int main(int argc, char *argv[]) {
                         switch (event.key.key) {
                             case SDLK_UP:
                             case SDLK_KP_8:
+                                if (captive_live_session_active)
+                                    (void)captive_live_send_action(CAPTIVE_NAV_ACTION_UP);
                                 holamap_move_cursor(&captive_holamap, 0, -1);
                                 break;
                             case SDLK_DOWN:
                             case SDLK_KP_2:
+                                if (captive_live_session_active)
+                                    (void)captive_live_send_action(CAPTIVE_NAV_ACTION_DOWN);
                                 holamap_move_cursor(&captive_holamap, 0, 1);
                                 break;
                             case SDLK_LEFT:
                             case SDLK_KP_4:
+                                if (captive_live_session_active)
+                                    (void)captive_live_send_action(CAPTIVE_NAV_ACTION_LEFT);
                                 holamap_move_cursor(&captive_holamap, -1, 0);
                                 break;
                             case SDLK_RIGHT:
                             case SDLK_KP_6:
+                                if (captive_live_session_active)
+                                    (void)captive_live_send_action(CAPTIVE_NAV_ACTION_RIGHT);
                                 holamap_move_cursor(&captive_holamap, 1, 0);
                                 break;
                             case SDLK_KP_7:
                                 (void)captive_holamap_orbit(&gs);
                                 break;
                             case SDLK_KP_1:
+                                if (captive_live_session_active)
+                                    (void)captive_live_send_action(CAPTIVE_NAV_ACTION_ZOOM_OUT);
                                 holamap_zoom_out(&captive_holamap);
                                 break;
                             case SDLK_KP_3:
+                                if (captive_live_session_active)
+                                    (void)captive_live_send_action(CAPTIVE_NAV_ACTION_ZOOM_IN);
                                 holamap_zoom_in(&captive_holamap);
                                 break;
                             case SDLK_KP_5:
