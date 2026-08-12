@@ -92,10 +92,9 @@ static unsigned char *captive_zoom_in_reference;
 static int captive_zoom_in_reference_width;
 static int captive_zoom_in_reference_height;
 static bool captive_landed_reference_active;
-/* CAPPO keeps the holomap visible after the first ORBIT command while it
- * records the route.  A second ORBIT command is the transition into the
- * transit surface.  This flag is only an input-phase marker; it contains no
- * generated destination or movement data. */
+/* CAPPO keeps the holomap visible after ORBIT while it records the route.
+ * This flag is only an input-phase marker; it contains no generated
+ * destination or movement data. */
 static bool captive_flight_path_set;
 
 static void msg_push(const char *text, uint32_t color);
@@ -374,8 +373,6 @@ static bool captive_holamap_mouse_move(const OpenCaptiveRenderer *r,
                  * action; it does not leave the holomap yet. */
                 captive_flight_path_set = true;
                 msg_push(captive_messages[20], 0xFF44FF44);
-            } else {
-                captive_begin_flight(gs);
             }
             return true;
         case CAPTIVE_NAV_ACTION_LAND:
@@ -3274,12 +3271,13 @@ int main(int argc, char *argv[]) {
                     captive_dos_runtime_reported = false;
                     printf("Reloaded CAPPO DOSBox-X memory image\n");
                     if (gs.game_type == GAME_CAPTIVE &&
-                        gs.mode == STATE_SPACE_FLIGHT &&
+                        (gs.mode == STATE_SPACE_FLIGHT ||
+                         (gs.mode == STATE_HOLAMAP && captive_flight_path_set)) &&
                         captive_dos_memory_matches_orbit_frame(fresh_memory)) {
                         /* CAPPO must really have arrived at the planet. The
-                         * native path never treats NUMPAD 7 as arrival. */
-                        gs.mode = STATE_ORBIT;
-                        gs.orbit_angle = 0.0f;
+                         * native path never treats NUMPAD 7 as arrival; the
+                         * live VGA handoff is the transition. */
+                        captive_begin_orbit(&gs);
                         printf("CAPPO orbit state authenticated from DOSBox-X VGA\n");
                     } else if (gs.game_type == GAME_CAPTIVE &&
                         gs.mode == STATE_LANDING &&
@@ -4029,8 +4027,6 @@ int main(int argc, char *argv[]) {
             if (!captive_flight_path_set) {
                 captive_flight_path_set = true;
                 msg_push(captive_messages[20], 0xFF44FF44);
-            } else {
-                captive_begin_flight(&gs);
             }
         }
         break;
@@ -4124,10 +4120,11 @@ int main(int argc, char *argv[]) {
                                     holamap_move_cursor(&captive_holamap, 1, 0);
                                     break;
                                 case CAPTIVE_NAV_ACTION_ORBIT:
-                                    /* CAPPO's explicit ORBIT control advances
-                                     * from the recorded flight-path state to
-                                     * the authenticated orbit checkpoint. */
-                                    captive_begin_orbit(&gs);
+                                    /* CAPPO keeps the holomap visible while
+                                     * the flight path is being recorded. Do
+                                     * not synthesize arrival from a button;
+                                     * orbit requires a live DOSBox-X/CAPPO
+                                     * handoff. */
                                     break;
                                 default:
                                     break;
@@ -4154,11 +4151,8 @@ int main(int argc, char *argv[]) {
                             } else if (event.key.key == SDLK_KP_6) {
                                 holamap_move_cursor(&captive_holamap, 1, 0);
                             } else if (event.key.key == SDLK_KP_7) {
-                                /* The first keypad-7 press records FLIGHT PATH
-                                 * SET; while in that flight phase, the same
-                                 * explicit ORBIT command reaches the real
-                                 * orbit checkpoint. */
-                                captive_begin_orbit(&gs);
+                                /* Do not synthesize arrival from a second
+                                 * keypad-7 command. */
                             } else if (event.key.key == SDLK_KP_9) {
                                 /* CAPPO reports SWAN NOT YET IN ORBIT here.
                                  * Do not start a false landing transition. */

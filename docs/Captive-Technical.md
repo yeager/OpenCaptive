@@ -126,12 +126,12 @@ frame therefore remains gated on a real DOSBox-X/CAPPO state handoff.
 In native reference mode, the space-navigation cluster is no longer a dead
 end: keypad 8/2/4/6 and the corresponding on-screen arrows move the logged
 cursor, and keypad 7 records the original `FLIGHT PATH SET` action when that
-cursor is on the real green target. A second explicit `ORBIT` command (the
-Orbit control or keypad 7) advances to the authenticated orbit frame; keypad 9
-before that point remains the original `SWAN NOT YET IN ORBIT` condition. This
-is an input-driven reference transition, not a timer, procedural arrival, or
-generated planet/dungeon. The separate DOSBox-X dump loader still requires an
-exact VGA match before it accepts a live runtime handoff.
+cursor is on the real green target. A second explicit `ORBIT` command is not
+treated as arrival without a live CAPPO handoff; keypad 9 before that point
+remains the original `SWAN NOT YET IN ORBIT` condition. This is an input-driven
+reference state, not a timer, procedural arrival, or generated planet/dungeon.
+The separate DOSBox-X dump loader still requires an exact VGA match before it
+accepts a live runtime handoff.
 
 ## PL5 graphics
 

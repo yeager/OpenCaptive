@@ -35,7 +35,8 @@ The zoom captures are:
 - `assets/captive/holamap-zoom-in.png` — `NUMPAD 3`
   (`40330335de7d8daa76e2d634680f1c630be834cfb27f53951812815660c39303`).
 
-The complete verified checkpoint is now available as six real CAPPO frames:
+The complete verified checkpoint set currently contains the real CAPPO frames
+listed below:
 
 - `assets/captive/holamap-target.png` — the source-authenticated Butre-route
   navigation frame, where the green point identifies the planet destination
@@ -51,11 +52,13 @@ The complete verified checkpoint is now available as six real CAPPO frames:
 
 `ORBIT` and `LAND` use these authenticated frames and never fall through to
 procedural space, planet, or landing art. The native fallback presents the
-authenticated Butre-route frame during transit. The explicit Orbit control (or
-the second keypad-7 command after `FLIGHT PATH SET`) advances to the
-authenticated orbit frame and reveals its real white landing point. The landed
-surface remains a real checkpoint until the CAPPO mission/runtime decoder can
-supply live dungeon state; no generated dungeon is used.
+authenticated Butre-route frame while CAPPO records the route. A second Orbit
+button press or keypad-7 command is not treated as arrival: the DOSBox-X
+session remains on the holomap with CAPPO's `FLIGHT PATH SET` status. The
+authenticated orbit frame is accepted only after a live CAPPO/DOSBox-X handoff
+proves that CAPPO has reached orbit. The landed surface remains a real
+checkpoint until the CAPPO mission/runtime decoder can supply live dungeon
+state; no generated dungeon is used.
 
 The native fallback keeps the landing transition open until a live
 CAPPO/DOSBox-X handoff proves the landed state. It does not use a wall-clock
