@@ -1,18 +1,20 @@
 #!/usr/bin/expect -f
 
-# Authentic CAPPO input sequence probe.  Every byte is delivered through the
+# Authentic CAPPO input sequence probe. Every byte is delivered through the
 # relocated IRQ1 queue observed in DOSBox-X; this harness never writes game
-# files or constructs a compatibility state.
+# files or constructs a compatibility state. The optional post-input timer
+# count is only a pacing control for observing the original runtime surface.
 
 set timeout 30
 if {$argc < 2} {
-    puts stderr [format "usage: %s DATA_DIR SCAN_HEX-list POST_INTRO_TICKS OUTPUT_DIR" $argv0]
+    puts stderr [format "usage: %s DATA_DIR SCAN_HEX-list POST_INTRO_TICKS OUTPUT_DIR POST_SCAN_TICKS" $argv0]
     exit 2
 }
 set data_dir [lindex $argv 0]
 set sequence [split [lindex $argv 1] ","]
 set post_intro_ticks [expr {$argc > 2 ? [lindex $argv 2] : 240}]
 set output_dir [expr {$argc > 3 ? [file normalize [lindex $argv 3]] : [pwd]}]
+set post_scan_ticks [expr {$argc > 4 ? [lindex $argv 4] : 8}]
 set script_dir [file dirname [file normalize $argv0]]
 set profile [file join $script_dir dosbox-x-captive.conf]
 if {![file isdirectory $data_dir] || ![file exists $profile]} {
@@ -27,6 +29,10 @@ foreach scan $sequence {
 }
 if {$post_intro_ticks < 1 || $post_intro_ticks > 2000} {
     puts stderr "POST_INTRO_TICKS must be between 1 and 2000"
+    exit 2
+}
+if {$post_scan_ticks < 1 || $post_scan_ticks > 2000} {
+    puts stderr "POST_SCAN_TICKS must be between 1 and 2000"
     exit 2
 }
 if {![file isdirectory $output_dir]} {
@@ -109,7 +115,7 @@ foreach scan $sequence {
     send "SM 0824 004E 01\r"
     send "SM 0824 004F 01\r"
     send [format "SM 0824 0050 %s\r" $scan]
-    advance_timer_ticks 8
+    advance_timer_ticks $post_scan_ticks
 }
 
 send "BPDEL 00\r"

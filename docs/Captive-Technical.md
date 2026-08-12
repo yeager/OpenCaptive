@@ -83,7 +83,7 @@ The multi-step probe writes to an explicit output directory and rejects its
 own result unless the new 1 MiB dump contains CAPPO's runtime-state strings:
 
 ```sh
-tools/captive_dosbox_sequence.expect DATA_DIR 47 480 /tmp/cappo-sequence
+tools/captive_dosbox_sequence.expect DATA_DIR 47 480 /tmp/cappo-sequence 8
 ```
 
 The command can therefore produce a useful negative result: a dump with a
@@ -120,6 +120,11 @@ segment (`CS=0824`) lets FILEPLAY complete its original animation sequence and
 load `CAPPO.EXE`. The proof is a caller-supplied 1 MiB DOSBox-X dump containing
 CAPPO's own runtime strings; a dump that still contains only FILEPLAY is
 rejected by the authenticity gate.
+
+The optional final argument to the sequence harness controls only the number
+of original DOSBox-X timer breakpoints advanced after each delivered scan
+byte. It does not create a map, marker, landing point, or viewport; it makes
+the timing of an authentic CAPPO surface reproducible for comparison.
 
 The application bridge has also been exercised end-to-end with:
 

@@ -1,5 +1,27 @@
 # OpenCaptive Release Notes
 
+## v1.1.110 (2026-08-12)
+
+### Added
+
+- **(Captive)** The DOSBox-X CAPPO verification harness now accepts an explicit
+  post-input timer interval, allowing the authentic landing dungeon checkpoint
+  to be reproduced without treating a later title or mission surface as the
+  viewport.
+
+### Changed
+
+- **(Captive)** The verified Orbit-to-Land sequence is documented as an
+  emulator-timed handoff: keypad 7 and keypad 9 are delivered through CAPPO's
+  real IRQ1 queue and the resulting VGA surface is taken from the original
+  runtime memory.
+- **(Infrastructure)** The release is gated by the complete local build/test
+  verification and green GitHub Actions build and release workflows.
+
+### Removed
+
+None.
+
 ## v1.1.109 (2026-08-12)
 
 ### Added
