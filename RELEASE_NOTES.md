@@ -1,5 +1,26 @@
 # OpenCaptive Release Notes
 
+## v1.1.109 (2026-08-12)
+
+### Added
+
+- **(Captive)** The verified DOSBox-X Orbit-to-Land checkpoint now includes the
+  original CAPPO dungeon VGA surface and the decoded live map/draw records.
+- **(Infrastructure)** Release verification records the complete 61-test local
+  suite and the green GitHub Actions build for the preceding `main` commit.
+
+### Changed
+
+- **(Captive)** The runtime renderer prefers the exact 320×200 VGA surface
+  produced by CAPPO from a real DOSBox-X memory dump, preserving the original
+  viewport pixels and control panel without synthetic replacement artwork.
+- **(Documentation)** The user guide, wiki landing page, technical references,
+  and format notes now identify v1.1.109 and retain the real-data-only boundary.
+
+### Removed
+
+None.
+
 ## Release notes policy
 
 Each release must have a handwritten version section with **Added**, **Changed**,
