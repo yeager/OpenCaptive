@@ -1,5 +1,25 @@
 # OpenCaptive Release Notes
 
+## v1.1.115 (2026-08-12)
+
+### Added
+
+- **(Infrastructure)** The DOSBox-X CAPPO sequence harness now keeps its
+  authentic timer breakpoint installed while advancing timer ticks, avoiding
+  debugger churn during long real-runtime verification sessions.
+
+### Changed
+
+- **(Captive)** Verification documentation now reports the observed
+  `FLIGHT PATH SET` and `SWAN NOT YET IN ORBIT` states accurately; a displayed
+  coordinate is not treated as arrival or landing evidence.
+- **(Infrastructure)** Release packaging remains gated by the full local test
+  suite and all platform GitHub Actions jobs.
+
+### Removed
+
+None.
+
 ## v1.1.114 (2026-08-12)
 
 ### Added

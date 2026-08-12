@@ -1,6 +1,6 @@
 # File Formats
 
-> Documentation baseline: v1.1.111. Format readers are covered by the release test suite; original game data is never distributed.
+> Documentation baseline: v1.1.115. Format readers are covered by the release test suite; original game data is never distributed.
 
 This page documents all file formats encountered in Captive and Liberation media.
 

@@ -1,6 +1,6 @@
 # OpenCaptive
 
-**Current release: v1.1.111**
+**Current release: v1.1.115**
 
 A modern C/SDL3 reimplementation of **Captive** (1990) and **Liberation: Captive 2** (1993) by Antony Crowther, published by Mindscape.
 
@@ -14,7 +14,7 @@ and original-output comparisons exist.
 
 ## Downloads
 
-Pre-built packages for all platforms are available on the [Releases](https://github.com/yeager/OpenCaptive/releases) page. Maintainers can also run the **Release** GitHub Actions workflow manually with a version such as `1.1.111`; tag-based releases remain supported.
+Pre-built packages for all platforms are available on the [Releases](https://github.com/yeager/OpenCaptive/releases) page. Maintainers can also run the **Release** GitHub Actions workflow manually with a version such as `1.1.115`; tag-based releases remain supported.
 
 | Platform | Package |
 |----------|---------|

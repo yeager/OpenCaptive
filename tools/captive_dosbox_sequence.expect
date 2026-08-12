@@ -51,6 +51,7 @@ if {$fifo_path ne "" && ![file exists $fifo_path]} {
 cd $output_dir
 
 proc resume_emulation {} { send "\033\[15~" }
+set timer_breakpoint_installed 0
 proc wait_for_timer_break {} {
     expect {
         -re {I->} {}
@@ -59,8 +60,12 @@ proc wait_for_timer_break {} {
     }
 }
 proc advance_timer_ticks {count} {
-    for {set i 0} {$i < $count} {incr i} {
+    global timer_breakpoint_installed
+    if {!$timer_breakpoint_installed} {
         send "BPINT 08\r"
+        set timer_breakpoint_installed 1
+    }
+    for {set i 0} {$i < $count} {incr i} {
         resume_emulation
         wait_for_timer_break
     }
@@ -78,7 +83,6 @@ advance_timer_ticks 120
 send "SM 0040 001A 1E 00\r"
 set tail 0x1e
 foreach key {1 enter 4 enter 3 enter 3 enter} {
-    send "BPDEL 00\r"
     switch -- $key {
         1 { set ascii 0x31; set scan_code 0x02 }
         3 { set ascii 0x33; set scan_code 0x04 }
@@ -108,7 +112,6 @@ advance_timer_ticks 120
 # continuation spaces must use the same queue as keypad input. Sending them
 # through the BIOS ring leaves FILEPLAY on its control screen.
 for {set intro_step 0} {$intro_step < 1} {incr intro_step} {
-    send "BPDEL 00\r"
     send "SM 0824 004E 01\r"
     send "SM 0824 004F 01\r"
     send "SM 0824 0050 39\r"
@@ -118,7 +121,6 @@ for {set intro_step 0} {$intro_step < 1} {incr intro_step} {
 # CAPPO Mission 0001: relocated IRQ1 queue at 0824:004e..0057.
 foreach scan $sequence {
     if {$scan eq "-"} { continue }
-    send "BPDEL 00\r"
     send "SM 0824 004E 01\r"
     send "SM 0824 004F 01\r"
     send [format "SM 0824 0050 %s\r" $scan]
@@ -126,7 +128,6 @@ foreach scan $sequence {
 }
 
 proc dump_cappo_memory {output_dir} {
-    send "BPDEL 00\r"
     send "MEMDUMPBIN 0 0 100000\r"
     expect {
         -re {Memory dump(?: binary)? success} {}
@@ -168,7 +169,6 @@ if {$fifo_path ne ""} {
             puts stderr "invalid live CAPPO scan byte: $command"
             continue
         }
-        send "BPDEL 00\r"
         send "SM 0824 004E 01\r"
         send "SM 0824 004F 01\r"
         send [format "SM 0824 0050 %s\r" $command]

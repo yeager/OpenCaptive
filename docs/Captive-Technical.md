@@ -1,6 +1,6 @@
 # Captive technical notes
 
-> Documentation baseline: v1.1.111. Runtime parity claims remain scoped to the verified boundaries described below.
+> Documentation baseline: v1.1.115. Runtime parity claims remain scoped to the verified boundaries described below.
 
 ## Runtime model
 
@@ -155,12 +155,12 @@ For a complete local input/viewport gate, use:
 tools/verify_captive_navigation.sh /path/to/original/captive [BUILD_DIR]
 ```
 
-This runs the original `47,49` Orbit-to-Land sequence, then repeats it with
-CAPPO's real keypad-8 Forward scan and the original timer window needed to
-complete that movement. Both memory images must pass the byte-exact VGA bridge,
-and the second image must change both the authentic VGA surface and the decoded
-CAPPO map window. The gate is intentionally local-only because
-original game media is player-supplied and is never committed or synthesized.
+This runs the original CAPPO input sequence and checks the authentic VGA and
+memory surfaces. The current verified sequence reaches CAPPO's real
+`FLIGHT PATH SET` state; it does not claim arrival or landing merely because a
+coordinate is displayed. Arrival and landing remain gated on a later live
+CAPPO handoff. The gate is intentionally local-only because original game
+media is player-supplied and is never committed or synthesized.
 
 The normal Captive start-menu action now uses the same transport and authentic
 movement pacing as this gate.
@@ -210,10 +210,10 @@ equality is therefore not an Orbit/arrival proof.
 The live DOSBox-X check reproduces the original numpad path: three keypad-left
 inputs, three keypad-down inputs, one keypad-up input, then keypad 7 with the
 cursor on the green marker. CAPPO responds with its own `FLIGHT PATH SET`
-message. The authenticated Orbit-to-Land gate then delivers keypad 9 and
-accepts the original post-landing VGA surface byte-for-byte. A subsequent
-keypad-8 Forward command, paced through the original timer window, changes
-both the authentic viewport and the decoded CAPPO map state.
+message. In the currently verified session, keypad 9 still reports
+`SWAN NOT YET IN ORBIT`; no post-landing surface is accepted until the original
+runtime proves arrival. A subsequent keypad-8 Forward command is likewise
+kept behind that authentic handoff.
 
 The native compatibility path does not convert the landing transition into
 `STATE_GAME` after a fixed delay. The production live path changes mode only
