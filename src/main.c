@@ -97,6 +97,11 @@ static bool captive_live_session_active;
 /* CAPPO's first live frame explicitly waits for the original DEL/left-mouse
  * continuation. Once consumed, ordinary clicks must stay on CAPPO's surface. */
 static bool captive_live_start_screen_active;
+/* CAPPO's HELP screen says cursor keys move its game pointer. Accumulate host
+ * motion and emit the corresponding original cursor-key scans at a bounded
+ * rate; this is input translation only, not a locally rendered pointer. */
+static float captive_live_mouse_dx;
+static float captive_live_mouse_dy;
 /* CAPPO keeps the holomap visible after ORBIT while it records the route.
  * This flag is only an input-phase marker; it contains no generated
  * destination or movement data. */
@@ -378,6 +383,42 @@ static bool captive_live_send_left_mouse(void) {
     return captive_live_send_scan(0x53);
 }
 
+static bool captive_live_send_cursor_scan(uint8_t scan) {
+    /* The original PC cursor keys are extended XT keys: E0 is the prefix,
+     * followed by the arrow make code.  Sending only the second byte makes
+     * CAPPO interpret it as a gameplay keypad command. */
+    return captive_live_send_scan(0xE0) && captive_live_send_scan(scan);
+}
+
+static void captive_live_send_mouse_motion(const SDL_MouseMotionEvent *motion) {
+    const float step = 10.0f;
+    if (!motion || !captive_live_session_active ||
+        captive_live_start_screen_active)
+        return;
+    captive_live_mouse_dx += motion->xrel;
+    captive_live_mouse_dy += motion->yrel;
+    while (fabsf(captive_live_mouse_dx) >= step ||
+           fabsf(captive_live_mouse_dy) >= step) {
+            uint8_t scan;
+            if (fabsf(captive_live_mouse_dx) >= fabsf(captive_live_mouse_dy)) {
+            if (captive_live_mouse_dx > 0.0f) {
+                scan = 0x4D; /* E0 4D: original cursor-right */
+                captive_live_mouse_dx -= step;
+            } else {
+                scan = 0x4B; /* E0 4B: original cursor-left */
+                captive_live_mouse_dx += step;
+            }
+        } else if (captive_live_mouse_dy > 0.0f) {
+            scan = 0x50; /* E0 50: original cursor-down */
+            captive_live_mouse_dy -= step;
+        } else {
+            scan = 0x48; /* E0 48: original cursor-up */
+            captive_live_mouse_dy += step;
+        }
+        if (!captive_live_send_cursor_scan(scan)) break;
+    }
+}
+
 static bool captive_live_send_action(CaptiveNavigationAction action) {
     uint8_t scan = captive_scan_for_action(action);
     return captive_live_session_active && scan != 0 &&
@@ -391,12 +432,16 @@ static bool captive_live_send_scan(uint8_t scan) {
 
 static bool captive_live_send_key(SDL_Keycode key) {
     switch (key) {
-        case SDLK_KP_1: case SDLK_UP: return captive_live_send_action(CAPTIVE_NAV_ACTION_UP);
+        case SDLK_UP: return captive_live_send_cursor_scan(0x48);
+        case SDLK_KP_1: return captive_live_send_action(CAPTIVE_NAV_ACTION_UP);
         case SDLK_KP_2: return captive_live_send_scan(0x50); /* original backward */
-        case SDLK_KP_3: case SDLK_DOWN: return captive_live_send_action(CAPTIVE_NAV_ACTION_DOWN);
-        case SDLK_KP_4: case SDLK_LEFT: return captive_live_send_action(CAPTIVE_NAV_ACTION_LEFT);
+        case SDLK_DOWN: return captive_live_send_cursor_scan(0x50);
+        case SDLK_KP_3: return captive_live_send_action(CAPTIVE_NAV_ACTION_DOWN);
+        case SDLK_LEFT: return captive_live_send_cursor_scan(0x4B);
+        case SDLK_KP_4: return captive_live_send_action(CAPTIVE_NAV_ACTION_LEFT);
         case SDLK_KP_5: return captive_live_send_scan(0x4C); /* original no-op */
-        case SDLK_KP_6: case SDLK_RIGHT: return captive_live_send_action(CAPTIVE_NAV_ACTION_RIGHT);
+        case SDLK_RIGHT: return captive_live_send_cursor_scan(0x4D);
+        case SDLK_KP_6: return captive_live_send_action(CAPTIVE_NAV_ACTION_RIGHT);
         case SDLK_KP_7: return captive_live_send_action(CAPTIVE_NAV_ACTION_ORBIT);
         case SDLK_KP_8: return captive_live_send_scan(0x48); /* original forward */
         case SDLK_KP_9: return captive_live_send_action(CAPTIVE_NAV_ACTION_LAND);
@@ -3261,6 +3306,8 @@ int main(int argc, char *argv[]) {
             } else {
                 captive_live_session_active = true;
                 captive_live_start_screen_active = true;
+                captive_live_mouse_dx = 0.0f;
+                captive_live_mouse_dy = 0.0f;
                 captive_dos_dump_path = captive_live_session.dump_path;
                 captive_dos_memory = load_captive_dos_dump(captive_dos_dump_path);
                 if (!captive_dos_memory) {
@@ -3441,6 +3488,12 @@ int main(int argc, char *argv[]) {
                 break;
             }
 
+            if (gs.game_type == GAME_CAPTIVE &&
+                captive_live_session_active &&
+                event.type == SDL_EVENT_MOUSE_MOTION) {
+                captive_live_send_mouse_motion(&event.motion);
+            }
+
             if (custom.replay_record && gs.game_type == GAME_CAPTIVE &&
                 gs.mode == STATE_GAME && event.type == SDL_EVENT_KEY_DOWN) {
                 uint8_t action;
@@ -3529,6 +3582,8 @@ int main(int argc, char *argv[]) {
                             }
                             captive_live_session_active = true;
                             captive_live_start_screen_active = true;
+                            captive_live_mouse_dx = 0.0f;
+                            captive_live_mouse_dy = 0.0f;
                             captive_dos_dump_path = captive_live_session.dump_path;
                             captive_dos_memory =
                                 load_captive_dos_dump(captive_dos_dump_path);
@@ -3763,6 +3818,8 @@ int main(int argc, char *argv[]) {
                         captive_emulator_session_stop(&captive_live_session);
                         captive_live_session_active = false;
                         captive_live_start_screen_active = false;
+                        captive_live_mouse_dx = 0.0f;
+                        captive_live_mouse_dy = 0.0f;
                         free(captive_dos_memory);
                         captive_dos_memory = NULL;
                         captive_dos_memory_active = false;
