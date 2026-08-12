@@ -92,6 +92,13 @@ static unsigned char *captive_zoom_in_reference;
 static int captive_zoom_in_reference_width;
 static int captive_zoom_in_reference_height;
 static bool captive_landed_reference_active;
+/* CAPPO keeps the holomap visible after the first ORBIT command while it
+ * records the route.  A second ORBIT command is the transition into the
+ * transit surface.  This flag is only an input-phase marker; it contains no
+ * generated destination or movement data. */
+static bool captive_flight_path_set;
+
+static void msg_push(const char *text, uint32_t color);
 /* Optional caller-owned CAPPO memory image.  This is a diagnostic/runtime
  * bridge only: when present, Captive's viewport is decoded from the exact
  * DOSBox-X memory image and never falls back to map_gen or a generated scene. */
@@ -221,6 +228,7 @@ static void captive_begin_flight(GameState *gs) {
     if (!gs || !captive_holamap_target_reference ||
         !captive_holamap_target_selected()) return;
     captive_landed_reference_active = false;
+    captive_flight_path_set = false;
     gs->mode = STATE_SPACE_FLIGHT;
 }
 
@@ -242,6 +250,7 @@ static void captive_begin_orbit(GameState *gs) {
 }
 
 static void captive_holamap_reset(uint32_t mission_seed) {
+    captive_flight_path_set = false;
     holamap_init(&captive_holamap, mission_seed);
     if (captive_holamap_reference) {
         holamap_set_reference_frame(&captive_holamap,
@@ -360,7 +369,14 @@ static bool captive_holamap_mouse_move(const OpenCaptiveRenderer *r,
              * and the later white landing circle remain original media. */
             if (!captive_orbit_reference ||
                 !captive_holamap_target_selected()) return false;
-            captive_begin_flight(gs);
+            if (!captive_flight_path_set) {
+                /* The authentic first click is CAPPO's FLIGHT PATH SET
+                 * action; it does not leave the holomap yet. */
+                captive_flight_path_set = true;
+                msg_push(captive_messages[20], 0xFF44FF44);
+            } else {
+                captive_begin_flight(gs);
+            }
             return true;
         case CAPTIVE_NAV_ACTION_LAND:
         case CAPTIVE_NAV_ACTION_NONE:
@@ -4008,9 +4024,16 @@ int main(int argc, char *argv[]) {
                             case SDLK_KP_6:
                                 holamap_move_cursor(&captive_holamap, 1, 0);
                                 break;
-                            case SDLK_KP_7:
-                                captive_begin_flight(&gs);
-                                break;
+    case SDLK_KP_7:
+        if (captive_holamap_target_selected()) {
+            if (!captive_flight_path_set) {
+                captive_flight_path_set = true;
+                msg_push(captive_messages[20], 0xFF44FF44);
+            } else {
+                captive_begin_flight(&gs);
+            }
+        }
+        break;
                             case SDLK_KP_1:
                                 holamap_zoom_out(&captive_holamap);
                                 break;
