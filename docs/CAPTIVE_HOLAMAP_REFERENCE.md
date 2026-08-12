@@ -37,8 +37,10 @@ The zoom captures are:
 - `assets/captive/holamap-zoom-in.png` — `NUMPAD 3`
   (`40330335de7d8daa76e2d634680f1c630be834cfb27f53951812815660c39303`).
 
-The complete verified checkpoint set currently contains the real CAPPO frames
-listed below:
+The reference set contains real CAPPO frames captured during separate
+DOSBox-X sessions. It is not, by itself, proof that one replay completed the
+whole route; a replay gate must authenticate each transition from the current
+CAPPO VGA surface before OpenCaptive changes phase.
 
 - `assets/captive/holamap-target.png` — the source-authenticated Butre-route
   navigation frame, where the green point identifies the planet destination
@@ -62,7 +64,8 @@ coordinate reaches the recorded target. The authenticated orbit frame is
 accepted only after a live CAPPO/DOSBox-X handoff proves that CAPPO has
 reached orbit. The landed surface remains a real checkpoint until the CAPPO
 mission/runtime decoder can supply live dungeon state; no generated dungeon
-is used.
+is used. A second Orbit button press or keypad-7 command is not treated as
+arrival; the original runtime must first report arrival.
 
 The native diagnostic path keeps the landing transition open until a live
 CAPPO/DOSBox-X handoff proves the landed state. It does not use a wall-clock

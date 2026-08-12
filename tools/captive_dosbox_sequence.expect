@@ -151,6 +151,19 @@ if {$fifo_path ne ""} {
     while {[gets $fifo command] >= 0} {
         set command [string trim $command]
         if {$command eq "quit"} { break }
+        if {[regexp {^WAIT:([0-9]+)$} $command -> wait_ticks]} {
+            if {$wait_ticks < 1 || $wait_ticks > 2000} {
+                puts stderr "WAIT tick count must be between 1 and 2000"
+                continue
+            }
+            # Diagnostic pacing only: let the original CAPPO timer run without
+            # injecting a keyboard event. This is essential for distinguishing
+            # FLIGHT PATH SET from CAPPO's later ARRIVED AT DESTINATION state.
+            advance_timer_ticks $wait_ticks
+            set dump_path [dump_cappo_memory $output_dir]
+            puts stderr "CAPPO live timer advanced: $wait_ticks"
+            continue
+        }
         if {![regexp {^[0-9A-Fa-f]{2}$} $command]} {
             puts stderr "invalid live CAPPO scan byte: $command"
             continue
