@@ -446,16 +446,11 @@ static void captive_live_send_mouse_motion(float dx, float dy) {
  * landing, or dungeon frames. */
 static bool captive_holamap_orbit(GameState *gs) {
     if (!gs || !captive_holamap_target_selected()) return false;
-    if (captive_live_session_active) {
-        if (!captive_live_send_action(CAPTIVE_NAV_ACTION_ORBIT)) return false;
-        if (!captive_flight_path_set) {
-            captive_flight_path_set = true;
-            msg_push(captive_messages[20], 0xFF44FF44);
-        } else {
-            captive_begin_flight(gs);
-        }
-        return true;
-    }
+    /* Captive navigation is owned by CAPPO.  Without a live original
+     * emulator there is no source-backed flight transition to display, so
+     * fail closed instead of entering the old procedural flight surface. */
+    if (!captive_live_session_active) return false;
+    if (!captive_live_send_action(CAPTIVE_NAV_ACTION_ORBIT)) return false;
     if (!captive_flight_path_set) {
         captive_flight_path_set = true;
         msg_push(captive_messages[20], 0xFF44FF44);
@@ -3435,22 +3430,27 @@ int main(int argc, char *argv[]) {
                     captive_dos_runtime_reported = false;
                     printf("Reloaded CAPPO DOSBox-X memory image\n");
                     if (gs.game_type == GAME_CAPTIVE &&
-                        (gs.mode == STATE_SPACE_FLIGHT ||
+                        captive_live_session_active &&
+                        (gs.mode == STATE_GAME ||
+                         gs.mode == STATE_SPACE_FLIGHT ||
                          (gs.mode == STATE_HOLAMAP && captive_flight_path_set)) &&
                         captive_dos_memory_matches_orbit_frame(fresh_memory)) {
-                        /* CAPPO must really have arrived at the planet. The
-                         * native path never treats NUMPAD 7 as arrival; the
-                         * live VGA handoff is the transition. */
-                        captive_begin_orbit(&gs);
+                        /* CAPPO must really have arrived at the planet. Keep
+                         * STATE_GAME for a live session: its renderer and
+                         * input path are the raw current CAPPO surface, not a
+                         * locally replayed orbit checkpoint. */
+                        captive_landed_reference_active = false;
+                        captive_flight_path_set = false;
                         printf("CAPPO orbit state authenticated from DOSBox-X VGA\n");
                     } else if (gs.game_type == GAME_CAPTIVE &&
-                        gs.mode == STATE_LANDING &&
+                        captive_live_session_active &&
+                        (gs.mode == STATE_GAME || gs.mode == STATE_LANDING) &&
                         captive_dos_memory_matches_landed_frame(fresh_memory)) {
                         /* This is the only native transition into the landed
                          * Captive view.  The frame came from CAPPO's real
                          * VGA memory after the user's landing action. */
                         captive_landed_reference_active = true;
-                        gs.mode = STATE_GAME;
+                        if (gs.mode == STATE_LANDING) gs.mode = STATE_GAME;
                         printf("CAPPO landed state authenticated from DOSBox-X VGA\n");
                     }
                 }
