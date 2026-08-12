@@ -424,10 +424,21 @@ static bool captive_holamap_mouse_move(const OpenCaptiveRenderer *r,
         !captive_navigation_mouse_action(r, button, &action))
         return false;
     switch (action) {
-        case CAPTIVE_NAV_ACTION_UP:    holamap_move_cursor(holamap, 0, -1); break;
-        case CAPTIVE_NAV_ACTION_DOWN:  holamap_move_cursor(holamap, 0, 1); break;
-        case CAPTIVE_NAV_ACTION_LEFT:  holamap_move_cursor(holamap, -1, 0); break;
-        case CAPTIVE_NAV_ACTION_RIGHT: holamap_move_cursor(holamap, 1, 0); break;
+        case CAPTIVE_NAV_ACTION_UP:
+        case CAPTIVE_NAV_ACTION_DOWN:
+        case CAPTIVE_NAV_ACTION_LEFT:
+        case CAPTIVE_NAV_ACTION_RIGHT:
+            if (captive_live_session_active && !captive_live_send_action(action))
+                return false;
+            if (action == CAPTIVE_NAV_ACTION_UP)
+                holamap_move_cursor(holamap, 0, -1);
+            else if (action == CAPTIVE_NAV_ACTION_DOWN)
+                holamap_move_cursor(holamap, 0, 1);
+            else if (action == CAPTIVE_NAV_ACTION_LEFT)
+                holamap_move_cursor(holamap, -1, 0);
+            else
+                holamap_move_cursor(holamap, 1, 0);
+            break;
         case CAPTIVE_NAV_ACTION_ZOOM_IN:  holamap_zoom_in(holamap); break;
         case CAPTIVE_NAV_ACTION_ZOOM_OUT: holamap_zoom_out(holamap); break;
         case CAPTIVE_NAV_ACTION_PYRAMID:  holamap_center_cursor(holamap); break;
@@ -3248,7 +3259,12 @@ int main(int argc, char *argv[]) {
                 }
                 captive_dos_memory_active = true;
                 gs.game_type = GAME_CAPTIVE;
-                gs.mode = STATE_GAME;
+                /* CAPPO's process is already running, but OpenCaptive must
+                 * still begin at the original navigation surface.  The
+                 * runtime dump is not permission to skip the holomap or to
+                 * present a dungeon before a verified LAND handoff. */
+                captive_holamap_reset(gs.mission);
+                gs.mode = STATE_HOLAMAP;
                 printf("Started authentic CAPPO live session in OpenCaptive\n");
             }
         } else if (!textures_loaded) {
@@ -3511,7 +3527,12 @@ int main(int argc, char *argv[]) {
                             }
                             captive_dos_memory_active = true;
                             captive_dos_dump_mtime_ns = 0;
-                            gs.mode = STATE_GAME;
+                            /* Starting CAPPO prepares the authentic runtime;
+                             * it does not mean the player has landed.  Keep
+                             * the navigation view visible until the raw
+                             * CAPPO VGA handoff authenticates each phase. */
+                            captive_holamap_reset(gs.mission);
+                            gs.mode = STATE_HOLAMAP;
                             music_stop(&music_sys);
                             break;
                         case MENU_RESULT_START_LIBERATION:
