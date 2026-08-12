@@ -3161,6 +3161,15 @@ int main(int argc, char *argv[]) {
         if (!validate_data_path(&vfs)) {
             show_missing_data_dialog(config.data_path);
             capture_failed = capture_frame_path != NULL;
+        } else if (!captive_dos_memory_active && !capture_frame_path &&
+                   captive_emulator_launch(config.data_path)) {
+            /* A normal direct Captive launch must follow the same authentic
+             * CAPTIVE.BAT path as the start-menu action.  The native path is
+             * reserved for explicit frame/dump analysis, so a desktop
+             * shortcut can never silently open the incomplete compatibility
+             * shell or a synthetic dungeon. */
+            printf("Handed direct Captive launch to authentic DOSBox-X runtime\n");
+            return 0;
         } else if (!textures_loaded) {
             /* The startup hash set is a fast identity gate.  The renderer
              * still needs every decoded PL5 surface; do not enter the game

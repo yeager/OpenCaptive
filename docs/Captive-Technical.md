@@ -53,6 +53,13 @@ from the graphical start menu and `CAPTIVE.BAT` is present. If the original
 DOS runtime is unavailable, the menu retains the source-authenticated
 reference-frame fallback rather than inventing gameplay state.
 
+The direct command-line path follows the same rule: `--game captive` hands off
+to the authentic DOSBox-X runtime whenever no explicit `--captive-dos-dump` or
+`--capture-frame` analysis operation was requested. Those two flags remain
+intentionally headless/native because they consume a caller-supplied real
+checkpoint; an ordinary launch must never silently open the incomplete native
+compatibility shell or a generated dungeon.
+
 The startup harness can reproduce the original INTRO selections without
 inventing input files:
 
