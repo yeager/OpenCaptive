@@ -94,6 +94,9 @@ static int captive_zoom_in_reference_height;
 static bool captive_landed_reference_active;
 static CaptiveEmulatorSession captive_live_session;
 static bool captive_live_session_active;
+/* CAPPO's first live frame explicitly waits for the original DEL/left-mouse
+ * continuation. Once consumed, ordinary clicks must stay on CAPPO's surface. */
+static bool captive_live_start_screen_active;
 /* CAPPO keeps the holomap visible after ORBIT while it records the route.
  * This flag is only an input-phase marker; it contains no generated
  * destination or movement data. */
@@ -3257,6 +3260,7 @@ int main(int argc, char *argv[]) {
                 return 1;
             } else {
                 captive_live_session_active = true;
+                captive_live_start_screen_active = true;
                 captive_dos_dump_path = captive_live_session.dump_path;
                 captive_dos_memory = load_captive_dos_dump(captive_dos_dump_path);
                 if (!captive_dos_memory) {
@@ -3524,6 +3528,7 @@ int main(int argc, char *argv[]) {
                                 break;
                             }
                             captive_live_session_active = true;
+                            captive_live_start_screen_active = true;
                             captive_dos_dump_path = captive_live_session.dump_path;
                             captive_dos_memory =
                                 load_captive_dos_dump(captive_dos_dump_path);
@@ -3757,6 +3762,7 @@ int main(int argc, char *argv[]) {
                         event.key.key == SDLK_ESCAPE) {
                         captive_emulator_session_stop(&captive_live_session);
                         captive_live_session_active = false;
+                        captive_live_start_screen_active = false;
                         free(captive_dos_memory);
                         captive_dos_memory = NULL;
                         captive_dos_memory_active = false;
@@ -3791,15 +3797,18 @@ int main(int argc, char *argv[]) {
                                event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                                event.button.button == SDL_BUTTON_LEFT) {
                         CaptiveNavigationAction action;
-                        if (captive_navigation_mouse_action(&renderer,
-                                                            &event.button,
-                                                            &action)) {
-                            (void)captive_live_send_action(action);
-                        } else {
-                            /* On CAPPO's authentic start screen the game
-                             * waits for DEL/left mouse anywhere on the
-                             * surface before it reveals the mission map. */
+                        /* The first CAPPO frame reuses the same right-hand
+                         * button grid as the later mission surface, but its
+                         * contract is simpler: any DEL/left click advances
+                         * the start screen.  Test that authentic phase first
+                         * so a click cannot be misread as Orbit or Land. */
+                        if (captive_live_start_screen_active) {
                             (void)captive_live_send_left_mouse();
+                            captive_live_start_screen_active = false;
+                        } else if (captive_navigation_mouse_action(&renderer,
+                                                                   &event.button,
+                                                                   &action)) {
+                            (void)captive_live_send_action(action);
                         }
                     } else if (gs.game_type == GAME_CAPTIVE &&
                                captive_live_session_active &&
