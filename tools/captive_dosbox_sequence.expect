@@ -1,8 +1,9 @@
 #!/usr/bin/expect -f
 
 # Authentic CAPPO input sequence probe. Every byte is delivered through the
-# relocated IRQ1 queue observed in DOSBox-X; this harness never writes game
-# files or constructs a compatibility state. The optional post-input timer
+# DOSBox-X's emulated AT keyboard controller and IRQ1 path; this harness never
+# writes CAPPO's private input matrix, game files, or a compatibility state.
+# The optional post-input timer
 # count is only a pacing control for observing the original runtime surface.
 
 # A complete DOSBox-X VRT observation can take longer than the normal input
@@ -68,7 +69,6 @@ proc wait_for_timer_break {} {
     global cappo_dispatch_hit
     expect {
         -re {07E4:6A33|0824:6633} { set cappo_dispatch_hit 1; exp_continue }
-        -re {0824:D753} { puts stderr "CAPPO legacy handler breakpoint reached at 0824:D753"; exp_continue }
         -re {0824:06B8} {
             global orbit_input_consumed
             send "EV AX\r"
@@ -127,6 +127,14 @@ proc inject_mouse_dy {delta} {
 proc inject_mouse_button {pressed} {
     set value [expr {$pressed ? 0x880 : 0x800}]
     integration_write32 0x00804200 $value
+}
+
+proc inject_keyboard_scan {scan} {
+    # AT keyboard controller command D2 places the following byte in the
+    # emulated keyboard output buffer and raises IRQ1. This is hardware input,
+    # not a write to CAPPO's private queue or game state.
+    send "OUTB 64 D2\r"
+    send [format "OUTB 60 %02X\r" $scan]
 }
 
 spawn env TERM=xterm-256color dosbox-x -break-start -conf $profile -set debuggerrun=debugger \
@@ -240,23 +248,17 @@ proc trace_dispatch_state {} {
     }
 }
 
-# CAPPO Mission 0001: relocated IRQ1 queue at 0824:004e..0057.  The original
-# IRQ1 path receives make and break bytes; sending only make bytes leaves the
-# per-control pressed bits set after the first repeat and is not equivalent to
-# a real keyboard.  CAPPO's dispatcher masks the break bit before routing the
-# action (CAPPO.EXE 0x6A33..0x6B03), so every probe scan is paired with its XT
-# break byte here.  This changes no game data and keeps all state in CAPPO.
+# CAPPO's original IRQ1 handler reads port 60h, builds the keyboard matrix at
+# DS:02DC/03DC, and then the dispatcher consumes that matrix. The debugger's
+# keyboard-controller D2 command injects the same hardware byte; pairing make
+# and break scans preserves real key-up behavior.
 foreach scan $sequence {
     if {$scan eq "-"} { continue }
-    send "SM 0824 004E 01\r"
-    send "SM 0824 004F 01\r"
-    send [format "SM 0824 0050 %s\r" $scan]
-    advance_runtime_ticks $post_scan_ticks
     scan $scan %x scan_value
+    inject_keyboard_scan $scan_value
+    advance_runtime_ticks $post_scan_ticks
     set break_scan [expr {0x80 | $scan_value}]
-    send "SM 0824 004E 01\r"
-    send "SM 0824 004F 01\r"
-    send [format "SM 0824 0050 %02X\r" $break_scan]
+    inject_keyboard_scan $break_scan
     advance_runtime_ticks $post_scan_ticks
 }
 
@@ -287,8 +289,8 @@ if {!$cappo_dispatch_hit} {
     exit 1
 }
 if {$fifo_path ne ""} {
-    # A FIFO command is a raw XT make scan, not a symbolic game action.  The
-    # CAPPO queue and timer are still owned by the original DOS runtime.
+    # A FIFO command is a raw XT make scan, not a symbolic game action. The
+    # emulated AT controller and CAPPO IRQ1 handler still own the input state.
     set fifo [open $fifo_path r+]
     fconfigure $fifo -translation lf -encoding ascii -buffering line -blocking 1
     puts stderr "CAPPO live FIFO ready: $fifo_path"
@@ -329,12 +331,18 @@ if {$fifo_path ne ""} {
             puts stderr "CAPPO live mouse button delivered: $command"
             continue
         }
+        if {[regexp {^HWSCAN:([0-9A-Fa-f]{2})$} $command -> hwscan]} {
+            scan $hwscan %x hw_value
+            inject_keyboard_scan $hw_value
+            advance_runtime_ticks $post_scan_ticks
+            set dump_path [dump_cappo_memory $output_dir]
+            puts stderr "CAPPO hardware keyboard scan delivered: $hwscan"
+            continue
+        }
         if {![regexp {^[0-9A-Fa-f]{2}$} $command]} {
             puts stderr "invalid live CAPPO scan byte: $command"
             continue
         }
-        send "SM 0824 004E 01\r"
-        send "SM 0824 004F 01\r"
         if {$trace_dispatch} {
             send "BP 0824:6633\r"
         }
@@ -344,7 +352,8 @@ if {$fifo_path ne ""} {
             # by an idle poll and falsely certify the later command.
             send "BP 0824:06B8\r"
         }
-        send [format "SM 0824 0050 %s\r" $command]
+        scan $command %x command_value
+        inject_keyboard_scan $command_value
         advance_runtime_ticks $post_scan_ticks
         if {$trace_dispatch} {
             trace_dispatch_state
@@ -355,11 +364,8 @@ if {$fifo_path ne ""} {
                 eof { exit 1 }
             }
         }
-        scan $command %x command_value
         set break_scan [expr {0x80 | $command_value}]
-        send "SM 0824 004E 01\r"
-        send "SM 0824 004F 01\r"
-        send [format "SM 0824 0050 %02X\r" $break_scan]
+        inject_keyboard_scan $break_scan
         advance_runtime_ticks $post_scan_ticks
         set dump_path [dump_cappo_memory $output_dir]
         puts stderr "CAPPO live scan delivered: $command"

@@ -1,8 +1,9 @@
 #!/bin/sh
 set -eu
 
-# Local-only replay gate. It drives the original CAPPO Mission 0001 runtime through the
-# private IRQ1 queue and verifies every resulting VGA dump. No game data,
+# Local-only replay gate. It drives the original CAPPO Mission 0001 runtime through
+# DOSBox-X's emulated AT keyboard controller and IRQ1 handler and verifies every
+# resulting VGA dump. No game data,
 # dungeon, position, or frame is created by this script.
 data_dir=${1:?usage: $0 DATA_DIR [build_dir]}
 build_dir=${2:-build}

@@ -25,7 +25,7 @@ mkdir -p "$orbit_dir" "$move_dir"
 # this Mission 0001 state. This gate verifies the authentic VGA handoff and
 # input response only; it does not promote a changed coordinate to Orbit.
 # VRT advances a complete original emulator frame. Keep this probe short: it
-# verifies the accepted scan and resulting VGA surface, while arrival timing
+# verifies the accepted hardware scan and resulting VGA surface, while arrival timing
 # is covered separately by the live FIFO diagnostics.
 expect tools/captive_dosbox_sequence.expect "$data_dir" 47 240 "$orbit_dir" 8 \
     >"$orbit_dir/sequence.log" 2>&1

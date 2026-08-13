@@ -75,15 +75,18 @@ inventing input files:
 tools/captive_dosbox_intro.expect DATA_DIR
 ```
 
-For the already verified Mission 0001 segment, the separate queue probe sends
-one raw scan byte through CAPPO's actual IRQ1 queue while DOSBox-X is paused:
+For the already verified Mission 0001 segment, the live sequence harness sends
+raw make/break scan bytes through DOSBox-X's emulated AT keyboard controller.
+CAPPO's actual IRQ1 handler reads those bytes from port `60h` and builds the
+runtime keyboard matrix; the harness does not write CAPPO's private matrix:
 
 ```sh
 tools/captive_dosbox_queue.expect DATA_DIR 47
 ```
 
 This is an emulator/disassembly probe only, and it never synthesizes a map,
-save, droid roster or dungeon state.
+save, droid roster or dungeon state. Direct `SM` writes to guessed CAPPO input
+slots are not input proof and are not used by the live sequence.
 
 The normal OpenCaptive game path hands control to the original CAPPO window.
 The original timer, VGA surface, keyboard, mouse and audio remain authoritative;
@@ -147,11 +150,12 @@ that disassembly evidence outranks transient debugger register values sampled
 inside another routine. `0x1663` is not used as the live game-state segment.
 The source bank is passed separately to descriptor decoding.
 The handler reads raw XT/AT
-scan bytes using byte `CS:0x004e` as the queued-byte count, byte `CS:0x004f` as
-the ring index, and eight bytes at `CS:0x0050`. The game loop consumes that queue
-through the matrix conversion at `0x0203`; it does not use the ordinary DOS
-keyboard buffer while CAPPO is running. This explains why a generic BIOS-buffer
-injector cannot verify keypad navigation.
+scan bytes from the emulated AT controller at port `60h`. The relocated IRQ1
+handler at CAPPO file offset `0x065c` reads the controller byte, translates it
+through the original keyboard table, and updates CAPPO's runtime matrix before
+the game loop consumes the action. This is why a generic BIOS-buffer injector,
+or a direct write to a guessed CAPPO memory slot, cannot verify keypad
+navigation.
 
 The verified keypad mapping is therefore raw scan code `0x47` for keypad 7
 (ORBIT) and `0x49` for keypad 9 (LAND), with the original `0x01` escape code.
@@ -172,8 +176,8 @@ DOSBox-X dump containing CAPPO's own runtime strings; a dump that still contains
 only FILEPLAY is rejected by the authenticity gate.
 
 The optional final argument to the sequence harness controls only the number
-of original DOSBox-X timer breakpoints advanced after each delivered scan
-byte. It does not create a map, marker, landing point, or viewport; it makes
+of original DOSBox-X timer frames advanced after each delivered make/break scan
+pair. It does not create a map, marker, landing point, or viewport; it makes
 the timing of an authentic CAPPO surface reproducible for comparison.
 
 The harness allows a deliberately long response window for each DOSBox-X
