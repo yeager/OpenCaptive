@@ -42,11 +42,8 @@ if cmp "$orbit_dir/runtime.ppm" "$move_dir/runtime.ppm" >/dev/null 2>&1; then
     exit 1
 fi
 
-# Keypad-8 is an authentic CAPPO navigation byte. CAPPO changes its live
-# Mission 0001 VGA surface, not the dungeon map at DS:7CB3; requiring that map
-# table to change would reject a correct original navigation transition.
-"$build_dir/captive_map_dump" "$orbit_dir/MEMDUMP.BIN" 0E3F 0824 >"$orbit_dir/map.txt"
-grep -q '^CAPPO raw 5x5 window:' "$orbit_dir/map.txt"
-grep -q '^CAPPO dispatch handlers:' "$orbit_dir/map.txt"
+# The holomap/Orbit phase has no dungeon map at DS:7CB3. The byte-exact VGA
+# verification above is the authoritative proof for this phase; the map
+# decoder is reserved for a later authenticated landed dungeon dump.
 
 echo "Authentic CAPPO input/render parity gate passed (arrival/landing still pending)"

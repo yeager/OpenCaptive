@@ -40,6 +40,18 @@ bool captive_emulator_session_send_scan(CaptiveEmulatorSession *session,
     return false;
 }
 
+bool captive_emulator_session_send_mouse_motion(CaptiveEmulatorSession *session,
+                                                int dx, int dy) {
+    (void)session; (void)dx; (void)dy;
+    return false;
+}
+
+bool captive_emulator_session_send_mouse_button(CaptiveEmulatorSession *session,
+                                                bool pressed) {
+    (void)session; (void)pressed;
+    return false;
+}
+
 bool captive_emulator_session_dump_ready(const CaptiveEmulatorSession *session) {
     (void)session;
     return false;
@@ -205,6 +217,45 @@ bool captive_emulator_session_send_scan(CaptiveEmulatorSession *session,
     snprintf(command, sizeof(command), "%02X\n", scan_code);
     written = write(session->command_fd, command, 3);
     return written == 3;
+}
+
+static bool send_fifo_command(CaptiveEmulatorSession *session,
+                              const char *command) {
+    size_t length;
+    ssize_t written;
+    if (!session || session->process_id <= 0 || session->command_fd < 0 ||
+        !command) return false;
+    length = strlen(command);
+    written = write(session->command_fd, command, length);
+    return written == (ssize_t)length;
+}
+
+bool captive_emulator_session_send_mouse_motion(CaptiveEmulatorSession *session,
+                                                int dx, int dy) {
+    char command[48];
+    bool ok = true;
+    /* DOSBox-X's integration device accepts signed relative motion. Split
+     * large SDL deltas so the original INT 33 accumulator sees every unit. */
+    while (dx != 0) {
+        int step = dx > 127 ? 127 : (dx < -127 ? -127 : dx);
+        int length = snprintf(command, sizeof(command), "MOUSE_DX:%d\n", step);
+        if (length <= 0 || (size_t)length >= sizeof(command) ||
+            !send_fifo_command(session, command)) return false;
+        dx -= step;
+    }
+    while (dy != 0) {
+        int step = dy > 127 ? 127 : (dy < -127 ? -127 : dy);
+        int length = snprintf(command, sizeof(command), "MOUSE_DY:%d\n", step);
+        if (length <= 0 || (size_t)length >= sizeof(command) ||
+            !send_fifo_command(session, command)) return false;
+        dy -= step;
+    }
+    return ok;
+}
+
+bool captive_emulator_session_send_mouse_button(CaptiveEmulatorSession *session,
+                                                bool pressed) {
+    return send_fifo_command(session, pressed ? "MOUSE_DOWN\n" : "MOUSE_UP\n");
 }
 
 bool captive_emulator_session_dump_ready(const CaptiveEmulatorSession *session) {

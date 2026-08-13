@@ -23,6 +23,12 @@ path. OpenCaptive maps `NUMPAD 2/4/6/8` to cursor movement, `NUMPAD 7` to
 authenticated CAPPO frames captured from DOSBox-X; OpenCaptive does not
 enlarge the opening bitmap or synthesize map detail.
 
+In a live DOSBox-X session, mouse motion and left-clicks use CAPPO's original
+INT 33 path through DOSBox-X's emulated 8042 mouse device. OpenCaptive does
+not convert those events into local arrow actions or invent a cursor position;
+the resulting CAPPO VGA surface is reloaded only after the original runtime
+has processed the event.
+
 The recorded Mission 0001 coordinate is only one part of CAPPO's navigation
 state. A live DOSBox-X run can display the target coordinate while CAPPO is
 still in its `FLIGHT PATH SET` phase; that is not evidence of arrival and must

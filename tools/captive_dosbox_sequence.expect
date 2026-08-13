@@ -70,6 +70,30 @@ proc advance_timer_ticks {count} {
         wait_for_timer_break
     }
 }
+proc integration_write32 {index value} {
+    # DOSBox-X integration device: index port 28h, data port 29h.  The
+    # writes are emulated hardware I/O, not writes to CAPPO memory.
+    for {set shift 0} {$shift < 32} {incr shift 8} {
+        send [format "OUTB 28 %02X\r" [expr {($index >> $shift) & 0xff}]]
+    }
+    for {set shift 0} {$shift < 32} {incr shift 8} {
+        send [format "OUTB 29 %02X\r" [expr {($value >> $shift) & 0xff}]]
+    }
+}
+proc inject_mouse_dx {delta} {
+    if {$delta < -127 || $delta > 127} { return }
+    set encoded [expr {($delta + 1) << 24 | 0x900}]
+    integration_write32 0x00804200 $encoded
+}
+proc inject_mouse_dy {delta} {
+    if {$delta < -127 || $delta > 127} { return }
+    set encoded [expr {($delta + 1) << 24 | 0xA00}]
+    integration_write32 0x00804200 $encoded
+}
+proc inject_mouse_button {pressed} {
+    set value [expr {$pressed ? 0x880 : 0x800}]
+    integration_write32 0x00804200 $value
+}
 
 spawn env TERM=xterm-256color dosbox-x -break-start -conf $profile \
     -c "mount c $data_dir" -c "c:" -c "CAPTIVE.BAT 1"
@@ -173,6 +197,27 @@ if {$fifo_path ne ""} {
             advance_timer_ticks $wait_ticks
             set dump_path [dump_cappo_memory $output_dir]
             puts stderr "CAPPO live timer advanced: $wait_ticks"
+            continue
+        }
+        if {[regexp {^MOUSE_DX:([-+]?[0-9]+)$} $command -> delta]} {
+            inject_mouse_dx $delta
+            advance_timer_ticks $post_scan_ticks
+            set dump_path [dump_cappo_memory $output_dir]
+            puts stderr "CAPPO live mouse dx delivered: $delta"
+            continue
+        }
+        if {[regexp {^MOUSE_DY:([-+]?[0-9]+)$} $command -> delta]} {
+            inject_mouse_dy $delta
+            advance_timer_ticks $post_scan_ticks
+            set dump_path [dump_cappo_memory $output_dir]
+            puts stderr "CAPPO live mouse dy delivered: $delta"
+            continue
+        }
+        if {$command eq "MOUSE_DOWN" || $command eq "MOUSE_UP"} {
+            inject_mouse_button [expr {$command eq "MOUSE_DOWN"}]
+            advance_timer_ticks $post_scan_ticks
+            set dump_path [dump_cappo_memory $output_dir]
+            puts stderr "CAPPO live mouse button delivered: $command"
             continue
         }
         if {![regexp {^[0-9A-Fa-f]{2}$} $command]} {

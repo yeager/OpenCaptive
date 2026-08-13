@@ -81,14 +81,23 @@ save, droid roster or dungeon state.
 When OpenCaptive owns a live CAPPO session, its Captive mouse path follows the
 same boundary. The emulator bridge consumes the documented `DEL` continuation
 before returning the first live dump; subsequent clicks therefore go directly
-through CAPPO's original control hitboxes. Mouse motion is accumulated and
-emitted as the original cursor-direction scans once a movement threshold is
-reached; the on-screen control buttons send the original action scans, and the
-live CAPPO VGA dump remains the only rendered surface. No local cursor
-coordinate is applied to the map and no target, planet, landing point or
-dungeon state is synthesized. This is the DOS implementation of the manual's
-"Cursor Keys = Moves the pointer" behaviour; the original runtime remains the
-authority for the resulting pointer and navigation state.
+through CAPPO's original control hitboxes. Mouse motion is sent through
+DOSBox-X's integration-device 8042 mouse path, which feeds CAPPO's own INT 33
+poll (`AX=0x000B`) and preserves the original cursor coordinates. Left-button
+down and up are sent through the same emulated hardware path, so CAPPO—not a
+local OpenCaptive hitbox table—receives and processes the click. The live
+CAPPO VGA dump remains the only rendered surface. No local cursor coordinate
+is applied to the map and no target, planet, landing point or dungeon state is
+synthesized. This is the DOS implementation of the manual's
+"Cursor Keys = Moves the pointer" and mouse-button behaviour; the original
+runtime remains the authority for the resulting pointer and navigation state.
+
+The verification harness accepts `MOUSE_DX:n`, `MOUSE_DY:n`, `MOUSE_DOWN`, and
+`MOUSE_UP` FIFO commands. These are translated to DOSBox-X integration-device
+I/O, never to `SM` writes in CAPPO memory. A real-data probe showed distinct
+complete memory images after authentic relative motion and button transitions;
+the ordinary keyboard and VGA gates must still pass alongside this mouse
+probe.
 
 The multi-step probe writes to an explicit output directory and never treats
 printable strings as proof of the active state. CAPPO keeps its message table

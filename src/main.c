@@ -419,26 +419,13 @@ static bool captive_live_send_key(SDL_Keycode key) {
 }
 
 static void captive_live_send_mouse_motion(float dx, float dy) {
-    const float step = 18.0f;
     if (!captive_live_session_active) return;
-    captive_live_mouse_dx += dx;
-    captive_live_mouse_dy += dy;
-    while (captive_live_mouse_dx <= -step) {
-        if (!captive_live_send_action(CAPTIVE_NAV_ACTION_LEFT)) break;
-        captive_live_mouse_dx += step;
-    }
-    while (captive_live_mouse_dx >= step) {
-        if (!captive_live_send_action(CAPTIVE_NAV_ACTION_RIGHT)) break;
-        captive_live_mouse_dx -= step;
-    }
-    while (captive_live_mouse_dy <= -step) {
-        if (!captive_live_send_action(CAPTIVE_NAV_ACTION_UP)) break;
-        captive_live_mouse_dy += step;
-    }
-    while (captive_live_mouse_dy >= step) {
-        if (!captive_live_send_action(CAPTIVE_NAV_ACTION_DOWN)) break;
-        captive_live_mouse_dy -= step;
-    }
+    /* CAPPO polls INT 33 function 0x0B and keeps the absolute cursor.  Send
+     * SDL's real relative motion through DOSBox-X's emulated 8042 mouse
+     * device; translating it to arrow scans loses the original pointer and
+     * makes click hit-testing impossible. */
+    (void)captive_emulator_session_send_mouse_motion(
+        &captive_live_session, (int)lrintf(dx), (int)lrintf(dy));
 }
 
 /* CAPPO owns the navigation state.  The first ORBIT command records the
@@ -3862,12 +3849,17 @@ int main(int argc, char *argv[]) {
                                captive_live_session_active &&
                                event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                                event.button.button == SDL_BUTTON_LEFT) {
-                        CaptiveNavigationAction action;
-                        if (captive_navigation_mouse_action(&renderer,
-                                                             &event.button,
-                                                             &action)) {
-                            (void)captive_live_send_action(action);
-                        }
+                        /* CAPPO's original INT 33 path owns the click and
+                         * hit-testing. Do not route it through OpenCaptive's
+                         * synthetic control table. */
+                        (void)captive_emulator_session_send_mouse_button(
+                            &captive_live_session, true);
+                    } else if (gs.game_type == GAME_CAPTIVE &&
+                               captive_live_session_active &&
+                               event.type == SDL_EVENT_MOUSE_BUTTON_UP &&
+                               event.button.button == SDL_BUTTON_LEFT) {
+                        (void)captive_emulator_session_send_mouse_button(
+                            &captive_live_session, false);
                     } else if (gs.game_type == GAME_CAPTIVE &&
                                captive_live_session_active &&
                                event.type == SDL_EVENT_KEY_DOWN) {

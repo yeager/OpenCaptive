@@ -23,6 +23,10 @@ bool captive_emulator_session_start(const char *data_path,
                                     CaptiveEmulatorSession *session);
 bool captive_emulator_session_send_scan(CaptiveEmulatorSession *session,
                                          uint8_t scan_code);
+bool captive_emulator_session_send_mouse_motion(CaptiveEmulatorSession *session,
+                                                int dx, int dy);
+bool captive_emulator_session_send_mouse_button(CaptiveEmulatorSession *session,
+                                                bool pressed);
 bool captive_emulator_session_dump_ready(const CaptiveEmulatorSession *session);
 void captive_emulator_session_stop(CaptiveEmulatorSession *session);
 
