@@ -1,5 +1,25 @@
 # OpenCaptive Release Notes
 
+## v1.1.122 (2026-08-13)
+
+### Added
+
+- **(Verification)** Added an authentic DOSBox-X regression gate for rejected
+  Captive landing input.
+
+### Changed
+
+- **(Captive)** A live LAND command is now fail-closed: OpenCaptive keeps the
+  original CAPPO surface when the original runtime has not authenticated
+  orbit, instead of entering a local landing or dungeon view.
+- **(Documentation)** Updated the Captive parity notes to distinguish the
+  verified holomap/flight-path state from the still-unverified orbit and
+  landing states.
+
+### Removed
+
+None.
+
 ## v1.1.121 (2026-08-13)
 
 ### Added
