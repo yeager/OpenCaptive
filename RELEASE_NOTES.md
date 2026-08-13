@@ -2,6 +2,11 @@
 
 ## v1.1.126 (2026-08-13)
 
+### Added
+
+- **(Verification)** Added the corrected CAPPO arrow-scan mapping to the
+  source-faithful Captive navigation verification coverage.
+
 ### Changed
 
 - **(Captive)** Corrected the graphical holomap arrow mapping to CAPPO's
