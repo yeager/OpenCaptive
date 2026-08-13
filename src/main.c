@@ -331,17 +331,6 @@ static void captive_begin_landing(GameState *gs) {
     gs->mode = STATE_LANDING;
 }
 
-static void captive_begin_orbit(GameState *gs) {
-    if (!gs || !captive_orbit_reference) return;
-    /* The orbit surface is a source-authenticated CAPPO checkpoint.  It is
-     * entered only by the explicit ORBIT command after FLIGHT PATH SET; no
-     * elapsed-time or procedural arrival is allowed here. */
-    captive_landed_reference_active = false;
-    captive_orbit_arrived = true;
-    gs->orbit_angle = 0.0f;
-    gs->mode = STATE_ORBIT;
-}
-
 static void captive_holamap_reset(uint32_t mission_seed) {
     captive_flight_path_set = false;
     captive_orbit_arrived = false;
@@ -3635,14 +3624,19 @@ int main(int argc, char *argv[]) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
-                            /* Interactive Captive is handed to the original
-                             * DOS runtime.  Debugger/FIFO attachment is kept
-                             * for explicit diagnostic tools only. */
-                            if (!captive_emulator_launch(config.data_path)) {
+                            /* Keep the start-menu launch attached to the
+                             * original CAPPO runtime.  The live session
+                             * renders its complete DOSBox-X VGA dump and
+                             * sends original scan codes; it never creates a
+                             * native map, landing point, or dungeon. */
+                            if (!captive_start_live_session(config.data_path,
+                                                            &gs)) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
-                            running = false;
+                            fade_target = gs.mode;
+                            gs.mode = STATE_LOADING;
+                            loading_frames = 0;
                             break;
                         case MENU_RESULT_START_LIBERATION:
                             /* A fresh Liberation game must not inherit the

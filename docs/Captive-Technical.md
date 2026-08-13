@@ -46,12 +46,12 @@ The built OpenCaptive binary exposes the same source-faithful path directly:
 ./build/opencaptive --data-dir DATA_DIR --captive-authentic
 ```
 
-This starts the original `CAPTIVE.BAT 1` in a normal DOSBox-X window. CAPPO
-keeps control of input, rendering, timer, audio, landing and dungeon state;
-OpenCaptive does not manufacture a replacement map or roster. The graphical
-OpenCaptive start menu uses the same normal runtime path. The debugger/FIFO
-session is reserved for explicit inspection tools and is not used for
-interactive play. The isolated profile is copied beside development binaries
+This starts the original `CAPTIVE.BAT 1` through DOSBox-X. CAPPO keeps control
+of input, rendering, timer, audio, landing and dungeon state; OpenCaptive does
+not manufacture a replacement map or roster. The graphical OpenCaptive start
+menu attaches to that same authentic runtime through the live bridge: it shows
+the original VGA dump and forwards original make/break scans without creating
+a second game state. The isolated profile is copied beside development binaries
 and inside the macOS app bundle's Resources;
 `DOSBOX_X_BIN` can select another verified DOSBox-X executable.
 
@@ -210,10 +210,10 @@ coordinate is displayed. Arrival and landing remain gated on a later live
 CAPPO handoff. The gate is intentionally local-only because original game
 media is player-supplied and is never committed or synthesized.
 
-The normal Captive start-menu action launches the original
-`CAPTIVE.BAT 1` runtime directly in DOSBox-X. DOSBox-X remains the interactive
-host window; the OpenCaptive launcher does not claim to embed or mirror that
-window.
+The normal Captive start-menu action starts the original `CAPTIVE.BAT 1`
+runtime through the live bridge. OpenCaptive remains the visible interactive
+window, while CAPPO remains authoritative for timer, VGA, keyboard, mouse,
+audio, orbit, landing, and dungeon state.
 
 For a longer local replay that verifies each accepted command, including
 repeated commands, use:

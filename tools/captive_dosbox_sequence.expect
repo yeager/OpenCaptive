@@ -163,21 +163,20 @@ if {$trace_status_runtime} {
     send "BP 0824:43B0\r"
 }
 
-# Original INTRO choices: 1, 4, 3, 3.
+# Original INTRO choices: 1, 4, 3, 3. Deliver them through the emulated
+# AT keyboard and IRQ1 handler; do not write BIOS keyboard memory.
 advance_timer_ticks 120
-send "SM 0040 001A 1E 00\r"
-set tail 0x1e
 foreach key {1 enter 4 enter 3 enter 3 enter} {
     switch -- $key {
-        1 { set ascii 0x31; set scan_code 0x02 }
-        3 { set ascii 0x33; set scan_code 0x04 }
-        4 { set ascii 0x34; set scan_code 0x05 }
-        enter { set ascii 0x0d; set scan_code 0x1c }
+        1 { set scan_code 0x02 }
+        3 { set scan_code 0x04 }
+        4 { set scan_code 0x05 }
+        enter { set scan_code 0x1c }
     }
-    send [format "SM 0040 %04X %02X %02X\r" $tail $ascii $scan_code]
-    incr tail 2
-    if {$tail >= 0x40} { set tail 0x1e }
-    send [format "SM 0040 001C %02X 00\r" $tail]
+    inject_keyboard_scan $scan_code
+    advance_timer_ticks 24
+    set break_scan [expr {0x80 | $scan_code}]
+    inject_keyboard_scan $break_scan
     advance_timer_ticks 24
 }
 
@@ -185,11 +184,8 @@ foreach key {1 enter 4 enter 3 enter 3 enter} {
 # handoff. The value is read from DOSBox-X registers; no memory is modified.
 send "EV CS\r"
 
-# FILEPLAY's IRQ1 handler stores the most recent make scan at CS:0027.  The
-# preceding EV CS read is a runtime receipt: the original DOSBox-X session
-# reports FILEPLAY CS=0824 here. Queue the real spacebar make code in that private
-# field and let FILEPLAY consume it.
-send "SM 0824 0027 39\r"
+# FILEPLAY consumes the original spacebar from the emulated AT controller.
+inject_keyboard_scan 0x39
 advance_timer_ticks 120
 
 # INTRO/FILEPLAY hands control to CAPPO on the original space-bar action.
@@ -197,9 +193,9 @@ advance_timer_ticks 120
 # action.  Do not substitute another keyboard key: that leaves the original
 # runtime in its start-screen phase and consumes the first navigation scan.
 for {set intro_step 0} {$intro_step < 1} {incr intro_step} {
-    send "SM 0824 004E 01\r"
-    send "SM 0824 004F 01\r"
-    send "SM 0824 0050 53\r"
+    inject_keyboard_scan 0x53
+    advance_timer_ticks $post_intro_ticks
+    inject_keyboard_scan 0xD3
     advance_timer_ticks $post_intro_ticks
 }
 

@@ -2,7 +2,7 @@
 
 # Emulator-only CAPPO input probe. The harness runs the supplied original
 # CAPTIVE.BAT chain, answers the original INTRO prompts, and injects one raw
-# XT scan byte into CAPPO's relocated IRQ1 queue while DOSBox-X is paused.
+# XT make/break pair through DOSBox-X's emulated AT keyboard controller.
 # It never creates or modifies Captive game data.
 
 set timeout 30
@@ -53,6 +53,13 @@ proc wait_for_debug_message {pattern description} {
     }
 }
 
+proc inject_keyboard_scan {scan} {
+    # 8042 command D2 places a byte in the emulated keyboard output buffer
+    # and raises the original IRQ1 handler. This does not touch CAPPO memory.
+    send "OUTB 64 D2\r"
+    send [format "OUTB 60 %02X\r" $scan]
+}
+
 spawn env TERM=xterm-256color dosbox-x -break-start -conf $profile -set debuggerrun=debugger \
     -c "mount c $data_dir" -c "c:" -c "CAPTIVE.BAT 1"
 expect {
@@ -63,38 +70,43 @@ expect {
     }
 }
 
-# Feed the original INTRO choices through the emulated BIOS keyboard ring.
+# Feed the original INTRO choices through DOSBox-X's emulated AT keyboard and
+# the original IRQ1 handler; no BIOS keyboard memory is written.
 send "BPINT 08\r"
 resume_emulation
 wait_for_timer_break
-send "SM 0040 001A 1E 00\r"
-set tail 0x1e
 set choices {1 enter 4 enter 3 enter 3 enter}
 foreach key $choices {
     send "BPDEL 00\r"
     switch -- $key {
-        1     { set ascii 0x31; set scan_code 0x02 }
-        3     { set ascii 0x33; set scan_code 0x04 }
-        4     { set ascii 0x34; set scan_code 0x05 }
-        enter { set ascii 0x0d; set scan_code 0x1c }
+        1     { set scan_code 0x02 }
+        3     { set scan_code 0x04 }
+        4     { set scan_code 0x05 }
+        enter { set scan_code 0x1c }
         default { puts stderr "unsupported input token: $key"; exit 2 }
     }
-    send [format "SM 0040 %04X %02X %02X\r" $tail $ascii $scan_code]
-    incr tail 2
-    if {$tail >= 0x40} { set tail 0x1e }
-    send [format "SM 0040 001C %02X 00\r" $tail]
+    inject_keyboard_scan $scan_code
+    send "BPINT 08\r"
+    resume_emulation
+    wait_for_timer_break
+    set break_scan [expr {0x80 | $scan_code}]
+    inject_keyboard_scan $break_scan
     send "BPINT 08\r"
     resume_emulation
     wait_for_timer_break
 }
 
-# CAPPO's verified Mission 0001 runtime segment is 0824.  The handler at
-# 0824:065c consumes CS:004e count, CS:004f ring index and CS:0050..0057.
-# Set one queued byte at ring slot zero: count=1, index=1, data=SCAN_HEX.
+# CAPPO's verified Mission 0001 runtime handler is at 0824:065c. It reads the
+# AT controller byte from port 60h, translates it through CAPPO's original
+# keyboard table, and updates the runtime matrix.
 send "BPDEL 00\r"
-send "SM 0824 004E 01\r"
-send "SM 0824 004F 01\r"
-send [format "SM 0824 0050 %s\r" $scan]
+scan $scan %x scan_value
+inject_keyboard_scan $scan_value
+send "BPINT 08\r"
+resume_emulation
+wait_for_timer_break
+set break_scan [expr {0x80 | $scan_value}]
+inject_keyboard_scan $break_scan
 send "BPINT 08\r"
 resume_emulation
 wait_for_timer_break
@@ -105,5 +117,5 @@ wait_for_debug_message {Breakpoint deletion success} "breakpoint deletion"
 # breakpoint used to make this probe deterministic.
 send "MEMDUMP 0824 004E 8\r"
 wait_for_debug_message {Memory dump success} "memory dump completion"
-puts stderr "CAPPO IRQ1 queue probe delivered raw scan byte 0x$scan"
+puts stderr "CAPPO IRQ1 hardware probe delivered raw make/break scan byte 0x$scan"
 interact

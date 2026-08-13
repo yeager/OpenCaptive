@@ -24,9 +24,10 @@ The data directory must contain the original Captive files, including
 `CAPTIVE.BAT`. OpenCaptive must not create replacement maps, planets,
 landings, droids, or dungeon data when these files are missing.
 
-The graphical OpenCaptive start menu launches the same authentic DOSBox-X
-runtime path. DOSBox-X owns the original CAPPO window, timer, audio and input;
-OpenCaptive does not create a second gameplay state.
+The graphical OpenCaptive start menu starts the same authentic DOSBox-X runtime
+through a live bridge. OpenCaptive shows the original CAPPO VGA surface and
+forwards original input scans; DOSBox-X/CAPPO owns the timer, audio and game
+state. No second gameplay state is created.
 
 ## Exact repeatable startup
 
@@ -144,9 +145,9 @@ water-only view is evidence that the destination point was wrong.
 ## Normal launch versus diagnostics
 
 For interactive play, use the helper command above or launch Captive from the
-OpenCaptive start menu with authentic data. The DOSBox-X window owns the
-original game, its viewport, and its input. OpenCaptive's launcher only starts
-that process; it is not a replacement gameplay surface. Do not add these
+OpenCaptive start menu with authentic data. The helper opens a standalone
+DOSBox-X window for manual testing; the start menu uses the live bridge so the
+OpenCaptive window remains the visible gameplay surface. Do not add these
 debugger options to either normal path:
 
 - `-break-start`
