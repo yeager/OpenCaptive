@@ -12,6 +12,36 @@
 - Authentic DOSBox-X mouse, navigation, and replay gates pass with the
   player-supplied CAPPO data; the full local suite remains 64/64.
 
+## v1.1.123 (2026-08-13)
+
+### Added
+
+- **(Verification)** Added the corrected DOSBox-X integration-device encoding
+  to the authentic CAPPO mouse regression path, covering both pointer motion
+  axes and the left-button event.
+
+### Changed
+
+- **(Captive)** Authentic CAPPO mouse deltas now use the DOSBox-X payload
+  layout decoded by its BIOS integration-device handler, so pointer movement
+  reaches the original INT 33 runtime instead of being discarded.
+- **(Captive)** The DOSBox-X profile now uses the original 320x200 INT 33
+  coordinate range and explicit mouse integration mode.
+- **(Documentation)** Updated the English technical reference with the exact
+  real-data-only transport boundary and the DOSBox-X encoding used by the
+  release artifacts.
+
+### Removed
+
+None.
+
+### Verification
+
+- GitHub Actions Build passed on `main` at commit `53bb7cd`.
+- Authentic CAPPO live mouse, navigation, and replay gates pass with the
+  player-supplied original game data.
+- The complete local CTest suite remains 64/64.
+
 ## v1.1.122 (2026-08-13)
 
 ### Added
