@@ -9,10 +9,10 @@
 - [x] Keep generated droid names/status out of the Captive presentation path
 - [x] Prefer the exact CAPPO VGA surface from a real DOSBox-X memory dump
 - [x] Reload complete DOSBox-X memory dumps after real emulator input
-- [ ] Drive CAPPO's relocated IRQ1 scan-byte queue from an unlocked DOSBox-X session
+- [x] Drive CAPPO's relocated IRQ1 scan-byte queue from an unlocked DOSBox-X session
 - [x] Verify raw scan-byte placement at the relocated queue with the
       emulator-only `captive_dosbox_queue.expect` probe
-- [ ] Attach OpenCaptive mouse/key events to that live CAPPO IRQ1 queue without
+- [x] Attach OpenCaptive mouse/key events to that live CAPPO IRQ1 queue without
       mutating the native compatibility GameState
 - [x] Route a new DOS Captive selection from the graphical start menu to the
       authenticated DOSBox-X runtime when original CAPTIVE.BAT data is present
@@ -32,6 +32,8 @@
 - [x] Map the original holomap ladder controls to authenticated CAPPO zoom frames
 - [x] Present the authenticated green-target frame during the Captive flight-path transit
 - [ ] Authenticate the live CAPPO orbit frame after `FLIGHT PATH SET`
+- [x] Keep rejected live CAPPO LAND input on the original surface; never enter a
+      local landing reference after `SWAN NOT YET IN ORBIT`
 - [ ] Keep Captive dungeon key input in the live CAPPO state after authenticated landing
 - [ ] Transition the authenticated landing checkpoint into the real landed frame
       only after a live CAPPO/DOSBox-X state handoff; the strict full-VGA

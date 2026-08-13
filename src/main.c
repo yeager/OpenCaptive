@@ -443,6 +443,10 @@ static bool captive_holamap_orbit(GameState *gs) {
      * fixture, not an input gate; using it here rejected real CAPPO states
      * after the original runtime had moved or blinked its marker. */
     if (!captive_live_send_action(CAPTIVE_NAV_ACTION_ORBIT)) return false;
+    /* This is only an observation gate.  CAPPO remains on the current
+     * surface until its own VGA state proves that the route was accepted;
+     * setting the marker must never enter a locally rendered flight scene. */
+    captive_flight_path_set = true;
     return true;
 }
 
@@ -515,9 +519,14 @@ static bool captive_orbit_mouse_move(const OpenCaptiveRenderer *r,
         (captive_live_session_active || captive_landing_reference)) {
         /* The white point is the original landing target.  CAPPO changes
          * phase only after LAND is pressed in this view. */
-        if (captive_live_session_active &&
-            !captive_live_send_action(CAPTIVE_NAV_ACTION_LAND)) return false;
-        if (!captive_live_session_active) captive_begin_landing(gs);
+        if (captive_live_session_active) {
+            /* A rejected CAPPO LAND command must leave the original
+             * holomap/orbit surface untouched.  The old code entered the
+             * local landing reference unconditionally, which fabricated a
+             * landing transition even when CAPPO reported an error. */
+            return captive_live_send_action(CAPTIVE_NAV_ACTION_LAND);
+        }
+        captive_begin_landing(gs);
         return true;
     }
     return false;

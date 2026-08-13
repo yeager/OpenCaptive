@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-13 (Reject unauthenticated Captive landing transitions)
+
+- Corrected the live CAPPO input path so a rejected `LAND` command leaves the
+  original CAPPO surface unchanged instead of entering a local landing
+  reference frame.
+- The live Orbit command now records only an observation gate; OpenCaptive
+  waits for CAPPO's own VGA handoff before changing native state.
+- Verified with the original user-supplied DOS data in DOSBox-X, a clean build,
+  all 64 CTest targets, and the real-data-only Captive navigation gate.
+
 ## 2026-08-11 (Strict CAPPO landing handoff)
 
 - Added a strict live handoff for native `STATE_LANDING`: a reloaded DOSBox-X
