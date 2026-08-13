@@ -12,6 +12,14 @@ full campaign and original gameplay parity remain active work. The project
 does not claim pixel-perfect parity until the corresponding runtime evidence
 and original-output comparisons exist.
 
+Captive verification is deliberately based on the supplied original files and
+the original DOSBox-X runtime. The project does not fabricate planets, landing
+points, dungeons, status text, or fallback gameplay when authentic data or
+runtime evidence is missing. The current verified navigation boundary is the
+real Mission 0001 route selection; arrival, orbit, landing, and dungeon entry
+remain gated until changed original-runtime state and matching original VGA
+output are captured.
+
 ## Downloads
 
 Pre-built packages for all platforms are available on the [Releases](https://github.com/yeager/OpenCaptive/releases) page. Maintainers can also run the **Release** GitHub Actions workflow manually with a version such as `1.1.125`; tag-based releases remain supported.

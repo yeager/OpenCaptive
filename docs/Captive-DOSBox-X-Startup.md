@@ -24,6 +24,20 @@ The data directory must contain the original Captive files, including
 `CAPTIVE.BAT`. OpenCaptive must not create replacement maps, planets,
 landings, droids, or dungeon data when these files are missing.
 
+## Verification boundary
+
+This procedure is intentionally conservative. It proves that the supplied
+original `CAPTIVE.BAT 1` startup chain, VGA mode, intro handoff, and Mission
+0001 holomap route-selection boundary are being used. It does not turn a
+reference image, a memory dump, or a locally generated route into evidence of
+arrival, orbit, landing, or dungeon entry.
+
+OpenCaptive must use the original runtime and the player's real files for
+those states. If the original DOSBox-X session has not visibly reached the
+destination orbit and then produced the original landed view, the state is
+not considered verified. No replacement planet, landing marker, terrain,
+dungeon, scrolling status text, or procedural fallback may be substituted.
+
 The graphical OpenCaptive start menu starts the same authentic DOSBox-X runtime
 through a live bridge. OpenCaptive shows the original CAPPO VGA surface and
 forwards original input scans; DOSBox-X/CAPPO owns the timer, audio and game
@@ -141,6 +155,17 @@ Wait until the original runtime reports or visibly enters the destination orbit;
 only then use `LAND`. `LAND` is not a shortcut into a dungeon. A successful
 landing must produce the original landed view and its real local terrain; a
 water-only view is evidence that the destination point was wrong.
+
+For debugging, record the visible state after each action rather than
+injecting a private memory value. A valid evidence sequence is:
+
+```text
+real green planet marker -> ORBIT -> original transit animation/state
+-> destination orbit -> white landing circle -> LAND -> original dungeon view
+```
+
+If any transition is missing, stop at that boundary and report it. Do not
+continue by selecting a hard-coded coordinate or by fabricating a dungeon.
 
 ## Normal launch versus diagnostics
 
