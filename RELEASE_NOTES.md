@@ -1,5 +1,24 @@
 # OpenCaptive Release Notes
 
+## v1.1.120 (2026-08-13)
+
+### Added
+
+- **(Captive)** The DOSBox-X CAPPO replay harness now sends authentic XT key
+  make and break scans for every navigation command, matching CAPPO's pressed
+  and released control state.
+
+### Changed
+
+- **(Captive)** Live navigation verification uses the original runtime input
+  path and no longer relies on a held-key approximation.
+- **(Verification)** The real-data-only replay gate now verifies the updated
+  input transport against the authentic CAPPO executable and VGA frames.
+
+### Removed
+
+None.
+
 ## v1.1.119 (2026-08-13)
 
 ### Added
