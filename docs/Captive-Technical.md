@@ -103,6 +103,9 @@ The bundled DOSBox-X profile enables `mouse emulation=integration` under
 `[sdl]` and `integration device=true` under `[cpu]`. Both settings are needed
 for the original INT 33 path: enabling only the integration I/O device leaves
 CAPPO's VGA surface unchanged when a host mouse event is delivered.
+It also fixes the INT 33 range to CAPPO's native 320×200 surface
+(`int33 max x=320`, `int33 max y=200`), preventing host-window coordinates from
+placing the original pointer outside the mission map.
 
 The multi-step probe writes to an explicit output directory and never treats
 printable strings as proof of the active state. CAPPO keeps its message table
