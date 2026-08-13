@@ -1,6 +1,6 @@
 # Combat System
 
-> Updated for v1.1.116. Combat documentation reflects the current tested prototype boundary.
+> Updated for v1.1.117. Combat documentation reflects the current tested prototype boundary.
 
 ## Overview
 

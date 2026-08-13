@@ -1,6 +1,6 @@
 # Captive technical notes
 
-> Documentation baseline: v1.1.116. Runtime parity claims remain scoped to the verified boundaries described below.
+> Documentation baseline: v1.1.117. Runtime parity claims remain scoped to the verified boundaries described below.
 
 ## Runtime model
 
@@ -89,17 +89,20 @@ dungeon state is synthesized. This is the DOS implementation of the manual's
 "Cursor Keys = Moves the pointer" behaviour; the original runtime remains the
 authority for the resulting pointer and navigation state.
 
-The multi-step probe writes to an explicit output directory and rejects its
-own result unless the new 1 MiB dump contains CAPPO's runtime-state strings:
+The multi-step probe writes to an explicit output directory and never treats
+printable strings as proof of the active state. CAPPO keeps its message table
+resident in memory, so `strings` would produce false positives. The harness
+proves the original startup handoff and the verifier compares the complete
+decoded 320×200 VGA surface:
 
 ```sh
 tools/captive_dosbox_sequence.expect DATA_DIR 47 480 /tmp/cappo-sequence 8
 ```
 
-The command can therefore produce a useful negative result: a dump with a
-uniform VGA page or without CAPPO state is reported as an incomplete emulator
-phase rather than being accepted as a parity frame. A successful probe still
-requires the normal `tools/verify_captive_dos_dump.sh` byte-exact comparison.
+The command can therefore produce a useful negative result: a dump whose
+decoded VGA surface is not a complete original frame is rejected by the normal
+`tools/verify_captive_dos_dump.sh` byte-exact comparison. Message strings are
+diagnostic only and are never used to enter Orbit, landing, or dungeon state.
 
 The unpacked DOS executable installs its keyboard IRQ1 handler at relative
 offset `0x065c`. In the verified Mission 0001 DOSBox-X memory image the
@@ -107,8 +110,9 @@ relocated IRQ/source-bank segment is `0824`, so the handler queue is observable
 at `0824:004e..0057`; this is not CAPPO's active code/text segment. CAPPO's
 active relocated code/text image is identified independently by its known
 strings: `FLIGHT PATH SET`, `ARRIVED AT DESTINATION`, and `LANDING SUCCESSFUL`
-all resolve with relocation base `0x7E30`, while the verified data segment is
-`DS=0x2942`. The handler reads raw XT/AT
+all resolve with relocation base `0x7E30`. After the authentic DEL continuation
+the live Mission 0001 runtime reports `CS=0x0824` and `DS=0x1663` in DOSBox-X.
+The handler reads raw XT/AT
 scan bytes using byte `CS:0x004e` as the queued-byte count, byte `CS:0x004f` as
 the ring index, and eight bytes at `CS:0x0050`. The game loop consumes that queue
 through the matrix conversion at `0x0203`; it does not use the ordinary DOS
@@ -296,8 +300,10 @@ The original one-megabyte DOS memory fixture has SHA-256
 `9003c4a8818cb97f8299ac90cfe51e90e535ab9a725545526fe75f14ddb8dd7e`.
 It captures a running DOS renderer, not an archive extraction. In that state
 the source-bank selector table is present at segment `0x0824`; this is a
-relocated data-area selector, not the CPU's active code segment. MZ relocation
-changes the unexpanded table selector in the code to segment `0x2942`. The descriptor
+relocated data-area selector, not the CPU's active code segment. This older
+descriptor fixture uses offline selector segment `0x2942`, not the live
+post-handoff DS. MZ relocation changes the unexpanded table selector in the
+code to segment `0x2942`. The descriptor
 array begins at `0x2942:0x00c0` and has eight bytes per graphic ID. The common
 draw entry reads, in order, a little-endian source offset, a little-endian
 destination offset, width, height, flags and source-bank index.
@@ -574,9 +580,10 @@ reads a caller-supplied, complete 1 MiB DOSBox-X memory dump and prints the
 original 64×32 byte map at `DS:7CB3`, the active coordinates at `DS:5E80` and
 `DS:5E82`, and the orientation field at `DS:5E84`. It deliberately preserves
 CAPPO's raw cell bytes and performs no conversion to OpenCaptive cell types.
-The default segment is `0x2942`, matching the verified relocated runtime
-fixture. No dump bytes are bundled and the tool is never used as runtime game
-data.
+The default segment is `0x1663`, matching the live post-handoff Mission 0001
+runtime. Older descriptor fixtures can still be inspected by passing `2942`
+explicitly. No dump bytes are bundled and the tool is never used as runtime
+game data.
 
 The same boundary now reproduces CAPPO's 5×5 copied neighbourhood from
 `DS:7CB3` using the four orientation branches at `0x1818`. Outside-map cells

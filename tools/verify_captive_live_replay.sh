@@ -23,7 +23,7 @@ trap 'rm -rf "$tmp_dir"' EXIT HUP INT TERM
 fifo="$tmp_dir/commands"
 mkfifo "$fifo"
 
-expect tools/captive_dosbox_sequence.expect "$data_dir" - 12 "$tmp_dir" 120 "$fifo" \
+expect tools/captive_dosbox_sequence.expect "$data_dir" - 240 "$tmp_dir" 120 "$fifo" \
     >"$tmp_dir/session.log" 2>&1 &
 harness_pid=$!
 exec 3>"$fifo"

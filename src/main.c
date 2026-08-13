@@ -114,7 +114,10 @@ static void msg_push(const char *text, uint32_t color);
 static uint8_t *captive_dos_memory;
 static bool captive_dos_memory_active;
 static bool captive_dos_runtime_reported;
-static uint16_t captive_dos_ds_segment = 0x2942;
+/* CAPPO's post-FILEPLAY runtime DS, observed from DOSBox-X after the
+ * authentic DEL continuation.  0x2942 was the pre-handoff/descriptor probe
+ * segment and cannot decode the live Mission 0001 state. */
+static uint16_t captive_dos_ds_segment = 0x1663;
 static uint16_t captive_dos_source_bank_segment = 0x0824;
 static uint64_t captive_dos_dump_mtime_ns;
 static bool captive_target_cursor_valid;
@@ -363,10 +366,15 @@ static uint8_t captive_scan_for_action(CaptiveNavigationAction action) {
          * ReDMCSB/CAPPO HELP distinguishes these from keypad 1/3, which are
          * ladder/space zoom controls. DOSBox-X confirms 48/50 pan the real
          * map while 4F/4E change its scale. */
-        case CAPTIVE_NAV_ACTION_UP:    return 0x48; /* keypad 8 / forward */
-        case CAPTIVE_NAV_ACTION_DOWN:  return 0x50; /* keypad 2 / backward */
-        case CAPTIVE_NAV_ACTION_LEFT:  return 0x4B; /* keypad 4 */
-        case CAPTIVE_NAV_ACTION_RIGHT: return 0x4D; /* keypad 6 */
+        /* The original CAPPO map's screen coordinates run opposite to the
+         * displayed arrow directions.  DOSBox-X VGA captures verify that
+         * 50 moves the green marker up, 48 down, 4D left and 4B right.
+         * Keep these visual controls separate from the raw keypad mapping
+         * below, which remains byte-for-byte compatible with the original. */
+        case CAPTIVE_NAV_ACTION_UP:    return 0x50;
+        case CAPTIVE_NAV_ACTION_DOWN:  return 0x48;
+        case CAPTIVE_NAV_ACTION_LEFT:  return 0x4D;
+        case CAPTIVE_NAV_ACTION_RIGHT: return 0x4B;
         case CAPTIVE_NAV_ACTION_ORBIT: return 0x47; /* keypad 7 */
         case CAPTIVE_NAV_ACTION_LAND:  return 0x49; /* keypad 9 */
         /* CAPPO help table: keypad 1 zooms out and keypad 3 zooms in while
@@ -402,14 +410,14 @@ static bool captive_live_send_key(SDL_Keycode key) {
     switch (key) {
         case SDLK_UP: return captive_live_send_action(CAPTIVE_NAV_ACTION_UP);
         case SDLK_KP_1: return captive_live_send_action(CAPTIVE_NAV_ACTION_ZOOM_OUT);
-        case SDLK_KP_2: return captive_live_send_action(CAPTIVE_NAV_ACTION_DOWN);
+        case SDLK_KP_2: return captive_live_send_scan(0x50); /* original backward */
         case SDLK_DOWN: return captive_live_send_action(CAPTIVE_NAV_ACTION_DOWN);
         case SDLK_KP_3: return captive_live_send_action(CAPTIVE_NAV_ACTION_ZOOM_IN);
         case SDLK_LEFT: return captive_live_send_action(CAPTIVE_NAV_ACTION_LEFT);
-        case SDLK_KP_4: return captive_live_send_action(CAPTIVE_NAV_ACTION_LEFT);
+        case SDLK_KP_4: return captive_live_send_scan(0x4B); /* original keypad 4 */
         case SDLK_KP_5: return captive_live_send_scan(0x4C); /* original no-op */
         case SDLK_RIGHT: return captive_live_send_action(CAPTIVE_NAV_ACTION_RIGHT);
-        case SDLK_KP_6: return captive_live_send_action(CAPTIVE_NAV_ACTION_RIGHT);
+        case SDLK_KP_6: return captive_live_send_scan(0x4D); /* original keypad 6 */
         case SDLK_KP_7: return captive_live_send_action(CAPTIVE_NAV_ACTION_ORBIT);
         case SDLK_KP_8: return captive_live_send_scan(0x48); /* original forward */
         case SDLK_KP_9: return captive_live_send_action(CAPTIVE_NAV_ACTION_LAND);
@@ -445,16 +453,16 @@ static void captive_live_send_mouse_motion(float dx, float dy) {
  * a local state machine here: only the original runtime may produce orbit,
  * landing, or dungeon frames. */
 static bool captive_holamap_orbit(GameState *gs) {
-    if (!gs || !captive_holamap_target_selected()) return false;
+    if (!gs) return false;
     /* Captive navigation is owned by CAPPO.  Without a live original
      * emulator there is no source-backed flight transition to display, so
      * fail closed instead of entering the old procedural flight surface. */
     if (!captive_live_session_active) return false;
+    /* In the live path CAPPO decides whether the current mission cursor is
+     * over a valid destination.  The local reference image is a verification
+     * fixture, not an input gate; using it here rejected real CAPPO states
+     * after the original runtime had moved or blinked its marker. */
     if (!captive_live_send_action(CAPTIVE_NAV_ACTION_ORBIT)) return false;
-    if (!captive_flight_path_set) {
-        captive_flight_path_set = true;
-        msg_push(captive_messages[20], 0xFF44FF44);
-    }
     return true;
 }
 
@@ -472,32 +480,43 @@ static bool captive_holamap_mouse_move(const OpenCaptiveRenderer *r,
         case CAPTIVE_NAV_ACTION_RIGHT:
             if (captive_live_session_active && !captive_live_send_action(action))
                 return false;
-            if (action == CAPTIVE_NAV_ACTION_UP)
-                holamap_move_cursor(holamap, 0, -1);
-            else if (action == CAPTIVE_NAV_ACTION_DOWN)
-                holamap_move_cursor(holamap, 0, 1);
-            else if (action == CAPTIVE_NAV_ACTION_LEFT)
-                holamap_move_cursor(holamap, -1, 0);
-            else
-                holamap_move_cursor(holamap, 1, 0);
+            if (!captive_live_session_active) {
+                if (action == CAPTIVE_NAV_ACTION_UP)
+                    holamap_move_cursor(holamap, 0, -1);
+                else if (action == CAPTIVE_NAV_ACTION_DOWN)
+                    holamap_move_cursor(holamap, 0, 1);
+                else if (action == CAPTIVE_NAV_ACTION_LEFT)
+                    holamap_move_cursor(holamap, -1, 0);
+                else
+                    holamap_move_cursor(holamap, 1, 0);
+            }
             break;
         case CAPTIVE_NAV_ACTION_ZOOM_IN:
             if (captive_live_session_active &&
                 !captive_live_send_action(action)) return false;
-            holamap_zoom_in(holamap);
+            if (!captive_live_session_active) holamap_zoom_in(holamap);
             break;
         case CAPTIVE_NAV_ACTION_ZOOM_OUT:
             if (captive_live_session_active &&
                 !captive_live_send_action(action)) return false;
-            holamap_zoom_out(holamap);
+            if (!captive_live_session_active) holamap_zoom_out(holamap);
             break;
-        case CAPTIVE_NAV_ACTION_PYRAMID:  holamap_center_cursor(holamap); break;
+        case CAPTIVE_NAV_ACTION_PYRAMID:
+            /* CAPPO HELP and the original dispatcher map Pyramid/ENTER to
+             * XT make scan 1C.  In a live session the original runtime must
+             * move its own cursor; the local holomap is only a fallback
+             * renderer when no original runtime is available. */
+            if (captive_live_session_active)
+                return captive_live_send_scan(0x1C);
+            holamap_center_cursor(holamap);
+            break;
         case CAPTIVE_NAV_ACTION_ORBIT:
             /* This is the verified original map action.  CAPPO already has
              * the planet destination in its mission records; the green point
              * and the later white landing circle remain original media. */
-            if (!captive_orbit_reference ||
-                !captive_holamap_target_selected()) return false;
+            if (!captive_live_session_active &&
+                (!captive_orbit_reference ||
+                 !captive_holamap_target_selected())) return false;
             return captive_holamap_orbit(gs);
         case CAPTIVE_NAV_ACTION_LAND:
         case CAPTIVE_NAV_ACTION_NONE:
@@ -512,12 +531,13 @@ static bool captive_orbit_mouse_move(const OpenCaptiveRenderer *r,
     CaptiveNavigationAction action;
     if (!gs || !captive_navigation_mouse_action(r, button, &action))
         return false;
-    if (action == CAPTIVE_NAV_ACTION_LAND && captive_landing_reference) {
+    if (action == CAPTIVE_NAV_ACTION_LAND &&
+        (captive_live_session_active || captive_landing_reference)) {
         /* The white point is the original landing target.  CAPPO changes
          * phase only after LAND is pressed in this view. */
         if (captive_live_session_active &&
             !captive_live_send_action(CAPTIVE_NAV_ACTION_LAND)) return false;
-        captive_begin_landing(gs);
+        if (!captive_live_session_active) captive_begin_landing(gs);
         return true;
     }
     return false;
@@ -2809,7 +2829,7 @@ int main(int argc, char *argv[]) {
                 "  --capture-frame <ppm> Save one unscaled native game frame, then exit\n\n"
                 "  --extract-dos-vga <dump> <ppm>  Extract a 320x200 DOS VGA reference frame\n\n"
                 "  --captive-dos-dump <dump>  Decode/reload a real DOSBox-X CAPPO memory image\n"
-                "  --captive-dos-ds <hex>     CAPPO data segment for the dump (default 2942)\n"
+                "  --captive-dos-ds <hex>     CAPPO data segment for the dump (default 1663)\n"
                 "  --captive-dos-source-bank <hex>  CAPPO source-bank segment (default 0824)\n\n"
                 "  --compare-frames <expected> <actual>  Compare two native PPM frames\n"
                 "  --compare-frames-rect <expected> <actual> <x> <y> <w> <h>\n"
@@ -4206,27 +4226,38 @@ int main(int argc, char *argv[]) {
                         switch (event.key.key) {
                             case SDLK_UP:
                             case SDLK_KP_8:
-                                if (captive_live_session_active)
-                                    (void)captive_live_send_action(CAPTIVE_NAV_ACTION_UP);
-                                holamap_move_cursor(&captive_holamap, 0, -1);
+                                if (captive_live_session_active) {
+                                    if (event.key.key == SDLK_KP_8)
+                                        (void)captive_live_send_scan(0x48);
+                                    else
+                                        (void)captive_live_send_action(CAPTIVE_NAV_ACTION_UP);
+                                }
+                                if (!captive_live_session_active)
+                                    holamap_move_cursor(&captive_holamap, 0, -1);
                                 break;
                             case SDLK_DOWN:
                             case SDLK_KP_2:
                                 if (captive_live_session_active)
-                                    (void)captive_live_send_action(CAPTIVE_NAV_ACTION_DOWN);
-                                holamap_move_cursor(&captive_holamap, 0, 1);
+                                    (void)captive_live_send_scan(
+                                        event.key.key == SDLK_KP_2 ? 0x50 : 0x48);
+                                if (!captive_live_session_active)
+                                    holamap_move_cursor(&captive_holamap, 0, 1);
                                 break;
                             case SDLK_LEFT:
                             case SDLK_KP_4:
                                 if (captive_live_session_active)
-                                    (void)captive_live_send_action(CAPTIVE_NAV_ACTION_LEFT);
-                                holamap_move_cursor(&captive_holamap, -1, 0);
+                                    (void)captive_live_send_scan(
+                                        event.key.key == SDLK_KP_4 ? 0x4B : 0x4D);
+                                if (!captive_live_session_active)
+                                    holamap_move_cursor(&captive_holamap, -1, 0);
                                 break;
                             case SDLK_RIGHT:
                             case SDLK_KP_6:
                                 if (captive_live_session_active)
-                                    (void)captive_live_send_action(CAPTIVE_NAV_ACTION_RIGHT);
-                                holamap_move_cursor(&captive_holamap, 1, 0);
+                                    (void)captive_live_send_scan(
+                                        event.key.key == SDLK_KP_6 ? 0x4D : 0x4B);
+                                if (!captive_live_session_active)
+                                    holamap_move_cursor(&captive_holamap, 1, 0);
                                 break;
                             case SDLK_KP_7:
                                 (void)captive_holamap_orbit(&gs);
@@ -4234,12 +4265,14 @@ int main(int argc, char *argv[]) {
                             case SDLK_KP_1:
                                 if (captive_live_session_active)
                                     (void)captive_live_send_action(CAPTIVE_NAV_ACTION_ZOOM_OUT);
-                                holamap_zoom_out(&captive_holamap);
+                                if (!captive_live_session_active)
+                                    holamap_zoom_out(&captive_holamap);
                                 break;
                             case SDLK_KP_3:
                                 if (captive_live_session_active)
                                     (void)captive_live_send_action(CAPTIVE_NAV_ACTION_ZOOM_IN);
-                                holamap_zoom_in(&captive_holamap);
+                                if (!captive_live_session_active)
+                                    holamap_zoom_in(&captive_holamap);
                                 break;
                             case SDLK_KP_5:
                                 break;
@@ -4247,7 +4280,10 @@ int main(int argc, char *argv[]) {
                             case SDLK_KP_ENTER:
                                 /* CAPPO's keyboard mapping aliases ENTER
                                  * with Pyramid while in space. */
-                                holamap_center_cursor(&captive_holamap);
+                                if (captive_live_session_active)
+                                    (void)captive_live_send_scan(0x1C);
+                                else
+                                    holamap_center_cursor(&captive_holamap);
                                 break;
                             case SDLK_S:
                                 /* CAPPO opens shops from a landed base, not

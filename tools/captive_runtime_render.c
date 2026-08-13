@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
         free(memory); free(frame); return 1;
     }
     bool ok = captive_dos_runtime_render(memory, DOS_VGA_MEMORY_SIZE,
-                                         0x2942, 0x0824, frame, 320, 200) &&
+                                         0x1663, 0x0824, frame, 320, 200) &&
               write_ppm(argv[2], frame);
     free(memory); free(frame);
     return ok ? 0 : 1;

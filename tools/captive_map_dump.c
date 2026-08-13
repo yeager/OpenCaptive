@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
                 "[source-bank-segment-hex]\n", argv[0]);
         return 2;
     }
-    uint16_t ds = 0x2942;
+    uint16_t ds = 0x1663;
     if (argc >= 3) {
         char *end = NULL;
         unsigned long value = strtoul(argv[2], &end, 16);

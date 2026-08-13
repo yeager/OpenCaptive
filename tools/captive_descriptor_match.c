@@ -14,6 +14,8 @@ enum {
     VIEW_Y = 55,
     VIEW_WIDTH = 144,
     VIEW_HEIGHT = 112,
+    /* This tool compares the tracked offline descriptor fixture. The live
+     * post-handoff CAPPO runtime uses DS=0x1663 in the bridge. */
     DESCRIPTOR_SEGMENT = 0x2942,
     SOURCE_BANK_TABLE_SEGMENT = 0x0824,
 };

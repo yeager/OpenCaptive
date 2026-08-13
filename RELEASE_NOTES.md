@@ -1,5 +1,28 @@
 # OpenCaptive Release Notes
 
+## v1.1.117 (2026-08-13)
+
+### Added
+
+- **(Captive)** Pyramid/Enter now reaches the original CAPPO keyboard queue in
+  live DOSBox-X sessions using the documented XT scan code `0x1C`.
+
+### Changed
+
+- **(Captive)** Live holomap arrows and zoom controls no longer mutate a local
+  compatibility cursor alongside the original runtime.
+- **(Captive)** Visual controls use the original CAPPO direction scans while
+  keypad controls retain their documented raw meanings.
+- **(Captive)** Live Mission 0001 dump decoding uses the post-handoff data
+  segment observed in DOSBox-X; the older descriptor fixture remains an
+  explicitly selected offline analysis mode.
+- **(Verification)** CAPPO parity checks compare the complete original VGA
+  surface and do not mistake resident message-table strings for active state.
+
+### Removed
+
+None.
+
 ## v1.1.116 (2026-08-12)
 
 ### Added
