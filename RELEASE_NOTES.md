@@ -1,5 +1,25 @@
 # OpenCaptive Release Notes
 
+## v1.1.119 (2026-08-13)
+
+### Added
+
+- **(Captive)** The DOSBox-X verification path now uses CAPPO's executable
+  state segment when decoding the authentic runtime memory image.
+
+### Changed
+
+- **(Captive)** Runtime rendering, map diagnostics, descriptor checks, and the
+  local navigation gate now agree on the original CAPPO memory layout.
+- **(Verification)** The parity gate continues to accept only player-supplied
+  original CAPPO data and real DOS VGA memory captured from DOSBox-X.
+- **(Documentation)** Public documentation baselines are synchronized to
+  v1.1.119.
+
+### Removed
+
+None.
+
 ## v1.1.118 (2026-08-13)
 
 ### Added

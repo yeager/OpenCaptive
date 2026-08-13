@@ -1,6 +1,6 @@
 # Liberation: Captive II technical notes
 
-> Documentation baseline: v1.1.117. The verified runtime boundary and remaining parity work are kept explicit in this document.
+> Documentation baseline: v1.1.119. The verified runtime boundary and remaining parity work are kept explicit in this document.
 
 ## Current status
 
