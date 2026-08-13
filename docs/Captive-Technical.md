@@ -99,6 +99,11 @@ complete memory images after authentic relative motion and button transitions;
 the ordinary keyboard and VGA gates must still pass alongside this mouse
 probe.
 
+The bundled DOSBox-X profile enables `mouse emulation=integration` under
+`[sdl]` and `integration device=true` under `[cpu]`. Both settings are needed
+for the original INT 33 path: enabling only the integration I/O device leaves
+CAPPO's VGA surface unchanged when a host mouse event is delivered.
+
 The multi-step probe writes to an explicit output directory and never treats
 printable strings as proof of the active state. CAPPO keeps its message table
 resident in memory, so `strings` would produce false positives. The harness

@@ -1,5 +1,17 @@
 # OpenCaptive Release Notes
 
+## Unreleased
+
+### Changed
+
+- **(Captive)** DOSBox-X mouse integration now enables the original INT 33
+  path explicitly, so authentic pointer motion and clicks reach CAPPO.
+
+### Verification
+
+- Authentic DOSBox-X mouse, navigation, and replay gates pass with the
+  player-supplied CAPPO data; the full local suite remains 64/64.
+
 ## v1.1.122 (2026-08-13)
 
 ### Added
