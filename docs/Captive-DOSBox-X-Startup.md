@@ -20,6 +20,11 @@ DOSBOX_X_BIN=/path/to/dosbox-x \
   tools/run_captive_dosbox_x.sh /path/to/authentic/captive-data
 ```
 
+The repository profile disables DOSBox-X's macOS quit-confirmation modal for
+this isolated process. That prevents a stale warning window from capturing
+input during startup; it does not alter CAPTIVE.BAT, CAPPO timing, VGA output,
+keyboard/mouse input, or any original game data.
+
 The data directory must contain the original Captive files, including
 `CAPTIVE.BAT`. OpenCaptive must not create replacement maps, planets,
 landings, droids, or dungeon data when these files are missing.
