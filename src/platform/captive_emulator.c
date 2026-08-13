@@ -40,6 +40,13 @@ bool captive_emulator_session_send_scan(CaptiveEmulatorSession *session,
     return false;
 }
 
+bool captive_emulator_session_wait(CaptiveEmulatorSession *session,
+                                   unsigned ticks) {
+    (void)session;
+    (void)ticks;
+    return false;
+}
+
 bool captive_emulator_session_send_mouse_motion(CaptiveEmulatorSession *session,
                                                 int dx, int dy) {
     (void)session; (void)dx; (void)dy;
@@ -193,10 +200,10 @@ bool captive_emulator_session_start(const char *data_path,
         _exit(127);
     }
     session->process_id = (int)child;
-    /* Opening the writer blocks until the expect harness has completed the
-     * authentic INTRO/FILEPLAY handoff and opened the FIFO. This prevents the
-     * first real scan from being lost in a startup race. */
-    session->command_fd = open(session->fifo_path, O_WRONLY);
+    /* Keep one read/write descriptor while the expect harness finishes its
+     * authentic INTRO/FILEPLAY handoff. Opening O_WRONLY here deadlocks: the
+     * harness opens the command FIFO only after its first real CAPPO dump. */
+    session->command_fd = open(session->fifo_path, O_RDWR | O_NONBLOCK);
     if (session->command_fd < 0) {
         kill(child, SIGTERM);
         waitpid(child, NULL, 0);
@@ -206,6 +213,8 @@ bool captive_emulator_session_start(const char *data_path,
         session->process_id = -1;
         return false;
     }
+    int flags = fcntl(session->command_fd, F_GETFL, 0);
+    if (flags >= 0) (void)fcntl(session->command_fd, F_SETFL, flags & ~O_NONBLOCK);
     return true;
 }
 
@@ -217,6 +226,19 @@ bool captive_emulator_session_send_scan(CaptiveEmulatorSession *session,
     snprintf(command, sizeof(command), "%02X\n", scan_code);
     written = write(session->command_fd, command, 3);
     return written == 3;
+}
+
+static bool send_fifo_command(CaptiveEmulatorSession *session,
+                              const char *command);
+
+bool captive_emulator_session_wait(CaptiveEmulatorSession *session,
+                                   unsigned ticks) {
+    char command[32];
+    int length;
+    if (ticks < 1 || ticks > 2000) return false;
+    length = snprintf(command, sizeof(command), "WAIT:%u\n", ticks);
+    return length > 0 && (size_t)length < sizeof(command) &&
+           send_fifo_command(session, command);
 }
 
 static bool send_fifo_command(CaptiveEmulatorSession *session,

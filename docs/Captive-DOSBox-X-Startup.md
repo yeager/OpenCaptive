@@ -25,8 +25,8 @@ The data directory must contain the original Captive files, including
 landings, droids, or dungeon data when these files are missing.
 
 The graphical OpenCaptive start menu launches the same authentic DOSBox-X
-runtime in its own window. OpenCaptive does not create a second gameplay
-surface or a replacement state underneath it.
+runtime path. DOSBox-X owns the original CAPPO window, timer, audio and input;
+OpenCaptive does not create a second gameplay state.
 
 ## Exact repeatable startup
 
@@ -185,7 +185,7 @@ must not be used as parity evidence.
 |---|---|
 | VGA choice does nothing | Click inside the game viewport, then press `1`. |
 | Debugger window appears | Quit and restart with the normal helper; remove debugger flags. |
-| System pointer moves but Captive pointer does not | Click the DOSBox-X viewport and check `Ctrl+F10`; do not use a paused diagnostic session as a mouse test. |
+| System pointer moves but Captive pointer does not | Click the OpenCaptive canvas once, ensure the attached DOSBox-X session is alive, and check `Ctrl+F10`; do not reuse a stale debugger window. |
 | The ship is still in transit | Wait for the original orbit/arrival state before pressing `9` for LAND. |
 | A landed view contains only water | Restart from orbit and fly to the white landing circle. |
 | The viewport looks stretched or corrupted | Use the repository profile; it forces VGA, surface output, integer scaling, and the CAPPO-compatible VGA memory setting. |

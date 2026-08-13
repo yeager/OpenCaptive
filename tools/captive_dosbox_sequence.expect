@@ -67,6 +67,10 @@ proc wait_for_timer_break {} {
     expect {
         -re {07E4:6A33|0824:6633} { set cappo_dispatch_hit 1; exp_continue }
         -re {0824:D753} { puts stderr "CAPPO legacy handler breakpoint reached at 0824:D753"; exp_continue }
+        -re {0824:BA92} {
+            puts stderr "CAPPO ORBIT handler reached at 0824:BA92"
+            exp_continue
+        }
         -re {0824:06B8} {
             global orbit_input_consumed
             send "EV AX\r"
@@ -140,8 +144,10 @@ expect {
 # fail closed even if its memory contains CAPPO message strings.
 send "BP 0824:6633\r"
 if {$trace_orbit_handler} {
-    # Retained only as a legacy relocation probe. It is not a parity gate.
-    send "BP 0824:D753\r"
+    # The Mission 0001 CAPPO dispatcher reads the ORBIT handler pointer from
+    # DS:8D4D. In the authentic DOSBox-X image this is 0824:BA92. Observe the
+    # handler without changing registers or game memory.
+    send "BP 0824:BA92\r"
 }
 
 # CAPPO's unpacked status-message helper is 0x47B0; the active 0824 runtime
@@ -211,6 +217,11 @@ expect {
     eof { exit 1 }
 }
 set timer_breakpoint_installed 0
+if {$trace_orbit_handler} {
+    # Reinstall this observation point after the intro handoff; the general
+    # breakpoint cleanup above intentionally removes all startup probes.
+    send "BP 0824:BA92\r"
+}
 
 # After handoff, run complete emulator frames.  BPINT 08 stops at the entry
 # to the timer ISR, before CAPPO can execute its flight/arrival update. VRT

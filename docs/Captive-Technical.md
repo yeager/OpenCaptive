@@ -46,13 +46,13 @@ The built OpenCaptive binary exposes the same source-faithful path directly:
 ./build/opencaptive --data-dir DATA_DIR --captive-authentic
 ```
 
-This starts the original `CAPTIVE.BAT 1` in an unlocked DOSBox-X window and
-leaves that original runtime in control of input, rendering, audio, landing
-and dungeon state. It does not enter the native compatibility state or
-manufacture a replacement map or roster. The graphical OpenCaptive start menu
-launches the same runtime in its own window; the helper below is the standalone
-DOSBox-X inspection path. The isolated profile is copied beside development
-binaries and inside the macOS app bundle's Resources;
+This starts the original `CAPTIVE.BAT 1` in a normal DOSBox-X window. CAPPO
+keeps control of input, rendering, timer, audio, landing and dungeon state;
+OpenCaptive does not manufacture a replacement map or roster. The graphical
+OpenCaptive start menu uses the same normal runtime path. The debugger/FIFO
+session is reserved for explicit inspection tools and is not used for
+interactive play. The isolated profile is copied beside development binaries
+and inside the macOS app bundle's Resources;
 `DOSBOX_X_BIN` can select another verified DOSBox-X executable.
 
 The same handoff occurs automatically when a new DOS Captive game is selected
@@ -85,16 +85,15 @@ tools/captive_dosbox_queue.expect DATA_DIR 47
 This is an emulator/disassembly probe only, and it never synthesizes a map,
 save, droid roster or dungeon state.
 
-The normal OpenCaptive game path does not own a paused CAPPO session: it hands
-the complete original window to DOSBox-X, so the original mouse, cursor,
-keyboard, timer, audio and animation loop stay interactive. No target, planet,
-landing point or dungeon state is synthesized by OpenCaptive.
+The normal OpenCaptive game path hands control to the original CAPPO window.
+The original timer, VGA surface, keyboard, mouse and audio remain authoritative;
+no target, planet, landing point or dungeon state is synthesized by
+OpenCaptive.
 
-The debugger/FIFO emulator bridge is diagnostic-only. It consumes the
-documented `DEL` continuation and exposes raw dumps for disassembly and
-frame-parity checks, but DOSBox-X deliberately ignores live mouse motion while
-paused for `MEMDUMPBIN`; those probes must not be presented as interactive
-mouse proof or used as the normal game renderer.
+The optional FIFO bridge consumes the documented `DEL` continuation and
+exposes complete original dumps while CAPPO remains the state owner. It is a
+debugger-backed observation tool only; it is not the interactive game path and
+does not claim mouse, audio, orbit or landing parity by itself.
 
 For a complete DOSBox-X memory dump, the `A000:0000` VGA surface is copied
 directly to the native 320×200 framebuffer, including an all-black surface.
@@ -103,16 +102,15 @@ reconstruction when those pixels are present. A malformed dump fails closed;
 this keeps a bad emulator handoff visible as a failure instead of presenting
 synthetic-looking viewport graphics.
 
-The `MOUSE_DX:n`, `MOUSE_DY:n`, `MOUSE_DOWN`, and `MOUSE_UP` FIFO commands remain
-diagnostic transport probes only. They are not a mouse-parity gate: the
-debugger-pause rule above makes them unsuitable as evidence of interactive
-mouse control. Keyboard and VGA gates remain authoritative until an unlocked
-DOSBox-X window has been exercised with physical mouse events.
+The diagnostic `MOUSE_DX:n`, `MOUSE_DY:n`, `MOUSE_DOWN`, and `MOUSE_UP`
+commands are transport messages to the original CAPPO session. They are useful
+for debugger experiments, but are not a substitute for testing the normal
+DOSBox-X mouse path.
 
 The bundled DOSBox-X profile still enables `mouse emulation=integration` and
-the original INT 33 range, so an unlocked interactive DOSBox-X session can be
-tested directly. The paused integration-device payload is retained only for
-low-level diagnostics and is not treated as proof of mouse parity.
+the original INT 33 range. The low-level integration payload is used only to
+deliver the host mouse event to the original runtime; the resulting VGA frame
+remains the parity authority.
 
 The multi-step probe writes to an explicit output directory and never treats
 printable strings as proof of the active state. CAPPO keeps its message table
@@ -204,9 +202,9 @@ coordinate is displayed. Arrival and landing remain gated on a later live
 CAPPO handoff. The gate is intentionally local-only because original game
 media is player-supplied and is never committed or synthesized.
 
-The normal Captive start-menu action now launches the unlocked original
-`CAPTIVE.BAT 1` runtime directly. The debugger/FIFO transport remains
-available only to the local parity gates below.
+The normal Captive start-menu action now attaches to the original
+`CAPTIVE.BAT 1` runtime directly. OpenCaptive stays open as the host window so
+the original VGA state and input path can be verified in one session.
 
 For a longer local replay that verifies each accepted command, including
 repeated commands, use:

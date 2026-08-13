@@ -113,12 +113,18 @@ static bool captive_orbit_arrived;
 /* LAND is a request; CAPPO must publish the real transition frame before
  * OpenCaptive changes phase. */
 static bool captive_landing_requested;
+/* Keep the original CAPPO timer moving after ORBIT has been requested.  The
+ * timer belongs to DOSBox-X; this timestamp only throttles WAIT commands so
+ * the host UI does not flood the live FIFO. */
+static uint32_t captive_last_transit_wait_ms;
 /* Optional caller-owned CAPPO memory image.  This is a diagnostic/runtime
  * bridge only: when present, Captive's viewport is decoded from the exact
  * DOSBox-X memory image and never falls back to map_gen or a generated scene. */
 static uint8_t *captive_dos_memory;
 static bool captive_dos_memory_active;
 static bool captive_dos_runtime_reported;
+
+static uint8_t *load_captive_dos_dump(const char *dump_path);
 
 static void msg_push(const char *text, uint32_t color);
 
@@ -189,6 +195,71 @@ static bool captive_dos_memory_matches_landed_frame(const uint8_t *memory) {
         memory, captive_landed_dungeon_reference,
         captive_landed_dungeon_reference_width,
         captive_landed_dungeon_reference_height);
+}
+
+static void captive_holamap_reset(uint32_t mission_seed);
+
+static void captive_accept_live_frame(GameState *gs,
+                                      const uint8_t *memory) {
+    if (!gs || gs->game_type != GAME_CAPTIVE || !memory ||
+        !captive_live_session_active)
+        return;
+    if ((gs->mode == STATE_GAME || gs->mode == STATE_SPACE_FLIGHT ||
+         (gs->mode == STATE_HOLAMAP && captive_flight_path_set)) &&
+        captive_dos_memory_matches_orbit_frame(memory)) {
+        captive_landed_reference_active = false;
+        captive_orbit_arrived = true;
+        captive_flight_path_set = false;
+        gs->mode = STATE_ORBIT;
+        printf("CAPPO orbit state authenticated from DOSBox-X VGA\n");
+    } else if (captive_landing_requested &&
+               (gs->mode == STATE_ORBIT || gs->mode == STATE_LANDING) &&
+               captive_dos_memory_matches_frame(
+                   memory, captive_landing_reference,
+                   captive_landing_reference_width,
+                   captive_landing_reference_height)) {
+        captive_landing_requested = false;
+        captive_orbit_arrived = true;
+        gs->mode = STATE_LANDING;
+        printf("CAPPO landing transition authenticated from DOSBox-X VGA\n");
+    } else if ((gs->mode == STATE_GAME || gs->mode == STATE_LANDING) &&
+               captive_dos_memory_matches_landed_frame(memory)) {
+        captive_landed_reference_active = true;
+        captive_orbit_arrived = false;
+        if (gs->mode == STATE_LANDING) gs->mode = STATE_GAME;
+        printf("CAPPO landed state authenticated from DOSBox-X VGA\n");
+    }
+}
+
+static bool captive_start_live_session(const char *data_path, GameState *gs) {
+    struct stat dump_stat;
+    uint8_t *initial_memory;
+    unsigned wait_count;
+    if (!data_path || !gs || captive_live_session_active) return false;
+    if (!captive_emulator_session_start(data_path, &captive_live_session))
+        return false;
+    initial_memory = NULL;
+    for (wait_count = 0; wait_count < 300 && !initial_memory; ++wait_count) {
+        if (captive_emulator_session_dump_ready(&captive_live_session))
+            initial_memory = load_captive_dos_dump(
+                captive_live_session.dump_path);
+        if (!initial_memory) SDL_Delay(100);
+    }
+    if (!initial_memory) {
+        captive_emulator_session_stop(&captive_live_session);
+        return false;
+    }
+    free(captive_dos_memory);
+    captive_dos_memory = initial_memory;
+    captive_dos_memory_active = true;
+    captive_live_session_active = true;
+    captive_last_transit_wait_ms = SDL_GetTicks();
+    if (stat(captive_live_session.dump_path, &dump_stat) == 0)
+        captive_dos_dump_mtime_ns = captive_dos_dump_stamp(&dump_stat);
+    captive_holamap_reset(gs->mission);
+    gs->mode = STATE_HOLAMAP;
+    printf("OpenCaptive attached to authentic CAPPO DOSBox-X session\n");
+    return true;
 }
 
 /* CAPPO's ORBIT command is a real transit phase: the green planet marker
@@ -472,6 +543,10 @@ static bool captive_holamap_orbit(GameState *gs) {
      * surface until its own VGA state proves that the route was accepted;
      * setting the marker must never enter a locally rendered flight scene. */
     captive_flight_path_set = true;
+    /* Keep the original CAPPO surface visible, but enter a distinct host
+     * phase so the live timer bridge advances transit and can observe the
+     * later authentic orbit frame. */
+    gs->mode = STATE_SPACE_FLIGHT;
     return true;
 }
 
@@ -3324,21 +3399,18 @@ int main(int argc, char *argv[]) {
         if (!validate_data_path(&vfs)) {
             show_missing_data_dialog(config.data_path);
             capture_failed = capture_frame_path != NULL;
-        } else if (!captive_dos_memory_active && !capture_frame_path) {
-            /* The normal direct path uses the real CAPTIVE.BAT runtime in an
-             * unlocked DOSBox-X window. The debugger/FIFO bridge is reserved
-             * for explicit diagnostics; it cannot prove interactive mouse
-             * parity while DOSBox-X is paused for memory capture. */
-            if (!captive_emulator_launch(config.data_path)) {
-                show_missing_data_dialog(config.data_path);
-                return 1;
-            }
         } else if (!textures_loaded) {
             /* The startup hash set is a fast identity gate.  The renderer
-             * still needs every decoded PL5 surface; do not enter the game
-             * with a verified but unusable partial atlas. */
+             * still needs every decoded PL5 surface before attaching a live
+             * emulator session. */
             show_missing_data_dialog(config.data_path);
             capture_failed = capture_frame_path != NULL;
+        } else if (!captive_dos_memory_active && !capture_frame_path) {
+            /* Interactive Captive belongs to the original DOS runtime.  The
+             * debugger/FIFO bridge is deliberately not used here: it pauses
+             * DOSBox-X and cannot provide the original intro, audio, mouse,
+             * or timer behaviour. */
+            return captive_emulator_launch(config.data_path) ? 0 : 1;
         } else {
             gs.game_type = GAME_CAPTIVE;
             music_play_for_game(&gs, MUSIC_BASE);
@@ -3442,44 +3514,7 @@ int main(int argc, char *argv[]) {
                     captive_dos_dump_mtime_ns = captive_dos_dump_stamp(&dump_stat);
                     captive_dos_runtime_reported = false;
                     printf("Reloaded CAPPO DOSBox-X memory image\n");
-                    if (gs.game_type == GAME_CAPTIVE &&
-                        captive_live_session_active &&
-                        (gs.mode == STATE_GAME ||
-                         gs.mode == STATE_SPACE_FLIGHT ||
-                         (gs.mode == STATE_HOLAMAP && captive_flight_path_set)) &&
-                        captive_dos_memory_matches_orbit_frame(fresh_memory)) {
-                        /* CAPPO must really have arrived at the planet. Keep
-                         * STATE_GAME for a live session: its renderer and
-                         * input path are the raw current CAPPO surface, not a
-                         * locally replayed orbit checkpoint. */
-                        captive_landed_reference_active = false;
-                        captive_orbit_arrived = true;
-                        captive_flight_path_set = false;
-                        gs.mode = STATE_ORBIT;
-                        printf("CAPPO orbit state authenticated from DOSBox-X VGA\n");
-                    } else if (gs.game_type == GAME_CAPTIVE &&
-                        captive_live_session_active && captive_landing_requested &&
-                        (gs.mode == STATE_ORBIT || gs.mode == STATE_LANDING) &&
-                        captive_dos_memory_matches_frame(
-                            fresh_memory, captive_landing_reference,
-                            captive_landing_reference_width,
-                            captive_landing_reference_height)) {
-                        captive_landing_requested = false;
-                        captive_orbit_arrived = true;
-                        gs.mode = STATE_LANDING;
-                        printf("CAPPO landing transition authenticated from DOSBox-X VGA\n");
-                    } else if (gs.game_type == GAME_CAPTIVE &&
-                        captive_live_session_active &&
-                        (gs.mode == STATE_GAME || gs.mode == STATE_LANDING) &&
-                        captive_dos_memory_matches_landed_frame(fresh_memory)) {
-                        /* This is the only native transition into the landed
-                         * Captive view.  The frame came from CAPPO's real
-                         * VGA memory after the user's landing action. */
-                        captive_landed_reference_active = true;
-                        captive_orbit_arrived = false;
-                        if (gs.mode == STATE_LANDING) gs.mode = STATE_GAME;
-                        printf("CAPPO landed state authenticated from DOSBox-X VGA\n");
-                    }
+                    captive_accept_live_frame(&gs, fresh_memory);
                 }
             }
         }
@@ -3496,7 +3531,18 @@ int main(int argc, char *argv[]) {
                     captive_dos_memory_active = true;
                     captive_dos_dump_mtime_ns = captive_dos_dump_stamp(&live_stat);
                     captive_dos_runtime_reported = false;
+                    captive_accept_live_frame(&gs, fresh_memory);
                 }
+            }
+        }
+        if (captive_live_session_active && captive_flight_path_set &&
+            gs.mode == STATE_SPACE_FLIGHT) {
+            uint32_t now = SDL_GetTicks();
+            if (now - captive_last_transit_wait_ms >= 250U) {
+                /* Advance only CAPPO's own timer.  No local coordinates,
+                 * arrival threshold, or synthetic planet is introduced. */
+                if (captive_emulator_session_wait(&captive_live_session, 8))
+                    captive_last_transit_wait_ms = now;
             }
         }
         /* Captive's original holomap/orbit controls use an absolute mouse
@@ -3589,17 +3635,13 @@ int main(int argc, char *argv[]) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
-                            /* Hand the new-game action to the unlocked
-                             * original DOSBox-X window. Do not substitute the
-                             * diagnostic FIFO bridge here: its debugger pause
-                             * would break the real mouse, timer, audio and
-                             * animation loop. */
+                            /* Interactive Captive is handed to the original
+                             * DOS runtime.  Debugger/FIFO attachment is kept
+                             * for explicit diagnostic tools only. */
                             if (!captive_emulator_launch(config.data_path)) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
-                            /* CAPPO now owns the real window, input, audio
-                             * and original startup animation. */
                             running = false;
                             break;
                         case MENU_RESULT_START_LIBERATION:
