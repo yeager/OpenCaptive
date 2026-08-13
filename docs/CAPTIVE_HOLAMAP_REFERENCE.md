@@ -96,6 +96,11 @@ The DOSBox-X verification sequence used for the current reference is:
    and must not be accepted as Captive mission data. OpenCaptive must not
    invent either marker; both must come from original media/data.
 
+   The live bridge sends each original XT make scan together with its matching
+   break scan. CAPPO keeps a pressed-state bit for these controls, so sending
+   repeated make bytes alone is not equivalent to a physical keypad and can
+   silently ignore later route steps.
+
 All four checked-in frames were captured from the supplied CAPPO runtime in
 DOSBox-X and reduced with nearest-neighbour sampling. Do not replace them
 with generated art, generated terrain, a mockup, or a guessed landing point.

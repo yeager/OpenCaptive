@@ -117,12 +117,23 @@ for {set intro_step 0} {$intro_step < 1} {incr intro_step} {
     send "SM 0824 0050 53\r"
     advance_timer_ticks $post_intro_ticks
 }
-# CAPPO Mission 0001: relocated IRQ1 queue at 0824:004e..0057.
+# CAPPO Mission 0001: relocated IRQ1 queue at 0824:004e..0057.  The original
+# IRQ1 path receives make and break bytes; sending only make bytes leaves the
+# per-control pressed bits set after the first repeat and is not equivalent to
+# a real keyboard.  CAPPO's dispatcher masks the break bit before routing the
+# action (CAPPO.EXE 0x6A33..0x6B03), so every probe scan is paired with its XT
+# break byte here.  This changes no game data and keeps all state in CAPPO.
 foreach scan $sequence {
     if {$scan eq "-"} { continue }
     send "SM 0824 004E 01\r"
     send "SM 0824 004F 01\r"
     send [format "SM 0824 0050 %s\r" $scan]
+    advance_timer_ticks $post_scan_ticks
+    scan $scan %x scan_value
+    set break_scan [expr {0x80 | $scan_value}]
+    send "SM 0824 004E 01\r"
+    send "SM 0824 004F 01\r"
+    send [format "SM 0824 0050 %02X\r" $break_scan]
     advance_timer_ticks $post_scan_ticks
 }
 
@@ -171,6 +182,12 @@ if {$fifo_path ne ""} {
         send "SM 0824 004E 01\r"
         send "SM 0824 004F 01\r"
         send [format "SM 0824 0050 %s\r" $command]
+        advance_timer_ticks $post_scan_ticks
+        scan $command %x command_value
+        set break_scan [expr {0x80 | $command_value}]
+        send "SM 0824 004E 01\r"
+        send "SM 0824 004F 01\r"
+        send [format "SM 0824 0050 %02X\r" $break_scan]
         advance_timer_ticks $post_scan_ticks
         set dump_path [dump_cappo_memory $output_dir]
         puts stderr "CAPPO live scan delivered: $command"

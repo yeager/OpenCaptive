@@ -23,7 +23,10 @@ trap 'rm -rf "$tmp_dir"' EXIT HUP INT TERM
 fifo="$tmp_dir/commands"
 mkfifo "$fifo"
 
-expect tools/captive_dosbox_sequence.expect "$data_dir" - 240 "$tmp_dir" 120 "$fifo" \
+# Each raw command now includes the authentic make+break pair. Keep the
+# observation pacing short but deterministic; the original CAPPO timer still
+# owns every state transition and the dump is copied only after its response.
+expect tools/captive_dosbox_sequence.expect "$data_dir" - 240 "$tmp_dir" 8 "$fifo" \
     >"$tmp_dir/session.log" 2>&1 &
 harness_pid=$!
 exec 3>"$fifo"

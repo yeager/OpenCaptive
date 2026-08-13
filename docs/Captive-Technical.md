@@ -195,8 +195,9 @@ from `ARRIVED AT DESTINATION`; a changed coordinate or VGA surface alone is
 not an arrival proof.
 
 OpenCaptive starts the original `INTRO` → `FILEPLAY` → `CAPPO` chain, waits for
-CAPPO's relocated IRQ1 queue, sends the original XT make scan for each arrow or
-numpad action, and reloads the resulting DOSBox-X VGA dump. The OpenCaptive
+CAPPO's relocated IRQ1 queue, sends the original XT make scan followed by its
+break scan for each arrow or numpad action, and reloads the resulting DOSBox-X
+VGA dump. The OpenCaptive
 window therefore displays the original runtime surface after each accepted
 command. If DOSBox-X, `expect`, the FIFO session, or a complete dump is
 unavailable, the Captive session fails closed; it does not switch to the old
