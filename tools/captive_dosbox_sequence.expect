@@ -82,12 +82,15 @@ proc integration_write32 {index value} {
 }
 proc inject_mouse_dx {delta} {
     if {$delta < -127 || $delta > 127} { return }
-    set encoded [expr {($delta + 1) << 24 | 0x900}]
+    # DOSBox-X bios.cpp decodes mouse X from bits 16..23:
+    # Mouse_CursorMoved(((reg >> 16) / 256) - 1, ...).
+    set encoded [expr {($delta + 1) << 16 | 0x0900}]
     integration_write32 0x00804200 $encoded
 }
 proc inject_mouse_dy {delta} {
     if {$delta < -127 || $delta > 127} { return }
-    set encoded [expr {($delta + 1) << 24 | 0xA00}]
+    # DOSBox-X bios.cpp decodes mouse Y from bits 16..23.
+    set encoded [expr {($delta + 1) << 16 | 0x0A00}]
     integration_write32 0x00804200 $encoded
 }
 proc inject_mouse_button {pressed} {

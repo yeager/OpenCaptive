@@ -106,6 +106,10 @@ CAPPO's VGA surface unchanged when a host mouse event is delivered.
 It also fixes the INT 33 range to CAPPO's native 320×200 surface
 (`int33 max x=320`, `int33 max y=200`), preventing host-window coordinates from
 placing the original pointer outside the mission map.
+The integration-device mouse payload follows DOSBox-X `bios.cpp`: the action
+selector is in bits 8–15 and the encoded relative unit (`delta + 1`) is in
+bits 16–23. The verifier rejects no-op transport silently by requiring distinct
+complete original dumps after motion and button events.
 
 The multi-step probe writes to an explicit output directory and never treats
 printable strings as proof of the active state. CAPPO keeps its message table
