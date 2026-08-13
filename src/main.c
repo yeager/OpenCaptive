@@ -107,14 +107,21 @@ static float captive_live_mouse_dy;
  * This flag is only an input-phase marker; it contains no generated
  * destination or movement data. */
 static bool captive_flight_path_set;
-
-static void msg_push(const char *text, uint32_t color);
+/* Set only after CAPPO has returned the authenticated in-orbit VGA frame.
+ * Selecting ORBIT or waiting locally is not enough to enable LAND. */
+static bool captive_orbit_arrived;
+/* LAND is a request; CAPPO must publish the real transition frame before
+ * OpenCaptive changes phase. */
+static bool captive_landing_requested;
 /* Optional caller-owned CAPPO memory image.  This is a diagnostic/runtime
  * bridge only: when present, Captive's viewport is decoded from the exact
  * DOSBox-X memory image and never falls back to map_gen or a generated scene. */
 static uint8_t *captive_dos_memory;
 static bool captive_dos_memory_active;
 static bool captive_dos_runtime_reported;
+
+static void msg_push(const char *text, uint32_t color);
+
 /* CAPPO's game-state DS is explicitly restored to 0x0E3F by its original
  * timer/game-loop routine (CAPPO.EXE 0xC252: MOV AX,0x0E3F; MOV DS,AX).
  * A transient debugger sample at another routine must not replace it. */
@@ -241,6 +248,7 @@ static void captive_begin_flight(GameState *gs) {
     if (!gs || !captive_holamap_target_reference ||
         !captive_holamap_target_selected()) return;
     captive_landed_reference_active = false;
+    captive_orbit_arrived = false;
     captive_flight_path_set = false;
     gs->mode = STATE_SPACE_FLIGHT;
 }
@@ -258,12 +266,15 @@ static void captive_begin_orbit(GameState *gs) {
      * entered only by the explicit ORBIT command after FLIGHT PATH SET; no
      * elapsed-time or procedural arrival is allowed here. */
     captive_landed_reference_active = false;
+    captive_orbit_arrived = true;
     gs->orbit_angle = 0.0f;
     gs->mode = STATE_ORBIT;
 }
 
 static void captive_holamap_reset(uint32_t mission_seed) {
     captive_flight_path_set = false;
+    captive_orbit_arrived = false;
+    captive_landing_requested = false;
     holamap_init(&captive_holamap, mission_seed);
     if (captive_holamap_reference) {
         holamap_set_reference_frame(&captive_holamap,
@@ -529,16 +540,19 @@ static bool captive_orbit_mouse_move(const OpenCaptiveRenderer *r,
     CaptiveNavigationAction action;
     if (!gs || !captive_navigation_mouse_action(r, button, &action))
         return false;
-    if (action == CAPTIVE_NAV_ACTION_LAND &&
+    if (action == CAPTIVE_NAV_ACTION_LAND && captive_orbit_arrived &&
         (captive_live_session_active || captive_landing_reference)) {
         /* The white point is the original landing target.  CAPPO changes
          * phase only after LAND is pressed in this view. */
-        if (captive_live_session_active) {
+            if (captive_live_session_active) {
+                if (!captive_orbit_arrived) return false;
             /* A rejected CAPPO LAND command must leave the original
              * holomap/orbit surface untouched.  The old code entered the
              * local landing reference unconditionally, which fabricated a
              * landing transition even when CAPPO reported an error. */
-            return captive_live_send_action(CAPTIVE_NAV_ACTION_LAND);
+            if (!captive_live_send_action(CAPTIVE_NAV_ACTION_LAND)) return false;
+            captive_landing_requested = true;
+            return true;
         }
         captive_begin_landing(gs);
         return true;
@@ -3311,35 +3325,13 @@ int main(int argc, char *argv[]) {
             show_missing_data_dialog(config.data_path);
             capture_failed = capture_frame_path != NULL;
         } else if (!captive_dos_memory_active && !capture_frame_path) {
-            /* A normal direct Captive launch must follow the same authentic
-             * CAPTIVE.BAT path as the start-menu action.  The native path is
-             * reserved for explicit frame/dump analysis, so a desktop
-             * shortcut can never silently open the incomplete compatibility
-             * shell or a synthetic dungeon. */
-            if (!captive_emulator_session_start(config.data_path,
-                                                &captive_live_session)) {
+            /* The normal direct path uses the real CAPTIVE.BAT runtime in an
+             * unlocked DOSBox-X window. The debugger/FIFO bridge is reserved
+             * for explicit diagnostics; it cannot prove interactive mouse
+             * parity while DOSBox-X is paused for memory capture. */
+            if (!captive_emulator_launch(config.data_path)) {
                 show_missing_data_dialog(config.data_path);
                 return 1;
-            } else {
-                captive_live_session_active = true;
-                captive_live_mouse_dx = 0.0f;
-                captive_live_mouse_dy = 0.0f;
-                captive_dos_dump_path = captive_live_session.dump_path;
-                captive_dos_memory = load_captive_dos_dump(captive_dos_dump_path);
-                if (!captive_dos_memory) {
-                    captive_emulator_session_stop(&captive_live_session);
-                    captive_live_session_active = false;
-                    show_missing_data_dialog(config.data_path);
-                    return 1;
-                }
-                captive_dos_memory_active = true;
-                gs.game_type = GAME_CAPTIVE;
-                /* CAPPO's first live frame is the real surface returned by
-                 * the completed INTRO/FILEPLAY/DEL handoff. Keep that
-                 * emulator surface authoritative instead of replacing it
-                 * with a native or generated navigation frame. */
-                gs.mode = STATE_GAME;
-                printf("Started authentic CAPPO live session in OpenCaptive\n");
             }
         } else if (!textures_loaded) {
             /* The startup hash set is a fast identity gate.  The renderer
@@ -3461,8 +3453,21 @@ int main(int argc, char *argv[]) {
                          * input path are the raw current CAPPO surface, not a
                          * locally replayed orbit checkpoint. */
                         captive_landed_reference_active = false;
+                        captive_orbit_arrived = true;
                         captive_flight_path_set = false;
+                        gs.mode = STATE_ORBIT;
                         printf("CAPPO orbit state authenticated from DOSBox-X VGA\n");
+                    } else if (gs.game_type == GAME_CAPTIVE &&
+                        captive_live_session_active && captive_landing_requested &&
+                        (gs.mode == STATE_ORBIT || gs.mode == STATE_LANDING) &&
+                        captive_dos_memory_matches_frame(
+                            fresh_memory, captive_landing_reference,
+                            captive_landing_reference_width,
+                            captive_landing_reference_height)) {
+                        captive_landing_requested = false;
+                        captive_orbit_arrived = true;
+                        gs.mode = STATE_LANDING;
+                        printf("CAPPO landing transition authenticated from DOSBox-X VGA\n");
                     } else if (gs.game_type == GAME_CAPTIVE &&
                         captive_live_session_active &&
                         (gs.mode == STATE_GAME || gs.mode == STATE_LANDING) &&
@@ -3471,6 +3476,7 @@ int main(int argc, char *argv[]) {
                          * Captive view.  The frame came from CAPPO's real
                          * VGA memory after the user's landing action. */
                         captive_landed_reference_active = true;
+                        captive_orbit_arrived = false;
                         if (gs.mode == STATE_LANDING) gs.mode = STATE_GAME;
                         printf("CAPPO landed state authenticated from DOSBox-X VGA\n");
                     }
@@ -3583,39 +3589,18 @@ int main(int argc, char *argv[]) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
-                            /* The original DOS data has a complete CAPPO
-                             * runtime. Hand the new-game action to DOSBox-X.
-                             * There is deliberately no native fallback here:
-                             * a failed emulator launch must not expose the old
-                             * compatibility shell or any generated Captive
-                             * space/dungeon state. */
-                            if (!captive_emulator_session_start(config.data_path,
-                                                                &captive_live_session)) {
+                            /* Hand the new-game action to the unlocked
+                             * original DOSBox-X window. Do not substitute the
+                             * diagnostic FIFO bridge here: its debugger pause
+                             * would break the real mouse, timer, audio and
+                             * animation loop. */
+                            if (!captive_emulator_launch(config.data_path)) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
-                            captive_live_session_active = true;
-                            captive_live_mouse_dx = 0.0f;
-                            captive_live_mouse_dy = 0.0f;
-                            captive_dos_dump_path = captive_live_session.dump_path;
-                            captive_dos_memory =
-                                load_captive_dos_dump(captive_dos_dump_path);
-                            if (!captive_dos_memory) {
-                                captive_emulator_session_stop(&captive_live_session);
-                                captive_live_session_active = false;
-                                show_missing_data_dialog(config.data_path);
-                                break;
-                            }
-                            captive_dos_memory_active = true;
-                            captive_dos_dump_mtime_ns = 0;
-                            /* The emulator bridge has already consumed the
-                             * authentic DEL continuation before returning.
-                             * This first live frame is therefore CAPPO's
-                             * Mission 0001 navigation surface; mouse input
-                             * and every later frame stay in the live VGA
-                             * runtime, never in a local/generated phase. */
-                            gs.mode = STATE_GAME;
-                            music_stop(&music_sys);
+                            /* CAPPO now owns the real window, input, audio
+                             * and original startup animation. */
+                            running = false;
                             break;
                         case MENU_RESULT_START_LIBERATION:
                             /* A fresh Liberation game must not inherit the
@@ -4247,7 +4232,7 @@ int main(int argc, char *argv[]) {
                             case SDLK_KP_2:
                                 if (captive_live_session_active)
                                     (void)captive_live_send_scan(
-                                        event.key.key == SDLK_KP_2 ? 0x50 : 0x48);
+                                        0x50);
                                 if (!captive_live_session_active)
                                     holamap_move_cursor(&captive_holamap, 0, 1);
                                 break;
@@ -4255,7 +4240,7 @@ int main(int argc, char *argv[]) {
                             case SDLK_KP_4:
                                 if (captive_live_session_active)
                                     (void)captive_live_send_scan(
-                                        event.key.key == SDLK_KP_4 ? 0x4B : 0x4D);
+                                        0x4B);
                                 if (!captive_live_session_active)
                                     holamap_move_cursor(&captive_holamap, -1, 0);
                                 break;
@@ -4263,7 +4248,7 @@ int main(int argc, char *argv[]) {
                             case SDLK_KP_6:
                                 if (captive_live_session_active)
                                     (void)captive_live_send_scan(
-                                        event.key.key == SDLK_KP_6 ? 0x4D : 0x4B);
+                                        0x4D);
                                 if (!captive_live_session_active)
                                     holamap_move_cursor(&captive_holamap, 1, 0);
                                 break;
@@ -4328,10 +4313,15 @@ int main(int argc, char *argv[]) {
                              * command, so it must not bypass the white
                              * landing-point control. */
                             case SDLK_KP_9:
-                                if (captive_live_session_active &&
-                                    !captive_live_send_action(CAPTIVE_NAV_ACTION_LAND))
-                                    break;
-                                captive_begin_landing(&gs);
+                                if (!captive_orbit_arrived) {
+                                    /* CAPPO owns the rejection message and
+                                     * remains on its current surface. */
+                                } else if (captive_live_session_active) {
+                                    if (captive_live_send_action(CAPTIVE_NAV_ACTION_LAND))
+                                        captive_landing_requested = true;
+                                } else {
+                                    captive_begin_landing(&gs);
+                                }
                                 break;
                             case SDLK_ESCAPE:
                                 gs.mode = STATE_HOLAMAP;
@@ -4347,6 +4337,7 @@ int main(int argc, char *argv[]) {
                     if (event.type == SDL_EVENT_KEY_DOWN &&
                         event.key.key == SDLK_ESCAPE) {
                         captive_landed_reference_active = false;
+                        captive_orbit_arrived = false;
                         gs.mode = STATE_ORBIT;
                     }
                     break;
@@ -5280,7 +5271,13 @@ int main(int argc, char *argv[]) {
                  * If that original asset is unavailable, fail closed rather
                  * than hiding the missing data behind a generated canvas. */
                 memset(framebuffer, 0, sizeof(framebuffer));
-                if (captive_holamap_reference)
+                if (captive_live_session_active && captive_dos_memory_active)
+                    (void)captive_dos_runtime_render(
+                        captive_dos_memory, DOS_VGA_MEMORY_SIZE,
+                        captive_dos_ds_segment, captive_dos_source_bank_segment,
+                        framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                        CAPTIVE_ORIGINAL_HEIGHT);
+                else if (captive_holamap_reference)
                     holamap_render(&captive_holamap, framebuffer,
                                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 /* Do not add launcher text here. The original holomap
@@ -5292,11 +5289,18 @@ int main(int argc, char *argv[]) {
 
             case STATE_SPACE_FLIGHT:
                 if (gs.game_type == GAME_CAPTIVE) {
-                    holamap_render_reference_frame(
-                        captive_holamap_target_reference,
-                        captive_holamap_target_width,
-                        captive_holamap_target_height, framebuffer,
-                        CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                    if (captive_live_session_active && captive_dos_memory_active)
+                        (void)captive_dos_runtime_render(
+                            captive_dos_memory, DOS_VGA_MEMORY_SIZE,
+                            captive_dos_ds_segment, captive_dos_source_bank_segment,
+                            framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                            CAPTIVE_ORIGINAL_HEIGHT);
+                    else
+                        holamap_render_reference_frame(
+                            captive_holamap_target_reference,
+                            captive_holamap_target_width,
+                            captive_holamap_target_height, framebuffer,
+                            CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 } else {
                     space_flight_render(&gs, &starfield, framebuffer,
                                         CAPTIVE_ORIGINAL_WIDTH,
@@ -5305,14 +5309,27 @@ int main(int argc, char *argv[]) {
                 break;
 
             case STATE_ORBIT:
-                holamap_render_reference_frame(
-                    captive_orbit_reference, captive_orbit_reference_width,
-                    captive_orbit_reference_height, framebuffer,
-                    CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
+                if (captive_live_session_active && captive_dos_memory_active)
+                    (void)captive_dos_runtime_render(
+                        captive_dos_memory, DOS_VGA_MEMORY_SIZE,
+                        captive_dos_ds_segment, captive_dos_source_bank_segment,
+                        framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                        CAPTIVE_ORIGINAL_HEIGHT);
+                else
+                    holamap_render_reference_frame(
+                        captive_orbit_reference, captive_orbit_reference_width,
+                        captive_orbit_reference_height, framebuffer,
+                        CAPTIVE_ORIGINAL_WIDTH, CAPTIVE_ORIGINAL_HEIGHT);
                 break;
 
             case STATE_LANDING:
-                if (captive_landed_reference_active) {
+                if (captive_live_session_active && captive_dos_memory_active) {
+                    (void)captive_dos_runtime_render(
+                        captive_dos_memory, DOS_VGA_MEMORY_SIZE,
+                        captive_dos_ds_segment, captive_dos_source_bank_segment,
+                        framebuffer, CAPTIVE_ORIGINAL_WIDTH,
+                        CAPTIVE_ORIGINAL_HEIGHT);
+                } else if (captive_landed_reference_active) {
                     holamap_render_reference_frame(
                         captive_landed_dungeon_reference,
                         captive_landed_dungeon_reference_width,

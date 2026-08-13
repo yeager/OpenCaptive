@@ -37,7 +37,7 @@ proc wait_for_timer_break {} {
     }
 }
 
-spawn env TERM=xterm-256color dosbox-x -break-start -conf $profile \
+spawn env TERM=xterm-256color dosbox-x -break-start -conf $profile -set debuggerrun=debugger \
     -c "mount c $data_dir" -c "c:" -c "CAPTIVE.BAT 1"
 
 expect {

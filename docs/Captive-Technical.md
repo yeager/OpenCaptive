@@ -1,6 +1,11 @@
 # Captive technical notes
 
-> Documentation baseline: v1.1.119. Runtime parity claims remain scoped to the verified boundaries described below.
+> Documentation baseline: v1.1.126. Runtime parity claims remain scoped to the verified boundaries described below.
+
+For the repeatable daily emulator procedure, see
+[Captive DOSBox-X startup](Captive-DOSBox-X-Startup.md). It records the
+normal launch command, the required VGA/focus step, mouse capture handling,
+and the authentic ORBIT-to-LAND rule.
 
 ## Runtime model
 
@@ -41,12 +46,14 @@ The built OpenCaptive binary exposes the same source-faithful path directly:
 ./build/opencaptive --data-dir DATA_DIR --captive-authentic
 ```
 
-This starts the original `CAPTIVE.BAT 1` in DOSBox-X and leaves the original
-window in control of input, rendering, audio, landing and dungeon state. It
-does not enter the native compatibility state or manufacture a replacement
-map or roster. The isolated profile is copied beside development binaries and
-inside the macOS app bundle's Resources; `DOSBOX_X_BIN` can select another
-verified DOSBox-X executable.
+This starts the original `CAPTIVE.BAT 1` in an unlocked DOSBox-X window and
+leaves that original runtime in control of input, rendering, audio, landing
+and dungeon state. It does not enter the native compatibility state or
+manufacture a replacement map or roster. The graphical OpenCaptive start menu
+launches the same runtime in its own window; the helper below is the standalone
+DOSBox-X inspection path. The isolated profile is copied beside development
+binaries and inside the macOS app bundle's Resources;
+`DOSBOX_X_BIN` can select another verified DOSBox-X executable.
 
 The same handoff occurs automatically when a new DOS Captive game is selected
 from the graphical start menu and `CAPTIVE.BAT` is present. If the original
@@ -78,18 +85,16 @@ tools/captive_dosbox_queue.expect DATA_DIR 47
 This is an emulator/disassembly probe only, and it never synthesizes a map,
 save, droid roster or dungeon state.
 
-When OpenCaptive owns a live CAPPO session, its Captive mouse path follows the
-same boundary. The emulator bridge consumes the documented `DEL` continuation
-before returning the first live dump. In the live holomap, relative host
-motion is accumulated and emitted as CAPPO's documented cursor-key scans once
-one discrete step is available. This is necessary because DOSBox-X's
-debugger deliberately ignores `Mouse_CursorMoved()` while the debugger is
-paused for a memory dump; forwarding a paused integration-device delta would
-not be real mouse control. The conversion uses only CAPPO's original
-left/right/up/down actions and creates no map coordinate or marker. Left-button
-clicks on the original control bank continue through CAPPO's own input queue.
-The live CAPPO VGA dump remains the only rendered surface. No target, planet,
-landing point or dungeon state is synthesized.
+The normal OpenCaptive game path does not own a paused CAPPO session: it hands
+the complete original window to DOSBox-X, so the original mouse, cursor,
+keyboard, timer, audio and animation loop stay interactive. No target, planet,
+landing point or dungeon state is synthesized by OpenCaptive.
+
+The debugger/FIFO emulator bridge is diagnostic-only. It consumes the
+documented `DEL` continuation and exposes raw dumps for disassembly and
+frame-parity checks, but DOSBox-X deliberately ignores live mouse motion while
+paused for `MEMDUMPBIN`; those probes must not be presented as interactive
+mouse proof or used as the normal game renderer.
 
 For a complete DOSBox-X memory dump, the `A000:0000` VGA surface is copied
 directly to the native 320×200 framebuffer, including an all-black surface.
@@ -199,8 +204,9 @@ coordinate is displayed. Arrival and landing remain gated on a later live
 CAPPO handoff. The gate is intentionally local-only because original game
 media is player-supplied and is never committed or synthesized.
 
-The normal Captive start-menu action now uses the same transport and authentic
-movement pacing as this gate.
+The normal Captive start-menu action now launches the unlocked original
+`CAPTIVE.BAT 1` runtime directly. The debugger/FIFO transport remains
+available only to the local parity gates below.
 
 For a longer local replay that verifies each accepted command, including
 repeated commands, use:
@@ -221,6 +227,17 @@ This advances only the original CAPPO timer (1–2000 ticks) and injects no
 keyboard scan. It is useful for separating CAPPO's `FLIGHT PATH SET` phase
 from `ARRIVED AT DESTINATION`; a changed coordinate or VGA surface alone is
 not an arrival proof.
+
+When `CAPPO_TRACE_DISPATCH=1` is set for the diagnostic harness, DOSBox-X also
+records one complete `CS IP DS AX SI DI` snapshot at the real CAPPO dispatcher
+after each live scan. This proves that the original input reached CAPPO's
+dispatcher. It does not prove that the selected scan reached its indirect
+handler, that transit completed, or that the ship is in orbit; those states
+still require an authentic original-runtime frame or state transition.
+
+Direct debugger queue injection is not used as parity evidence: it is not
+equivalent to a real keyboard event. The verified path stops before proving
+`ARRIVED AT DESTINATION`, `NOW IN ORBIT`, or `LANDING SUCCESSFUL`.
 
 OpenCaptive starts the original `INTRO` → `FILEPLAY` → `CAPPO` chain, waits for
 CAPPO's relocated IRQ1 queue, sends the original XT make scan followed by its
@@ -250,7 +267,8 @@ inputs, three keypad-down inputs, one keypad-up input, then keypad 7 with the
 cursor on the green marker. CAPPO responds with its own `FLIGHT PATH SET`
 message. In the currently verified session, keypad 9 still reports
 `SWAN NOT YET IN ORBIT`; no post-landing surface is accepted until the original
-runtime proves arrival. A subsequent keypad-8 Forward command is likewise
+runtime proves arrival. `ORBIT` therefore starts transit only: `LAND` remains
+disabled until CAPPO returns the authenticated in-orbit VGA frame. A subsequent keypad-8 Forward command is likewise
 kept behind that authentic handoff.
 
 The native compatibility path does not convert the landing transition into

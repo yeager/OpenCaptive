@@ -16,6 +16,12 @@ set post_intro_ticks [expr {$argc > 2 ? [lindex $argv 2] : 240}]
 set output_dir [expr {$argc > 3 ? [file normalize [lindex $argv 3]] : [pwd]}]
 set post_scan_ticks [expr {$argc > 4 ? [lindex $argv 4] : 8}]
 set fifo_path [expr {$argc > 5 ? [file normalize [lindex $argv 5]] : ""}]
+set trace_status [expr {[info exists ::env(CAPPO_TRACE_STATUS)] && $::env(CAPPO_TRACE_STATUS) ne ""}]
+set trace_dispatch [expr {[info exists ::env(CAPPO_TRACE_DISPATCH)] && $::env(CAPPO_TRACE_DISPATCH) ne ""}]
+set trace_orbit_handler [expr {[info exists ::env(CAPPO_TRACE_ORBIT_HANDLER)] && $::env(CAPPO_TRACE_ORBIT_HANDLER) ne ""}]
+set trace_status_runtime [expr {[info exists ::env(CAPPO_TRACE_STATUS_RUNTIME)] && $::env(CAPPO_TRACE_STATUS_RUNTIME) ne ""}]
+set trace_input_poll [expr {[info exists ::env(CAPPO_TRACE_INPUT_POLL)] && $::env(CAPPO_TRACE_INPUT_POLL) ne ""}]
+set orbit_input_consumed 0
 set script_dir [file dirname [file normalize $argv0]]
 set profile [file join $script_dir dosbox-x-captive.conf]
 if {![file isdirectory $data_dir] || ![file exists $profile]} {
@@ -52,11 +58,31 @@ cd $output_dir
 
 proc resume_emulation {} { send "\033\[15~" }
 set timer_breakpoint_installed 0
+if {$trace_status_runtime} {
+    send "BP 0824:43B0\r"
+}
 set cappo_dispatch_hit 0
 proc wait_for_timer_break {} {
     global cappo_dispatch_hit
     expect {
-        -re {07E4:6A33} { set cappo_dispatch_hit 1; exp_continue }
+        -re {07E4:6A33|0824:6633} { set cappo_dispatch_hit 1; exp_continue }
+        -re {0824:D753} { puts stderr "CAPPO legacy handler breakpoint reached at 0824:D753"; exp_continue }
+        -re {0824:06B8} {
+            global orbit_input_consumed
+            send "EV AX\r"
+            expect {
+                -re {LOG: EV of 'AX' is:\s*\r?\n[^\r\n]*0047} {
+                    set orbit_input_consumed 1
+                    puts stderr "CAPPO ORBIT scan 47 loaded by original dequeue at 0824:06B8"
+                }
+                -re {LOG: EV of 'AX' is:} {
+                    puts stderr "CAPPO dequeue returned a non-ORBIT scan"
+                }
+                timeout { puts stderr "DOSBox-X did not return dequeued scan" }
+            }
+            exp_continue
+        }
+        -re {0824:43B0} { puts stderr "CAPPO status-message helper reached at 0824:43B0"; exp_continue }
         -re {I->} {}
         timeout { puts stderr "DOSBox-X did not reach the timer breakpoint"; exit 1 }
         eof { exit 1 }
@@ -101,7 +127,7 @@ proc inject_mouse_button {pressed} {
     integration_write32 0x00804200 $value
 }
 
-spawn env TERM=xterm-256color dosbox-x -break-start -conf $profile \
+spawn env TERM=xterm-256color dosbox-x -break-start -conf $profile -set debuggerrun=debugger \
     -c "mount c $data_dir" -c "c:" -c "CAPTIVE.BAT 1"
 expect {
     -re {I->} {}
@@ -112,7 +138,24 @@ expect {
 # Mission 0001 dump places the unpacked image at linear 0x7E40, i.e. segment
 # 07E4. This breakpoint is the handoff proof; a FILEPLAY-only session must
 # fail closed even if its memory contains CAPPO message strings.
-send "BP 07E4:6A33\r"
+send "BP 0824:6633\r"
+if {$trace_orbit_handler} {
+    # Retained only as a legacy relocation probe. It is not a parity gate.
+    send "BP 0824:D753\r"
+}
+
+# CAPPO's unpacked status-message helper is 0x47B0; the active 0824 runtime
+# bank is relocated by -0x400, so its live address is 0824:43B0. This is an
+# opt-in disassembly probe only and is never installed in normal verification.
+if {$trace_status} {
+    send "BP 0824:43B0\r"
+}
+if {$trace_status_runtime} {
+    # CAPPO's unpacked status-message helper (0x47B0) is relocated to the
+    # active Mission 0001 bank at 0824:43B0. Keep it as a runtime observation
+    # only; the probe never writes the status or advances a phase locally.
+    send "BP 0824:43B0\r"
+}
 
 # Original INTRO choices: 1, 4, 3, 3.
 advance_timer_ticks 120
@@ -153,6 +196,52 @@ for {set intro_step 0} {$intro_step < 1} {incr intro_step} {
     send "SM 0824 0050 53\r"
     advance_timer_ticks $post_intro_ticks
 }
+
+# The dispatcher breakpoint is only a CAPPO handoff proof. Leaving it active
+# would stop the original dispatcher before the timer IRQ can run its
+# flight/arrival update, making later WAIT commands look like a frozen route.
+# Clear every diagnostic breakpoint after handoff.  The intro pacing helper
+# installs an INT 08 breakpoint as well as the CAPPO dispatcher breakpoint;
+# leaving INT 08 active makes VRT stop before CAPPO's flight/arrival update.
+# VRT itself is the only observation boundary after this point.
+send "BPDEL *\r"
+expect {
+    -re {Breakpoints deleted\.|Breakpoint deletion success|No breakpoints} {}
+    timeout { puts stderr "DOSBox-X did not clear diagnostic breakpoints"; exit 1 }
+    eof { exit 1 }
+}
+set timer_breakpoint_installed 0
+
+# After handoff, run complete emulator frames.  BPINT 08 stops at the entry
+# to the timer ISR, before CAPPO can execute its flight/arrival update. VRT
+# resumes the original machine through a complete vertical-retrace interval
+# and then returns to the debugger for an observation; no game state is
+# written by this helper.
+proc advance_runtime_ticks {count} {
+    for {set i 0} {$i < $count} {incr i} {
+        send "VRT\r"
+        expect {
+            -re {I->} {}
+            timeout { puts stderr "DOSBox-X did not reach the next vertical retrace"; exit 1 }
+            eof { exit 1 }
+        }
+    }
+}
+
+proc trace_dispatch_state {} {
+    # DOSBox-X accepts a register list in one EV command.  Capturing the
+    # complete state at the dispatcher prompt avoids the misleading sequence
+    # of unrelated single-register prompts that the old probe produced.
+    send "EV CS IP DS AX SI DI\r"
+    expect {
+        -re {LOG: EV of 'CS IP DS AX SI DI' is:\s*\r?\n([^\r\n]+)} {
+            puts stderr "CAPPO dispatcher registers: $expect_out(1,string)"
+        }
+        timeout { puts stderr "DOSBox-X did not return the dispatcher registers"; exit 1 }
+        eof { exit 1 }
+    }
+}
+
 # CAPPO Mission 0001: relocated IRQ1 queue at 0824:004e..0057.  The original
 # IRQ1 path receives make and break bytes; sending only make bytes leaves the
 # per-control pressed bits set after the first repeat and is not equivalent to
@@ -164,23 +253,29 @@ foreach scan $sequence {
     send "SM 0824 004E 01\r"
     send "SM 0824 004F 01\r"
     send [format "SM 0824 0050 %s\r" $scan]
-    advance_timer_ticks $post_scan_ticks
+    advance_runtime_ticks $post_scan_ticks
     scan $scan %x scan_value
     set break_scan [expr {0x80 | $scan_value}]
     send "SM 0824 004E 01\r"
     send "SM 0824 004F 01\r"
     send [format "SM 0824 0050 %02X\r" $break_scan]
-    advance_timer_ticks $post_scan_ticks
+    advance_runtime_ticks $post_scan_ticks
 }
 
 proc dump_cappo_memory {output_dir} {
+    # MEMDUMPBIN reuses the same host path. Remove the previous dump first so
+    # callers cannot mistake a still-complete old 1 MiB file for the frame
+    # produced by the command that immediately preceded this request.
+    set dump_path [file join $output_dir MEMDUMP.BIN]
+    if {[file exists $dump_path]} {
+        file delete -force $dump_path
+    }
     send "MEMDUMPBIN 0 0 100000\r"
     expect {
         -re {Memory dump(?: binary)? success} {}
         timeout { puts stderr "DOSBox-X did not write MEMDUMP.BIN"; exit 1 }
         eof { exit 1 }
     }
-    set dump_path [file join $output_dir MEMDUMP.BIN]
     if {![file exists $dump_path] || [file size $dump_path] != 1048576} {
         puts stderr "DOSBox-X did not produce a complete 1 MiB dump at $dump_path"
         exit 1
@@ -201,7 +296,7 @@ if {$fifo_path ne ""} {
     puts stderr "CAPPO live FIFO ready: $fifo_path"
     while {[gets $fifo command] >= 0} {
         set command [string trim $command]
-        if {$command eq "quit"} { break }
+    if {$command eq "quit"} { break }
         if {[regexp {^WAIT:([0-9]+)$} $command -> wait_ticks]} {
             if {$wait_ticks < 1 || $wait_ticks > 2000} {
                 puts stderr "WAIT tick count must be between 1 and 2000"
@@ -210,28 +305,28 @@ if {$fifo_path ne ""} {
             # Diagnostic pacing only: let the original CAPPO timer run without
             # injecting a keyboard event. This is essential for distinguishing
             # FLIGHT PATH SET from CAPPO's later ARRIVED AT DESTINATION state.
-            advance_timer_ticks $wait_ticks
+            advance_runtime_ticks $wait_ticks
             set dump_path [dump_cappo_memory $output_dir]
             puts stderr "CAPPO live timer advanced: $wait_ticks"
             continue
         }
         if {[regexp {^MOUSE_DX:([-+]?[0-9]+)$} $command -> delta]} {
             inject_mouse_dx $delta
-            advance_timer_ticks $post_scan_ticks
+            advance_runtime_ticks $post_scan_ticks
             set dump_path [dump_cappo_memory $output_dir]
             puts stderr "CAPPO live mouse dx delivered: $delta"
             continue
         }
         if {[regexp {^MOUSE_DY:([-+]?[0-9]+)$} $command -> delta]} {
             inject_mouse_dy $delta
-            advance_timer_ticks $post_scan_ticks
+            advance_runtime_ticks $post_scan_ticks
             set dump_path [dump_cappo_memory $output_dir]
             puts stderr "CAPPO live mouse dy delivered: $delta"
             continue
         }
         if {$command eq "MOUSE_DOWN" || $command eq "MOUSE_UP"} {
             inject_mouse_button [expr {$command eq "MOUSE_DOWN"}]
-            advance_timer_ticks $post_scan_ticks
+            advance_runtime_ticks $post_scan_ticks
             set dump_path [dump_cappo_memory $output_dir]
             puts stderr "CAPPO live mouse button delivered: $command"
             continue
@@ -242,18 +337,40 @@ if {$fifo_path ne ""} {
         }
         send "SM 0824 004E 01\r"
         send "SM 0824 004F 01\r"
+        if {$trace_dispatch} {
+            send "BP 0824:6633\r"
+        }
+        if {$trace_input_poll && $command eq "47"} {
+            # Install this only for the requested ORBIT byte. CAPPO polls its
+            # queue continuously, so an earlier breakpoint could be satisfied
+            # by an idle poll and falsely certify the later command.
+            send "BP 0824:06B8\r"
+        }
         send [format "SM 0824 0050 %s\r" $command]
-        advance_timer_ticks $post_scan_ticks
+        advance_runtime_ticks $post_scan_ticks
+        if {$trace_dispatch} {
+            trace_dispatch_state
+            send "BPDEL *\r"
+            expect {
+                -re {Breakpoints deleted\.|Breakpoint deletion success|No breakpoints} {}
+                timeout { puts stderr "DOSBox-X did not clear dispatch trace breakpoint"; exit 1 }
+                eof { exit 1 }
+            }
+        }
         scan $command %x command_value
         set break_scan [expr {0x80 | $command_value}]
         send "SM 0824 004E 01\r"
         send "SM 0824 004F 01\r"
         send [format "SM 0824 0050 %02X\r" $break_scan]
-        advance_timer_ticks $post_scan_ticks
+        advance_runtime_ticks $post_scan_ticks
         set dump_path [dump_cappo_memory $output_dir]
         puts stderr "CAPPO live scan delivered: $command"
     }
     close $fifo
+}
+if {$trace_input_poll && !$orbit_input_consumed} {
+    puts stderr "CAPPO ORBIT scan 47 was not loaded by the original dequeue"
+    exit 1
 }
 # Do not search the one-megabyte image for printable messages here. CAPPO's
 # message table is resident even when a message is not being displayed, so a

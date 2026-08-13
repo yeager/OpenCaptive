@@ -24,14 +24,17 @@ mkdir -p "$orbit_dir" "$move_dir"
 # CAPPO help/disassembly mapping: keypad 7 records the flight-path action in
 # this Mission 0001 state. This gate verifies the authentic VGA handoff and
 # input response only; it does not promote a changed coordinate to Orbit.
-expect tools/captive_dosbox_sequence.expect "$data_dir" 47 240 "$orbit_dir" 120 \
+# VRT advances a complete original emulator frame. Keep this probe short: it
+# verifies the accepted scan and resulting VGA surface, while arrival timing
+# is covered separately by the live FIFO diagnostics.
+expect tools/captive_dosbox_sequence.expect "$data_dir" 47 240 "$orbit_dir" 8 \
     >"$orbit_dir/sequence.log" 2>&1
 tools/verify_captive_dos_dump.sh "$orbit_dir/MEMDUMP.BIN" "$data_dir" "$build_dir"
 
 # Keypad 8 is CAPPO's authentic Forward command. The second runtime image
 # must differ from the orbit checkpoint; equality indicates that the input
 # queue or the original runtime handoff stopped accepting real input.
-expect tools/captive_dosbox_sequence.expect "$data_dir" 47,48 240 "$move_dir" 120 \
+expect tools/captive_dosbox_sequence.expect "$data_dir" 47,48 240 "$move_dir" 8 \
     >"$move_dir/sequence.log" 2>&1
 tools/verify_captive_dos_dump.sh "$move_dir/MEMDUMP.BIN" "$data_dir" "$build_dir"
 

@@ -1,6 +1,6 @@
 # Developer Guide
 
-> Updated for v1.1.119. Release tags build and verify Linux, macOS, Windows, Android, and iOS artifacts in GitHub Actions.
+> Updated for v1.1.126. Release tags build and verify Linux, macOS, Windows, Android, and iOS artifacts in GitHub Actions.
 
 ## Build
 

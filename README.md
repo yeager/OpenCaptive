@@ -116,6 +116,9 @@ ctest --test-dir build -j4 --output-on-failure
 
 ## Running
 
+For the repeatable Captive DOSBox-X startup and troubleshooting procedure, see
+[`docs/Captive-DOSBox-X-Startup.md`](docs/Captive-DOSBox-X-Startup.md).
+
 ```bash
 ./build/opencaptive --data ~/.opencaptive
 ```

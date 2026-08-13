@@ -19,15 +19,28 @@ build_dir=${2:-build}
 command -v expect >/dev/null 2>&1 || { echo "expect is required" >&2; exit 2; }
 command -v dosbox-x >/dev/null 2>&1 || { echo "DOSBox-X is required" >&2; exit 2; }
 
+wait_for_complete_dump() {
+    dump=$1
+    for _ in $(seq 1 60); do
+        if [ -f "$dump" ] && [ "$(wc -c < "$dump" | tr -d ' ')" -eq 1048576 ]; then
+            return 0
+        fi
+        sleep 0.5
+    done
+    echo "DOSBox-X did not produce a complete 1 MiB dump: $dump" >&2
+    return 1
+}
+
 tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/opencaptive-captive-target.XXXXXX")
 mkdir "$tmp_dir/out"
 mkfifo "$tmp_dir/commands"
 
 # CAPPO manual/disassembly mapping: 4D=Move Right, 48=Move Back,
-# 47=Turn Left/fly to cursor. Ten right and ten back scans place the real
-# Mission 0001 cursor on the real green target in the supplied CAPPO state.
+# 47=Turn Left/fly to cursor. The authentic Mission 0001 route uses ten
+# right scans, eleven back scans, then 47; the final back scan places the
+# real cursor on the green target in the supplied CAPPO state.
 expect tools/captive_dosbox_sequence.expect "$data_dir" \
-    "4D,4D,4D,4D,4D,4D,4D,4D,4D,4D,48,48,48,48,48,48,48,48,48,48,47" \
+    "4D,4D,4D,4D,4D,4D,4D,4D,4D,4D,48,48,48,48,48,48,48,48,48,48,48,47" \
     240 "$tmp_dir/out" 8 "$tmp_dir/commands" >"$tmp_dir/session.log" 2>&1 &
 harness_pid=$!
 exec 3>"$tmp_dir/commands"
@@ -43,32 +56,11 @@ done
 # Ask the original emulator for one short timer observation and use that
 # complete dump; no local map, marker, status text, or destination is made.
 printf 'WAIT:8\n' >&3
-sleep 1
+wait_for_complete_dump "$tmp_dir/out/MEMDUMP.BIN"
 "$build_dir/captive_runtime_render" \
     "$tmp_dir/out/MEMDUMP.BIN" "$tmp_dir/route.ppm"
 
-python3 - "$tmp_dir/route.ppm" <<'PY'
-import sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-data = path.read_bytes()
-header, pixels = data.split(b"\n255\n", 1)
-if header != b"P6\n320 200":
-    raise SystemExit("unexpected native frame format")
-if len(pixels) != 320 * 200 * 3:
-    raise SystemExit("incomplete native frame")
-
-def pixel(x, y):
-    i = (y * 320 + x) * 3
-    return pixels[i:i + 3]
-
-# This is the real CAPPO VGA marker measured from the supplied original data.
-expected = (48, 195, 48)
-points = [(63, 150), (64, 150), (63, 151), (64, 151)]
-if any(pixel(x, y) != bytes(expected) for x, y in points):
-    raise SystemExit("authentic CAPPO route did not show the verified green target")
-PY
+python3 tools/check_captive_target_frame.py "$tmp_dir/route.ppm"
 
 printf 'quit\n' >&3
 exec 3>&-

@@ -1,6 +1,6 @@
 # Audio System
 
-> Updated for v1.1.119. The release includes the SDL mixer, OPL2/MIDI paths, and optional reverb configuration covered by the audio tests.
+> Updated for v1.1.126. The release includes the SDL mixer, OPL2/MIDI paths, and optional reverb configuration covered by the audio tests.
 
 ## Overview
 
