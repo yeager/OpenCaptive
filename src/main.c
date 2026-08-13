@@ -94,9 +94,6 @@ static int captive_zoom_in_reference_height;
 static bool captive_landed_reference_active;
 static CaptiveEmulatorSession captive_live_session;
 static bool captive_live_session_active;
-/* CAPPO's first live frame explicitly waits for the original DEL/left-mouse
- * continuation. Once consumed, ordinary clicks must stay on CAPPO's surface. */
-static bool captive_live_start_screen_active;
 /* CAPPO's manual assigns the cursor keys to the holomap pointer. SDL mouse
  * motion is translated to those same original scans; no local map position
  * is maintained. */
@@ -391,10 +388,6 @@ static bool captive_live_send_scan(uint8_t scan);
  * relocated keyboard queue DOSBox-X exposes that original XT make code as
  * 53.  Keep the startup continuation on the real input path; do not replace
  * it with a locally authored navigation frame. */
-static bool captive_live_send_left_mouse(void) {
-    return captive_live_send_scan(0x53);
-}
-
 static bool captive_live_send_action(CaptiveNavigationAction action) {
     uint8_t scan = captive_scan_for_action(action);
     return captive_live_session_active && scan != 0 &&
@@ -427,7 +420,7 @@ static bool captive_live_send_key(SDL_Keycode key) {
 
 static void captive_live_send_mouse_motion(float dx, float dy) {
     const float step = 18.0f;
-    if (!captive_live_session_active || captive_live_start_screen_active) return;
+    if (!captive_live_session_active) return;
     captive_live_mouse_dx += dx;
     captive_live_mouse_dy += dy;
     while (captive_live_mouse_dx <= -step) {
@@ -3319,7 +3312,6 @@ int main(int argc, char *argv[]) {
                 return 1;
             } else {
                 captive_live_session_active = true;
-                captive_live_start_screen_active = true;
                 captive_live_mouse_dx = 0.0f;
                 captive_live_mouse_dy = 0.0f;
                 captive_dos_dump_path = captive_live_session.dump_path;
@@ -3332,11 +3324,10 @@ int main(int argc, char *argv[]) {
                 }
                 captive_dos_memory_active = true;
                 gs.game_type = GAME_CAPTIVE;
-                /* CAPPO's first live frame is its real droid/start screen
-                 * (including "PRESS MOUSE TO CONTINUE").  Keep the active
+                /* CAPPO's first live frame is the real surface returned by
+                 * the completed INTRO/FILEPLAY/DEL handoff. Keep that
                  * emulator surface authoritative instead of replacing it
-                 * with the native holomap before CAPPO receives its mouse
-                 * continuation event. */
+                 * with a native or generated navigation frame. */
                 gs.mode = STATE_GAME;
                 printf("Started authentic CAPPO live session in OpenCaptive\n");
             }
@@ -3594,7 +3585,6 @@ int main(int argc, char *argv[]) {
                                 break;
                             }
                             captive_live_session_active = true;
-                            captive_live_start_screen_active = true;
                             captive_live_mouse_dx = 0.0f;
                             captive_live_mouse_dy = 0.0f;
                             captive_dos_dump_path = captive_live_session.dump_path;
@@ -3608,10 +3598,12 @@ int main(int argc, char *argv[]) {
                             }
                             captive_dos_memory_active = true;
                             captive_dos_dump_mtime_ns = 0;
-                            /* The first CAPPO frame is the original droid
-                             * start screen.  Its mouse continuation and all
-                             * later navigation/dungeon frames must remain
-                             * under the live VGA runtime, not a local phase. */
+                            /* The emulator bridge has already consumed the
+                             * authentic DEL continuation before returning.
+                             * This first live frame is therefore CAPPO's
+                             * Mission 0001 navigation surface; mouse input
+                             * and every later frame stay in the live VGA
+                             * runtime, never in a local/generated phase. */
                             gs.mode = STATE_GAME;
                             music_stop(&music_sys);
                             break;
@@ -3830,7 +3822,6 @@ int main(int argc, char *argv[]) {
                         event.key.key == SDLK_ESCAPE) {
                         captive_emulator_session_stop(&captive_live_session);
                         captive_live_session_active = false;
-                        captive_live_start_screen_active = false;
                         captive_live_mouse_dx = 0.0f;
                         captive_live_mouse_dy = 0.0f;
                         free(captive_dos_memory);
@@ -3872,17 +3863,9 @@ int main(int argc, char *argv[]) {
                                event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                                event.button.button == SDL_BUTTON_LEFT) {
                         CaptiveNavigationAction action;
-                        /* The first CAPPO frame reuses the same right-hand
-                         * button grid as the later mission surface, but its
-                         * contract is simpler: any DEL/left click advances
-                         * the start screen.  Test that authentic phase first
-                         * so a click cannot be misread as Orbit or Land. */
-                        if (captive_live_start_screen_active) {
-                            (void)captive_live_send_left_mouse();
-                            captive_live_start_screen_active = false;
-                        } else if (captive_navigation_mouse_action(&renderer,
-                                                                   &event.button,
-                                                                   &action)) {
+                        if (captive_navigation_mouse_action(&renderer,
+                                                             &event.button,
+                                                             &action)) {
                             (void)captive_live_send_action(action);
                         }
                     } else if (gs.game_type == GAME_CAPTIVE &&

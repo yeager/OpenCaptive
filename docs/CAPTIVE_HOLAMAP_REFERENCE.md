@@ -1,13 +1,14 @@
 # Captive holomap reference
 
 OpenCaptive's Captive startup surface uses a real DOSBox-X capture of the
-original CAPPO holomap while the original vector/object decoder is being
+original CAPPO Mission 0001 navigation/map surface while the original
+vector/object decoder is being
 recovered. It is reference media from the supplied original runtime, not
 generated terrain, labels, stars, markers, or replacement text.
 
 Source capture: the supplied `CAPPO.EXE` session in DOSBox-X, after the
 original `INTRO.EXE` and `FILEPLAY.EXE` complete, showing `CAPTIVE MISSION
-0001` in the navigation view. The checked-in runtime asset
+0001` in the navigation/map view. The checked-in runtime asset
 `assets/captive/holamap-initial.png` is that real frame reduced 2× to the
 native 320×200 canvas. Its SHA-256 is
 `7ba17570145bbdb186330f5a3aeb7152e7966a7c41a279fc49d8f1ec4bf1272b`.
@@ -84,7 +85,9 @@ The DOSBox-X verification sequence used for the current reference is:
    continuation surface. Send the documented DEL/left-mouse action (`0x53` in
    CAPPO's relocated IRQ1 queue) once to enter `CAPTIVE MISSION 0001` in the
    real navigation view. Sending a keypad scan before this continuation is
-   consumed tests the wrong CAPPO phase.
+   consumed tests the wrong CAPPO phase. The first live frame after this
+   handoff is the original Mission 0001 navigation/map surface, not a
+   generated dungeon or a locally fabricated planet view.
 4. Fly using CAPPO's real flight controls until CAPPO itself reports arrival;
    the displayed coordinate and the green/red map markers are useful evidence
    but are not sufficient on their own. Only then press `ORBIT`. In the Orbit

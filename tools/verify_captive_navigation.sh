@@ -1,8 +1,9 @@
 #!/bin/sh
 set -eu
 
-# Local-only parity gate. It requires the player's original Captive media and
-# DOSBox-X; no game file, map, marker, text, or frame is generated here.
+# Local-only CAPPO navigation/render gate. It requires the player's original
+# Captive media and DOSBox-X; no game file, map, marker, text, or frame is
+# generated here.
 data_dir=${1:?usage: $0 DATA_DIR [build_dir]}
 build_dir=${2:-build}
 
@@ -20,9 +21,9 @@ orbit_dir="$tmp_dir/orbit"
 move_dir="$tmp_dir/move"
 mkdir -p "$orbit_dir" "$move_dir"
 
-# CAPPO help/disassembly mapping: keypad 7 sets the flight path. The original
-# runtime must produce the authenticated orbit VGA frame before parity is
-# claimed; a changed map or a coordinate string is not enough.
+# CAPPO help/disassembly mapping: keypad 7 records the flight-path action in
+# this Mission 0001 state. This gate verifies the authentic VGA handoff and
+# input response only; it does not promote a changed coordinate to Orbit.
 expect tools/captive_dosbox_sequence.expect "$data_dir" 47 240 "$orbit_dir" 120 \
     >"$orbit_dir/sequence.log" 2>&1
 tools/verify_captive_dos_dump.sh "$orbit_dir/MEMDUMP.BIN" "$data_dir" "$build_dir"
@@ -41,8 +42,8 @@ if cmp "$orbit_dir/runtime.ppm" "$move_dir/runtime.ppm" >/dev/null 2>&1; then
     exit 1
 fi
 
-# Keypad-8 is a holomap flight-control byte.  CAPPO changes its live flight
-# state and VGA surface, not the dungeon map at DS:7CB3; requiring that map
+# Keypad-8 is an authentic CAPPO navigation byte. CAPPO changes its live
+# Mission 0001 VGA surface, not the dungeon map at DS:7CB3; requiring that map
 # table to change would reject a correct original navigation transition.
 "$build_dir/captive_map_dump" "$orbit_dir/MEMDUMP.BIN" 1663 0824 >"$orbit_dir/map.txt"
 grep -q '^CAPPO raw 5x5 window:' "$orbit_dir/map.txt"

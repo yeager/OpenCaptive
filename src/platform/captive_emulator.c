@@ -165,7 +165,8 @@ bool captive_emulator_session_start(const char *data_path,
          * INTRO/FILEPLAY handoff. Twelve ticks can still leave the first
          * droid/start screen visible, so navigation bytes would be consumed
          * before Mission 0001 owns the input queue. DOSBox-X verification
-         * reaches the authentic CAPTIVE MISSION 0001 holomap at 240 ticks. */
+         * reaches the authentic CAPTIVE MISSION 0001 navigation/map surface
+         * at 240 ticks. */
         (char *)"-", (char *)"240", session->output_dir, (char *)"120",
         session->fifo_path, NULL
     };

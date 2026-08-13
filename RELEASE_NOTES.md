@@ -1,5 +1,26 @@
 # OpenCaptive Release Notes
 
+## v1.1.118 (2026-08-13)
+
+### Added
+
+- **(Captive)** The live DOSBox-X bridge now exposes the authentic Mission
+  0001 navigation/map surface immediately after the original DEL handoff.
+
+### Changed
+
+- **(Captive)** Mouse clicks and motion remain on CAPPO's original input path
+  after startup; no local cursor or generated navigation state is introduced.
+- **(Verification)** The navigation gate now reports only the verified
+  Mission 0001 input/render boundary and does not claim Orbit, arrival, LAND,
+  or dungeon entry without a later original-runtime proof.
+- **(Documentation)** The wiki landing page, technical reference, and release
+  metadata are synchronized to v1.1.118.
+
+### Removed
+
+None.
+
 ## v1.1.117 (2026-08-13)
 
 ### Added
@@ -11,6 +32,13 @@
 
 - **(Captive)** Live holomap arrows and zoom controls no longer mutate a local
   compatibility cursor alongside the original runtime.
+- **(Captive)** The live emulator bridge now returns only after the authentic
+  DEL handoff, so the first OpenCaptive frame is the real Mission 0001
+  navigation/map surface and subsequent mouse clicks are sent to CAPPO's
+  original control grid.
+- **(Verification)** Navigation checks now describe Mission 0001 input/render
+  parity accurately and keep Orbit, arrival, LAND, and dungeon entry gated on
+  a later original-runtime proof.
 - **(Captive)** Visual controls use the original CAPPO direction scans while
   keypad controls retain their documented raw meanings.
 - **(Captive)** Live Mission 0001 dump decoding uses the post-handoff data
