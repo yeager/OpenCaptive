@@ -214,6 +214,21 @@ The automated ORBIT-dispatch probe is not part of the verified release path:
 direct debugger queue injection is not equivalent to a real keyboard event and
 must not be used as parity evidence.
 
+### DOSBox-X debugger stepping
+
+`VRT` and `TIMERIRQ` are DOSBox-X debugger observation commands, not Captive
+commands. `VRT` resumes execution to the next vertical retrace, while
+`TIMERIRQ` runs one emulated system-timer interrupt. Neither command may create
+a planet, route, orbit, landing point, dungeon, or status message. A debugger
+session that reaches `FLIGHT PATH SET` is still only a route-selection result;
+arrival must be observed in the original CAPPO state and VGA output before
+`LAND` can be tested.
+
+Do not use debugger stepping during normal play. It can pause the original
+game, alter input timing, or leave DOSBox-X at a debugger prompt. The
+repeatable interactive procedure remains the authentic `CAPTIVE.BAT 1` launch
+described above.
+
 ## Troubleshooting
 
 | Symptom | Correct action |
