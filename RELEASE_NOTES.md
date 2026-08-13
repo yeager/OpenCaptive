@@ -1,5 +1,32 @@
 # OpenCaptive Release Notes
 
+## v1.1.121 (2026-08-13)
+
+### Added
+
+- **(Captive)** Live mouse motion and left-button input now travel through
+  DOSBox-X's authentic integration-device path into CAPPO's INT 33 mouse
+  handler. The bridge does not write cursor state or gameplay state into the
+  original process.
+- **(Verification)** Added a real-data-only live mouse gate that checks four
+  distinct CAPPO memory checkpoints after authentic motion and button events.
+
+### Changed
+
+- **(Captive)** The desktop runtime no longer translates mouse movement into
+  local arrow actions or handles clicks with a replacement hit-test table.
+  CAPPO receives the original mouse events and remains authoritative.
+- **(Verification)** Navigation verification no longer interprets the
+  holomap/Orbit surface as a dungeon map. Arrival, LAND, and dungeon entry
+  remain unclaimed until the original runtime proves those states.
+- **(Documentation)** Updated the Captive technical reference and holomap
+  reference with the authentic DOSBox-X mouse transport and its limits.
+
+### Removed
+
+- **(Captive)** Removed the synthetic local mouse-control fallback from the
+  live emulator path.
+
 ## v1.1.120 (2026-08-13)
 
 ### Added
