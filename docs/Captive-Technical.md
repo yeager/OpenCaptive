@@ -259,7 +259,8 @@ after a real DOSBox-X/CAPPO VGA handoff; a captured dungeon frame is accepted
 as runtime evidence only when the original dump passes the authenticity gate.
 
 In native reference mode, the space-navigation cluster is no longer a dead
-end: keypad 8/2/4/6 and the corresponding on-screen arrows move the logged
+end: keypad 8/2/4/6 and the corresponding on-screen arrows emit CAPPO's
+matching original scans and move the logged
 cursor, and keypad 7 records the original `FLIGHT PATH SET` action when that
 cursor is on the real green target. A second explicit `ORBIT` command is not
 treated as arrival without a live CAPPO handoff; keypad 9 before that point

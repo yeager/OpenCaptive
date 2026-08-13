@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.125 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.126 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()

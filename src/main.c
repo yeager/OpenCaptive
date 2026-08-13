@@ -363,19 +363,16 @@ static bool captive_navigation_mouse_action(const OpenCaptiveRenderer *r,
 
 static uint8_t captive_scan_for_action(CaptiveNavigationAction action) {
     switch (action) {
-        /* CAPPO holomap arrows are the original forward/backward scans.
-         * ReDMCSB/CAPPO HELP distinguishes these from keypad 1/3, which are
-         * ladder/space zoom controls. DOSBox-X confirms 48/50 pan the real
-         * map while 4F/4E change its scale. */
-        /* The original CAPPO map's screen coordinates run opposite to the
-         * displayed arrow directions.  DOSBox-X VGA captures verify that
-         * 50 moves the green marker up, 48 down, 4D left and 4B right.
-         * Keep these visual controls separate from the raw keypad mapping
-         * below, which remains byte-for-byte compatible with the original. */
-        case CAPTIVE_NAV_ACTION_UP:    return 0x50;
-        case CAPTIVE_NAV_ACTION_DOWN:  return 0x48;
-        case CAPTIVE_NAV_ACTION_LEFT:  return 0x4D;
-        case CAPTIVE_NAV_ACTION_RIGHT: return 0x4B;
+        /* CAPPO HELP: the upper screen arrow is Forward (keypad 8 / 48),
+         * the lower arrow is Move Back (keypad 2 / 50).  These are distinct
+         * from keypad 1/3, which are the space-map zoom controls. */
+        case CAPTIVE_NAV_ACTION_UP:    return 0x48;
+        case CAPTIVE_NAV_ACTION_DOWN:  return 0x50;
+        /* CAPPO HELP: keypad 4 is Move Left (4B), keypad 6 is Move Right
+         * (4D).  Keep the graphical arrow direction aligned with that
+         * original mapping. */
+        case CAPTIVE_NAV_ACTION_LEFT:  return 0x4B;
+        case CAPTIVE_NAV_ACTION_RIGHT: return 0x4D;
         case CAPTIVE_NAV_ACTION_ORBIT: return 0x47; /* keypad 7 */
         case CAPTIVE_NAV_ACTION_LAND:  return 0x49; /* keypad 9 */
         /* CAPPO help table: keypad 1 zooms out and keypad 3 zooms in while

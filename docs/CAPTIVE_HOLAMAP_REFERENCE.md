@@ -18,10 +18,12 @@ resolution.
 The original arrow controls remain interactive. Mouse coordinates are mapped
 through the centered native canvas and use the original 18×18 control regions;
 keyboard arrows and the original numeric keypad controls use the same state
-path. OpenCaptive maps `NUMPAD 2/4/6/8` to cursor movement, `NUMPAD 7` to
-`ORBIT`, and `NUMPAD 9` to `LAND`. The ladder commands select complete,
-authenticated CAPPO frames captured from DOSBox-X; OpenCaptive does not
-enlarge the opening bitmap or synthesize map detail.
+path. The on-screen arrows now emit CAPPO's matching original scans: upper/
+lower use `NUMPAD 8/2` (`0x48/0x50`) and left/right use `NUMPAD 4/6`
+(`0x4B/0x4D`). OpenCaptive maps `NUMPAD 7` to `ORBIT`, and `NUMPAD 9` to
+`LAND`. The ladder commands select complete, authenticated CAPPO frames
+captured from DOSBox-X; OpenCaptive does not enlarge the opening bitmap or
+synthesize map detail.
 
 In a live DOSBox-X session, mouse motion and left-clicks use CAPPO's original
 INT 33 path through DOSBox-X's emulated 8042 mouse device. OpenCaptive does

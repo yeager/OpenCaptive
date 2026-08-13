@@ -1,5 +1,34 @@
 # OpenCaptive Release Notes
 
+## v1.1.126 (2026-08-13)
+
+### Changed
+
+- **(Captive)** Corrected the graphical holomap arrow mapping to CAPPO's
+  original keypad controls: up/down use `0x48/0x50` and left/right use
+  `0x4B/0x4D`.
+- **(Captive)** Kept live Orbit/LAND transitions fail-closed until the
+  original DOSBox-X runtime proves arrival; no synthetic planet, marker,
+  landing point, dungeon, or status text is introduced.
+
+### Verification
+
+- Local CTest suite: 64/64 passed.
+- Authentic DOSBox-X CAPPO target-route, navigation/VGA replay, and live
+  replay gates passed with the supplied original game data.
+- Orbit arrival, LAND, dungeon entry, and physical mouse parity remain
+  explicitly unverified and are not claimed by this release.
+
+### Release status
+
+This release contains the verified CAPPO input-direction correction and the
+real-data-only runtime boundary. It does not claim complete end-to-end
+Captive parity.
+
+### Removed
+
+None.
+
 ## v1.1.125 (2026-08-13)
 
 ### Added
