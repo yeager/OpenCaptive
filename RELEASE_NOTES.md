@@ -2,6 +2,11 @@
 
 ## v1.1.125 (2026-08-13)
 
+### Added
+
+- **(Verification)** Added the real-data-only CAPPO dispatcher and
+  target-route proof boundary to the release verification workflow.
+
 ### Changed
 
 - **(Captive)** Live holomap mouse motion now uses an accumulation buffer and
@@ -25,6 +30,10 @@
 - This release packages the verified original-data CAPPO route boundary and
   its DOSBox-X proof tools. It does not claim Orbit, LAND, dungeon entry, or
   complete end-to-end Captive parity.
+
+### Removed
+
+None.
 
 ## Unreleased
 
