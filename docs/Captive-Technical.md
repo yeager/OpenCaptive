@@ -1,6 +1,6 @@
 # Captive technical notes
 
-> Documentation baseline: v1.1.117. Runtime parity claims remain scoped to the verified boundaries described below.
+> Documentation baseline: v1.1.118. Runtime parity claims remain scoped to the verified boundaries described below.
 
 ## Runtime model
 
@@ -112,7 +112,9 @@ at `0824:004e..0057`; this is not CAPPO's active code/text segment. CAPPO's
 active relocated code/text image is identified independently by its known
 strings: `FLIGHT PATH SET`, `ARRIVED AT DESTINATION`, and `LANDING SUCCESSFUL`
 all resolve with relocation base `0x7E30`. After the authentic DEL continuation
-the live Mission 0001 runtime reports `CS=0x0824` and `DS=0x1663` in DOSBox-X.
+the live Mission 0001 runtime reports `CS=0x0824` and the CAPPO executable
+state segment `DS=0x0E3F` in DOSBox-X. `0x1663` is the post-handoff
+graphics/source bank used separately by descriptor decoding.
 The handler reads raw XT/AT
 scan bytes using byte `CS:0x004e` as the queued-byte count, byte `CS:0x004f` as
 the ring index, and eight bytes at `CS:0x0050`. The game loop consumes that queue
@@ -581,8 +583,8 @@ reads a caller-supplied, complete 1 MiB DOSBox-X memory dump and prints the
 original 64×32 byte map at `DS:7CB3`, the active coordinates at `DS:5E80` and
 `DS:5E82`, and the orientation field at `DS:5E84`. It deliberately preserves
 CAPPO's raw cell bytes and performs no conversion to OpenCaptive cell types.
-The default segment is `0x1663`, matching the live post-handoff Mission 0001
-runtime. Older descriptor fixtures can still be inspected by passing `2942`
+The default segment is `0x0E3F`, matching the live post-handoff Mission 0001
+executable state. Older descriptor fixtures can still be inspected by passing `2942`
 explicitly. No dump bytes are bundled and the tool is never used as runtime
 game data.
 

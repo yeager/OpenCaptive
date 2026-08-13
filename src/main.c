@@ -111,10 +111,10 @@ static void msg_push(const char *text, uint32_t color);
 static uint8_t *captive_dos_memory;
 static bool captive_dos_memory_active;
 static bool captive_dos_runtime_reported;
-/* CAPPO's post-FILEPLAY runtime DS, observed from DOSBox-X after the
- * authentic DEL continuation.  0x2942 was the pre-handoff/descriptor probe
- * segment and cannot decode the live Mission 0001 state. */
-static uint16_t captive_dos_ds_segment = 0x1663;
+/* CAPPO's live logic DS, observed from DOSBox-X after the authentic DEL
+ * continuation.  0x1663 is the post-handoff graphics/source bank, not the
+ * executable state segment.  0x2942 remains an offline descriptor fixture. */
+static uint16_t captive_dos_ds_segment = 0x0E3F;
 static uint16_t captive_dos_source_bank_segment = 0x0824;
 static uint64_t captive_dos_dump_mtime_ns;
 static bool captive_target_cursor_valid;
@@ -2822,7 +2822,7 @@ int main(int argc, char *argv[]) {
                 "  --capture-frame <ppm> Save one unscaled native game frame, then exit\n\n"
                 "  --extract-dos-vga <dump> <ppm>  Extract a 320x200 DOS VGA reference frame\n\n"
                 "  --captive-dos-dump <dump>  Decode/reload a real DOSBox-X CAPPO memory image\n"
-                "  --captive-dos-ds <hex>     CAPPO data segment for the dump (default 1663)\n"
+                "  --captive-dos-ds <hex>     CAPPO data segment for the dump (default 0E3F)\n"
                 "  --captive-dos-source-bank <hex>  CAPPO source-bank segment (default 0824)\n\n"
                 "  --compare-frames <expected> <actual>  Compare two native PPM frames\n"
                 "  --compare-frames-rect <expected> <actual> <x> <y> <w> <h>\n"
