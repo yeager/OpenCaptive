@@ -1,6 +1,6 @@
 # OpenCaptive Release Notes
 
-## Unreleased
+## v1.1.125 (2026-08-13)
 
 ### Changed
 
@@ -19,6 +19,16 @@
 - Authentic DOSBox-X navigation/VGA and replay checks pass with the
   player-supplied CAPPO data; interactive mouse and live Orbit/Land remain
   unverified; the full local suite remains 64/64.
+
+### Release status
+
+- This release packages the verified original-data CAPPO route boundary and
+  its DOSBox-X proof tools. It does not claim Orbit, LAND, dungeon entry, or
+  complete end-to-end Captive parity.
+
+## Unreleased
+
+No changes recorded.
 
 ## v1.1.124 (2026-08-13)
 

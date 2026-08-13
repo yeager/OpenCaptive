@@ -14,9 +14,9 @@ enum {
     VIEW_Y = 55,
     VIEW_WIDTH = 144,
     VIEW_HEIGHT = 112,
-    /* This tool compares the tracked offline descriptor fixture. The live
-     * post-handoff CAPPO executable state uses DS=0x0E3F; the graphics/source
-     * bank remains a separate 0x0824 segment. */
+    /* This tool compares the tracked offline descriptor fixture. Live
+     * Mission 0001 state is sampled separately from DOSBox-X; the
+     * graphics/source bank remains a separate 0x0824 segment. */
     DESCRIPTOR_SEGMENT = 0x2942,
     SOURCE_BANK_TABLE_SEGMENT = 0x0824,
 };

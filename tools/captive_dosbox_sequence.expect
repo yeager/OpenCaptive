@@ -52,8 +52,11 @@ cd $output_dir
 
 proc resume_emulation {} { send "\033\[15~" }
 set timer_breakpoint_installed 0
+set cappo_dispatch_hit 0
 proc wait_for_timer_break {} {
+    global cappo_dispatch_hit
     expect {
+        -re {07E4:6A33} { set cappo_dispatch_hit 1; exp_continue }
         -re {I->} {}
         timeout { puts stderr "DOSBox-X did not reach the timer breakpoint"; exit 1 }
         eof { exit 1 }
@@ -105,6 +108,12 @@ expect {
     timeout { puts stderr "DOSBox-X debugger did not start"; exit 1 }
 }
 
+# CAPPO's unpacked dispatcher is at file offset 0x6A33. The authentic
+# Mission 0001 dump places the unpacked image at linear 0x7E40, i.e. segment
+# 07E4. This breakpoint is the handoff proof; a FILEPLAY-only session must
+# fail closed even if its memory contains CAPPO message strings.
+send "BP 07E4:6A33\r"
+
 # Original INTRO choices: 1, 4, 3, 3.
 advance_timer_ticks 120
 send "SM 0040 001A 1E 00\r"
@@ -124,12 +133,12 @@ foreach key {1 enter 4 enter 3 enter 3 enter} {
 }
 
 # Diagnostic only: record FILEPLAY's active code segment before attempting the
-# handoff.  The value is read from DOSBox-X registers; no memory is modified.
+# handoff. The value is read from DOSBox-X registers; no memory is modified.
 send "EV CS\r"
 
 # FILEPLAY's IRQ1 handler stores the most recent make scan at CS:0027.  The
 # preceding EV CS read is a runtime receipt: the original DOSBox-X session
-# reports CS=0824 here.  Queue the real spacebar make code in that private
+# reports FILEPLAY CS=0824 here. Queue the real spacebar make code in that private
 # field and let FILEPLAY consume it.
 send "SM 0824 0027 39\r"
 advance_timer_ticks 120
@@ -180,6 +189,10 @@ proc dump_cappo_memory {output_dir} {
 }
 
 set dump_path [dump_cappo_memory $output_dir]
+if {!$cappo_dispatch_hit} {
+    puts stderr "CAPPO dispatcher 07E4:6A33 was never reached; refusing FILEPLAY-only dump"
+    exit 1
+}
 if {$fifo_path ne ""} {
     # A FIFO command is a raw XT make scan, not a symbolic game action.  The
     # CAPPO queue and timer are still owned by the original DOS runtime.

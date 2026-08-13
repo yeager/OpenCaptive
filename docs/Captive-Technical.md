@@ -136,10 +136,13 @@ relocated IRQ/source-bank segment is `0824`, so the handler queue is observable
 at `0824:004e..0057`; this is not CAPPO's active code/text segment. CAPPO's
 active relocated code/text image is identified independently by its known
 strings: `FLIGHT PATH SET`, `ARRIVED AT DESTINATION`, and `LANDING SUCCESSFUL`
-all resolve with relocation base `0x7E30`. After the authentic DEL continuation
-the live Mission 0001 runtime reports `CS=0x0824` and the CAPPO executable
-state segment `DS=0x0E3F` in DOSBox-X. `0x1663` is the post-handoff
-graphics/source bank used separately by descriptor decoding.
+all resolve with relocation base `0x7E40` in the current DOSBox-X dump. Thus
+the CAPPO dispatcher at file offset `0x6A33` is reached at `07E4:6A33`;
+the original game loop explicitly
+restores `DS=0x0E3F` at CAPPO.EXE offset `0xC252` before processing game state;
+that disassembly evidence outranks transient debugger register values sampled
+inside another routine. `0x1663` is not used as the live game-state segment.
+The source bank is passed separately to descriptor decoding.
 The handler reads raw XT/AT
 scan bytes using byte `CS:0x004e` as the queued-byte count, byte `CS:0x004f` as
 the ring index, and eight bytes at `CS:0x0050`. The game loop consumes that queue
@@ -158,7 +161,7 @@ asks the four original choices (`1`, `4`, `3`, `3`) and transfers to
 `FILEPLAY.EXE`. FILEPLAY installs its own IRQ1 handler and stores the latest
 make scan at `CS:0027`; it does not consume the BIOS keyboard ring. The
 space-bar make scan is `0x39`. Supplying that byte at the verified runtime
-segment (`CS=0824`) lets FILEPLAY complete its original animation sequence and
+IRQ1 segment (`CS=0824`) lets FILEPLAY complete its original animation sequence and
 load `CAPPO.EXE`. CAPPO's first continuation is its documented DEL/left-mouse
 action, represented by raw scan `0x53` in the relocated IRQ1 queue; this must be
 consumed before testing keypad navigation. The proof is a caller-supplied 1 MiB
@@ -609,9 +612,8 @@ reads a caller-supplied, complete 1 MiB DOSBox-X memory dump and prints the
 original 64×32 byte map at `DS:7CB3`, the active coordinates at `DS:5E80` and
 `DS:5E82`, and the orientation field at `DS:5E84`. It deliberately preserves
 CAPPO's raw cell bytes and performs no conversion to OpenCaptive cell types.
-The default segment is `0x0E3F`, matching the live post-handoff Mission 0001
-executable state. Older descriptor fixtures can still be inspected by passing `2942`
-explicitly. No dump bytes are bundled and the tool is never used as runtime
+The default segment is `0x0E3F`, matching CAPPO's original game-loop DS reset.
+No dump bytes are bundled and the tool is never used as runtime
 game data.
 
 The same boundary now reproduces CAPPO's 5×5 copied neighbourhood from

@@ -115,9 +115,9 @@ static void msg_push(const char *text, uint32_t color);
 static uint8_t *captive_dos_memory;
 static bool captive_dos_memory_active;
 static bool captive_dos_runtime_reported;
-/* CAPPO's live logic DS, observed from DOSBox-X after the authentic DEL
- * continuation.  0x1663 is the post-handoff graphics/source bank, not the
- * executable state segment.  0x2942 remains an offline descriptor fixture. */
+/* CAPPO's game-state DS is explicitly restored to 0x0E3F by its original
+ * timer/game-loop routine (CAPPO.EXE 0xC252: MOV AX,0x0E3F; MOV DS,AX).
+ * A transient debugger sample at another routine must not replace it. */
 static uint16_t captive_dos_ds_segment = 0x0E3F;
 static uint16_t captive_dos_source_bank_segment = 0x0824;
 static uint64_t captive_dos_dump_mtime_ns;
@@ -445,8 +445,8 @@ static void captive_live_send_mouse_motion(float dx, float dy) {
         (void)captive_live_send_action(actions[i]);
 }
 
-/* CAPPO owns the navigation state.  The first ORBIT command records the
- * route ("FLIGHT PATH SET"); the second starts the transit.  Do not advance
+/* CAPPO owns the navigation state.  The original Turn Left/ORBIT action can
+ * report "FLIGHT PATH SET" while CAPPO is still in transit.  Do not advance
  * a local state machine here: only the original runtime may produce orbit,
  * landing, or dungeon frames. */
 static bool captive_holamap_orbit(GameState *gs) {
