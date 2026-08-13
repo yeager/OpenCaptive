@@ -5,7 +5,10 @@
 # files or constructs a compatibility state. The optional post-input timer
 # count is only a pacing control for observing the original runtime surface.
 
-set timeout 30
+# A complete DOSBox-X VRT observation can take longer than the normal input
+# prompt on a busy host.  This is only an observation timeout; it does not
+# advance CAPPO state or synthesize a transition.
+set timeout 120
 if {$argc < 2} {
     puts stderr [format "usage: %s DATA_DIR SCAN_HEX-list POST_INTRO_TICKS OUTPUT_DIR POST_SCAN_TICKS (FIFO_PATH optional)" $argv0]
     exit 2

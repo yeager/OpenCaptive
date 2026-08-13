@@ -175,6 +175,10 @@ That gate currently proves the authentic `FLIGHT PATH SET` boundary. It does
 not claim that the automated route has reached `ARRIVED AT DESTINATION`,
 `NOW IN ORBIT`, or `LANDING SUCCESSFUL`.
 
+Longer transit observation is supported by the diagnostic harness. Its
+extended response timeout only gives DOSBox-X time to return a complete
+original dump; it does not create an arrival or advance the game locally.
+
 The automated ORBIT-dispatch probe is not part of the verified release path:
 direct debugger queue injection is not equivalent to a real keyboard event and
 must not be used as parity evidence.

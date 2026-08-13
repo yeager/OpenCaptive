@@ -176,6 +176,10 @@ of original DOSBox-X timer breakpoints advanced after each delivered scan
 byte. It does not create a map, marker, landing point, or viewport; it makes
 the timing of an authentic CAPPO surface reproducible for comparison.
 
+The harness allows a deliberately long response window for each DOSBox-X
+observation. This is needed on slower hosts during real transit frames; it is
+only a debugger-response timeout and never advances CAPPO state by itself.
+
 The application bridge has also been exercised end-to-end with:
 
 ```sh
