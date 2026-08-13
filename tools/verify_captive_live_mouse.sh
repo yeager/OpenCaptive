@@ -1,8 +1,10 @@
 #!/bin/sh
 set -eu
 
-# Real-data-only CAPPO mouse gate. The commands below become DOSBox-X
-# integration-device mouse events; they never write CAPPO memory with SM.
+# Real-data-only CAPPO mouse transport probe. The commands below become
+# DOSBox-X integration-device events; they never write CAPPO memory with SM.
+# This is deliberately not an interactive mouse-parity gate: DOSBox-X ignores
+# Mouse_CursorMoved() while its debugger is paused for MEMDUMPBIN.
 data_dir=${1:?usage: $0 DATA_DIR [build_dir]}
 build_dir=${2:-build}
 [ -f "$data_dir/CAPTIVE.BAT" ] || { echo "original Captive data required" >&2; exit 2; }
@@ -53,4 +55,4 @@ for name in MOUSE_DX:40 MOUSE_DY:20 MOUSE_DOWN MOUSE_UP; do
     fi
 done
 [ "$changed" -ge 2 ] || { echo "CAPPO mouse produced too few frame changes: $changed" >&2; exit 1; }
-echo "Authentic CAPPO live mouse gate passed ($changed distinct original dumps)"
+echo "Authentic CAPPO mouse transport probe passed ($changed changed original dumps); interactive mouse parity remains unverified"

@@ -32,3 +32,26 @@ CaptiveNavigationDirection captive_navigation_direction_at(int x, int y) {
         default: return CAPTIVE_NAV_NONE;
     }
 }
+
+int captive_navigation_quantize_motion(float *remainder, float delta,
+                                       float threshold,
+                                       CaptiveNavigationAction negative,
+                                       CaptiveNavigationAction positive,
+                                       CaptiveNavigationAction *actions,
+                                       int action_capacity) {
+    int count = 0;
+    if (!remainder || !actions || action_capacity <= 0 || threshold <= 0.0f)
+        return 0;
+    *remainder += delta;
+    while (*remainder <= -threshold) {
+        if (count < action_capacity) actions[count] = negative;
+        count++;
+        *remainder += threshold;
+    }
+    while (*remainder >= threshold) {
+        if (count < action_capacity) actions[count] = positive;
+        count++;
+        *remainder -= threshold;
+    }
+    return count < action_capacity ? count : action_capacity;
+}

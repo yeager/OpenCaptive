@@ -29,4 +29,14 @@ typedef enum {
 CaptiveNavigationDirection captive_navigation_direction_at(int x, int y);
 CaptiveNavigationAction captive_navigation_action_at(int x, int y);
 
+/* Convert relative host motion into CAPPO's discrete pointer actions. The
+ * remainder is caller-owned so sub-step motion is preserved between SDL
+ * events; no game coordinate is created by this helper. */
+int captive_navigation_quantize_motion(float *remainder, float delta,
+                                       float threshold,
+                                       CaptiveNavigationAction negative,
+                                       CaptiveNavigationAction positive,
+                                       CaptiveNavigationAction *actions,
+                                       int action_capacity);
+
 #endif

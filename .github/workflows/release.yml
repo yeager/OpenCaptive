@@ -63,6 +63,7 @@ jobs:
           cp tools/captive_dosbox_sequence.expect opencaptive-linux-x86_64/assets/captive/
           cp tools/verify_captive_live_replay.sh opencaptive-linux-x86_64/assets/captive/
           cp tools/verify_captive_live_mouse.sh opencaptive-linux-x86_64/assets/captive/
+          cp tools/verify_captive_target_route.sh opencaptive-linux-x86_64/assets/captive/
           cp po/*.po opencaptive-linux-x86_64/po/
           cp README.md LICENSE opencaptive-linux-x86_64/
           tar czf opencaptive-linux-x86_64.tar.gz opencaptive-linux-x86_64/
@@ -89,6 +90,7 @@ jobs:
           cp tools/captive_dosbox_sequence.expect deb/usr/share/opencaptive/assets/captive/
           cp tools/verify_captive_live_replay.sh deb/usr/share/opencaptive/assets/captive/
           cp tools/verify_captive_live_mouse.sh deb/usr/share/opencaptive/assets/captive/
+          cp tools/verify_captive_target_route.sh deb/usr/share/opencaptive/assets/captive/
           cp po/*.po deb/usr/share/opencaptive/po/
           cp README.md LICENSE deb/usr/share/doc/opencaptive/
           mkdir -p deb/usr/share/icons
@@ -113,6 +115,7 @@ jobs:
           cp tools/captive_dosbox_sequence.expect rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets/captive/
           cp tools/verify_captive_live_replay.sh rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets/captive/
           cp tools/verify_captive_live_mouse.sh rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets/captive/
+          cp tools/verify_captive_target_route.sh rpmbuild/SOURCES/opencaptive-${PKG_VERSION}/assets/captive/
           tar czf rpmbuild/SOURCES/opencaptive-${PKG_VERSION}.tar.gz \
             -C rpmbuild/SOURCES opencaptive-${PKG_VERSION}
           printf '%s\n' \
@@ -205,6 +208,7 @@ jobs:
           cp tools/captive_dosbox_sequence.expect AppDir/usr/share/opencaptive/assets/captive/
           cp tools/verify_captive_live_replay.sh AppDir/usr/share/opencaptive/assets/captive/
           cp tools/verify_captive_live_mouse.sh AppDir/usr/share/opencaptive/assets/captive/
+          cp tools/verify_captive_target_route.sh AppDir/usr/share/opencaptive/assets/captive/
           printf '%s\n' '[Desktop Entry]' 'Name=OpenCaptive' 'Exec=opencaptive' 'Icon=opencaptive' 'Type=Application' 'Categories=Game;' > AppDir/usr/share/applications/opencaptive.desktop
           rsvg-convert -w 256 -h 256 assets/icon.svg -o AppDir/usr/share/icons/hicolor/256x256/apps/opencaptive.png
       - name: Download linuxdeploy
@@ -251,6 +255,7 @@ jobs:
           cp tools/captive_dosbox_sequence.expect "$APP/Contents/Resources/assets/captive/"
           cp tools/verify_captive_live_replay.sh "$APP/Contents/Resources/assets/captive/"
           cp tools/verify_captive_live_mouse.sh "$APP/Contents/Resources/assets/captive/"
+          cp tools/verify_captive_target_route.sh "$APP/Contents/Resources/assets/captive/"
           test -s "$APP/Contents/Resources/assets/captive/dosbox-x-captive.conf"
           cp po/*.po "$APP/Contents/Resources/po/"
           cp -R assets/lproj/*.lproj "$APP/Contents/Resources/"
@@ -378,6 +383,7 @@ jobs:
           copy tools\captive_dosbox_sequence.expect dist\assets\captive\captive_dosbox_sequence.expect
           copy tools\verify_captive_live_replay.sh dist\assets\captive\verify_captive_live_replay.sh
           copy tools\verify_captive_live_mouse.sh dist\assets\captive\verify_captive_live_mouse.sh
+          copy tools\verify_captive_target_route.sh dist\assets\captive\verify_captive_target_route.sh
           copy po\*.po dist\po\
           copy README.md dist\
           copy LICENSE dist\
@@ -758,12 +764,15 @@ jobs:
           tar -tzf artifacts/linux-x86_64/opencaptive-linux-x86_64.tar.gz | grep -F 'assets/captive/captive_dosbox_sequence.expect'
           tar -tzf artifacts/linux-x86_64/opencaptive-linux-x86_64.tar.gz | grep -F 'assets/captive/verify_captive_live_replay.sh'
           tar -tzf artifacts/linux-x86_64/opencaptive-linux-x86_64.tar.gz | grep -F 'assets/captive/verify_captive_live_mouse.sh'
+          tar -tzf artifacts/linux-x86_64/opencaptive-linux-x86_64.tar.gz | grep -F 'assets/captive/verify_captive_target_route.sh'
           dpkg-deb -c artifacts/linux-x86_64/opencaptive_*.deb | grep -F 'usr/share/opencaptive/assets/captive/captive_dosbox_sequence.expect'
           dpkg-deb -c artifacts/linux-x86_64/opencaptive_*.deb | grep -F 'usr/share/opencaptive/assets/captive/verify_captive_live_replay.sh'
           dpkg-deb -c artifacts/linux-x86_64/opencaptive_*.deb | grep -F 'usr/share/opencaptive/assets/captive/verify_captive_live_mouse.sh'
+          dpkg-deb -c artifacts/linux-x86_64/opencaptive_*.deb | grep -F 'usr/share/opencaptive/assets/captive/verify_captive_target_route.sh'
           rpm -qpl artifacts/linux-x86_64/opencaptive-*.rpm | grep -F '/usr/share/opencaptive/assets/captive/captive_dosbox_sequence.expect'
           rpm -qpl artifacts/linux-x86_64/opencaptive-*.rpm | grep -F '/usr/share/opencaptive/assets/captive/verify_captive_live_replay.sh'
           rpm -qpl artifacts/linux-x86_64/opencaptive-*.rpm | grep -F '/usr/share/opencaptive/assets/captive/verify_captive_live_mouse.sh'
+          rpm -qpl artifacts/linux-x86_64/opencaptive-*.rpm | grep -F '/usr/share/opencaptive/assets/captive/verify_captive_target_route.sh'
       - name: Extract version-specific release notes
         shell: bash
         run: |

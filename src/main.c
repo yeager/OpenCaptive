@@ -99,6 +99,10 @@ static bool captive_live_session_active;
  * is maintained. */
 static float captive_live_mouse_dx;
 static float captive_live_mouse_dy;
+/* CAPPO's holomap pointer moves in discrete keyboard steps. Keep fractional
+ * host motion until one complete step is available; this preserves the
+ * original control model without injecting a guessed INT 33 position. */
+#define CAPTIVE_MOUSE_STEP_PIXELS 12.0f
 /* CAPPO keeps the holomap visible after ORBIT while it records the route.
  * This flag is only an input-phase marker; it contains no generated
  * destination or movement data. */
@@ -420,12 +424,25 @@ static bool captive_live_send_key(SDL_Keycode key) {
 
 static void captive_live_send_mouse_motion(float dx, float dy) {
     if (!captive_live_session_active) return;
-    /* CAPPO polls INT 33 function 0x0B and keeps the absolute cursor.  Send
-     * SDL's real relative motion through DOSBox-X's emulated 8042 mouse
-     * device; translating it to arrow scans loses the original pointer and
-     * makes click hit-testing impossible. */
-    (void)captive_emulator_session_send_mouse_motion(
-        &captive_live_session, (int)lrintf(dx), (int)lrintf(dy));
+    /* DOSBox-X's debugger is paused while the live dump is taken. Its
+     * integration-device Mouse_CursorMoved() path deliberately ignores
+     * motion in that state, so forwarding host deltas there cannot control
+     * CAPPO. The original game documents the cursor keys as its holomap
+     * pointer controls; use those original scans once a real mouse movement
+     * accumulates to one discrete step. No map coordinate is fabricated. */
+    CaptiveNavigationAction actions[32];
+    int count = captive_navigation_quantize_motion(
+        &captive_live_mouse_dx, dx, CAPTIVE_MOUSE_STEP_PIXELS,
+        CAPTIVE_NAV_ACTION_LEFT, CAPTIVE_NAV_ACTION_RIGHT,
+        actions, (int)(sizeof(actions) / sizeof(actions[0])));
+    for (int i = 0; i < count; ++i)
+        (void)captive_live_send_action(actions[i]);
+    count = captive_navigation_quantize_motion(
+        &captive_live_mouse_dy, dy, CAPTIVE_MOUSE_STEP_PIXELS,
+        CAPTIVE_NAV_ACTION_UP, CAPTIVE_NAV_ACTION_DOWN,
+        actions, (int)(sizeof(actions) / sizeof(actions[0])));
+    for (int i = 0; i < count; ++i)
+        (void)captive_live_send_action(actions[i]);
 }
 
 /* CAPPO owns the navigation state.  The first ORBIT command records the
@@ -3858,17 +3875,20 @@ int main(int argc, char *argv[]) {
                                captive_live_session_active &&
                                event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                                event.button.button == SDL_BUTTON_LEFT) {
-                        /* CAPPO's original INT 33 path owns the click and
-                         * hit-testing. Do not route it through OpenCaptive's
-                         * synthetic control table. */
-                        (void)captive_emulator_session_send_mouse_button(
-                            &captive_live_session, true);
-                    } else if (gs.game_type == GAME_CAPTIVE &&
-                               captive_live_session_active &&
-                               event.type == SDL_EVENT_MOUSE_BUTTON_UP &&
-                               event.button.button == SDL_BUTTON_LEFT) {
-                        (void)captive_emulator_session_send_mouse_button(
-                            &captive_live_session, false);
+                        /* CAPPO's control bank is a documented keyboard
+                         * equivalent. Resolve the real window click to its
+                         * native control region and send that original scan;
+                         * paused DOSBox-X INT 33 injection cannot perform
+                         * reliable hit-testing during dump capture. */
+                        float cx, cy;
+                        if (window_to_canvas(&renderer, event.button.x,
+                                             event.button.y, &cx, &cy)) {
+                            CaptiveNavigationAction action =
+                                captive_navigation_action_at((int)cx,
+                                                             (int)cy);
+                            if (action != CAPTIVE_NAV_ACTION_NONE)
+                                (void)captive_live_send_action(action);
+                        }
                     } else if (gs.game_type == GAME_CAPTIVE &&
                                captive_live_session_active &&
                                event.type == SDL_EVENT_KEY_DOWN) {
@@ -4191,18 +4211,25 @@ int main(int argc, char *argv[]) {
                     break;
                 case STATE_HOLAMAP:
                     if (event.type == SDL_EVENT_MOUSE_MOTION) {
-                        float cx, cy;
-                        if (window_to_canvas(&renderer, event.motion.x,
-                                             event.motion.y, &cx, &cy))
-                            (void)holamap_set_cursor_from_frame(
-                                &captive_holamap, (int)cx, (int)cy);
+                        if (captive_live_session_active) {
+                            captive_live_send_mouse_motion(event.motion.xrel,
+                                                           event.motion.yrel);
+                        } else {
+                            float cx, cy;
+                            if (window_to_canvas(&renderer, event.motion.x,
+                                                 event.motion.y, &cx, &cy))
+                                (void)holamap_set_cursor_from_frame(
+                                    &captive_holamap, (int)cx, (int)cy);
+                        }
                     } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
                                event.button.button == SDL_BUTTON_LEFT) {
-                        float cx, cy;
-                        if (window_to_canvas(&renderer, event.button.x,
-                                             event.button.y, &cx, &cy))
-                            (void)holamap_set_cursor_from_frame(
-                                &captive_holamap, (int)cx, (int)cy);
+                        if (!captive_live_session_active) {
+                            float cx, cy;
+                            if (window_to_canvas(&renderer, event.button.x,
+                                                 event.button.y, &cx, &cy))
+                                (void)holamap_set_cursor_from_frame(
+                                    &captive_holamap, (int)cx, (int)cy);
+                        }
                         (void)captive_holamap_mouse_move(&renderer,
                                                          &event.button,
                                                          &captive_holamap, &gs);

@@ -4,13 +4,51 @@
 
 ### Changed
 
-- **(Captive)** DOSBox-X mouse integration now enables the original INT 33
-  path explicitly, so authentic pointer motion and clicks reach CAPPO.
+- **(Captive)** Live holomap mouse motion now uses an accumulation buffer and
+  CAPPO's documented discrete cursor scans; control-bank clicks use the same
+  original scan path.
+- **(Captive)** Complete DOSBox-X memory dumps now render directly from
+  CAPPO's original A000:0000 VGA surface; descriptor reconstruction is no
+  longer used as a visual fallback.
+- **(Verification)** Added a real-data-only CAPPO target-route gate for the
+  authentic green target and `FLIGHT PATH SET` boundary; Orbit and LAND remain
+  explicitly unclaimed until the original runtime proves them.
 
 ### Verification
 
-- Authentic DOSBox-X mouse, navigation, and replay gates pass with the
-  player-supplied CAPPO data; the full local suite remains 64/64.
+- Authentic DOSBox-X navigation/VGA and replay checks pass with the
+  player-supplied CAPPO data; interactive mouse and live Orbit/Land remain
+  unverified; the full local suite remains 64/64.
+
+## v1.1.124 (2026-08-13)
+
+### Added
+
+- **(Verification)** Added a real-data-only CAPPO target-route gate that
+  drives the original Mission 0001 route to the authentic green target and
+  verifies the original `FLIGHT PATH SET` boundary.
+
+### Changed
+
+- **(Captive)** Complete DOSBox-X VGA dumps are rendered directly from the
+  original A000:0000 surface, preventing reconstructed or synthetic viewport
+  pixels from replacing authentic output.
+- **(Captive)** Live holomap motion uses accumulated discrete CAPPO cursor
+  scans, preserving the original input model for mouse-to-navigation mapping.
+- **(Documentation)** Release packages now include the authentic-data route
+  verifier alongside the existing DOSBox-X probes.
+
+### Removed
+
+None.
+
+### Verification
+
+- Local CTest suite: 64/64 passed.
+- Authentic CAPPO target-route and live replay gates pass with the supplied
+  original game data.
+- Orbit, LAND, dungeon entry, and physical mouse interaction remain
+  explicitly unclaimed until proven by an unlocked original runtime.
 
 ## v1.1.123 (2026-08-13)
 
@@ -38,8 +76,9 @@ None.
 ### Verification
 
 - GitHub Actions Build passed on `main` at commit `53bb7cd`.
-- Authentic CAPPO live mouse, navigation, and replay gates pass with the
-  player-supplied original game data.
+- Authentic CAPPO navigation and replay checks pass with the player-supplied
+  original game data. The former paused-debugger mouse check is transport-only
+  and is not evidence of interactive mouse parity.
 - The complete local CTest suite remains 64/64.
 
 ## v1.1.122 (2026-08-13)
@@ -70,8 +109,8 @@ None.
   DOSBox-X's authentic integration-device path into CAPPO's INT 33 mouse
   handler. The bridge does not write cursor state or gameplay state into the
   original process.
-- **(Verification)** Added a real-data-only live mouse gate that checks four
-  distinct CAPPO memory checkpoints after authentic motion and button events.
+- **(Verification)** Added a real-data-only mouse transport probe. It does not
+  claim interactive mouse parity while DOSBox-X is paused for memory dumps.
 
 ### Changed
 

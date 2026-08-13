@@ -12,8 +12,15 @@
 - [x] Drive CAPPO's relocated IRQ1 scan-byte queue from an unlocked DOSBox-X session
 - [x] Verify raw scan-byte placement at the relocated queue with the
       emulator-only `captive_dosbox_queue.expect` probe
-- [x] Attach OpenCaptive mouse/key events to that live CAPPO IRQ1 queue without
-      mutating the native compatibility GameState
+- [x] Attach OpenCaptive keyboard and control-bank events to that live CAPPO
+      IRQ1 queue without mutating the native compatibility GameState
+- [x] Convert live holomap mouse motion to CAPPO's original discrete pointer
+      scans; do not claim paused-debugger INT 33 injection as mouse proof
+- [x] Render complete live DOSBox-X VGA dumps directly, with no descriptor
+      or map fallback that could replace original pixels
+- [x] Add a real-data-only route gate for the authentic green target and
+      `FLIGHT PATH SET` boundary
+- [ ] Verify physical mouse motion and click in an unlocked DOSBox-X window
 - [x] Route a new DOS Captive selection from the graphical start menu to the
       authenticated DOSBox-X runtime when original CAPTIVE.BAT data is present
 - [x] Disable the native compatibility tick and its synthetic Captive state/SFX
@@ -345,9 +352,13 @@
 - [x] Unicode/extended character support in bitmap font renderer (UTF-8 decode, lowercase a-z, accented→base mapping for all 19 languages)
 
 ### Space navigation (pre-dungeon)
-- [x] Verify the real green flight point, orbit view, white landing point, and
-      land-level frame in DOSBox-X
-- [x] Wire mouse `ORBIT` and `LAND` to the verified original reference frames
+- [x] Capture the real green flight point, orbit view, white landing point, and
+      land-level frame in DOSBox-X as separate reference assets
+- [x] Verify the live DOSBox-X route through the green target and
+      `FLIGHT PATH SET`
+- [ ] Verify a single live DOSBox-X route from that boundary through Orbit,
+      the white landing point, and the land-level frame
+- [x] Wire mouse `ORBIT` and `LAND` to the original control-bank scan path
 - [ ] Decode the original CAPPO flight/orbit state so the live point and
       transition are data-driven rather than frame references
 - [ ] Decode the original CAPPO landing/runtime records and enter a live
@@ -480,5 +491,7 @@
 - [x] Keep Captive transit input separate from Liberation's thrust model
 - [x] Keep ENTER distinct from Captive's keypad-9 LAND command
 - [x] Decode CAPPO 0x21D1 even branches 0x22AA and 0x229A
-- [x] Route absolute mouse movement through the verified CAPPO holomap panel
+- [x] Route accumulated mouse movement through CAPPO's discrete holomap scans
+- [ ] Verify physical mouse movement and control-bank clicks in an unlocked
+      DOSBox-X window
 - [x] Document original Captive planet target (green point) and landing target (white circle)

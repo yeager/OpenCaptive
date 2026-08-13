@@ -80,36 +80,34 @@ save, droid roster or dungeon state.
 
 When OpenCaptive owns a live CAPPO session, its Captive mouse path follows the
 same boundary. The emulator bridge consumes the documented `DEL` continuation
-before returning the first live dump; subsequent clicks therefore go directly
-through CAPPO's original control hitboxes. Mouse motion is sent through
-DOSBox-X's integration-device 8042 mouse path, which feeds CAPPO's own INT 33
-poll (`AX=0x000B`) and preserves the original cursor coordinates. Left-button
-down and up are sent through the same emulated hardware path, so CAPPO—not a
-local OpenCaptive hitbox table—receives and processes the click. The live
-CAPPO VGA dump remains the only rendered surface. No local cursor coordinate
-is applied to the map and no target, planet, landing point or dungeon state is
-synthesized. This is the DOS implementation of the manual's
-"Cursor Keys = Moves the pointer" and mouse-button behaviour; the original
-runtime remains the authority for the resulting pointer and navigation state.
+before returning the first live dump. In the live holomap, relative host
+motion is accumulated and emitted as CAPPO's documented cursor-key scans once
+one discrete step is available. This is necessary because DOSBox-X's
+debugger deliberately ignores `Mouse_CursorMoved()` while the debugger is
+paused for a memory dump; forwarding a paused integration-device delta would
+not be real mouse control. The conversion uses only CAPPO's original
+left/right/up/down actions and creates no map coordinate or marker. Left-button
+clicks on the original control bank continue through CAPPO's own input queue.
+The live CAPPO VGA dump remains the only rendered surface. No target, planet,
+landing point or dungeon state is synthesized.
 
-The verification harness accepts `MOUSE_DX:n`, `MOUSE_DY:n`, `MOUSE_DOWN`, and
-`MOUSE_UP` FIFO commands. These are translated to DOSBox-X integration-device
-I/O, never to `SM` writes in CAPPO memory. A real-data probe showed distinct
-complete memory images after authentic relative motion and button transitions;
-the ordinary keyboard and VGA gates must still pass alongside this mouse
-probe.
+For a complete DOSBox-X memory dump, the `A000:0000` VGA surface is copied
+directly to the native 320×200 framebuffer, including an all-black surface.
+The runtime renderer does not fall back to a descriptor draw-list or map
+reconstruction when those pixels are present. A malformed dump fails closed;
+this keeps a bad emulator handoff visible as a failure instead of presenting
+synthetic-looking viewport graphics.
 
-The bundled DOSBox-X profile enables `mouse emulation=integration` under
-`[sdl]` and `integration device=true` under `[cpu]`. Both settings are needed
-for the original INT 33 path: enabling only the integration I/O device leaves
-CAPPO's VGA surface unchanged when a host mouse event is delivered.
-It also fixes the INT 33 range to CAPPO's native 320×200 surface
-(`int33 max x=320`, `int33 max y=200`), preventing host-window coordinates from
-placing the original pointer outside the mission map.
-The integration-device mouse payload follows DOSBox-X `bios.cpp`: the action
-selector is in bits 8–15 and the encoded relative unit (`delta + 1`) is in
-bits 16–23. The verifier rejects no-op transport silently by requiring distinct
-complete original dumps after motion and button events.
+The `MOUSE_DX:n`, `MOUSE_DY:n`, `MOUSE_DOWN`, and `MOUSE_UP` FIFO commands remain
+diagnostic transport probes only. They are not a mouse-parity gate: the
+debugger-pause rule above makes them unsuitable as evidence of interactive
+mouse control. Keyboard and VGA gates remain authoritative until an unlocked
+DOSBox-X window has been exercised with physical mouse events.
+
+The bundled DOSBox-X profile still enables `mouse emulation=integration` and
+the original INT 33 range, so an unlocked interactive DOSBox-X session can be
+tested directly. The paused integration-device payload is retained only for
+low-level diagnostics and is not treated as proof of mouse parity.
 
 The multi-step probe writes to an explicit output directory and never treats
 printable strings as proof of the active state. CAPPO keeps its message table
@@ -125,6 +123,12 @@ The command can therefore produce a useful negative result: a dump whose
 decoded VGA surface is not a complete original frame is rejected by the normal
 `tools/verify_captive_dos_dump.sh` byte-exact comparison. Message strings are
 diagnostic only and are never used to enter Orbit, landing, or dungeon state.
+
+The real-data-only `tools/verify_captive_target_route.sh` gate drives the
+original Mission 0001 controls (`4D` ten times, `48` ten times, then `47`),
+verifies the green target in the resulting VGA dump, and stops at the
+authentic `FLIGHT PATH SET` boundary. It does not claim that boundary is
+Orbit or LAND; those transitions still require an original-runtime proof.
 
 The unpacked DOS executable installs its keyboard IRQ1 handler at relative
 offset `0x065c`. In the verified Mission 0001 DOSBox-X memory image the
