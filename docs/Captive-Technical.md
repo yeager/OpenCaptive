@@ -202,9 +202,10 @@ coordinate is displayed. Arrival and landing remain gated on a later live
 CAPPO handoff. The gate is intentionally local-only because original game
 media is player-supplied and is never committed or synthesized.
 
-The normal Captive start-menu action now attaches to the original
-`CAPTIVE.BAT 1` runtime directly. OpenCaptive stays open as the host window so
-the original VGA state and input path can be verified in one session.
+The normal Captive start-menu action launches the original
+`CAPTIVE.BAT 1` runtime directly in DOSBox-X. DOSBox-X remains the interactive
+host window; the OpenCaptive launcher does not claim to embed or mirror that
+window.
 
 For a longer local replay that verifies each accepted command, including
 repeated commands, use:
@@ -237,12 +238,10 @@ Direct debugger queue injection is not used as parity evidence: it is not
 equivalent to a real keyboard event. The verified path stops before proving
 `ARRIVED AT DESTINATION`, `NOW IN ORBIT`, or `LANDING SUCCESSFUL`.
 
-OpenCaptive starts the original `INTRO` → `FILEPLAY` → `CAPPO` chain, waits for
-CAPPO's relocated IRQ1 queue, sends the original XT make scan followed by its
-break scan for each arrow or numpad action, and reloads the resulting DOSBox-X
-VGA dump. The OpenCaptive
-window therefore displays the original runtime surface after each accepted
-command. If DOSBox-X, `expect`, the FIFO session, or a complete dump is
+The diagnostic harness starts the original `INTRO` → `FILEPLAY` → `CAPPO` chain,
+waits for CAPPO's relocated IRQ1 queue, sends the original XT make scan
+followed by its break scan for each arrow or numpad action, and reloads the
+resulting DOSBox-X VGA dump. If DOSBox-X, `expect`, the FIFO session, or a complete dump is
 unavailable, the Captive session fails closed; it does not switch to the old
 procedural dungeon or invent a replacement frame.
 

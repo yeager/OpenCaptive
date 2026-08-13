@@ -18,7 +18,6 @@ set post_scan_ticks [expr {$argc > 4 ? [lindex $argv 4] : 8}]
 set fifo_path [expr {$argc > 5 ? [file normalize [lindex $argv 5]] : ""}]
 set trace_status [expr {[info exists ::env(CAPPO_TRACE_STATUS)] && $::env(CAPPO_TRACE_STATUS) ne ""}]
 set trace_dispatch [expr {[info exists ::env(CAPPO_TRACE_DISPATCH)] && $::env(CAPPO_TRACE_DISPATCH) ne ""}]
-set trace_orbit_handler [expr {[info exists ::env(CAPPO_TRACE_ORBIT_HANDLER)] && $::env(CAPPO_TRACE_ORBIT_HANDLER) ne ""}]
 set trace_status_runtime [expr {[info exists ::env(CAPPO_TRACE_STATUS_RUNTIME)] && $::env(CAPPO_TRACE_STATUS_RUNTIME) ne ""}]
 set trace_input_poll [expr {[info exists ::env(CAPPO_TRACE_INPUT_POLL)] && $::env(CAPPO_TRACE_INPUT_POLL) ne ""}]
 set orbit_input_consumed 0
@@ -67,10 +66,6 @@ proc wait_for_timer_break {} {
     expect {
         -re {07E4:6A33|0824:6633} { set cappo_dispatch_hit 1; exp_continue }
         -re {0824:D753} { puts stderr "CAPPO legacy handler breakpoint reached at 0824:D753"; exp_continue }
-        -re {0824:BA92} {
-            puts stderr "CAPPO ORBIT handler reached at 0824:BA92"
-            exp_continue
-        }
         -re {0824:06B8} {
             global orbit_input_consumed
             send "EV AX\r"
@@ -143,12 +138,6 @@ expect {
 # 07E4. This breakpoint is the handoff proof; a FILEPLAY-only session must
 # fail closed even if its memory contains CAPPO message strings.
 send "BP 0824:6633\r"
-if {$trace_orbit_handler} {
-    # The Mission 0001 CAPPO dispatcher reads the ORBIT handler pointer from
-    # DS:8D4D. In the authentic DOSBox-X image this is 0824:BA92. Observe the
-    # handler without changing registers or game memory.
-    send "BP 0824:BA92\r"
-}
 
 # CAPPO's unpacked status-message helper is 0x47B0; the active 0824 runtime
 # bank is relocated by -0x400, so its live address is 0824:43B0. This is an
@@ -217,11 +206,6 @@ expect {
     eof { exit 1 }
 }
 set timer_breakpoint_installed 0
-if {$trace_orbit_handler} {
-    # Reinstall this observation point after the intro handoff; the general
-    # breakpoint cleanup above intentionally removes all startup probes.
-    send "BP 0824:BA92\r"
-}
 
 # After handoff, run complete emulator frames.  BPINT 08 stops at the entry
 # to the timer ISR, before CAPPO can execute its flight/arrival update. VRT

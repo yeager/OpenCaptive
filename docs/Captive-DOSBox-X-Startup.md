@@ -185,7 +185,7 @@ must not be used as parity evidence.
 |---|---|
 | VGA choice does nothing | Click inside the game viewport, then press `1`. |
 | Debugger window appears | Quit and restart with the normal helper; remove debugger flags. |
-| System pointer moves but Captive pointer does not | Click the OpenCaptive canvas once, ensure the attached DOSBox-X session is alive, and check `Ctrl+F10`; do not reuse a stale debugger window. |
+| System pointer moves but Captive pointer does not | Click the DOSBox-X game viewport once, then check `Ctrl+F10`; do not reuse a stale debugger window. |
 | The ship is still in transit | Wait for the original orbit/arrival state before pressing `9` for LAND. |
 | A landed view contains only water | Restart from orbit and fly to the white landing circle. |
 | The viewport looks stretched or corrupted | Use the repository profile; it forces VGA, surface output, integer scaling, and the CAPPO-compatible VGA memory setting. |
