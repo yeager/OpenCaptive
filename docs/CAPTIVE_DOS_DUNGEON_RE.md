@@ -38,3 +38,15 @@ Then reimplement it natively in C so the map has a real, archive-derived source.
 4. Movement, doors, monsters, combat, items.
 This is a from-scratch dungeon-engine reimplementation comparable in scope to
 the Liberation engine; it is genuinely multi-session work.
+
+## More map findings (2026-08-14, milestone 1 cont.)
+- `FUN_1000_baca` is a MAP RENDERER (overhead/automap): it iterates the full
+  64x32 map at 0x7cb3, and for each cell `> 0x1a` calls `FUN_1000_bb33` (wall
+  graphic lookup) and plots it into a 160-wide screen buffer across three rows
+  (offsets +0, +0xa0, +0x140 = 160-px stride). So cell value `> 0x1a` = a
+  solid/wall cell; `<= 0x1a` = open/other. This gives the cell-value semantics
+  and the plot layout for the native renderer.
+- `FUN_1000_65ff` is just a bounds check (x<0x40, y<0x20).
+- The GENERATOR that fills 0x7cb3 is still to be located: it writes via ES:DI
+  with no immediate 0x7cb3, so trace fns that set DI=0x7cb3 then STOSB/loop, or
+  the level-load caller chain above FUN_152f (the per-frame render).
