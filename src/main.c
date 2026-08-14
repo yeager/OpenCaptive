@@ -3426,13 +3426,13 @@ int main(int argc, char *argv[]) {
              * emulator session. */
             show_missing_data_dialog_diag(config.data_path, vfs.num_zips);
             capture_failed = capture_frame_path != NULL;
-        } else if (!captive_dos_memory_active && !capture_frame_path) {
-            /* Interactive Captive belongs to the original DOS runtime.  The
-             * debugger/FIFO bridge is deliberately not used here: it pauses
-             * DOSBox-X and cannot provide the original intro, audio, mouse,
-             * or timer behaviour. */
-            return captive_emulator_launch(config.data_path) ? 0 : 1;
         } else {
+            /* Interactive Captive renders natively, reading its assets straight
+             * from the archive via the VFS (zip/ADF/ISO) — no extraction to
+             * disk.  The original DOS runtime under DOSBox is only used when the
+             * caller explicitly opts in (--captive-authentic) and has provided
+             * loose DOS files, because DOSBox can only mount a real directory
+             * and OpenCaptive never unpacks game data. */
             gs.game_type = GAME_CAPTIVE;
             music_play_for_game(&gs, MUSIC_BASE);
             /* game_state_init() starts at the menu.  A direct command-line

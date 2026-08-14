@@ -1,5 +1,22 @@
 # OpenCaptive Release Notes
 
+## v1.1.141 (2026-08-14)
+
+### Changed
+
+- **(Captive)** Interactive Captive now renders **natively, reading its assets
+  directly from the archive** (zip/ADF/ISO) via the SHA-256 VFS — OpenCaptive
+  never unpacks game data to disk. Previously the default Captive launch shelled
+  out to DOSBox, which can only mount a real directory and therefore opened to an
+  empty prompt when the DOS game lived inside `Captive_DOS_EN.zip`. The original
+  DOS runtime under DOSBox remains available only via the explicit
+  `--captive-authentic` opt-in for users who have supplied loose DOS files.
+  Verified: launching Captive against zipped data loads the holomap and
+  navigation references straight from the zip and renders, with no DOSBox
+  process and nothing written to disk.
+
+# OpenCaptive Release Notes
+
 ## v1.1.140 (2026-08-14)
 
 ### Fixed
