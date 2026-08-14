@@ -1,5 +1,22 @@
 # OpenCaptive Release Notes
 
+## v1.1.131 (2026-08-14)
+
+### Added
+
+- **(Liberation)** `liberation_cte` — a parser for the authentic CITY_TEXT (CTE)
+  interaction table, the original shop/bank/police/clue conversation script.
+  CTE uses a binary section frame (`<id> 0x00 <len> [ content ]`, len = content
+  + 3) unlike the ASCII DTE table, so the existing parser could not read it.
+  This makes the real sections addressable; it is step one of decoding the CTE
+  and is not wired to on-screen text, so no partial output is shown while the
+  bytecode interpreter that expands a section is still to come. Verified it
+  parses the real CTE (48 sections) plus fixture tests for the framing.
+
+### Removed
+
+None.
+
 ## v1.1.130 (2026-08-14)
 
 ### Changed

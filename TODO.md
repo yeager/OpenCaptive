@@ -465,10 +465,21 @@ they are left explicit rather than half-invented.
       police/special are game-only categories with no DTE section and keep their
       fallback.
 - [ ] **Deeper building conversation** beyond the entry description (the
-      per-choice info/rumour/records nodes, and the police/library/residence
-      flavour) is still invented English. Those live in the CTE interaction
-      script — a larger bytecode VM (`^X` opcodes, conditionals, item/shop
-      refs) than the DTE entry text. Decode the CTE interpreter to replace them.
+      per-choice info/rumour/records nodes) is still invented English, living in
+      the CTE interaction script. Decoding it, in steps:
+      - [x] CTE section parser (`liberation_cte.c`, v1.1.131) — the binary
+            `<id> 0x00 <len> [content]` framing is reverse-engineered and the
+            real sections are addressable and tested.
+      - [ ] CTE bytecode interpreter: expand a section's ~40 `^X`/`^F` opcodes
+            (variant `^XO`, case `^XC`, conditionals on live state `^XI`, jumps
+            `^XG`/`^XS`, string/section refs). Must read the game's real state
+            (mission class, reputation, inventory, gold, flags) so conditionals
+            evaluate correctly — a partial interpreter would emit the wrong
+            branch, i.e. real text in the wrong context, which is worse than the
+            documented boundary. Do not wire until it is complete and correct.
+      - [ ] Map the game's building interactions to the correct CTE entry
+            points and route the overlay through the interpreter, replacing the
+            invented nodes.
 - [x] **Combat enemy name** — DONE (v1.1.129). The eight invented sci-fi names
       (Guard, Sentinel, Enforcer, Warden…) are replaced with the authentic
       designation "Security Droid", the term the game's own plot text uses

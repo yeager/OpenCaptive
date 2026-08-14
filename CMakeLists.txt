@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.130 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.131 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -88,6 +88,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/liberation_data.c
     src/data/liberation_string_tables.c
     src/data/liberation_text_table.c
+    src/data/liberation_cte.c
     src/data/i18n.c
     src/data/stb_image_impl.c
     src/data/amos_sprite.c
@@ -606,6 +607,10 @@ add_executable(test_renderer_map tests/test_renderer_map.c src/render/renderer.c
 target_include_directories(test_renderer_map PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_renderer_map PRIVATE SDL3::SDL3 ${MATH_LIBRARY})
 add_test(NAME renderer_map COMMAND test_renderer_map)
+
+add_executable(test_liberation_cte tests/test_liberation_cte.c src/data/liberation_cte.c)
+target_include_directories(test_liberation_cte PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation_cte COMMAND test_liberation_cte)
 
 # The tests use assert() for both execution and verification.  Release builds
 # define NDEBUG, which would otherwise turn those test expressions into no-ops.

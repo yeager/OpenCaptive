@@ -1,5 +1,23 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (CTE decoder step 1: section parser, v1.1.131)
+
+- Began the real decoder for the CTE interaction table (the last big
+  synthetic-dialogue source). Reverse-engineered the section framing from the
+  raw data: unlike DTE's ASCII `|id[...]`, CTE frames each section as
+  `<id byte> 0x00 <len byte> [ content ]` with len = content length + 3, id the
+  token that the script's ^XG/^XS jumps reference. Verified across all 53
+  sections of the real table.
+- `liberation_cte.c` parses the buffer into addressable sections (bracket-depth
+  aware, so nested brackets in the bytecode are not mistaken for new sections).
+  Tested with a binary fixture and against the real CTE (parses its sections).
+- Deliberately UNWIRED: the bytecode interpreter that expands a section's ~40
+  opcodes against live game state is the next step. Nothing is shown on screen
+  from this yet, so no partial/incorrect dialogue is displayed while the
+  interpreter is incomplete — the invented deeper-dialogue nodes stay until the
+  real expansion is complete and correct, rather than being replaced with
+  half-evaluated (wrong-context) output.
+
 ## 2026-08-14 (Liberation bar drink label, v1.1.130)
 
 - Replaced the invented bar drink brand names (Synthi-Ale, Neuro-Fizz,
