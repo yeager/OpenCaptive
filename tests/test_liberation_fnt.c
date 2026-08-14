@@ -123,12 +123,61 @@ static void test_real_font_decodes_if_available(void) {
     printf("PASS: real_font (%u glyphs)\n", font.glyph_count);
 }
 
+/* The blitter must paint plane0 as ink and plane1 as shadow at the exact
+ * pixels the decoded glyph specifies — no invented shape.  Uses the fixture
+ * '!' glyph: plane0 has ink in column 1 (rows 0-3,5); plane1 has shadow in
+ * columns 0 and 2 (rows 0-2). */
+static void test_blit_places_ink_and_shadow(void) {
+    FntFont font;
+    assert(fnt_open(&font, test_fnt, sizeof(test_fnt)));
+    const FntGlyph *bang = fnt_get_glyph(&font, '!');
+    assert(bang && bang->width == 4);
+
+    enum { W = 16, H = 8 };
+    static uint32_t dst[W * H];
+    memset(dst, 0, sizeof(dst));
+    const uint32_t ink = 0xFFFFFFFFu, shadow = 0xFF808080u;
+
+    int advance = fnt_blit_glyph(&font, bang, dst, W, H, 0, 0, ink, shadow, 1);
+    assert(advance == 4);                 /* proportional advance = width */
+    assert(dst[0 * W + 1] == ink);        /* plane0 column 1, row 0 */
+    assert(dst[3 * W + 1] == ink);        /* plane0 column 1, row 3 */
+    assert(dst[5 * W + 1] == ink);        /* plane0 column 1, row 5 */
+    assert(dst[4 * W + 1] == 0u);         /* plane0 blank on row 4 */
+    assert(dst[0 * W + 0] == shadow);     /* plane1 column 0, row 0 */
+    assert(dst[0 * W + 2] == shadow);     /* plane1 column 2, row 0 */
+
+    /* shadow==0 suppresses the outline plane entirely. */
+    memset(dst, 0, sizeof(dst));
+    fnt_blit_glyph(&font, bang, dst, W, H, 0, 0, ink, 0u, 1);
+    assert(dst[0 * W + 1] == ink);
+    assert(dst[0 * W + 0] == 0u);
+    assert(dst[0 * W + 2] == 0u);
+
+    /* scale=2 doubles each set pixel into a 2x2 block. */
+    memset(dst, 0, sizeof(dst));
+    advance = fnt_blit_glyph(&font, bang, dst, W, H, 0, 0, ink, 0u, 2);
+    assert(advance == 8);
+    int cx = 1 * 2;                       /* column 1 at scale 2 */
+    assert(dst[0 * W + cx] == ink && dst[0 * W + cx + 1] == ink);
+    assert(dst[1 * W + cx] == ink && dst[1 * W + cx + 1] == ink);
+
+    /* fnt_blit_text advances the pen across a string and clips at the edge
+     * without writing out of bounds. */
+    memset(dst, 0, sizeof(dst));
+    int total = fnt_blit_text(&font, dst, W, H, 0, 0, "!!", ink, 0u, 1);
+    assert(total == 8);                   /* two width-4 glyphs */
+    assert(dst[0 * W + 1] == ink);        /* first '!' */
+    assert(dst[0 * W + 5] == ink);        /* second '!' at pen 4, column 1 */
+}
+
 int main(void) {
     test_open();
     test_bad_magic();
     test_get_glyph();
     test_text_width();
     test_font_resources_are_optional();
+    test_blit_places_ink_and_shadow();
     test_real_font_decodes_if_available();
     printf("All liberation_fnt tests passed\n");
     return 0;

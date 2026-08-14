@@ -48,3 +48,56 @@ int fnt_text_width(const FntFont *font, const char *text) {
     }
     return w;
 }
+
+static void fnt_put(uint32_t *dst, int dst_w, int dst_h,
+                    int x, int y, int scale, uint32_t color) {
+    for (int sy = 0; sy < scale; sy++) {
+        int py = y + sy;
+        if (py < 0 || py >= dst_h) continue;
+        for (int sx = 0; sx < scale; sx++) {
+            int px = x + sx;
+            if (px < 0 || px >= dst_w) continue;
+            dst[py * dst_w + px] = color;
+        }
+    }
+}
+
+int fnt_blit_glyph(const FntFont *font, const FntGlyph *g, uint32_t *dst,
+                   int dst_w, int dst_h, int x, int y,
+                   uint32_t ink, uint32_t shadow, int scale) {
+    if (!font || !g || !dst || dst_w <= 0 || dst_h <= 0) return 0;
+    if (scale < 1) scale = 1;
+    int cols = g->width;
+    if (cols > FNT_GLYPH_MAX_WIDTH) cols = FNT_GLYPH_MAX_WIDTH;
+    for (int row = 0; row < FNT_GLYPH_HEIGHT; row++) {
+        for (int c = 0; c < cols; c++) {
+            int bit = 7 - c;
+            /* plane0 is the glyph ink; plane1 is the original outline/shadow
+             * plane.  Both come straight from the decoded font — no shape is
+             * invented — and ink wins where the two overlap. */
+            if (g->plane0[row] & (1 << bit)) {
+                fnt_put(dst, dst_w, dst_h, x + c * scale, y + row * scale,
+                        scale, ink);
+            } else if (shadow != 0u && (g->plane1[row] & (1 << bit))) {
+                fnt_put(dst, dst_w, dst_h, x + c * scale, y + row * scale,
+                        scale, shadow);
+            }
+        }
+    }
+    return g->width * scale;
+}
+
+int fnt_blit_text(const FntFont *font, uint32_t *dst, int dst_w, int dst_h,
+                  int x, int y, const char *text,
+                  uint32_t ink, uint32_t shadow, int scale) {
+    if (!font || !dst || !text) return 0;
+    if (scale < 1) scale = 1;
+    int pen = x;
+    for (; *text; text++) {
+        const FntGlyph *g = fnt_get_glyph(font, (unsigned char)*text);
+        if (!g) { pen += font->max_width * scale; continue; }
+        pen += fnt_blit_glyph(font, g, dst, dst_w, dst_h, pen, y,
+                              ink, shadow, scale);
+    }
+    return pen - x;
+}
