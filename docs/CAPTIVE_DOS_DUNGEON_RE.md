@@ -348,3 +348,30 @@ from runtime behaviour needs deeper multi-pass RE or one runtime snapshot. What 
 solid and tested stays solid: the RNG (LCG 0x5E5/0x29), the carve/brush/post-proc
 primitives, the deltas/index/bounds, the wall test, and the data layout — none of
 which depend on this correction.
+
+## STRUCTURAL CONCLUSION: no monolithic generator; map built by command/tick subsystems
+Exhaustive search settles where generation lives:
+- The whole-image scan for map-address immediates (DS:0x7CB3 loads) finds hits
+  ONLY in code segment 0 (file <0x10000). CAPPO is small-model (DS=DGROUP
+  everywhere), so any map-writing code MUST use those DS-relative addresses.
+  Therefore the code after DGROUP (file >0x1E3F0) does NOT touch the map, and the
+  map generator is entirely in segment 0.
+- In segment 0 the ONLY code that writes map cells is: the phase machine
+  (0x4610: 5x5 room carve + drunkard walk, stamps 0x26), the entity update
+  (0x454A: stamps 0x20/0x60 -> 0x1E), the 4 single-cell pokes, and the on-enter
+  handlers. The entity array (0x5EB7, 9 slots) is populated by SPAWN routines
+  (0x70ED) driven by command codes (dx 0x6C..0x7F), and the phase machine is
+  kicked by 0x7148 (also command-gated: dx range + byte[0x92CF]==0x1B). The main
+  tick dispatches through jmp word[0x8D5B] (0x44C9); no immediate write to
+  0x8D5B exists, so the mode pointer is set indirectly.
+CONCLUSION: Captive does not build the dungeon in one monolithic "generate level"
+call. The 64x32 map is produced by these command/tick-driven subsystems (the
+carve phase machine + the RNG entities), i.e. generation is interleaved with the
+game loop and the level-entry command sequence. A native reimplementation must
+therefore drive the SAME subsystems from the level-entry sequence, not port a
+single function. The verified pieces (RNG LCG 0x5E5/0x29, carve primitives,
+deltas, index, bounds, wall test, flags/visibility semantics) are the real
+building blocks for that; the remaining work is to recover the exact level-entry
+trigger sequence + parameters (which commands, in what order, with what start
+positions) — best pinned by one runtime trace, since it is control-flow through
+the command dispatch rather than a single routine.
