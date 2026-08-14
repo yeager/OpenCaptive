@@ -171,3 +171,16 @@ m68k trace of how it computes `mc` from the building record); a guessed
 `BuildingType`→`mc` map would surface wrong-context dialogue. The
 **informational** dialogue does not need this — it was wired via
 `liberation_city_text` in v1.1.136-138.
+
+## Tooling unblocked: radare2 with m68k (2026-08-14)
+radare2 6.2.0 is now available for the binary trace (installed from the official
+macOS pkg without admin: verify SHA256, `pkgutil --expand-full`, run from the
+extracted payload; persisted at `~/.local/bin/r2portable`). It disassembles the
+m68k CODE hunk far more reliably than linear objdump. First findings from it:
+`a5` is the global-data base (matches the prior RE `%a5` state base); a `'['`
+scanner loop sits at CODE-hunk offset 0x6068 (`cmpi.b #'[',(a1)+ ; bne` then
+`lea 0x5b6c(a5),a2`); and the CTE opcode dispatch uses a jump table on the
+opcode byte (no char comparisons), which is why char-anchored searches missed
+it. The remaining `mc` trace — find the `^XI` variable read's `%a5` offset, then
+its writers — is now tractable and is the next step (jump-table dispatch means
+r2's `aa` under-covers; drive analysis manually from anchors).
