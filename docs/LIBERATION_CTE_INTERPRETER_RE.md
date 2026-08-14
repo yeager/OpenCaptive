@@ -105,3 +105,26 @@ the real clue quotes ("The tigers of wrath are wiser…", "Prisons are built
 with stones of Law…", the full 32-entry set). The remaining sections gate on
 game flags/menus, so their real lines need the state-field model (next step)
 before they render. No section leaks a raw opcode marker or bracket group.
+
+## Condition-variable inventory (complete, from all 198 real sections)
+The `^XI`/`^XC` conditionals test these state variables (frequency across the
+real CITY_TEXT). This is the authoritative list of what the state-field model
+(next step) must supply for correct branch selection:
+
+| var | uses | likely meaning (to confirm by binary trace) | derivable from |
+|-----|------|---------------------------------------------|----------------|
+| mc  | 27   | building/NPC category (record +2 bitfield)  | building record (context) |
+| u   | 13+23| player response / menu-choice index         | interaction runtime |
+| E   | 17   | signed record/plot status (E<0, E>2)        | plot state |
+| g   | 13   | boolean flag (guilty/goods?)                | plot/police state |
+| H   | 11   | signed relationship/hostility meter         | NPC/plot state |
+| v   | 8    | boolean (visited/violence?)                 | plot state |
+| K   | 6    | flag                                        | plot state |
+| l   | 5    | flag (with r: l=1&r=2)                       | plot state |
+| I   | 3    | counter (I>0)                               | plot state |
+| a,r,e,s,f,x,M,w,h,me,zc,J,t,b,L,B,m,j,c,G | 1-3 | assorted flags/counters/gender | mixed |
+
+Context-derivable vars (`mc` category, `zc` gender) can be supplied
+immediately from the building/champion record and would make those branches
+correct on their own; the plot-state vars (E, g, H, K, l, I, …) require the
+mission/reputation state machine and are the larger part of the next step.
