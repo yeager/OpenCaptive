@@ -218,3 +218,15 @@ CTE with that `mc`. Remaining to fully replicate: decode 0xd444 (the PRNG) and
 0xa988's exact seed→service mapping so the 1..6 commercial split (which building
 becomes a bank vs repair vs vendor) is byte-faithful. This is now tractable in
 r2 — the mechanism and every entry point are located.
+
+### Confidence note on the exact numeric map
+SOLID (verified in r2): the mechanism — `mc` = NPC profession (person+8),
+computed from `building_record[+2]` by 0xa738; interpreter anchors 0xa29a/0x7b54;
+person ptr 0x6890(a5); building record 0x68e0(a5); the 1..6 commercial path
+returns the full category byte and seeds a per-building PRNG (0xa988→0xd444).
+NOT YET PINNED: the exact category-byte→mc arithmetic. The condition read at
+0xa1ac adds 3 to person+8, while 0xa738's shop path returns literal 0 — these
+don't yet reconcile, so the precise offset (and whether 0xa1a2 vs another
+handler is the true `mc` reader) needs one more careful pass before any
+BuildingType→category-byte mapping is committed in code. Do NOT wire a numeric
+map until this reconciles, or it would show wrong-context dialogue.
