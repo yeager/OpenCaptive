@@ -19,16 +19,19 @@
  * plus-brush, the post-processor, the cardinal deltas, the index and bounds).
  * They are NOT yet the whole level generator: the routine 0x46CC that drives a
  * walk with these primitives is a DGROUP dispatch-table handler (at DS:0xCAFD)
- * whose exact role (level builder vs. per-entity walk) is still unconfirmed,
- * and the seeded fill of the parallel direction field DS:0x84D3 has not been
- * located in code segment 0.  This module therefore exposes verified building
- * blocks; it does not claim to reproduce a full per-level dungeon yet.
+ * whose exact role (level builder vs. per-entity walk) is still unconfirmed.
+ * The parallel array at DS:0x84D3 (= map+0x820) is a per-cell FLAGS/visibility
+ * byte (bit 0x80 = explored, set by the auto-map reveal at 0x6580), NOT a maze
+ * direction field.  Which subsystem builds the map's initial structure (the
+ * carve phase machine, the 8 RNG "diggers" at 0x454A, or another) is not yet
+ * cleanly isolated.  This module therefore exposes verified building blocks; it
+ * does not claim to reproduce a full per-level dungeon yet.
  *
  * Provenance (CAPPO_CODE.bin offsets, code segment CS=0; DGROUP paragraph
  * 0x0E3F so a datum at DS:O lives at file 0x0E3F0+O):
  *   - map:            DS:0x7CB3, 64x32 = 2048 cells.
  *   - index calc:     0x4749  -> cell = (y<<6) + x.
- *   - walker:         0x4764  -> dir = field[i]&7; cx+=DX[dir]; dx+=DY[dir].
+ *   - walker:         0x4764  -> dir = flags[i]&7; cx+=DX[dir]; dx+=DY[dir].
  *   - direction deltas: DX @DS:0x5E18, DY @DS:0x5E20 (see tables below).
  *   - bounds check:   0x498C  -> x in [0,63], y in [0,31].
  *   - post-processor: 0x4661  -> per-cell finishing pass (see below).
