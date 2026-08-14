@@ -20,33 +20,32 @@ DOSBOX_X_BIN=/path/to/dosbox-x \
   tools/run_captive_dosbox_x.sh /path/to/authentic/captive-data
 ```
 
-The repository profile disables DOSBox-X's macOS quit-confirmation modal for
-this isolated process. That prevents a stale warning window from capturing
-input during startup; it does not alter CAPTIVE.BAT, CAPPO timing, VGA output,
-keyboard/mouse input, or any original game data.
-
 The data directory must contain the original Captive files, including
 `CAPTIVE.BAT`. OpenCaptive must not create replacement maps, planets,
 landings, droids, or dungeon data when these files are missing.
 
 ## Verification boundary
 
-This procedure is intentionally conservative. It proves that the supplied
-original `CAPTIVE.BAT 1` startup chain, VGA mode, intro handoff, and Mission
-0001 holomap route-selection boundary are being used. It does not turn a
-reference image, a memory dump, or a locally generated route into evidence of
-arrival, orbit, landing, or dungeon entry.
+This procedure proves the original startup chain, VGA mode, intro handoff, and
+Mission 0001 route-selection boundary. It does not turn a reference image, a
+memory dump, or a locally generated route into evidence of arrival, orbit,
+landing, or dungeon entry.
 
-OpenCaptive must use the original runtime and the player's real files for
-those states. If the original DOSBox-X session has not visibly reached the
-destination orbit and then produced the original landed view, the state is
-not considered verified. No replacement planet, landing marker, terrain,
-dungeon, scrolling status text, or procedural fallback may be substituted.
+Use only the original runtime and the player's real files for those states.
+No replacement planet, landing marker, terrain, dungeon, scrolling status text,
+or procedural fallback may be substituted. If the original session has not
+visibly reached destination orbit and produced the original landed view, stop
+at that boundary and report it as unverified.
 
 The graphical OpenCaptive start menu starts the same authentic DOSBox-X runtime
 through a live bridge. OpenCaptive shows the original CAPPO VGA surface and
 forwards original input scans; DOSBox-X/CAPPO owns the timer, audio and game
 state. No second gameplay state is created.
+
+For debugger-backed input verification, use the repository's diagnostic
+sequence harness. It injects make/break bytes through DOSBox-X's emulated AT
+keyboard controller and the original CAPPO IRQ1 handler; it does not write a
+private CAPPO matrix or create a route, planet, landing point, or dungeon.
 
 ## Exact repeatable startup
 
@@ -161,16 +160,15 @@ only then use `LAND`. `LAND` is not a shortcut into a dungeon. A successful
 landing must produce the original landed view and its real local terrain; a
 water-only view is evidence that the destination point was wrong.
 
-For debugging, record the visible state after each action rather than
-injecting a private memory value. A valid evidence sequence is:
+The valid evidence sequence is:
 
 ```text
-real green planet marker -> ORBIT -> original transit animation/state
--> destination orbit -> white landing circle -> LAND -> original dungeon view
+green planet marker -> ORBIT -> original transit state -> destination orbit
+-> white landing circle -> LAND -> original dungeon view
 ```
 
-If any transition is missing, stop at that boundary and report it. Do not
-continue by selecting a hard-coded coordinate or by fabricating a dungeon.
+Do not continue by selecting a hard-coded coordinate or fabricating a dungeon
+when one of these transitions is missing.
 
 ## Normal launch versus diagnostics
 
@@ -214,6 +212,14 @@ The automated ORBIT-dispatch probe is not part of the verified release path:
 direct debugger queue injection is not equivalent to a real keyboard event and
 must not be used as parity evidence.
 
+The full-sequence diagnostic may log CAPPO's live `CS:IP`, `DS`, `AX`, `SI`,
+and `DI` after scan `47`. Those registers are observation evidence only. The
+probe never writes a guessed orbit or landing state into memory; only a changed
+original VGA frame and matching original runtime state can advance the parity
+boundary.
+
+## Troubleshooting
+
 ### DOSBox-X debugger stepping
 
 `VRT` and `TIMERIRQ` are DOSBox-X debugger observation commands, not Captive
@@ -228,8 +234,6 @@ Do not use debugger stepping during normal play. It can pause the original
 game, alter input timing, or leave DOSBox-X at a debugger prompt. The
 repeatable interactive procedure remains the authentic `CAPTIVE.BAT 1` launch
 described above.
-
-## Troubleshooting
 
 | Symptom | Correct action |
 |---|---|

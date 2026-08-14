@@ -1,10 +1,19 @@
 # User Guide
 
-> Updated for v1.1.126. The launcher now caches unchanged data-scan results and asks which verified version to launch when several versions are present.
+> Updated for v1.1.126. The launcher caches unchanged data-scan results and asks which verified version to launch when several versions are present.
+
+> Captive runtime verification uses the original DOS files through DOSBox-X.
+> The real intro and holomap route-selection boundary are verified; the
+> original runtime still owns arrival, landing and dungeon transitions.
+
+Do not treat a static frame, guessed coordinate, generated route, or debugger
+register snapshot as a completed Captive transition. Continue only when the
+original CAPPO runtime visibly reaches destination orbit and produces the real
+landing and dungeon frames.
 
 ## System requirements
 
-- **OS**: Linux (x86_64), macOS 14+ (Apple Silicon), Windows 10+
+- **OS**: Linux (x86_64), macOS 14+ (Apple Silicon), Windows 10+, Android 8+, iOS 15+
 - **Dependencies**: SDL3, zlib (bundled in release builds)
 - **Game data**: original Captive and/or Liberation media files (not included)
 
@@ -21,6 +30,8 @@ Download from [GitHub Releases](https://github.com/yeager/OpenCaptive/releases):
 | Linux (universal) | `opencaptive-x86_64.AppImage` |
 | macOS (Apple Silicon) | `OpenCaptive-macos-arm64.dmg` |
 | Windows | `OpenCaptive-X.Y.Z-setup-x64.exe` |
+| Android | `opencaptive-arm64.apk` |
+| iOS | `opencaptive-arm64.ipa` |
 
 ### Building from source
 
@@ -59,6 +70,8 @@ opencaptive --data /path/to/your/media --lang sv
 
 - **Linux / macOS**: `~/.opencaptive`
 - **Windows**: `installdir\data` (relative to the installation directory)
+- **Android**: `/sdcard/OpenCaptive`
+- **iOS**: `Documents/OpenCaptive`
 
 ### Command-line flags
 
@@ -66,7 +79,7 @@ opencaptive --data /path/to/your/media --lang sv
 
 | Flag | Description |
 | --- | --- |
-| `--data <path>` | Path to game data directory or one ZIP archive |
+| `--data <path>` | Path to game data directory |
 | `--game <name>` | Select game: `captive` or `liberation` |
 | `--lang <code>` | Language code (see Internationalization below) |
 | `--verify-data <scope>` | Verify data integrity: `captive`, `liberation`, or `all` |
@@ -76,7 +89,7 @@ opencaptive --data /path/to/your/media --lang sv
 | Flag | Description |
 | --- | --- |
 | `--fullscreen` | Start in fullscreen mode |
-| `--scale <N>` | Window scale factor (1-5, default: 3) |
+| `--scale <N>` | Window scale factor (1-8, default: 3) |
 | `--scanlines` | Enable scanline effect |
 | `--crt` | Enable CRT curvature effect |
 | `--bilinear` | Enable bilinear texture filtering |
@@ -87,10 +100,6 @@ opencaptive --data /path/to/your/media --lang sv
 | `--fps <N>` | FPS limit: 0 (unlimited), 30, 60, 120 (default: 60) |
 | `--brightness <N>` | Brightness level 0-100 (default: 50) |
 | `--contrast <N>` | Contrast level 0-100 (default: 50) |
-| `--hd-upscale` | Apply xBRZ upscaling to native game frames |
-| `--upscale-factor <N>` | xBRZ factor: 2, 3 or 4 (implies `--hd-upscale`) |
-| `--widescreen` | Expand the game presentation horizontally to 16:9 |
-| `--hq-midi` | Enable the enhanced MIDI output filter |
 | `--renderer <mode>` | Render mode: `original` or `enhanced` |
 | `--platform <name>` | Platform variant: `dos`, `amiga`, or `atarist` |
 
@@ -117,7 +126,7 @@ Appears only when save files exist (`opencaptive.sav` or `liberation.sav`). Resu
 
 ### Lower rows
 
-- **Settings** — opens the 16-item settings panel
+- **Settings** — opens the 24-item settings panel
 - **About** — version, credits, and license information
 - **Controls** — input reference
 - **Quit** — exit the application
@@ -126,28 +135,39 @@ Appears only when save files exist (`opencaptive.sav` or `liberation.sav`). Resu
 
 - **D** — opens the Data Scanner (scans the data path, reports ZIP count, per-game SHA-256 verification status)
 - **F1** — opens the Controls reference overlay
+- **F10** — opens the in-game Runtime Options popup; display changes and
+  optional cheats apply immediately. Use arrow keys and Enter, then F10 or
+  Escape to close.
 
 ## Settings
 
-The settings panel contains 24 configurable items (some shown only when relevant):
+The settings panel contains 24 configurable items with vertical scrolling:
 
 | Setting | Values |
 | --- | --- |
-| Renderer | Original / Enhanced |
-| Scanlines | On / Off |
-| CRT Curve | On / Off |
-| Bilinear | On / Off |
-| Integer Scale | On / Off |
+| Renderer | Auto / GPU / Software |
+| Window Size | Preset dimensions |
 | Scale | 1x through 5x |
 | Fullscreen | On / Off |
+| Integer Scale | On / Off |
 | VSync | On / Off |
 | FPS Limit | Unlimited / 30 / 60 / 120 |
+| Filtering | Nearest / Bilinear |
+| Scanlines | On / Off |
+| CRT Curve | On / Off |
 | Brightness | 0-100% |
 | Contrast | 0-100% |
+| Gamma | 0-100% |
+| Volume | 0-100% |
 | Music | On / Off |
 | SFX | On / Off |
+| Reverb | On / Off |
+| Sample Rate | 22050 / 44100 / 48000 |
+| Game Speed | 50-200% |
+| Mouse Sensitivity | 1-10 |
 | Data Path | Editable text field |
 | Language | 19 languages (see below) |
+| Enhanced | On / Off |
 | Back | Return to start menu |
 
 ## Controls
@@ -186,7 +206,7 @@ The settings panel contains 24 configurable items (some shown only when relevant
 | F6 | Cycle save slots |
 | F7 | Debug HUD |
 | F8 | Minimap toggle |
-| F10 | Runtime options popup: display effects, audio toggles, overlays and cheats |
+| F10 | Runtime Options: live display effects, overlays, and cheats |
 
 ### Menu and help
 
@@ -195,14 +215,6 @@ The settings panel contains 24 configurable items (some shown only when relevant
 | H | Help screen |
 | ESC | Pause menu |
 | F1 | Controls reference |
-
-The F10 popup applies display changes immediately while playing. God Mode and
-Infinite Energy affect both Captive and Liberation; Escape or F10 closes the
-popup.
-
-`--widescreen` changes only the presentation canvas; it does not invent extra
-world geometry outside the verified native frame. Set `widescreen_width` in a
-features configuration file to request a specific output width.
 
 ### Speed
 
@@ -245,7 +257,7 @@ OpenCaptive identifies all game files by SHA-256 content hash, never by filename
 
 ### Supplying data
 
-Place ZIP archives containing your original game media in the data directory, or pass one archive directly with `--data`. OpenCaptive transparently scans:
+Place ZIP archives containing your original game media in the data directory. OpenCaptive transparently scans:
 
 - ZIP archives (including nested ZIPs)
 - ADF disk images
@@ -255,7 +267,7 @@ Place ZIP archives containing your original game media in the data directory, or
 
 | Game | Verified files needed |
 | --- | --- |
-| Captive | 25 |
+| Captive | 12 |
 | Liberation | 7 |
 
 ### Data Scanner
@@ -283,3 +295,19 @@ SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy \
 ```
 
 The expected result is a timeout exit after the game loop starts, with log lines for texture loading and verified startup.
+
+### Captive DOSBox-X verification
+
+Use the original data directory and the repository helper:
+
+    tools/run_captive_dosbox_x.sh /path/to/original/captive
+
+Select VGA, click the game viewport, wait for the intro, and use the original
+keypad controls. Keypad 7 begins transit; wait for the original in-orbit state
+before keypad 9. A route that only reaches FLIGHT PATH SET is not evidence of
+arrival. See Captive DOSBox-X Startup for the complete checklist.
+
+When Captive is started from the OpenCaptive menu, the original `CAPTIVE.BAT 1`
+chain runs in a normal DOSBox-X window. DOSBox-X owns the original intro,
+timer, audio, keyboard and mouse. Debugger/FIFO sessions are for diagnostics
+only and are not the normal play route.

@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (Document the live CAPPO ORBIT dispatch observation)
+
+- Recorded the full-sequence DOSBox-X observation in the Captive technical
+  documentation: scan `47` reaches a distinct runtime dispatch path at
+  `CS:IP=0824:CF87` in the captured session.
+- Kept the register values strictly diagnostic; no guessed state, planet,
+  landing point, dungeon, or status text was added to the runtime.
+- CI for the preceding verified input-boundary correction remains green.
+
 ## 2026-08-13 (Reject unauthenticated Captive landing transitions)
 
 - Corrected the live CAPPO input path so a rejected `LAND` command leaves the

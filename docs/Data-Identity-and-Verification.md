@@ -1,6 +1,6 @@
 # Data identity and verification
 
-> Updated for v1.1.126. The scanner persists reusable results for unchanged files and invalidates them when file metadata or content identity changes.
+> Updated for v1.1.126. The scanner reuses cached results for unchanged files and invalidates entries when metadata or content identity changes.
 
 ## Principle
 
@@ -32,10 +32,8 @@ to a runtime manifest.
 
 ## Captive manifest
 
-The current Captive startup manifest verifies the two boot resources plus all
-23 first-person atlas surfaces needed by the active renderer (25 hashes in
-total). The CLI verifier, start menu and incremental scanner consume this same
-manifest. Examples:
+The current Captive startup manifest verifies the intro plus textures needed by
+the active renderer. Examples:
 
 | Purpose | SHA-256 |
 | --- | --- |
@@ -74,6 +72,7 @@ inside it:
 | Plot text payload | `884d4124fa1ab600a4f7dd889df160779eda8c62e13af1d0280ac9aad681818c` |
 | City text payload | `99f7bd75794a7b4f3e94eeef9c61b756da938d862bb83339b140c18d02eb79c5` |
 | Dialogue text payload | `e154d250c1acdbed66835bb356a699efdb6f9f8b5e6d586ca07080414610a94c` |
+| Mission menu payload | `d6bb0dd9c578beb8e84ddf9f458f0be43ec158b2b261491d023e972d2812c2d2` |
 
 `liberation_data_open()` requires every listed digest. `liberation_data_read()`
 then retrieves a resource by its enum-to-hash manifest mapping, rather than by
@@ -94,8 +93,8 @@ The scanner walks the configured data path and examines every file the VFS can
 reach. It reports:
 
 - **ZIP archive count** — how many ZIP containers were found and indexed.
-- **Captive files found** (N/25) — the number of verified Captive data files
-  out of the 25 required by the manifest.
+- **Captive files found** (N/12) — the number of verified Captive data files
+  out of the 12 required by the manifest.
 - **Liberation files found** (N/7) — the number of verified Liberation data
   files out of the 7 required by the manifest.
 - **Per-game status** — `[OK]` when all required files are present, `[MISSING]`
@@ -128,6 +127,21 @@ glance. Each game card (Captive and Liberation) displays a status indicator:
 
 These indicators update when the start menu loads, using the same SHA-256
 content-hash check as the full data scanner.
+
+## Captive runtime evidence
+
+The data scanner verifies identity, but it does not manufacture missing
+runtime state. The DOS verification helper uses the supplied original
+CAPTIVE.BAT, DOSBox-X VGA output and complete memory dumps. The current
+authenticated boundary is:
+
+    original intro -> Mission 0001 holomap -> real target selection -> FLIGHT PATH SET
+
+ARRIVED AT DESTINATION, NOW IN ORBIT, LANDING SUCCESSFUL and the dungeon view
+are not accepted from a static reference image or a locally generated map.
+They require changed original DOSBox-X runtime state and matching original VGA
+output. This keeps generated planets, routes, landing points and dungeon maps
+out of the verification path.
 
 ## Adding a digest
 
