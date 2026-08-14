@@ -230,3 +230,20 @@ don't yet reconcile, so the precise offset (and whether 0xa1a2 vs another
 handler is the true `mc` reader) needs one more careful pass before any
 BuildingType→category-byte mapping is committed in code. Do NOT wire a numeric
 map until this reconciles, or it would show wrong-context dialogue.
+
+### Reconciliation (next pass): mc = me = 0xa738(category_byte) + 3
+Confirmed the "+3" puzzle: the `mc` reader (0xa1a2) returns `person[+8] + 3`,
+and `person[+8]` is set (0xa6ba) to `0xa738(building_record[+2])`. The `me`
+reader (0xa18a) returns `0xa738(building_record[+2]) + 3` directly. So **mc and
+me are the same value** = `0xa738(category_byte) + 3`; `me` recomputes it, `mc`
+reads the cached copy. Consequences: the real shop `mc` = 3 (0xa738 shop path
+returns 0, +3), not 0 — the `mc=0` seen in data-testing was the interpreter's
+unset default, and CTE conditions like `mc=3` are the real shop case.
+STILL OPEN: mapping specific services to category-byte values does not yet
+close cleanly — e.g. repair `mc=16` implies `0xa738` returns 13, but a raw
+category byte of 13 has bit 3 set and would take the −1/−2 path, not the
+commercial full-byte path. So either a 0xa738 path is misread or the plot-flag
+override branch supplies 16/18. The exact per-service category values need a
+path-by-path check of 0xa738 (incl. the 0xd444 PRNG output range) before any
+BuildingType→category map is committed. Mechanism and formula are solid; the
+final numeric table is the remaining precision step.
