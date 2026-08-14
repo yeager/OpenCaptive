@@ -117,6 +117,13 @@ pointer. This is a DOSBox-X shortcut, not a Captive command. The repository
 profile deliberately uses `mouse emulation=locked`; `integration` would stop
 feeding CAPPO while the pointer is captured.
 
+On a MacBook keyboard, the number row is not the Captive keypad. Use the
+original on-screen arrow buttons, or a real/emulated numeric keypad, for
+navigation. In particular, `7` and `9` mean ORBIT and LAND only when CAPPO
+receives the keypad scan codes; ordinary number-row `7`/`9` input is not a
+substitute. This avoids mistaking a key that was never delivered to CAPPO for
+a broken flight or landing state.
+
 ## Space navigation sequence
 
 Captive's original controls are still owned by the DOS runtime:
