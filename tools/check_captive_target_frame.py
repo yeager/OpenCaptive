@@ -24,10 +24,19 @@ def main() -> int:
         return pixels[offset:offset + 3]
 
     # Measured from the supplied authentic CAPPO Mission 0001 VGA state.
-    expected = bytes((48, 195, 48))
-    points = ((63, 150), (64, 150), (63, 151), (64, 151))
-    if any(pixel(x, y) != expected for x, y in points):
-        print("authentic CAPPO route did not show the verified green target",
+    # The real green marker is directly beneath the six-pixel magenta cursor.
+    green = bytes((48, 195, 48))
+    green_points = ((103, 110), (104, 110), (103, 111), (104, 111))
+    if any(pixel(x, y) != green for x, y in green_points):
+        print("authentic CAPPO frame did not show the real green target",
+              file=sys.stderr)
+        return 1
+
+    magenta = bytes((243, 0, 243))
+    cursor_points = ((104, 109), (102, 111), (105, 111), (106, 111),
+                     (104, 112), (104, 113))
+    if any(pixel(x, y) != magenta for x, y in cursor_points):
+        print("authentic CAPPO frame did not show the real cursor over target",
               file=sys.stderr)
         return 1
     return 0

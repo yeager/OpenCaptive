@@ -18,8 +18,8 @@
       scans; do not claim paused-debugger INT 33 injection as mouse proof
 - [x] Render complete live DOSBox-X VGA dumps directly, with no descriptor
       or map fallback that could replace original pixels
-- [x] Add a real-data-only route gate for the authentic green target and
-      `FLIGHT PATH SET` boundary
+- [x] Add a real-data-only gate for the authentic initial green-target /
+      cursor alignment and `FLIGHT PATH SET` boundary
 - [ ] Verify physical mouse motion and click in an unlocked DOSBox-X window
 - [x] Route a new DOS Captive selection from the graphical start menu to the
       authenticated DOSBox-X runtime when original CAPTIVE.BAT data is present

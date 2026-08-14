@@ -231,9 +231,12 @@ tools/verify_captive_target_route.sh \
   /Users/bosse/.opencaptive/captivedebug/captive
 ```
 
-That gate currently proves the authentic `FLIGHT PATH SET` boundary. It does
-not claim that the automated route has reached `ARRIVED AT DESTINATION`,
-`NOW IN ORBIT`, or `LANDING SUCCESSFUL`.
+That gate currently proves the authentic initial target/cursor alignment and
+the `FLIGHT PATH SET` boundary. The supplied Mission 0001 VGA state already
+places the green destination marker beneath CAPPO's magenta cursor; moving
+the holomap first moves away from the real target and is not a valid route
+proof. It does not claim that the automated route has reached `ARRIVED AT
+DESTINATION`, `NOW IN ORBIT`, or `LANDING SUCCESSFUL`.
 
 Longer transit observation is supported by the diagnostic harness. Its
 extended response timeout only gives DOSBox-X time to return a complete

@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (Correct authentic Mission 0001 target gate)
+
+- Corrected the DOSBox-X route verifier after comparing complete original VGA
+  dumps: Mission 0001 starts with CAPPO's magenta cursor over the real green
+  destination marker, so the earlier synthetic-looking movement sequence was
+  removed.
+- The gate now sends only the authentic `ORBIT` scan and checks the original
+  green marker/cursor pixels before accepting `FLIGHT PATH SET`.
+- Verified with the supplied CAPTIVE.BAT data in DOSBox-X; no planet, route,
+  landing point, dungeon, or status text is generated.
+
 ## 2026-08-14 (Correct CAPPO runtime-address evidence)
 
 - Corrected the Captive technical documentation: exact byte matching shows the

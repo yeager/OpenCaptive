@@ -35,12 +35,12 @@ tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/opencaptive-captive-target.XXXXXX")
 mkdir "$tmp_dir/out"
 mkfifo "$tmp_dir/commands"
 
-# CAPPO manual/disassembly mapping: 4D=Move Right, 48=Move Back,
-# 47=Turn Left/fly to cursor. The authentic Mission 0001 route uses ten
-# right scans, eleven back scans, then 47; the final back scan places the
-# real cursor on the green target in the supplied CAPPO state.
+# CAPPO manual/disassembly mapping: 47=Turn Left/fly to cursor. In the
+# supplied authentic Mission 0001 state the green destination marker is
+# already under CAPPO's magenta cursor at startup. Moving the holomap before
+# ORBIT moves away from the real destination and is not part of this proof.
 expect tools/captive_dosbox_sequence.expect "$data_dir" \
-    "4D,4D,4D,4D,4D,4D,4D,4D,4D,4D,48,48,48,48,48,48,48,48,48,48,48,47" \
+    "47" \
     240 "$tmp_dir/out" 8 "$tmp_dir/commands" >"$tmp_dir/session.log" 2>&1 &
 harness_pid=$!
 exec 3>"$tmp_dir/commands"
