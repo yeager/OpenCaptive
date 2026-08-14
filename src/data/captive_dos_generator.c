@@ -28,3 +28,22 @@ size_t captive_gen_postprocess(uint8_t cells[CAPTIVE_GEN_MAP_SIZE]) {
     }
     return changed;
 }
+
+void captive_gen_carve_cell(uint8_t cells[CAPTIVE_GEN_MAP_SIZE], int x, int y) {
+    /* CAPPO 0x4736: cmp cl,0x3f/ja; cmp dl,0x1f/ja; al=[bx+di]; and al,0x80;
+     * or al,0x26; mov [bx+di],al. */
+    if (!captive_gen_in_bounds(x, y))
+        return;
+    int i = captive_gen_index(x, y);
+    cells[i] = (uint8_t)((cells[i] & 0x80u) | CAPTIVE_GEN_WALK_STAMP);
+}
+
+void captive_gen_carve_plus(uint8_t cells[CAPTIVE_GEN_MAP_SIZE], int x, int y) {
+    /* CAPPO 0x4706..0x472A: centre, then W (x-1), E (x+1), N (y-1), S (y+1),
+     * each stamped through the same bounds-checked writer. */
+    captive_gen_carve_cell(cells, x, y);
+    captive_gen_carve_cell(cells, x - 1, y);
+    captive_gen_carve_cell(cells, x + 1, y);
+    captive_gen_carve_cell(cells, x, y - 1);
+    captive_gen_carve_cell(cells, x, y + 1);
+}

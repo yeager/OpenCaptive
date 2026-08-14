@@ -63,9 +63,35 @@ static inline bool captive_gen_in_bounds(int x, int y) {
  */
 size_t captive_gen_postprocess(uint8_t cells[CAPTIVE_GEN_MAP_SIZE]);
 
-/* A cell is solid wall when (cell & 0x7F) > 0x1A (CAPPO map semantics). */
+/* A cell is solid wall when (cell & 0x7F) > 0x1A (CAPPO map semantics,
+ * confirmed by the holomap renderer at CAPPO 0xBAF4: `cmp byte[si],0x1A; jbe`
+ * skips non-walls). */
 static inline bool captive_gen_is_wall(uint8_t cell) {
     return (uint8_t)(cell & 0x7Fu) > 0x1Au;
 }
+
+/* The value the generator's walk stamps into each visited cell.  The writer
+ * (CAPPO 0x4736) does al = (map[i] & 0x80) | 0x26 — it forces the low 7 bits
+ * to 0x26 while preserving the high (marker) bit.  0x26 is a *drawn* cell
+ * (0x26 > 0x1A), so the drunkard's walk lays down map structure rather than
+ * clearing floor; the precise wall/feature meaning of 0x26 vs the surrounding
+ * bytes is still being pinned down (see docs/CAPTIVE_DOS_DUNGEON_RE.md). */
+#define CAPTIVE_GEN_WALK_STAMP 0x26u
+
+/*
+ * Stamp one cell, exactly CAPPO 0x4736:
+ *   if x in [0,0x3F] and y in [0,0x1F]:
+ *       map[(y<<6)+x] = (map[(y<<6)+x] & 0x80) | 0x26
+ * Out-of-bounds coordinates are ignored (the original returns without writing).
+ */
+void captive_gen_carve_cell(uint8_t cells[CAPTIVE_GEN_MAP_SIZE], int x, int y);
+
+/*
+ * Stamp the plus-shaped brush the generator applies at each walk step,
+ * exactly CAPPO 0x4706..0x472A: the centre cell plus its W, E, N and S
+ * neighbours are each stamped (via captive_gen_carve_cell, so every cell is
+ * individually bounds-checked).
+ */
+void captive_gen_carve_plus(uint8_t cells[CAPTIVE_GEN_MAP_SIZE], int x, int y);
 
 #endif /* CAPTIVE_DOS_GENERATOR_H */

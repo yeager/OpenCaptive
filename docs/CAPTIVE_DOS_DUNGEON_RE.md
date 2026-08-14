@@ -153,3 +153,36 @@ REMAINING static-RE steps (tractable, no emulator): (1) disassemble 0x4972 and
 indexes at DS:(bx-0x7b2d); (3) find the caller of 0x46cc = the "generate level"
 entry and where the seed vars are initialised; (4) transcribe to C as a
 deterministic generator, then wire map -> captive_view_window + compositor.
+
+## Generator algorithm recovered: throttled drunkard's walk (2026-08-14 cont.)
+Full mechanics of the map-fill are now recovered statically:
+- 0x46cc = one generation STEP, throttled: inc word[0x931c]; while <= 0x0d just
+  return (acts once per 14 calls, so the maze grows incrementally over frames).
+  On the acting call: call 0x4749 (index of current pos word[0x931a]), call
+  0x4764 (walker: pick a direction from the step table, advance). If the walk
+  went out of range (dx sign) it sets the mode flags word[0x931e]=3 /
+  word[0x92f6]=3; otherwise it commits the new packed pos to word[0x931a] and
+  stamps a plus-brush around it.
+- 0x4736 = the cell writer: bounds x<=0x3f, y<=0x1f; then
+  map[i] = (map[i] & 0x80) | 0x26  (force low7 = 0x26, keep marker bit).
+- 0x4706..0x472a = the plus-brush: stamps centre, W(x-1), E(x+1), N(y-1),
+  S(y+1) via 0x4736 (index deltas -1, +1, -0x40, +0x40).
+- 0x26 is a DRAWN cell (0x26 > 0x1a), confirmed against the holomap renderer
+  0xBAF4 which scans all 64x32 cells and draws every cell with value > 0x1a
+  (triple-row video write, stride 0xA0). So the walk lays down structure.
+- On-enter cell dispatch (0x478c, NOT generation) reads the cell under the
+  player (0x2aba index from DS:5E80/5E82, mask 0x7f) and branches on codes
+  0x30/0x2e/0x32/0x33/0x35/0x1e/0x60/0x22/0x36; code 0x36 looks the player pos
+  up in a 16-entry x 6-byte teleporter table at DS:0x7C2F and warps.
+
+Transcribed to C (real data, tested): src/data/captive_dos_generator.c now has
+captive_gen_carve_cell (0x4736) and captive_gen_carve_plus (0x4706..472a) plus
+the earlier deltas/index/bounds/post-processor. test_captive_dos_generator
+covers all of them.
+
+STILL NEEDED for exact reproduction: the direction the walker reads at each
+step comes from the step table byte[bx-0x7b2d] (DS:0x84D3, runtime-filled) and
+the initial pos word[0x931a] — i.e. the RNG/seed feeding the walk. Next: find
+where DS:0x84D3 and word[0x931a] are initialised (the "new level" entry), and
+what seeds the RNG (level number vs timer). Then the C generator can reproduce
+CAPPO's exact per-level maze.

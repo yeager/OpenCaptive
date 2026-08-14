@@ -68,11 +68,51 @@ static void test_wall_predicate(void) {
     assert(!captive_gen_is_wall(0x80 | 0x00));
 }
 
+static void test_carve(void) {
+    uint8_t cells[CAPTIVE_GEN_MAP_SIZE];
+    memset(cells, 0, sizeof(cells));
+
+    /* single cell preserves high bit, forces low 7 bits to 0x26 */
+    cells[captive_gen_index(10, 5)] = 0x80;
+    captive_gen_carve_cell(cells, 10, 5);
+    assert(cells[captive_gen_index(10, 5)] == (0x80 | 0x26));
+
+    cells[captive_gen_index(11, 5)] = 0x00;
+    captive_gen_carve_cell(cells, 11, 5);
+    assert(cells[captive_gen_index(11, 5)] == 0x26);
+
+    /* out of bounds is a no-op, not a wild write */
+    captive_gen_carve_cell(cells, -1, 5);
+    captive_gen_carve_cell(cells, 64, 5);
+    captive_gen_carve_cell(cells, 5, 32);
+
+    /* plus brush: centre + W/E/N/S */
+    memset(cells, 0, sizeof(cells));
+    captive_gen_carve_plus(cells, 20, 10);
+    assert(cells[captive_gen_index(20, 10)] == 0x26); /* centre */
+    assert(cells[captive_gen_index(19, 10)] == 0x26); /* W */
+    assert(cells[captive_gen_index(21, 10)] == 0x26); /* E */
+    assert(cells[captive_gen_index(20, 9)]  == 0x26); /* N */
+    assert(cells[captive_gen_index(20, 11)] == 0x26); /* S */
+    /* diagonal is untouched */
+    assert(cells[captive_gen_index(19, 9)]  == 0x00);
+
+    /* plus brush at a corner clips out-of-bounds arms safely */
+    memset(cells, 0, sizeof(cells));
+    captive_gen_carve_plus(cells, 0, 0);
+    assert(cells[captive_gen_index(0, 0)] == 0x26); /* centre */
+    assert(cells[captive_gen_index(1, 0)] == 0x26); /* E */
+    assert(cells[captive_gen_index(0, 1)] == 0x26); /* S */
+    /* 0x26 is a drawn cell (0x26 > 0x1A): is_wall is true for the stamp. */
+    assert(captive_gen_is_wall(cells[captive_gen_index(0, 0)]));
+}
+
 int main(void) {
     test_direction_deltas();
     test_index_and_bounds();
     test_postprocess();
     test_wall_predicate();
+    test_carve();
     printf("captive_dos_generator: all tests passed\n");
     return 0;
 }
