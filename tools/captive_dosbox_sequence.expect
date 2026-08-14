@@ -23,7 +23,6 @@ set fifo_path [expr {$argc > 5 ? [file normalize [lindex $argv 5]] : ""}]
 set trace_status [expr {[info exists ::env(CAPPO_TRACE_STATUS)] && $::env(CAPPO_TRACE_STATUS) ne ""}]
 set trace_dispatch [expr {[info exists ::env(CAPPO_TRACE_DISPATCH)] && $::env(CAPPO_TRACE_DISPATCH) ne ""}]
 set trace_status_runtime [expr {[info exists ::env(CAPPO_TRACE_STATUS_RUNTIME)] && $::env(CAPPO_TRACE_STATUS_RUNTIME) ne ""}]
-set trace_input_poll [expr {[info exists ::env(CAPPO_TRACE_INPUT_POLL)] && $::env(CAPPO_TRACE_INPUT_POLL) ne ""}]
 set orbit_input_consumed 0
 set script_dir [file dirname [file normalize $argv0]]
 set profile [file join $script_dir dosbox-x-captive.conf]
@@ -69,21 +68,6 @@ proc wait_for_timer_break {} {
     global cappo_dispatch_hit
     expect {
         -re {07E4:6A33|0824:6633} { set cappo_dispatch_hit 1; exp_continue }
-        -re {0824:06B8} {
-            global orbit_input_consumed
-            send "EV AX\r"
-            expect {
-                -re {LOG: EV of 'AX' is:\s*\r?\n[^\r\n]*0047} {
-                    set orbit_input_consumed 1
-                    puts stderr "CAPPO ORBIT scan 47 loaded by original dequeue at 0824:06B8"
-                }
-                -re {LOG: EV of 'AX' is:} {
-                    puts stderr "CAPPO dequeue returned a non-ORBIT scan"
-                }
-                timeout { puts stderr "DOSBox-X did not return dequeued scan" }
-            }
-            exp_continue
-        }
         -re {0824:43B0} { puts stderr "CAPPO status-message helper reached at 0824:43B0"; exp_continue }
         -re {I->} {}
         timeout { puts stderr "DOSBox-X did not reach the timer breakpoint"; exit 1 }
@@ -342,12 +326,6 @@ if {$fifo_path ne ""} {
         if {$trace_dispatch} {
             send "BP 0824:6633\r"
         }
-        if {$trace_input_poll && $command eq "47"} {
-            # Install this only for the requested ORBIT byte. CAPPO polls its
-            # queue continuously, so an earlier breakpoint could be satisfied
-            # by an idle poll and falsely certify the later command.
-            send "BP 0824:06B8\r"
-        }
         scan $command %x command_value
         inject_keyboard_scan $command_value
         advance_runtime_ticks $post_scan_ticks
@@ -367,10 +345,6 @@ if {$fifo_path ne ""} {
         puts stderr "CAPPO live scan delivered: $command"
     }
     close $fifo
-}
-if {$trace_input_poll && !$orbit_input_consumed} {
-    puts stderr "CAPPO ORBIT scan 47 was not loaded by the original dequeue"
-    exit 1
 }
 # Do not search the one-megabyte image for printable messages here. CAPPO's
 # message table is resident even when a message is not being displayed, so a
