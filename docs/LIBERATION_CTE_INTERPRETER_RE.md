@@ -151,6 +151,14 @@ cross-reference, and the reconstruction's `BuildingType` enum (0-8,
 liberation_citygen.h) has no bank/repair member, so wiring those two also needs
 a taxonomy addition — tracked in TODO.
 
+### `mc` is an engine-set input, confirmed
+The CTE script never writes `mc` (0 occurrences of `^X=mc`/`^X+mc`; the script
+only writes plot/relationship flags H, K, I, E, D, M, J, L). So `mc` is supplied
+by the engine before the interaction runs — it is the building's service
+context, read from the building record. This pins the remaining work squarely in
+the binary: recover how the engine computes `mc` from the record. It cannot be
+derived from the CTE data alone.
+
 ### Why `mc` is not the generated building type
 The reconstruction's citygen sets `CityBuilding.type = PRNG % 9` and is
 parity-locked to the original, storing no finer category. Yet the original has
