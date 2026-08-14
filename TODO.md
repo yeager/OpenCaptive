@@ -457,14 +457,18 @@ extracting it) — not to keep the invention. Fixing any of these means writing
 the extractor first; failing closed (blank text) would break the prototype, so
 they are left explicit rather than half-invented.
 
-- [ ] **Building-interaction dialogue** (`liberation_building_interact.c`
-      `build_generic_dialogue`). Invented English for library/police/records/
-      residence/industrial/special. The real source is the DTE/CTE tables
-      (`DIALOGUE_TEXT`/`CITY_TEXT`, hash-bound and dumpable via `dump_pge`); the
-      CTE table is a full interaction bytecode VM (`^X` opcodes, conditionals,
-      item and shop refs). `liberation_npc_dialogue.c` already expands real DTE
-      by building type — the remaining work is a faithful CTE/DTE interpreter,
-      then routing the building overlay through it. Large.
+- [x] **Building-entry room descriptions** — DONE (v1.1.128). The invented
+      English greeting for shop/bar/business/industrial/records buildings is
+      replaced with the authentic DTE room description via the new
+      `liberation_descriptions` module (the existing `lib_text_expand` already
+      decodes DTE; no CTE VM was needed for the entry text). Residence/library/
+      police/special are game-only categories with no DTE section and keep their
+      fallback.
+- [ ] **Deeper building conversation** beyond the entry description (the
+      per-choice info/rumour/records nodes, and the police/library/residence
+      flavour) is still invented English. Those live in the CTE interaction
+      script — a larger bytecode VM (`^X` opcodes, conditionals, item/shop
+      refs) than the DTE entry text. Decode the CTE interpreter to replace them.
 - [ ] **Bar drink menu** (`liberation_shop.c` `bar_item_names`, synthetic ids
       `name_idx + 100`). No real Captive item backs these; the authentic drink
       names live in the CTE text and need the interpreter above.

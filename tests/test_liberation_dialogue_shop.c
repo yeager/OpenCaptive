@@ -3,6 +3,8 @@
 #include "liberation_building_interact.h"
 #include "liberation_bar.h"
 #include "inventory.h"
+#include "liberation_descriptions.h"
+#include "liberation_text_table.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -662,8 +664,49 @@ static void test_building_interact_rejects_invalid_catalog_size(void) {
     assert(!bi.active);
 }
 
+/* When the authentic description table is set, a mappable building category
+ * shows the real room description; a game-only category (residence) with no
+ * DTE section keeps the generic fallback. Uses a minimal fixture table in the
+ * `|id[text]` format the parser accepts. */
+static void test_real_building_description_used(void) {
+    static const char fixture[] =
+        "|1[A test general store.]|8[A test bar.]";
+    LibTextTable tbl;
+    assert(lib_text_table_parse(&tbl, (const uint8_t *)fixture,
+                                sizeof(fixture) - 1));
+    liberation_descriptions_set(&tbl);
+
+    char out[256];
+    assert(liberation_description_for_building(BUILDING_SHOP, 1, out, sizeof(out)));
+    assert(strstr(out, "test general store") != NULL);
+    assert(liberation_description_for_building(BUILDING_BAR, 1, out, sizeof(out)));
+    assert(strstr(out, "test bar") != NULL);
+    /* Residence is a game concept with no DTE section. */
+    assert(!liberation_description_for_building(BUILDING_RESIDENCE, 1, out, sizeof(out)));
+
+    /* The shop dialogue greeting is the real description for a shop. */
+    CityBuilding b;
+    memset(&b, 0, sizeof(b));
+    b.type = BUILDING_SHOP;
+    snprintf(b.name, sizeof(b.name), "Testplace");
+    LibShopState shop;
+    lib_shop_init(&shop, &b, 42);
+    lib_shop_generate_dialogue(&shop, "Clerk");
+    const DialogueNode *greet = &shop.dialogue.nodes[shop.dialogue.node_count - 1];
+    assert(strstr(greet->text, "test general store") != NULL);
+
+    /* With no table set, callers fall back to their own text. */
+    liberation_descriptions_set(NULL);
+    assert(!liberation_description_for_building(BUILDING_SHOP, 1, out, sizeof(out)));
+    lib_shop_init(&shop, &b, 42);
+    lib_shop_generate_dialogue(&shop, "Clerk");
+    greet = &shop.dialogue.nodes[shop.dialogue.node_count - 1];
+    assert(strstr(greet->text, "Welcome to") != NULL);
+}
+
 int main(void) {
     item_db_init(&g_item_db);
+    test_real_building_description_used();
     test_dialogue_text_flow();
     test_dialogue_start_skips_leading_exit();
     test_dialogue_rejects_corrupt_node_count();

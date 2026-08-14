@@ -35,6 +35,7 @@
 #include "liberation_citygen_grid.h"
 #include "liberation_city_nav.h"
 #include "liberation_building_interact.h"
+#include "liberation_descriptions.h"
 #include "liberation_bar.h"
 #include "liberation_viewport_3d.h"
 #include "liberation_save.h"
@@ -2275,6 +2276,12 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                 gs->gold += 50;
             } else if (city_nav_is_building_entrance(&lib_grid,
                     lib_nav.cell_x, lib_nav.cell_y)) {
+                /* Point the dialogue generators at the authentic building
+                 * descriptions from the currently loaded data (NULL falls back
+                 * to the generic greeting). */
+                liberation_descriptions_set(liberation_data.descriptions_loaded
+                                            ? &liberation_data.descriptions
+                                            : NULL);
                 if (building_interact_enter(&lib_interact, &lib_grid,
                         &lib_buildings, lib_nav.cell_x, lib_nav.cell_y,
                         &gs->gold, &item_db)) {

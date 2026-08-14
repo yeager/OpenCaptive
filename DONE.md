@@ -1,5 +1,27 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (Liberation real building descriptions, v1.1.128)
+
+- Replaced the invented English building-entry dialogue with the authentic
+  Liberation room descriptions from the game's own DTE text table. The earlier
+  assessment that this needed a full CTE interpreter was wrong for the entry
+  descriptions: the existing `lib_text_expand` already decodes them (as
+  `liberation_npc_dialogue.c` proves), so the remaining work was only the
+  building-category -> DTE-section mapping.
+- New `liberation_descriptions` module: parses the DTE table once at data open,
+  maps the game's simplified categories to the original sections (SHOP -> General
+  Stores, BAR -> Bars, BUSINESS -> Merchants, INDUSTRIAL -> Metals/Engineering,
+  RECORDS -> City Records Office), and expands the real description. The
+  game-only categories the original never had as distinct buildings (residence,
+  library, police, special) have no DTE section and keep their fallback text —
+  showing another building's real description would itself be a fabrication.
+- Verified end to end against the real CD32 data: shops show "A SuperMarket
+  selling foodstuffs, beverages…", bars "This bar is rather poorly lit…", records
+  "A large room used both by the local citizenry…"; residence falls back. Added
+  a fixture-based regression test; 64/64 pass.
+- Still done from a /tmp clone because the working disk (/Volumes/Extern-disk)
+  remains EPERM-blocked to git/cmake.
+
 ## 2026-08-14 (Liberation real font + real shop names, v1.1.127)
 
 - Eliminated the two Liberation synthetic-display violations where authentic

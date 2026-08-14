@@ -1,4 +1,5 @@
 #include "liberation_building_interact.h"
+#include "liberation_descriptions.h"
 #include "i18n.h"
 #include <string.h>
 #include <stdio.h>
@@ -45,11 +46,18 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
     dialogue_tree_init(tree);
 
     char greeting[DIALOGUE_MAX_TEXT];
+    /* Use the authentic Liberation room description for this building category
+     * when one exists; the per-case invented greeting below is only written as
+     * a fallback for the game-specific categories (residence/library/police/
+     * special) that have no original DTE section. */
+    bool have_real = liberation_description_for_building(
+        bi->shop.building_type, (uint32_t)bi->building_index,
+        greeting, sizeof(greeting));
     unsigned exit_node = dialogue_tree_add_exit(tree, _("You leave the building."));
 
     switch (bi->type) {
         case INTERACT_LIBRARY: {
-            snprintf(greeting, sizeof(greeting),
+            if (!have_real) snprintf(greeting, sizeof(greeting),
                      _("Welcome to %s. The archives are available for public access."), building_name);
             char lib_info[DIALOGUE_MAX_TEXT];
             snprintf(lib_info, sizeof(lib_info),
@@ -65,7 +73,7 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
             break;
         }
         case INTERACT_POLICE: {
-            snprintf(greeting, sizeof(greeting),
+            if (!have_real) snprintf(greeting, sizeof(greeting),
                      _("This is the %s police station. State your business."), building_name);
             unsigned report = dialogue_tree_add_text(tree, npc,
                 _("We have reports of suspicious activity in the industrial district. "
@@ -82,7 +90,7 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
             break;
         }
         case INTERACT_RECORDS: {
-            snprintf(greeting, sizeof(greeting),
+            if (!have_real) snprintf(greeting, sizeof(greeting),
                      "%s", _("City Records Office. How can we help?"));
             char rec_info[DIALOGUE_MAX_TEXT];
             snprintf(rec_info, sizeof(rec_info),
@@ -96,7 +104,7 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
             break;
         }
         case INTERACT_RESIDENCE: {
-            snprintf(greeting, sizeof(greeting),
+            if (!have_real) snprintf(greeting, sizeof(greeting),
                      "%s", _("This is a private residence. What do you want?"));
             unsigned rumor = dialogue_tree_add_text(tree, npc,
                 _("I heard strange noises from the special building down the road. "
@@ -107,7 +115,7 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
             break;
         }
         case INTERACT_INDUSTRIAL: {
-            snprintf(greeting, sizeof(greeting),
+            if (!have_real) snprintf(greeting, sizeof(greeting),
                      _("Welcome to %s. This area is restricted."), building_name);
             unsigned hazard_node = dialogue_tree_add_text(tree, npc,
                 _("WARNING: Machinery malfunction! Electrical discharge hits your droids!"), exit_node);
@@ -125,7 +133,7 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
             break;
         }
         case INTERACT_SPECIAL: {
-            snprintf(greeting, sizeof(greeting),
+            if (!have_real) snprintf(greeting, sizeof(greeting),
                      _("%s. You shouldn't be here."), building_name);
             unsigned investigate = dialogue_tree_add_text(tree, npc,
                 _("This location appears to be connected to your mission. "
@@ -136,7 +144,7 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
             break;
         }
         default: {
-            snprintf(greeting, sizeof(greeting),
+            if (!have_real) snprintf(greeting, sizeof(greeting),
                      _("This is %s. We're not taking visitors right now."), building_name);
             unsigned choice = dialogue_tree_add_choice(tree, npc, greeting);
             dialogue_tree_add_option(tree, choice, _("Leave"), exit_node);

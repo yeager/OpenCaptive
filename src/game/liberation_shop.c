@@ -1,5 +1,6 @@
 #include "liberation_shop.h"
 #include "i18n.h"
+#include "liberation_descriptions.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -113,8 +114,14 @@ void lib_shop_generate_dialogue(LibShopState *shop, const char *npc_name) {
     dialogue_tree_init(tree);
 
     char greeting[DIALOGUE_MAX_TEXT];
-    snprintf(greeting, sizeof(greeting),
-             _("Welcome to %s! What can I do for you?"), shop->shop_name);
+    /* Prefer the authentic Liberation room description for this building
+     * category; fall back to a generic greeting only when the real
+     * descriptions are unavailable (e.g. no game data loaded in a unit test). */
+    if (!liberation_description_for_building(shop->building_type,
+                                             shop->prng_seed,
+                                             greeting, sizeof(greeting)))
+        snprintf(greeting, sizeof(greeting),
+                 _("Welcome to %s! What can I do for you?"), shop->shop_name);
 
     unsigned exit_node = dialogue_tree_add_exit(tree, _("Goodbye!"));
     unsigned trade_text = dialogue_tree_add_text(tree, npc_name,

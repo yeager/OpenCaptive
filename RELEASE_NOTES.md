@@ -1,5 +1,27 @@
 # OpenCaptive Release Notes
 
+## v1.1.128 (2026-08-14)
+
+### Added
+
+- **(Liberation)** `liberation_descriptions` module: maps the game's building
+  categories to the original DTE "location description" sections and expands the
+  authentic room description via the existing `lib_text_expand`. The DTE table
+  is parsed once at data open.
+
+### Changed
+
+- **(Liberation)** Entering a shop, bar, business, industrial, or records
+  building now shows the authentic Liberation room description from the game's
+  own DTE text ("A general store, selling all manner of household goods…",
+  "This bar is rather poorly lit, and quite noisy…") instead of invented
+  English. The game-only categories (residence, library, police, special) have
+  no original DTE section and keep their existing text.
+
+### Removed
+
+None.
+
 ## v1.1.127 (2026-08-14)
 
 ### Added

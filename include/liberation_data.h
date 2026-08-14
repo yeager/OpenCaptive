@@ -5,6 +5,7 @@
 #include "iso9660_reader.h"
 #include "liberation_anim.h"
 #include "liberation_fnt.h"
+#include "liberation_text_table.h"
 #include <stdbool.h>
 
 typedef enum {
@@ -30,6 +31,12 @@ typedef struct {
      * Amiga floppies), in which case callers keep their existing fallback. */
     FntFont ui_font;
     bool ui_font_loaded;
+    /* Authentic building/location descriptions (DIALOGUE_TEXT / DTE), parsed
+     * once at open.  Sections are keyed by the original Liberation building
+     * category; expanded on demand via lib_text_expand. */
+    LibTextTable descriptions;
+    bool descriptions_loaded;
+    uint8_t *descriptions_data;
 } LiberationData;
 
 typedef enum {

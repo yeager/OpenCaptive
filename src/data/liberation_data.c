@@ -151,6 +151,24 @@ static void load_optional_ui_font(LiberationData *data) {
     free(font);
 }
 
+/* Parse the authentic building/location description table (DTE).  The resource
+ * is stored as raw text, so it is parsed directly.  lib_text_table_parse keeps
+ * pointers into the buffer, so the decoded data is retained for the table's
+ * lifetime and freed in liberation_data_close. */
+static void load_descriptions(LiberationData *data) {
+    data->descriptions_loaded = false;
+    size_t size = 0;
+    uint8_t *text = liberation_data_read(data, LIBERATION_RESOURCE_DIALOGUE_TEXT,
+                                         &size);
+    if (!text) return;
+    if (lib_text_table_parse(&data->descriptions, text, size)) {
+        data->descriptions_data = text;
+        data->descriptions_loaded = true;
+    } else {
+        free(text);
+    }
+}
+
 static bool liberation_cd32_available(const DataVFS *vfs) {
     size_t size = 0;
     uint8_t *track = vfs_find_sha256(vfs, cd32_track_sha256, &size);
@@ -216,6 +234,7 @@ bool liberation_data_open_source(LiberationData *data, const DataVFS *vfs,
             data->source = LIBERATION_SOURCE_CD32;
             load_optional_presentation_frames(data);
             load_optional_ui_font(data);
+            load_descriptions(data);
             return true;
         }
     }
@@ -239,6 +258,7 @@ bool liberation_data_open_source(LiberationData *data, const DataVFS *vfs,
         data->verified = true;
         data->source = LIBERATION_SOURCE_AMIGA_ADF;
         load_optional_ui_font(data);
+        load_descriptions(data);
         return true;
     }
 
@@ -267,6 +287,7 @@ void liberation_data_close(LiberationData *data) {
         return;
     }
     free(data->disc_data);
+    free(data->descriptions_data);
     liberation_anim_frame_free(&data->city_frame);
     liberation_anim_frame_free(&data->intro_frame);
     liberation_anim_script_free(&data->city_script);
