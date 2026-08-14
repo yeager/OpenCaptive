@@ -128,3 +128,25 @@ Context-derivable vars (`mc` category, `zc` gender) can be supplied
 immediately from the building/champion record and would make those branches
 correct on their own; the plot-state vars (E, g, H, K, l, I, …) require the
 mission/reputation state machine and are the larger part of the next step.
+
+## `mc` (building/service category) — decoded from authentic text (v1.1.135)
+The master conversation gate `mc` was decoded WITHOUT the binary, by expanding
+the mc-branched sections and reading the game's own words. Section 200 (the
+player's opening "what I want" line) cleanly separates the commercial subtypes,
+and section 10000 (the service menu) confirms them:
+
+| mc | authentic line (section 200 / 10000) | category |
+|----|--------------------------------------|----------|
+| 13 | "Yes, I wanted to do some banking business." + AC/No balance/withdrawal/deposit menu | **bank** |
+| 16, 18 | "I was rather hoping you could do some repairs for me." | **repair / workshop** |
+| 11 | "What have you got?" | **browse shop** |
+| 0, 3, 14, 15, 17, 19, 20, 21, 22 | "Actually I hoped you might be able to let me have …" | **general shop / vendor** |
+| 4, 5, 6, 7, 8, 9, 10, 12 | (no purchase line — commercial sections empty) | **non-commercial** (police/records/residence/bar/business; conversation is topic-driven, not purchase-driven) |
+
+This is derived purely from the original dialogue, so it needs no synthetic
+assumption. It is enough to route the commercial buildings (bank, shop, repair)
+to their authentic CTE entry once the runtime supplies `mc`. The finer split of
+the non-commercial band (4-12) still wants the binary trace or a citygen
+cross-reference, and the reconstruction's `BuildingType` enum (0-8,
+liberation_citygen.h) has no bank/repair member, so wiring those two also needs
+a taxonomy addition — tracked in TODO.
