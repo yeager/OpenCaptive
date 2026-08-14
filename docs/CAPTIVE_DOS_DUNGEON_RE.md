@@ -111,3 +111,45 @@ with a scripted/mapper input file or a debugger command script (-c / a debugger
 startup script) instead of live keystrokes; (b) the user drives CAPPO to a level
 and I read the memory/backtrace; (c) heavier static analysis of the level-init
 dispatch table. Milestone-1 static analysis stands complete regardless.
+
+## BREAKTHROUGH: generator IS statically recoverable (2026-08-14, supersedes "blocked")
+The earlier "computed-dispatch wall / needs dynamic tracing" conclusion was
+WRONG. A byte-search of the unpacked image (CAPPO_UNP.EX) for real 16-bit loads
+of the map address 0x7cb3 (patterns `bf b3 7c` mov di, `be b3 7c` mov si,
+`81 c3 b3 7c` add bx, `8d bf b3 7c` lea di) — as opposed to the false-positive
+`b3 7c` = `mov bl,0x7c` — pinpoints every map-access site directly. No dynamic
+trace, no emulator, no debugger needed. Key facts recovered statically:
+
+- Memory model = SMALL. Code seg loads at CS=0 (file 1024). DGROUP (data seg) is
+  at paragraph 0x0e3f: startup does `mov ax,0x0e3f; mov ds,ax` at many sites.
+  So a DS-relative datum at offset O lives at CAPPO_CODE.bin[0x0e3f0 + O]
+  (CAPPO_CODE.bin = CAPPO_UNP.EX[1024:]). This is how to read all data tables.
+- Map: DS:0x7cb3, 64x32 = 2048 bytes (matches cx=0x800 loop below).
+- Direction delta tables (read from DGROUP, REAL values):
+    DX @DS:0x5e18 (8 signed words) = [0,-1, 0, 1, -1, 0, 1, 0]
+    DY @DS:0x5e20 (8 signed words) = [-1, 0, 1, 0, 512, 2054, 6, 520]
+  Directions 0..3 are the cardinal steps: 0=N(0,-1) 1=W(-1,0) 2=S(0,1) 3=E(1,0).
+- Generator/walker function tree (code offsets in CAPPO_CODE.bin, CS=0):
+    0x4749  index calc: cx=word[0x931a] (packed pos: low=x, high=y);
+            bx = (y<<6)+x  -> current map cell index.
+    0x4764  step: bl=byte[bx-0x7b2d] (a direction/step table), dir = bl&7;
+            dir==5 -> call 0x4972 (special); dir==4 -> jump 0x4786 (special);
+            else cx += DX[dir], dx += DY[dir]  (walk one cell).
+    0x46cc  top loop: increments word[0x931c]; runs 13 iterations (cmp 0x0d),
+            each calling 0x4749 then 0x4764 (build a corridor/segment), with a
+            sign check that sets word[0x931e]=3 and word[0x92f6]=3 on wrap.
+    0x4661  post-processor (already documented): cx=0x800 cells, `and al,0x7f`,
+            0x1b -> +5, {0x40,0x43,0x48,0x4b} -> or 0x10.
+    0x4707  applies 0x4736 to a plus/neighbourhood pattern (cx/bx +/-1, +/-0x40).
+- Runtime-computed seed vars (0 in static image): word[0x931a] (pos),
+  word[0x931c] (iter counter), word[0x8d79], byte[0x8cf5]/[0x8cf7]. The seed
+  SOURCE (fixed constant vs level number vs timer) is the one remaining unknown
+  for exact reproduction; the generation ALGORITHM itself is now recoverable
+  purely statically by continuing to disassemble 0x4749/0x4764/0x46cc/0x4972 and
+  the step table at DS:(bx-0x7b2d).
+
+REMAINING static-RE steps (tractable, no emulator): (1) disassemble 0x4972 and
+0x4786 (the dir 4/5 special cases); (2) read the step/shape table the walker
+indexes at DS:(bx-0x7b2d); (3) find the caller of 0x46cc = the "generate level"
+entry and where the seed vars are initialised; (4) transcribe to C as a
+deterministic generator, then wire map -> captive_view_window + compositor.
