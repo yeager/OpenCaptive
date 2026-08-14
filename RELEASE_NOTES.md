@@ -1,5 +1,19 @@
 # OpenCaptive Release Notes
 
+## v1.1.129 (2026-08-14)
+
+### Changed
+
+- **(Liberation)** Combat opponents are named "Security Droid" — the term the
+  game's own plot text uses ("security droids", "security personnel") — instead
+  of eight invented sci-fi names (Guard, Sentinel, Enforcer, Warden…) that the
+  original does not have. The stat generation is byte-for-byte unchanged (the
+  name roll is still consumed).
+
+### Removed
+
+None.
+
 ## v1.1.128 (2026-08-14)
 
 ### Added

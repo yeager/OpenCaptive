@@ -1,5 +1,21 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (Liberation real enemy designation, v1.1.129)
+
+- Replaced the eight invented combat enemy names (Guard, Soldier, Enforcer,
+  Drone, Sentinel, Trooper, Agent, Warden) with the authentic "Security Droid".
+  Confirmed from the game's own plot text (PGE) that the opponents are security
+  droids — "security droids", "security personnel", "arresting Droid" — and that
+  there is no distinct per-enemy name table to decode; the invented variety was
+  pure fabrication. The stat sequence is unchanged (the name PRNG roll is still
+  consumed).
+- While searching for a real source I confirmed the bar drink menu has no real
+  counterpart at all: the original bar is only a location (its authentic room
+  description now shows, v1.1.128) with no drink-buying feature in the data. The
+  invented drink shop is therefore a game feature, not synthetic-data-over-real;
+  removing it is an owner design call (it has tests and a consumption mechanic),
+  so it is documented rather than ripped out.
+
 ## 2026-08-14 (Liberation real building descriptions, v1.1.128)
 
 - Replaced the invented English building-entry dialogue with the authentic

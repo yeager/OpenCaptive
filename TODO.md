@@ -469,15 +469,21 @@ they are left explicit rather than half-invented.
       flavour) is still invented English. Those live in the CTE interaction
       script — a larger bytecode VM (`^X` opcodes, conditionals, item/shop
       refs) than the DTE entry text. Decode the CTE interpreter to replace them.
-- [ ] **Bar drink menu** (`liberation_shop.c` `bar_item_names`, synthetic ids
-      `name_idx + 100`). No real Captive item backs these; the authentic drink
-      names live in the CTE text and need the interpreter above.
-- [ ] **Combat enemy names + stats** (`liberation_combat.c` `enemy_names`, and
-      the whole `lib_combat_generate_encounter`, a self-declared compatibility
-      approximation). No decoded Liberation creature/enemy table exists; the
-      enemy carries no real type id to resolve a name from (unlike the shop,
-      which maps to real Captive item ids). Needs the Liberation creature data
-      decoded first.
+- [x] **Combat enemy name** — DONE (v1.1.129). The eight invented sci-fi names
+      (Guard, Sentinel, Enforcer, Warden…) are replaced with the authentic
+      designation "Security Droid", the term the game's own plot text uses
+      ("security droids", "security personnel"). Verified there is no distinct
+      per-enemy name table in the data — the original enemies are security
+      droids. The combat STATS remain a self-declared approximation until the
+      Liberation combat formula is decoded (numbers, not fabricated lore).
+- [ ] **Bar drink menu** (`liberation_shop.c` `bar_item_names` + the
+      `lib_shop_generate_bar_menu` shop, and STATE_BAR's guessing game). This is
+      an INVENTED GAMEPLAY FEATURE, not synthetic data standing in for real
+      data: the original Liberation bar is only a location you enter (its real
+      room description is now shown, v1.1.128) — it has no drink-buying menu in
+      the game data at all. Removing the invented drink shop is a design call
+      for the owner (it has established tests and a "drinks consumed" mechanic),
+      so it is left explicit rather than ripped out.
 - [ ] **Dead fabricated modules** still compiled into the binary though never
       called: `liberation_cutscene.c` (invented `cs_font`, mission-intro text,
       procedural starfield, credits) and `liberation_npc.c`'s solid-colour NPC

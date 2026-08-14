@@ -14,10 +14,11 @@ static bool combat_is_weapon_id(uint8_t item_id) {
     return item_id >= 13 && item_id <= 38;
 }
 
-static const char *enemy_names[] = {
-    "Guard", "Soldier", "Enforcer", "Drone",
-    "Sentinel", "Trooper", "Agent", "Warden",
-};
+/* Liberation's building opponents are security droids — that is the term the
+ * game's own plot text uses ("security droids", "security personnel"). The
+ * previous eight invented sci-fi names (Guard, Sentinel, Enforcer, Warden…)
+ * were fabricated variety the original does not have. */
+static const char *const enemy_designation = "Security Droid";
 
 void lib_combat_init(LibCombatState *cs) {
     if (!cs) return;
@@ -41,8 +42,10 @@ void lib_combat_generate_encounter(LibCombatState *cs, uint16_t seed,
 
     for (int i = 0; i < count; i++) {
         LibCombatEnemy *e = &cs->enemies[i];
-        int name_idx = combat_prng(&cs->prng_state) % 8;
-        snprintf(e->name, sizeof(e->name), "%s", enemy_names[name_idx]);
+        /* Consume the roll that used to pick an invented name so the stat
+         * sequence below is unchanged, then use the authentic designation. */
+        (void)combat_prng(&cs->prng_state);
+        snprintf(e->name, sizeof(e->name), "%s", enemy_designation);
         e->hp_max = (int16_t)(20 + difficulty * 10 + (combat_prng(&cs->prng_state) % 20));
         e->hp = e->hp_max;
         e->damage = (int16_t)(5 + difficulty * 3 + (combat_prng(&cs->prng_state) % 8));
