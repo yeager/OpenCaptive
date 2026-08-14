@@ -170,6 +170,27 @@ only then use `LAND`. `LAND` is not a shortcut into a dungeon. A successful
 landing must produce the original landed view and its real local terrain; a
 water-only view is evidence that the destination point was wrong.
 
+The live DOSBox-X gate has been observed to produce CAPPO's original
+`FLIGHT PATH SET` message after ORBIT. Pressing LAND before the ship arrives
+then produces the original `SWAN NOT YET IN ORBIT` message. Both messages are
+useful diagnostics: they prove that the real input reached CAPPO, but neither
+message proves that the destination was reached. Continue only when the
+runtime itself shows arrival/orbit.
+
+On macOS, a repeatable manual sequence is:
+
+1. Bring the DOSBox-X window to the front and click once inside the viewport.
+2. Choose VGA with the number-row `1` at the startup prompt.
+3. Let the original intro finish; press Space only when the intro asks for a
+   key.
+4. Select the blinking green planet with the original arrow controls.
+5. Activate ORBIT and wait for the real transit state to finish.
+6. Activate LAND only after the original runtime confirms orbit.
+
+Do not use a number-row `7`/`9` as a substitute for the keypad commands on a
+MacBook. Use the on-screen controls or a real/emulated numeric keypad so the
+DOS keypad scan codes reach CAPPO.
+
 The valid evidence sequence is:
 
 ```text
