@@ -49,10 +49,10 @@ The built OpenCaptive binary exposes the same source-faithful path directly:
 This starts the original `CAPTIVE.BAT 1` through DOSBox-X. CAPPO keeps control
 of input, rendering, timer, audio, landing and dungeon state; OpenCaptive does
 not manufacture a replacement map or roster. The graphical OpenCaptive start
-menu attaches to that same authentic runtime through the live bridge: it shows
-the original VGA dump and forwards original make/break scans without creating
-a second game state. The isolated profile is copied beside development binaries
-and inside the macOS app bundle's Resources;
+menu launches this normal DOSBox-X process and exits its launcher process so
+there is no debugger-backed or native gameplay surface competing for input.
+The isolated profile is copied beside development binaries and inside the
+macOS app bundle's Resources;
 `DOSBOX_X_BIN` can select another verified DOSBox-X executable.
 
 The same handoff occurs automatically when a new DOS Captive game is selected
@@ -217,9 +217,9 @@ CAPPO handoff. The gate is intentionally local-only because original game
 media is player-supplied and is never committed or synthesized.
 
 The normal Captive start-menu action starts the original `CAPTIVE.BAT 1`
-runtime through the live bridge. OpenCaptive remains the visible interactive
-window, while CAPPO remains authoritative for timer, VGA, keyboard, mouse,
-audio, orbit, landing, and dungeon state.
+runtime in a standalone DOSBox-X window and closes the launcher. CAPPO remains
+authoritative for timer, VGA, keyboard, mouse, audio, orbit, landing, and
+dungeon state; the debugger-backed live bridge is reserved for diagnostics.
 
 For a longer local replay that verifies each accepted command, including
 repeated commands, use:

@@ -94,6 +94,7 @@ static int captive_zoom_in_reference_height;
 static bool captive_landed_reference_active;
 static CaptiveEmulatorSession captive_live_session;
 static bool captive_live_session_active;
+static bool captive_external_runtime_launched;
 /* CAPPO's manual assigns the cursor keys to the holomap pointer. SDL mouse
  * motion is translated to those same original scans; no local map position
  * is maintained. */
@@ -232,33 +233,20 @@ static void captive_accept_live_frame(GameState *gs,
 }
 
 static bool captive_start_live_session(const char *data_path, GameState *gs) {
-    struct stat dump_stat;
-    uint8_t *initial_memory;
-    unsigned wait_count;
-    if (!data_path || !gs || captive_live_session_active) return false;
-    if (!captive_emulator_session_start(data_path, &captive_live_session))
+    (void)gs;
+    if (!data_path || captive_live_session_active ||
+        captive_external_runtime_launched)
         return false;
-    initial_memory = NULL;
-    for (wait_count = 0; wait_count < 300 && !initial_memory; ++wait_count) {
-        if (captive_emulator_session_dump_ready(&captive_live_session))
-            initial_memory = load_captive_dos_dump(
-                captive_live_session.dump_path);
-        if (!initial_memory) SDL_Delay(100);
-    }
-    if (!initial_memory) {
-        captive_emulator_session_stop(&captive_live_session);
-        return false;
-    }
-    free(captive_dos_memory);
-    captive_dos_memory = initial_memory;
-    captive_dos_memory_active = true;
-    captive_live_session_active = true;
-    captive_last_transit_wait_ms = SDL_GetTicks();
-    if (stat(captive_live_session.dump_path, &dump_stat) == 0)
-        captive_dos_dump_mtime_ns = captive_dos_dump_stamp(&dump_stat);
-    captive_holamap_reset(gs->mission);
-    gs->mode = STATE_HOLAMAP;
-    printf("OpenCaptive attached to authentic CAPPO DOSBox-X session\n");
+
+    /* The normal player path must not run CAPPO under the debugger-backed
+     * dump harness.  DOSBox-X pauses that harness around every MEMDUMPBIN,
+     * which makes CAPPO's original INT 33 mouse path and real-time clock
+     * non-interactive.  Launch the untouched CAPTIVE.BAT chain instead;
+     * debugger sessions remain available through the explicit verification
+     * tools and never become gameplay. */
+    if (!captive_emulator_launch(data_path)) return false;
+    captive_external_runtime_launched = true;
+    printf("Started authentic Captive runtime in normal DOSBox-X mode\n");
     return true;
 }
 
@@ -3624,14 +3612,21 @@ int main(int argc, char *argv[]) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
-                            /* Keep the start-menu launch attached to the
-                             * original CAPPO runtime.  The live session
-                             * renders its complete DOSBox-X VGA dump and
-                             * sends original scan codes; it never creates a
-                             * native map, landing point, or dungeon. */
+                            /* Launch the original CAPPO runtime directly.
+                             * Normal play must remain outside the
+                             * debugger-backed dump bridge so DOSBox-X owns
+                             * its real mouse, timer, audio and VGA loop. */
                             if (!captive_start_live_session(config.data_path,
                                                             &gs)) {
                                 show_missing_data_dialog(config.data_path);
+                                break;
+                            }
+                            /* CAPPO owns the complete interactive window:
+                             * intro animation, VGA timing, audio, mouse and
+                             * game state.  Do not leave a second native
+                             * Captive surface running behind it. */
+                            if (captive_external_runtime_launched) {
+                                running = false;
                                 break;
                             }
                             fade_target = gs.mode;

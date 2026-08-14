@@ -37,10 +37,11 @@ or procedural fallback may be substituted. If the original session has not
 visibly reached destination orbit and produced the original landed view, stop
 at that boundary and report it as unverified.
 
-The graphical OpenCaptive start menu starts the same authentic DOSBox-X runtime
-through a live bridge. OpenCaptive shows the original CAPPO VGA surface and
-forwards original input scans; DOSBox-X/CAPPO owns the timer, audio and game
-state. No second gameplay state is created.
+The graphical OpenCaptive start menu launches the same authentic DOSBox-X
+runtime as a separate normal game window and then closes its launcher process.
+This is intentional: DOSBox-X/CAPPO must own the original VGA timing, audio,
+mouse, keyboard and game state. The launcher must not keep a second
+debugger-backed or native gameplay surface alive behind it.
 
 For debugger-backed input verification, use the repository's diagnostic
 sequence harness. It injects make/break bytes through DOSBox-X's emulated AT
@@ -174,8 +175,8 @@ when one of these transitions is missing.
 
 For interactive play, use the helper command above or launch Captive from the
 OpenCaptive start menu with authentic data. The helper opens a standalone
-DOSBox-X window for manual testing; the start menu uses the live bridge so the
-OpenCaptive window remains the visible gameplay surface. Do not add these
+DOSBox-X window for manual testing; the start menu uses the same normal launch
+path so the original runtime remains fully interactive in DOSBox-X. Do not add these
 debugger options to either normal path:
 
 - `-break-start`
