@@ -2,9 +2,12 @@
 #include "liberation_shop.h"
 #include "liberation_building_interact.h"
 #include "liberation_bar.h"
+#include "inventory.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+
+static ItemDatabase g_item_db;
 
 static void test_dialogue_text_flow(void) {
     DialogueTree tree;
@@ -145,18 +148,13 @@ static void test_dialogue_rejects_corrupt_choice_count(void) {
     assert(!dialogue_state_choose(&state, 0));
 }
 
-static uint16_t expected_shop_item_id(const char *name) {
-    static const struct { const char *name; uint16_t id; } entries[] = {
-        {"Laser Pistol", 18}, {"Plasma Rifle", 21}, {"Ion Cannon", 30},
-        {"Shield Generator", 11}, {"Power Cell", 8},
-        {"Neural Interface", 55}, {"Servo Motor", 12}, {"Armour Plate", 2},
-        {"Sensor Array", 11}, {"Navigation Chip", 55},
-        {"Communicator", 49}, {"Medikit", 8}, {"Charge Pack", 43},
-        {"Targeting System", 11}, {"Gravity Boots", 5}, {"Data Crystal", 56},
-    };
-    for (size_t i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
-        if (strcmp(name, entries[i].name) == 0) return entries[i].id;
-    return 0;
+/* The shop must display the authentic item-database name for each item id it
+ * stocks — not an invented product name.  This is the real-data assertion that
+ * replaced a table mapping made-up names back to ids. */
+static void assert_shop_name_is_authentic(const LibShopItem *item) {
+    const Item *def = item_db_get(&g_item_db, item->item_type);
+    assert(def != NULL);
+    assert(strcmp(item->name, def->name) == 0);
 }
 
 static void test_police_fine_refusal_rejects_wrapped_choice(void) {
@@ -185,7 +183,7 @@ static void test_shop_inventory(void) {
 
     LibShopState shop;
     lib_shop_init(&shop, &building, 42);
-    lib_shop_generate_inventory(&shop);
+    lib_shop_generate_inventory(&shop, &g_item_db);
 
     assert(shop.item_count >= 4);
     assert(shop.item_count <= 11);
@@ -193,7 +191,7 @@ static void test_shop_inventory(void) {
         assert(shop.items[i].price > 0);
         assert(shop.items[i].quantity > 0);
         assert(strlen(shop.items[i].name) > 0);
-        assert(shop.items[i].item_type == expected_shop_item_id(shop.items[i].name));
+        assert_shop_name_is_authentic(&shop.items[i]);
     }
 }
 
@@ -205,7 +203,7 @@ static void test_lib_shop_buy(void) {
 
     LibShopState shop;
     lib_shop_init(&shop, &building, 100);
-    lib_shop_generate_inventory(&shop);
+    lib_shop_generate_inventory(&shop, &g_item_db);
 
     uint32_t gold = 10000;
     uint16_t price = shop.items[0].price;
@@ -309,8 +307,8 @@ static void test_deterministic_inventory(void) {
     LibShopState s1, s2;
     lib_shop_init(&s1, &b, 42);
     lib_shop_init(&s2, &b, 42);
-    lib_shop_generate_inventory(&s1);
-    lib_shop_generate_inventory(&s2);
+    lib_shop_generate_inventory(&s1, &g_item_db);
+    lib_shop_generate_inventory(&s2, &g_item_db);
 
     assert(s1.item_count == s2.item_count);
     for (unsigned i = 0; i < s1.item_count; i++) {
@@ -334,7 +332,7 @@ static void test_building_interact_shop(void) {
     building_interact_init(&bi);
 
     int gold = 5000;
-    assert(building_interact_enter(&bi, &grid, &bg, 5, 10, &gold));
+    assert(building_interact_enter(&bi, &grid, &bg, 5, 10, &gold, &g_item_db));
     assert(bi.active);
     assert(bi.type == INTERACT_SHOP);
     assert(bi.shop.item_count > 0);
@@ -344,7 +342,7 @@ static void test_building_interact_shop(void) {
     bi.fine_paid = true;
     bi.industrial_hazard = true;
     building_interact_leave(&bi);
-    assert(building_interact_enter(&bi, &grid, &bg, 5, 10, &gold));
+    assert(building_interact_enter(&bi, &grid, &bg, 5, 10, &gold, &g_item_db));
     assert(bi.purchased_count == 0);
     assert(!bi.bar_fight && !bi.fine_paid && !bi.industrial_hazard);
 
@@ -370,7 +368,7 @@ static void test_building_interact_bar(void) {
     BuildingInteraction bi;
     building_interact_init(&bi);
     int gold = 100;
-    assert(building_interact_enter(&bi, &grid, &bg, 3, 5, &gold));
+    assert(building_interact_enter(&bi, &grid, &bg, 3, 5, &gold, &g_item_db));
     assert(bi.type == INTERACT_BAR);
     assert(bi.shop.item_count >= 3);
 }
@@ -389,7 +387,7 @@ static void test_building_interact_generic(void) {
     BuildingInteraction bi;
     building_interact_init(&bi);
     int gold = 0;
-    assert(building_interact_enter(&bi, &grid, &bg, 2, 2, &gold));
+    assert(building_interact_enter(&bi, &grid, &bg, 2, 2, &gold, &g_item_db));
     assert(bi.type == INTERACT_POLICE);
     assert(bi.active);
 
@@ -414,7 +412,7 @@ static void test_police_fine_refusal_is_recorded(void) {
     BuildingInteraction bi;
     building_interact_init(&bi);
     int gold = 0;
-    assert(building_interact_enter(&bi, &grid, &bg, 0, 0, &gold));
+    assert(building_interact_enter(&bi, &grid, &bg, 0, 0, &gold, &g_item_db));
     bi.bar_fight = true;
     unsigned count = building_interact_choice_count(&bi);
     assert(count == 2);
@@ -435,7 +433,7 @@ static void test_police_fine_payment_is_recorded(void) {
     BuildingInteraction bi;
     building_interact_init(&bi);
     int gold = 125;
-    assert(building_interact_enter(&bi, &grid, &bg, 0, 0, &gold));
+    assert(building_interact_enter(&bi, &grid, &bg, 0, 0, &gold, &g_item_db));
     building_interact_set_bar_fight(&bi, true); /* preceding bar visit */
     assert(building_interact_choice_count(&bi) == 3);
     building_interact_choose(&bi, 1); /* Pay fine */
@@ -460,7 +458,7 @@ static void test_special_building_requires_investigate(void) {
     BuildingInteraction bi;
     building_interact_init(&bi);
     int gold = 0;
-    assert(building_interact_enter(&bi, &grid, &bg, 2, 2, &gold));
+    assert(building_interact_enter(&bi, &grid, &bg, 2, 2, &gold, &g_item_db));
     assert(building_interact_choice_count(&bi) == 2);
     building_interact_choose(&bi, DIALOGUE_MAX_CHOICES);
     assert(!bi.special_investigated);
@@ -468,7 +466,7 @@ static void test_special_building_requires_investigate(void) {
     assert(!bi.active);
     assert(!bi.mission_complete);
 
-    assert(building_interact_enter(&bi, &grid, &bg, 2, 2, &gold));
+    assert(building_interact_enter(&bi, &grid, &bg, 2, 2, &gold, &g_item_db));
     building_interact_choose(&bi, 0); /* Investigate */
     assert(bi.active);
     building_interact_advance(&bi);
@@ -490,7 +488,7 @@ static void test_building_interact_buy(void) {
     BuildingInteraction bi;
     building_interact_init(&bi);
     int gold = 10000;
-    building_interact_enter(&bi, &grid, &bg, 1, 1, &gold);
+    building_interact_enter(&bi, &grid, &bg, 1, 1, &gold, &g_item_db);
     assert(!bi.shop_menu_active);
     assert(building_interact_choice_count(&bi) == 3);
     building_interact_choose(&bi, 0); /* Buy */
@@ -528,7 +526,7 @@ static void test_bar_fight_uses_seeded_quarter_chance(void) {
         BuildingInteraction bi;
         building_interact_init(&bi);
         int gold = 10000;
-        assert(building_interact_enter(&bi, &grid, &bg, 0, 0, &gold));
+        assert(building_interact_enter(&bi, &grid, &bg, 0, 0, &gold, &g_item_db));
         bi.shop.prng_seed = seed;
         assert(building_interact_buy(&bi, 0));
         if (bi.bar_fight) occurred++;
@@ -551,7 +549,7 @@ static void test_bar_drinks_are_consumed_not_stored(void) {
     BuildingInteraction bi;
     building_interact_init(&bi);
     int gold = 10000;
-    assert(building_interact_enter(&bi, &grid, &bg, 0, 0, &gold));
+    assert(building_interact_enter(&bi, &grid, &bg, 0, 0, &gold, &g_item_db));
     bi.shop.prng_seed = 1;
     uint16_t price = bi.shop.items[0].price;
     assert(building_interact_buy(&bi, 0));
@@ -577,7 +575,7 @@ static void test_reputation_shop_rules(void) {
     int gold = 10000;
     BuildingInteraction bi;
     building_interact_init(&bi);
-    assert(building_interact_enter(&bi, &grid, &bg, 1, 0, &gold));
+    assert(building_interact_enter(&bi, &grid, &bg, 1, 0, &gold, &g_item_db));
     uint16_t normal = bi.shop.items[0].price;
     building_interact_set_reputation(&bi, 50);
     assert(bi.shop.items[0].price == (uint16_t)((normal * 3U) / 4U));
@@ -594,7 +592,7 @@ static void test_reputation_shop_rules(void) {
     strcpy(second_buildings.buildings[0].name, "Second Shop");
     second_grid.building_ids[0] = 1;
     assert(building_interact_enter(&bi, &second_grid, &second_buildings,
-                                   0, 0, &gold));
+                                   0, 0, &gold, &g_item_db));
     uint16_t second_normal = bi.shop.items[0].price;
     building_interact_set_reputation(&bi, 50);
     assert(bi.shop.items[0].price == (uint16_t)((second_normal * 3U) / 4U));
@@ -624,7 +622,7 @@ static void test_building_interact_empty_catalog(void) {
 
     BuildingInteraction bi;
     building_interact_init(&bi);
-    assert(!building_interact_enter(&bi, &grid, &bg, 0, 0, NULL));
+    assert(!building_interact_enter(&bi, &grid, &bg, 0, 0, NULL, &g_item_db));
     assert(!bi.active);
 }
 
@@ -639,7 +637,7 @@ static void test_building_interact_rejects_empty_building_sentinel(void) {
     bg.buildings[0].type = BUILDING_SHOP;
     grid.building_ids[0] = 0xFF;
     int gold = 100;
-    assert(!building_interact_enter(&bi, &grid, &bg, 0, 0, &gold));
+    assert(!building_interact_enter(&bi, &grid, &bg, 0, 0, &gold, &g_item_db));
     assert(!bi.active);
 }
 
@@ -652,19 +650,20 @@ static void test_building_interact_rejects_invalid_catalog_size(void) {
     building_interact_init(&bi);
     grid.building_ids[0] = 1;
     bg.total_buildings = -1;
-    assert(!building_interact_enter(&bi, &grid, &bg, 0, 0, NULL));
+    assert(!building_interact_enter(&bi, &grid, &bg, 0, 0, NULL, &g_item_db));
     bg.total_buildings = CITYGEN_MAX_BUILDINGS + 1;
-    assert(!building_interact_enter(&bi, &grid, &bg, 0, 0, NULL));
+    assert(!building_interact_enter(&bi, &grid, &bg, 0, 0, NULL, &g_item_db));
 
     bg.buildings[0].type = 99;
     bg.total_buildings = 1;
     int gold = 100;
     bi.active = true;
-    assert(!building_interact_enter(&bi, &grid, &bg, 0, 0, &gold));
+    assert(!building_interact_enter(&bi, &grid, &bg, 0, 0, &gold, &g_item_db));
     assert(!bi.active);
 }
 
 int main(void) {
+    item_db_init(&g_item_db);
     test_dialogue_text_flow();
     test_dialogue_start_skips_leading_exit();
     test_dialogue_rejects_corrupt_node_count();

@@ -385,7 +385,7 @@ add_executable(test_liberation_dialogue_shop tests/test_liberation_dialogue_shop
     src/game/liberation_bar.c
     src/game/liberation_building_interact.c
     src/engine/liberation_citygen.c src/engine/liberation_citygen_grid.c
-    src/data/liberation_string_tables.c src/data/i18n.c)
+    src/data/liberation_string_tables.c src/data/i18n.c src/engine/inventory.c)
 target_include_directories(test_liberation_dialogue_shop PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_liberation_dialogue_shop PRIVATE SDL3::SDL3)
 add_test(NAME liberation_dialogue_shop COMMAND test_liberation_dialogue_shop)

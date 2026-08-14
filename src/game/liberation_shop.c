@@ -8,17 +8,12 @@ static uint16_t shop_prng(uint16_t *state) {
     return *state;
 }
 
-static const char *shop_item_names[] = {
-    "Laser Pistol", "Plasma Rifle", "Ion Cannon", "Shield Generator",
-    "Power Cell", "Neural Interface", "Servo Motor", "Armour Plate",
-    "Sensor Array", "Navigation Chip", "Communicator", "Medikit",
-    "Charge Pack", "Targeting System", "Gravity Boots", "Data Crystal",
-};
-
-/* These labels are later transferred to the shared inventory and converted
- * to the Captive item database.  The old name_idx + 1 mapping turned the
- * first products into body parts (for example Laser Pistol became HEAD).
- * Keep the catalogue names, but store real runtime item IDs. */
+/* Real runtime item IDs the shop stocks.  Each entry is a genuine Captive item
+ * database id (the shared droid inventory is Captive items); the display name
+ * is looked up from that database, not invented.  A previous version carried a
+ * parallel table of made-up marketing names ("Laser Pistol", "Ion Cannon"…)
+ * for these same items — that fabrication is gone; item 18 shows as PISTOL, 21
+ * as RIFLE, and so on, which is what the item actually is. */
 static const uint8_t shop_item_ids[] = {
     18, 21, 30, 11, 8, 55, 12, 2,
     11, 55, 49, 8, 43, 11, 5, 56,
@@ -38,7 +33,7 @@ void lib_shop_init(LibShopState *shop, const CityBuilding *building, uint16_t se
     dialogue_tree_init(&shop->dialogue);
 }
 
-void lib_shop_generate_inventory(LibShopState *shop) {
+void lib_shop_generate_inventory(LibShopState *shop, const ItemDatabase *item_db) {
     if (!shop) return;
     uint16_t state = shop->prng_seed;
     int count = 4 + (shop_prng(&state) & 7);
@@ -48,9 +43,16 @@ void lib_shop_generate_inventory(LibShopState *shop) {
     for (int i = 0; i < count; i++) {
         LibShopItem *item = &shop->items[shop->item_count++];
         unsigned name_idx = shop_prng(&state) % 16;
-        snprintf(item->name, sizeof(item->name), "%s", shop_item_names[name_idx]);
-        item->price = 50 + (shop_prng(&state) % 450);
         item->item_type = shop_item_ids[name_idx];
+        /* Authentic name from the item database for this real id; if no
+         * database is supplied, fall back to a factual numeric label rather
+         * than an invented product name. */
+        const Item *def = item_db ? item_db_get(item_db, item->item_type) : NULL;
+        if (def)
+            snprintf(item->name, sizeof(item->name), "%s", def->name);
+        else
+            snprintf(item->name, sizeof(item->name), "ITEM %u", item->item_type);
+        item->price = 50 + (shop_prng(&state) % 450);
         item->quantity = 1 + (shop_prng(&state) & 3);
         item->quality = 50 + (shop_prng(&state) % 51);
     }

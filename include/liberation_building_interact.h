@@ -51,7 +51,8 @@ bool building_interact_enter(BuildingInteraction *bi,
                              const CityGridState *grid,
                              const CityGrid *buildings,
                              int cell_x, int cell_y,
-                             int *player_gold);
+                             int *player_gold,
+                             const ItemDatabase *item_db);
 void building_interact_set_bar_fight(BuildingInteraction *bi, bool pending);
 
 void building_interact_choose(BuildingInteraction *bi, unsigned choice);

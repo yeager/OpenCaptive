@@ -2277,7 +2277,7 @@ static void liberation_handle_input(GameState *gs, const SDL_Event *event) {
                     lib_nav.cell_x, lib_nav.cell_y)) {
                 if (building_interact_enter(&lib_interact, &lib_grid,
                         &lib_buildings, lib_nav.cell_x, lib_nav.cell_y,
-                        &gs->gold)) {
+                        &gs->gold, &item_db)) {
                     if (lib_interact.type == INTERACT_POLICE)
                         building_interact_set_bar_fight(&lib_interact,
                                                         lib_bar_fight_pending);

@@ -153,7 +153,8 @@ bool building_interact_enter(BuildingInteraction *bi,
                              const CityGridState *grid,
                              const CityGrid *buildings,
                              int cell_x, int cell_y,
-                             int *player_gold) {
+                             int *player_gold,
+                             const ItemDatabase *item_db) {
     if (bi) bi->active = false;
     if (!bi || !grid || !buildings || buildings->total_buildings <= 0 ||
         buildings->total_buildings > CITYGEN_MAX_BUILDINGS ||
@@ -194,7 +195,7 @@ bool building_interact_enter(BuildingInteraction *bi,
 
     switch (bi->type) {
         case INTERACT_SHOP:
-            lib_shop_generate_inventory(&bi->shop);
+            lib_shop_generate_inventory(&bi->shop, item_db);
             lib_shop_generate_dialogue(&bi->shop, generic_npc_for_type(bi->type));
             dialogue_state_init(&bi->dialogue, &bi->shop.dialogue);
             dialogue_state_start(&bi->dialogue);

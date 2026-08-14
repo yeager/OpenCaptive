@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "liberation_citygen.h"
 #include "liberation_dialogue.h"
+#include "inventory.h"
 
 #define LIB_SHOP_MAX_ITEMS 32
 #define SHOP_MAX_NAME 64
@@ -27,7 +28,10 @@ typedef struct {
 } LibShopState;
 
 void lib_shop_init(LibShopState *shop, const CityBuilding *building, uint16_t seed);
-void lib_shop_generate_inventory(LibShopState *shop);
+/* item_db supplies the authentic Captive item names for the real item IDs the
+ * shop stocks; pass NULL only where no database is available (the item then
+ * carries its numeric id as a factual label rather than an invented name). */
+void lib_shop_generate_inventory(LibShopState *shop, const ItemDatabase *item_db);
 bool lib_shop_buy_item(LibShopState *shop, unsigned item_idx, uint32_t *gold);
 bool lib_shop_sell_item(LibShopState *shop, const char *name, uint16_t price,
                     uint16_t type, uint32_t *gold);
