@@ -1553,6 +1553,21 @@ static void draw_simple_text(uint32_t *fb, int pw, int ph,
     }
 }
 
+/* Draw Liberation UI text with the authentic decoded font when it is
+ * available, falling back to the invented simple_font only when no real font
+ * was recovered for the loaded source (the Amiga floppies).  This puts real
+ * letterforms — including lowercase, which simple_font cannot render — on the
+ * live building-interaction path instead of fabricated glyphs. */
+static void lib_draw_text(uint32_t *fb, int pw, int ph,
+                          int x, int y, const char *text, uint32_t color, int scale) {
+    if (liberation_data.ui_font_loaded) {
+        fnt_blit_text(&liberation_data.ui_font, fb, pw, ph, x, y, text,
+                      color, 0u, scale);
+        return;
+    }
+    draw_simple_text(fb, pw, ph, x, y, text, color, scale);
+}
+
 static void draw_centered(uint32_t *fb, int pw, int ph,
                           int y, const char *text, uint32_t color, int scale) {
     int len = 0;
@@ -4943,13 +4958,13 @@ int main(int argc, char *argv[]) {
                                     const char *npc_icons[] = {"[?]","[S]","[B]","[C]","[L]","[P]","[R]","[H]","[I]","[!]"};
                                     int ti = lib_interact.type;
                                     if (ti < 0 || ti > 9) ti = 0;
-                                    draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                    lib_draw_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                         LIBERATION_SCREEN_HEIGHT,
                                         LIBERATION_SCREEN_WIDTH - 30,
                                         LIBERATION_SCREEN_HEIGHT / 2 + 4,
                                         npc_icons[ti], 0xFFFFAA00, 2);
                                 }
-                                draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                lib_draw_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                     LIBERATION_SCREEN_HEIGHT, 8, LIBERATION_SCREEN_HEIGHT / 2 + 8,
                                     text, 0xFFFFFFFF, 1);
                                 unsigned count = building_interact_choice_count(&lib_interact);
@@ -4957,7 +4972,7 @@ int main(int argc, char *argv[]) {
                                     char label[64];
                                     snprintf(label, sizeof(label), "%d. %s", ci + 1,
                                         building_interact_choice_label(&lib_interact, ci));
-                                    draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                    lib_draw_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                         LIBERATION_SCREEN_HEIGHT, 8,
                                         LIBERATION_SCREEN_HEIGHT / 2 + 20 + (int)ci * 10,
                                         label, 0xFFCCCCCC, 1);
@@ -4968,7 +4983,7 @@ int main(int argc, char *argv[]) {
                                     snprintf(shop_info, sizeof(shop_info),
                                         _("%d items available. Gold: %d"),
                                         lib_interact.shop.item_count, gs.gold);
-                                    draw_simple_text(framebuffer, LIBERATION_SCREEN_WIDTH,
+                                    lib_draw_text(framebuffer, LIBERATION_SCREEN_WIDTH,
                                         LIBERATION_SCREEN_HEIGHT, 8,
                                         LIBERATION_SCREEN_HEIGHT - 12,
                                         shop_info, 0xFFAAAA00, 1);

@@ -4,6 +4,7 @@
 #include "data_vfs.h"
 #include "iso9660_reader.h"
 #include "liberation_anim.h"
+#include "liberation_fnt.h"
 #include <stdbool.h>
 
 typedef enum {
@@ -24,6 +25,11 @@ typedef struct {
     LiberationAnimFrame intro_frame;
     LiberationAnimScript city_script;
     LiberationAnimScript intro_script;
+    /* The authentic UI font (0Liberation.FNT), decoded once at open.  Optional:
+     * ui_font_loaded is false when the source has no recovered font hash (the
+     * Amiga floppies), in which case callers keep their existing fallback. */
+    FntFont ui_font;
+    bool ui_font_loaded;
 } LiberationData;
 
 typedef enum {

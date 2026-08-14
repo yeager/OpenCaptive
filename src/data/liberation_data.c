@@ -138,6 +138,19 @@ static void load_optional_presentation_frames(LiberationData *data) {
     free(bundle);
 }
 
+/* Decode the authentic UI font once at open.  FONT_0 is an optional resource,
+ * so a source without a recovered font hash (the Amiga floppies) simply leaves
+ * ui_font_loaded false and callers keep their fallback. */
+static void load_optional_ui_font(LiberationData *data) {
+    data->ui_font_loaded = false;
+    size_t size = 0;
+    uint8_t *font = liberation_data_read(data, LIBERATION_RESOURCE_FONT_0, &size);
+    if (!font) return;
+    if (fnt_open(&data->ui_font, font, size))
+        data->ui_font_loaded = true;
+    free(font);
+}
+
 static bool liberation_cd32_available(const DataVFS *vfs) {
     size_t size = 0;
     uint8_t *track = vfs_find_sha256(vfs, cd32_track_sha256, &size);
@@ -202,6 +215,7 @@ bool liberation_data_open_source(LiberationData *data, const DataVFS *vfs,
             data->verified = true;
             data->source = LIBERATION_SOURCE_CD32;
             load_optional_presentation_frames(data);
+            load_optional_ui_font(data);
             return true;
         }
     }
@@ -224,6 +238,7 @@ bool liberation_data_open_source(LiberationData *data, const DataVFS *vfs,
     if (found == LIBERATION_RESOURCE_REQUIRED_COUNT) {
         data->verified = true;
         data->source = LIBERATION_SOURCE_AMIGA_ADF;
+        load_optional_ui_font(data);
         return true;
     }
 
