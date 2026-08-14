@@ -50,3 +50,22 @@ the Liberation engine; it is genuinely multi-session work.
 - The GENERATOR that fills 0x7cb3 is still to be located: it writes via ES:DI
   with no immediate 0x7cb3, so trace fns that set DI=0x7cb3 then STOSB/loop, or
   the level-load caller chain above FUN_152f (the per-frame render).
+
+## Map pipeline further RE'd (2026-08-14)
+- `FUN_1000_4661` = map POST-PROCESSOR: iterates exactly 0x800 (2048) bytes of
+  the map at 0x7cb3 and transforms cells — `(cell & 0x7f) == 0x1b` -> `cell += 5`;
+  cell in {0x40,0x43,0x48,0x4b} -> `cell |= 0x10`. Runs after generation.
+- `FUN_1000_491c` = a small state/flag reset (not map).
+Cell-value semantics gathered so far: `> 0x1a` = solid/wall (rendered);
+`0x1b`, `0x40`, `0x43`, `0x48`, `0x4b` are distinct cell types transformed by
+the post-processor; high bit (0x80) is a per-cell flag masked off on read.
+- The generator + the post-processor's caller are reached via computed/indirect
+  calls (no static callers — same jump-table wall as the Liberation m68k binary),
+  so the level-setup chain needs data-flow or dynamic tracing to pin down.
+
+## Realistic path
+The map STRUCTURE and cell semantics are now substantially recovered. Remaining
+for a native map source: pin the generator (dynamic trace, or emulate the
+level-init), reimplement it in C, then state/movement/monsters/combat and wire to
+captive_view_window + compositor. This is a genuine multi-session engine build;
+milestone 1 (map format + access + render + post-process) is largely mapped.
