@@ -278,3 +278,29 @@ m68k debugger/emulator, breakpoint the write to 0x6890(a5)+8 during a bank
 interaction, and read the value + backtrace. Either is a focused effort; the
 read-side formula and all anchors above make it a bounded next step, not a
 mystery. No numeric BuildingType→mc map is committed until this closes.
+
+## RESOLVED: bank/repair are named NPCs, not building types (2026-08-14)
+Modeling the decoded 0xa738 (mc = 0xa738(building_category_byte) + 3, main path)
+over all 256 category bytes proves the generic building-service path can only
+yield **mc 0–9** for real (small) category bytes, plus 20–25 for the higher
+nibble. Bank (mc=13) and repair (mc=16/18) are UNREACHABLE from any building
+category byte — the arithmetic cannot produce them. Cross-checked against the
+NPC-bind handler at 0xa55c: a NEGATIVE person id builds a *generic* service
+person (person[0]=0xff, profession = 0xa738(category)); a NON-NEGATIVE id selects
+a *specific named NPC* from the people list at 0x1d96(a5), which carries its own
+profession. Therefore:
+
+- **mc 0–9** = generic building services (random shops/vendors) — the category
+  of building the reconstruction already generates.
+- **mc 10–18** (bank=13, repair=16/18, …) = **named service NPCs** placed in the
+  world with an explicit profession (person+8), independent of building type.
+- **mc 20–22** = plot-flag special contexts (override path in 0xa738).
+
+Consequence for the reconstruction: "bank/repair" was never a missing *building
+type* (the earlier BuildingType-taxonomy framing was wrong). It is a missing
+*service-NPC* concept. Wiring authentic bank/repair means generating/placing the
+named service NPCs with professions 13/16/18 (mc) and routing their interaction
+through the CTE with that mc — NOT adding a bank BuildingType. The generic
+building services (mc 0–9) are the part that maps to the current random
+buildings. NEXT: locate where named-NPC professions (person+8 in the 0x1d96(a5)
+people list) are assigned, to place bank/repair NPCs faithfully.
