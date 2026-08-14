@@ -150,3 +150,16 @@ the non-commercial band (4-12) still wants the binary trace or a citygen
 cross-reference, and the reconstruction's `BuildingType` enum (0-8,
 liberation_citygen.h) has no bank/repair member, so wiring those two also needs
 a taxonomy addition — tracked in TODO.
+
+### Why `mc` is not the generated building type
+The reconstruction's citygen sets `CityBuilding.type = PRNG % 9` and is
+parity-locked to the original, storing no finer category. Yet the original has
+banks (`mc=13`) and repair shops (`mc=16/18`), which are not among the 9 types.
+So `mc` is the **service** the building offers, derived at interaction time from
+a building attribute — a `BUILDING_BUSINESS` can host banking, repair, or
+vending. Routing bank/repair transaction dialogue therefore requires the
+original's `mc`-derivation logic recovered from the binary (a recursive-descent
+m68k trace of how it computes `mc` from the building record); a guessed
+`BuildingType`→`mc` map would surface wrong-context dialogue. The
+**informational** dialogue does not need this — it was wired via
+`liberation_city_text` in v1.1.136-138.
