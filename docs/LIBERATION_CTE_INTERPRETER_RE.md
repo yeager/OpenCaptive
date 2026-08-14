@@ -264,3 +264,17 @@ is probably set in the NPC/person generator (0x168xx range), not the CTE-side
 during a building interaction, and which of the ~10 record+8 writers sets its
 profession — that writer's input is the true mc source. Until then no numeric
 map is committed.
+
+### The write-side wall (why static tracing stalls here)
+The `mc` READ side is fully solid: `mc = word[0x6890(a5)+8] + 3` at 0xa1a2
+(the `m`+`c` variable branch; `me` = `m`+`e` at 0xa18a reads building+2). The
+WRITE side — how the interaction NPC's `+8` profession is set — stalls because
+the NPC-bind handler at 0xa55c (`move.l a1,0x6890(a5)`) is JUMP-TABLE dispatched:
+it has no direct bsr/jsr callers, so following the call graph (in r2 or by hand)
+does not reach the code that supplies `a1` (the NPC record) and its profession.
+Closing this needs one of: (a) resolve the opcode-dispatch jump table(s) to
+enumerate handler callers, or (b) dynamic analysis — run the real game under an
+m68k debugger/emulator, breakpoint the write to 0x6890(a5)+8 during a bank
+interaction, and read the value + backtrace. Either is a focused effort; the
+read-side formula and all anchors above make it a bounded next step, not a
+mystery. No numeric BuildingType→mc map is committed until this closes.
