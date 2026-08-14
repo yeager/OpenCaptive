@@ -1,5 +1,19 @@
 # OpenCaptive Release Notes
 
+## v1.1.138 (2026-08-14)
+
+### Changed
+
+- **(Liberation)** The library "Search archives / Ask around" and City Records
+  Office "Look up records" responses now deliver authentic clue quotes instead
+  of invented registry/briefing text. Liberation's information buildings give
+  cryptic clues, not explicit target guidance, so the previous explicit hints
+  were an invented convenience; this restores the authentic clue delivery.
+  Mission logic is unchanged and navigation remains via the automap. With no
+  game data bound, the previous text is kept as a fallback. All six
+  informational building contexts (shop, bar, residence, police, library,
+  records) now surface authentic Liberation clue text.
+
 ## v1.1.137 (2026-08-14)
 
 ### Changed

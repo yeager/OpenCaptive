@@ -1,5 +1,16 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (Authentic clues in library/records, v1.1.138)
+
+- The library archives and City Records Office lookup now deliver authentic
+  clue quotes instead of invented registry/briefing text. Liberation's
+  information buildings give cryptic clues, not explicit target guidance, so the
+  reconstruction's explicit hints were an invented convenience — replaced with
+  the real clue delivery (no-data fallback preserved, mission logic unchanged,
+  navigation still via automap). All six informational building contexts (shop,
+  bar, residence, police, library, records) now surface authentic clue text.
+- Build + all 66 tests pass.
+
 ## 2026-08-14 (Extend authentic clues to police info, v1.1.137)
 
 - The police "Ask for information" response now delivers a real CTE clue quote

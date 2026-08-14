@@ -60,12 +60,16 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
         case INTERACT_LIBRARY: {
             if (!have_real) snprintf(greeting, sizeof(greeting),
                      _("Welcome to %s. The archives are available for public access."), building_name);
+            /* The archives yield an authentic Liberation clue quote; the
+             * invented briefing is the no-data fallback only. */
             char lib_info[DIALOGUE_MAX_TEXT];
-            snprintf(lib_info, sizeof(lib_info),
-                _("Records indicate %d buildings in this city. "
-                  "The target is in a special-class building. "
-                  "Check the industrial and commercial districts."),
-                bi->building_index + 5);
+            if (!liberation_city_text_clue((uint32_t)bi->building_index + 3u,
+                                           lib_info, sizeof(lib_info)))
+                snprintf(lib_info, sizeof(lib_info),
+                    _("Records indicate %d buildings in this city. "
+                      "The target is in a special-class building. "
+                      "Check the industrial and commercial districts."),
+                    bi->building_index + 5);
             unsigned info = dialogue_tree_add_text(tree, npc, lib_info, exit_node);
             unsigned choice = dialogue_tree_add_choice(tree, npc, greeting);
             dialogue_tree_add_option(tree, choice, _("Search archives"), info);
@@ -100,11 +104,15 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
         case INTERACT_RECORDS: {
             if (!have_real) snprintf(greeting, sizeof(greeting),
                      "%s", _("City Records Office. How can we help?"));
+            /* The records lookup returns an authentic Liberation clue quote;
+             * the invented registry line is the no-data fallback only. */
             char rec_info[DIALOGUE_MAX_TEXT];
-            snprintf(rec_info, sizeof(rec_info),
-                _("Building registry entry %d: %s. "
-                  "Cross-reference with police reports for suspect locations."),
-                bi->building_index, building_name);
+            if (!liberation_city_text_clue((uint32_t)bi->building_index + 11u,
+                                           rec_info, sizeof(rec_info)))
+                snprintf(rec_info, sizeof(rec_info),
+                    _("Building registry entry %d: %s. "
+                      "Cross-reference with police reports for suspect locations."),
+                    bi->building_index, building_name);
             unsigned lookup = dialogue_tree_add_text(tree, npc, rec_info, exit_node);
             unsigned choice = dialogue_tree_add_choice(tree, npc, greeting);
             dialogue_tree_add_option(tree, choice, _("Look up records"), lookup);
