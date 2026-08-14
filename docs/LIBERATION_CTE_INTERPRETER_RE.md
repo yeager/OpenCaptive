@@ -330,3 +330,17 @@ did not cleanly confirm the semantic fit, so it is NOT wired. Verify by dynamic
 analysis: at a live shop/bank interaction, read record+2 and the resulting mc.
 If confirmed, the generic-service transaction dialogue can be driven by
 mc=0xa738(building_type)+3 through the existing CTE interpreter.
+
+## Both closure paths blocked in this environment (2026-08-14)
+- STATIC: the building-record layout / category→mc generation is jump-table
+  dispatched with no findable callers — r2 static tracing cannot close it.
+- DYNAMIC: FS-UAE is installed, but only Kickstart 1.3 is present; Liberation
+  (CD32/AGA) needs Kickstart 2.0+/3.x + the CD32 extended ROM, which are not
+  available (copyrighted, cannot be downloaded). So FS-UAE cannot boot the game
+  to read live memory. DOSBox-X is installed but there is no DOS build of
+  Liberation in the data (CD32 + Amiga floppies only); the mc logic is m68k.
+Net: the exact category→mc map cannot be closed here without the appropriate
+Amiga Kickstart/CD32 ROMs (for dynamic) or a jump-table-resolving effort that
+itself needs the dynamic values. Proven results stand (mc read path;
+bank/repair = named NPCs; 0xd444 PRNG; 0xa738 model; generic path yields only
+mc 0-9). Closing requires ROMs this environment lacks.
