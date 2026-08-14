@@ -544,3 +544,23 @@ Everything up to step 3 is mechanical and tool-supported; step 3 is the real
 research. Fast alternative remains one user-driven capsnap capture. All
 non-interactive engine pieces (RNG, primitives, layout, render converter,
 run+render+drive harness) are complete and committed.
+
+## Full-boot needs a DOS environment (2026-08-14): the multi-session wall, concretely
+Running CAPPO from the true entry (to install ISRs) with a PSP + INT 21 get/set-
+vector + alloc stubs FAULTS at 5000:FF96: the startup allocates memory and then
+jumps into OVERLAY code it loads from disk via INT 21 file reads (which the
+harness stubbed empty). So faithful headless execution of the full boot requires
+serving CAPPO's real overlay/graphics files through a working DOS file layer AND
+emulating memory management/overlays — i.e. reimplementing enough of DOS that it
+is effectively a mini DOS emulator (which DOSBox already is). This is the concrete
+reason the autonomous full-boot path is genuinely multi-session.
+NET, definitive: two ways to a real Captive-1 level remain, both real:
+ (A) run CAPPO in an actual DOS environment (DOSBox) and reach a dungeon, then
+     capture via capsnap/ — the interactive step (needs the game driven; GUI
+     control was declined here, so it is a one-action user handoff); or
+ (B) build the missing DOS layer in the Unicorn harness (file I/O serving the real
+     files + overlays + memory mgmt), then fire the ISRs and reverse the front-end
+     navigation. Bounded but multi-session.
+The direct-call harness (start at 0x4260) already runs the game's non-overlay code
+and stamps real map bytes, and captive_dos_map_to_level renders a captured/generated
+map. Everything not requiring the interactive DOS front-end is complete + tested.
