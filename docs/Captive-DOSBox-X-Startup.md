@@ -213,7 +213,9 @@ direct debugger queue injection is not equivalent to a real keyboard event and
 must not be used as parity evidence.
 
 The full-sequence diagnostic may log CAPPO's live `CS:IP`, `DS`, `AX`, `SI`,
-and `DI` after scan `47`. Those registers are observation evidence only. The
+and `DI` after scan `47`. Those registers are observation evidence only. In
+particular, the previously recorded `0824:CF87` address byte-matches source
+offset `0xD387`, a rendering helper, and is not an Orbit/arrival proof. The
 probe never writes a guessed orbit or landing state into memory; only a changed
 original VGA frame and matching original runtime state can advance the parity
 boundary.

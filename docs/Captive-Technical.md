@@ -135,10 +135,12 @@ original Mission 0001 controls (`4D` ten times, `48` ten times, then `47`),
 verifies the green target in the resulting VGA dump, and stops at the
 authentic `FLIGHT PATH SET` boundary. It does not claim that boundary is
 Orbit or LAND; those transitions still require an original-runtime proof.
-The full-sequence diagnostic also observes a distinct CAPPO runtime dispatch
-path after scan `47` (`CS:IP=0824:CF87`, with the other registers recorded in
-the local emulator log). This is diagnostic evidence only: it does not write
-guessed state and does not prove arrival, orbit, landing, or dungeon entry.
+Earlier diagnostic notes treated `CS:IP=0824:CF87` after scan `47` as a
+semantic CAPPO dispatch boundary. Exact byte matching against the unpacked
+original shows that address corresponds to source offset `0xD387`, a rendering
+helper, not a proven Orbit/arrival handler. It is therefore not used as parity
+evidence. No debugger address or resident message string is sufficient to
+advance native state; only an original-runtime VGA/state transition can do so.
 
 The unpacked DOS executable installs its keyboard IRQ1 handler at relative
 offset `0x065c`. In the verified Mission 0001 DOSBox-X memory image the

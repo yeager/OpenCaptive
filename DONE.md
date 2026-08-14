@@ -1,13 +1,14 @@
 # OpenCaptive — Completed work
 
-## 2026-08-14 (Document the live CAPPO ORBIT dispatch observation)
+## 2026-08-14 (Correct CAPPO runtime-address evidence)
 
-- Recorded the full-sequence DOSBox-X observation in the Captive technical
-  documentation: scan `47` reaches a distinct runtime dispatch path at
-  `CS:IP=0824:CF87` in the captured session.
-- Kept the register values strictly diagnostic; no guessed state, planet,
-  landing point, dungeon, or status text was added to the runtime.
-- CI for the preceding verified input-boundary correction remains green.
+- Corrected the Captive technical documentation: exact byte matching shows the
+  previously recorded `CS:IP=0824:CF87` maps to source offset `0xD387`, a
+  rendering helper rather than a proven Orbit/arrival handler.
+- Removed that address from parity evidence and kept the runtime real-data-only;
+  no guessed state, planet, landing point, dungeon, or status text was added.
+- The Orbit, arrival, LAND, and dungeon transition remain unverified until an
+  original-runtime VGA/state transition is captured.
 
 ## 2026-08-13 (Reject unauthenticated Captive landing transitions)
 
