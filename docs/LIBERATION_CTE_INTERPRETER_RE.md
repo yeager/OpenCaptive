@@ -344,3 +344,34 @@ Amiga Kickstart/CD32 ROMs (for dynamic) or a jump-table-resolving effort that
 itself needs the dynamic values. Proven results stand (mc read path;
 bank/repair = named NPCs; 0xd444 PRNG; 0xa738 model; generic path yields only
 mc 0-9). Closing requires ROMs this environment lacks.
+
+## Ghidra CLOSES the mc-derivation mechanism (2026-08-14)
+Installed Ghidra 12.1.2 headless (JDK 25, no GUI needed) and ran auto-analysis
+(jump-table resolution) + the decompiler on the CODE hunk. This broke the static
+wall that r2 hit. Ghidra decompilation INDEPENDENTLY confirms and closes the
+mechanism:
+
+1. **bank/repair = named NPCs — CONFIRMED by decompiler.** `FUN_a55c` (NPC-bind):
+   `if (person_id < 0) FUN_a7f6();  // generic service`
+   `else FUN_aada();               // select a named NPC from the people list`
+   The generic branch (FUN_a7f6) sets `person[+8] = 0xa738(category)`; the named
+   branch pulls the NPC (and its profession) from the people list. This is the
+   independent, decompiler-level confirmation of the earlier arithmetic proof.
+
+2. **The category source is the interaction record's BYTE 5.** `FUN_ef8` (the
+   building/thing interaction entry) copies fields from the interaction record
+   `in_A0` into globals, including:
+   `*(a5 + 0x1dd0) = in_A0[byte 5];   // category global`
+   and word0 → `0x7e0` (a type; ==1 is special-cased). Then it calls `FUN_a55c`.
+
+3. **Generic-service formula (closed):**
+   `mc = 0xa738(interaction_record[byte 5]) + 3`
+   with `0xa738` modeled (generic categories yield mc 0-9); named NPCs (bank=13,
+   repair=16/18) get their profession from the people list, not from a category.
+
+Remaining for on-screen wiring: obtain the interaction "thing" record's byte-5
+category for the reconstruction's buildings (the world-object/thing system), then
+drive the CTE with `mc = 0xa738(byte5)+3` for generic services, and implement the
+named service-NPC concept for bank/repair. The MECHANISM is now fully recovered
+and decompiler-verified; Ghidra headless is available (ghidra_12.1.2_PUBLIC on
+the external disk) for any further tracing without the r2 jump-table wall.
