@@ -506,6 +506,11 @@ they are left explicit rather than half-invented.
             (Ghidra-class) disassembly of the Amiga CODE hunk — linear
             m68k objdump is unreliable through the data/jump-table regions.
             An all-zero state already yields correct first-encounter dialogue.
+      - [~] First on-screen wiring done (v1.1.136): the authentic clue quotes
+            (sections 300+n/316+n) now surface via `liberation_city_text` in the
+            residence informant and shop "Any news?" nodes, replacing invented
+            rumor text. Remaining: transaction/confrontation dialogue (bank,
+            repair, police) needs the interaction-model redesign + taxonomy.
       - [ ] Map the game's building interactions to the correct CTE entry
             points and route the overlay through the interpreter, replacing the
             invented nodes.

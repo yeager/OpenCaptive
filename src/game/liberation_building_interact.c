@@ -1,5 +1,6 @@
 #include "liberation_building_interact.h"
 #include "liberation_descriptions.h"
+#include "liberation_city_text.h"
 #include "i18n.h"
 #include <string.h>
 #include <stdio.h>
@@ -106,9 +107,15 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
         case INTERACT_RESIDENCE: {
             if (!have_real) snprintf(greeting, sizeof(greeting),
                      "%s", _("This is a private residence. What do you want?"));
-            unsigned rumor = dialogue_tree_add_text(tree, npc,
-                _("I heard strange noises from the special building down the road. "
-                  "Something's going on in there."), exit_node);
+            /* An informant delivers one of the game's authentic clue quotes;
+             * fall back to the invented rumor only when no CTE data is bound. */
+            char rumor_text[DIALOGUE_MAX_TEXT];
+            if (!liberation_city_text_clue((uint32_t)bi->building_index,
+                                           rumor_text, sizeof(rumor_text)))
+                snprintf(rumor_text, sizeof(rumor_text), "%s",
+                    _("I heard strange noises from the special building down the road. "
+                      "Something's going on in there."));
+            unsigned rumor = dialogue_tree_add_text(tree, npc, rumor_text, exit_node);
             unsigned choice = dialogue_tree_add_choice(tree, npc, greeting);
             dialogue_tree_add_option(tree, choice, _("Ask around"), rumor);
             dialogue_tree_add_option(tree, choice, _("Leave"), exit_node);

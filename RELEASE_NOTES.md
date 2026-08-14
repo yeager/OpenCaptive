@@ -1,5 +1,31 @@
 # OpenCaptive Release Notes
 
+## v1.1.136 (2026-08-14)
+
+### Added
+
+- **(Liberation)** First on-screen wiring of authentic CTE dialogue. A new
+  provider (`liberation_city_text`) surfaces the game's 16 authentic clue quotes
+  — the literary clues Liberation's informants deliver (CITY_TEXT sections
+  300+n / 316+n) — and the building interaction now shows a real clue in place
+  of the invented "rumor/news" flavor lines: the residence informant and the
+  shop's "Any news?" response. The functional mission-hint nodes
+  (library/records) are untouched. When no game data is bound (e.g. a unit
+  test), the provider returns false and the previous fallback text is kept, so
+  nothing regresses. New unit test covers the no-data fallback, a fixture clue,
+  and all 16 authentic quotes against the real CITY_TEXT.
+
+### Notes
+
+This replaces synthetic text with authentic game data where that data exists,
+per the project's no-synthetic-data rule. The broader transaction/confrontation
+dialogue (bank, repair, police negotiation) still awaits the interaction-model
+redesign and `BuildingType` taxonomy work tracked in TODO.
+
+### Removed
+
+None.
+
 ## v1.1.135 (2026-08-14)
 
 ### Fixed

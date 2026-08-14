@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.135 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.136 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -100,6 +100,7 @@ set(OPENCAPTIVE_SOURCES
     src/game/liberation_bar.c
     src/game/liberation_building_interact.c
     src/game/liberation_descriptions.c
+    src/game/liberation_city_text.c
     src/game/liberation_combat.c
     src/game/liberation_npc_dialogue.c
     src/engine/liberation_plotgen.c
@@ -388,7 +389,8 @@ add_executable(test_liberation_dialogue_shop tests/test_liberation_dialogue_shop
     src/game/liberation_building_interact.c
     src/engine/liberation_citygen.c src/engine/liberation_citygen_grid.c
     src/data/liberation_string_tables.c src/data/i18n.c src/engine/inventory.c
-    src/game/liberation_descriptions.c src/data/liberation_text_table.c)
+    src/game/liberation_descriptions.c src/data/liberation_text_table.c
+    src/game/liberation_city_text.c src/data/liberation_cte.c)
 target_include_directories(test_liberation_dialogue_shop PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_liberation_dialogue_shop PRIVATE SDL3::SDL3)
 add_test(NAME liberation_dialogue_shop COMMAND test_liberation_dialogue_shop)
@@ -611,6 +613,11 @@ add_test(NAME renderer_map COMMAND test_renderer_map)
 add_executable(test_liberation_cte tests/test_liberation_cte.c src/data/liberation_cte.c)
 target_include_directories(test_liberation_cte PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME liberation_cte COMMAND test_liberation_cte)
+
+add_executable(test_liberation_city_text tests/test_liberation_city_text.c
+    src/game/liberation_city_text.c src/data/liberation_cte.c)
+target_include_directories(test_liberation_city_text PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation_city_text COMMAND test_liberation_city_text)
 
 # The tests use assert() for both execution and verification.  Release builds
 # define NDEBUG, which would otherwise turn those test expressions into no-ops.

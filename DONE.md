@@ -1,5 +1,21 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (Wire authentic CTE clues on-screen, v1.1.136)
+
+- First on-screen wiring of authentic CTE dialogue. Added
+  liberation_city_text (provider with the same set-once pattern as
+  liberation_descriptions): surfaces the 16 authentic clue quotes (the literary
+  clues Liberation informants deliver, CITY_TEXT sections 300+n/316+n as two
+  halves), chosen deterministically by building seed.
+- Wired it into the building interaction: the residence informant and the
+  shop's "Any news?" response now show a real clue instead of invented rumor
+  text. Functional mission-hint nodes (library/records) untouched. NULL table
+  (no data / unit test) keeps the previous fallback, so nothing regresses.
+- main.c calls liberation_city_text_set(&data->city_text) alongside
+  liberation_descriptions_set at building entry.
+- Full build + all 66 tests pass (new test_liberation_city_text covers the
+  fallback, a fixture clue, and all 16 real quotes via OPENCAPTIVE_TEST_CTE).
+
 ## 2026-08-14 (Fix CI version test + bind CTE table, v1.1.135)
 
 - Fixed the CI build: test_version_consistency had failed on every build since

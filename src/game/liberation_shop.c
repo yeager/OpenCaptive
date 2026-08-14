@@ -1,6 +1,7 @@
 #include "liberation_shop.h"
 #include "i18n.h"
 #include "liberation_descriptions.h"
+#include "liberation_city_text.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -128,8 +129,14 @@ void lib_shop_generate_dialogue(LibShopState *shop, const char *npc_name) {
     unsigned exit_node = dialogue_tree_add_exit(tree, _("Goodbye!"));
     unsigned trade_text = dialogue_tree_add_text(tree, npc_name,
         _("Take a look at what I have."), exit_node);
+    /* When the informant has something to say it is one of the game's
+     * authentic clue quotes; the invented line is only the no-data fallback. */
+    char news_text[DIALOGUE_MAX_TEXT];
+    if (!liberation_city_text_clue(shop->prng_seed, news_text, sizeof(news_text)))
+        snprintf(news_text, sizeof(news_text), "%s",
+                 _("I might have heard something. Check back later."));
     unsigned info_text = dialogue_tree_add_text(tree, npc_name,
-        _("I might have heard something. Check back later."), exit_node);
+        news_text, exit_node);
 
     unsigned choice = dialogue_tree_add_choice(tree, npc_name, greeting);
     dialogue_tree_add_option(tree, choice, _("Buy"), trade_text);
