@@ -424,3 +424,24 @@ game does (0x70ED), so the real code fills the whole 64x32 map. Then read
 DS:0x7CB3 and feed it through captive_dos_map_to_level() -> renderer. This path
 needs NO user input and NO GUI — it runs the game's own code. (extract_map.py's
 savestate route remains a valid cross-check.)
+
+## KEY INSIGHT from autonomous runs: generation REFINES a template (2026-08-14)
+Driving the real code in Unicorn revealed the true generation model:
+- The phase-machine WALK (0x46CC) reads its step direction from the per-cell
+  flags low bits (0x84D3). With an empty map those are 0, so the walk goes
+  straight -> it stamps a single degenerate column (observed: 49 cells at x=32).
+- The phase-1 ROOM carve (0x4622) only alters cells where (val&0x7E)==0x28, and
+  the diggers (0x454A) only convert cells of type 0x20/0x60 -> 0x1E. On an empty
+  (all-zero) map NONE of these fire.
+=> These subsystems do NOT build the dungeon from nothing; they REFINE an initial
+   map TEMPLATE made of cells 0x20/0x28/0x60 etc. The template must be produced
+   earlier by a routine not yet identified, OR loaded — note 0x435D loads a file
+   via INT 21 (stubbed to empty in the harness), and the BIOS comm area 0040:00F0
+   (set by FILEPLAY/GM before CAPPO) carries parameters CAPPO reads at startup.
+NEXT to get a COMPLETE real level autonomously: find the template source — either
+(a) the routine that stamps the initial 0x20/0x28/0x60 layout, or (b) let 0x435D's
+file load succeed in the harness (feed the real CAPICS/overlay bytes) and re-run,
+or (c) provide the 0040:00F0 params FILEPLAY passes. Then drive 0x4284 + ticks and
+read DS:0x7CB3. The Unicorn harness (opencaptive-re/emu_common.py + emu_tick.py)
+already executes the real code headlessly and correctly (RNG + phase machine
+verified), so this is now pure RE of the template stage — no user input, no GUI.
