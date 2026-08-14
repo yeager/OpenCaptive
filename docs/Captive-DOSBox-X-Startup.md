@@ -111,9 +111,11 @@ The helper mounts that directory as `C:`, changes to `C:`, and runs
 `CAPPO.EXE` command, do not copy generated files into the data directory, and
 do not use a debugger launch for an interactive test.
 
-DOSBox-X may capture the system pointer when the game starts. Press
-`Ctrl+F10` to release or recapture the pointer. This is a DOSBox-X shortcut,
-not a Captive command.
+DOSBox-X captures the system pointer when the game starts so CAPPO can receive
+its original INT 33 motion. Press `Ctrl+F10` to release or recapture the
+pointer. This is a DOSBox-X shortcut, not a Captive command. The repository
+profile deliberately uses `mouse emulation=locked`; `integration` would stop
+feeding CAPPO while the pointer is captured.
 
 ## Space navigation sequence
 
@@ -242,7 +244,7 @@ described above.
 |---|---|
 | VGA choice does nothing | Click inside the game viewport, then press `1`. |
 | Debugger window appears | Quit and restart with the normal helper; remove debugger flags. |
-| System pointer moves but Captive pointer does not | Click the DOSBox-X game viewport once, then check `Ctrl+F10`; do not reuse a stale debugger window. |
+| System pointer moves but Captive pointer does not | Click the DOSBox-X game viewport once so it is captured; the supplied profile must say `mouse emulation=locked`. Press `Ctrl+F10` once if the pointer was released, then click the viewport again. |
 | The ship is still in transit | Wait for the original orbit/arrival state before pressing `9` for LAND. |
 | A landed view contains only water | Restart from orbit and fly to the white landing circle. |
 | The viewport looks stretched or corrupted | Use the repository profile; it forces VGA, surface output, integer scaling, and the CAPPO-compatible VGA memory setting. |

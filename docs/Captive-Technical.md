@@ -110,10 +110,12 @@ commands are transport messages to the original CAPPO session. They are useful
 for debugger experiments, but are not a substitute for testing the normal
 DOSBox-X mouse path.
 
-The bundled DOSBox-X profile still enables `mouse emulation=integration` and
-the original INT 33 range. The low-level integration payload is used only to
-deliver the host mouse event to the original runtime; the resulting VGA frame
-remains the parity authority.
+The bundled DOSBox-X profile uses `mouse emulation=locked` and the original
+INT 33 range. DOSBox-X's `integration` mode only emulates mouse motion while
+the host pointer is not locked; that stops CAPPO's own cursor after the first
+click. The locked mode keeps the authentic CAPPO pointer fed while the
+DOSBox-X window owns input. The resulting VGA frame remains the parity
+authority.
 
 The multi-step probe writes to an explicit output directory and never treats
 printable strings as proof of the active state. CAPPO keeps its message table
