@@ -523,3 +523,24 @@ read UI state. Each is bounded but together they are genuinely multi-session
 reversing Captive's front-end flow). The harness already runs + renders CAPPO, so
 this is the concrete continuation. Fast alternative unchanged: one user-driven
 capsnap capture. All non-interactive engine pieces remain done and tested.
+
+## Precise continuation roadmap (2026-08-14): install ISRs + reverse front-end nav
+Diagnostic: firing INT 9 failed because the vector at 0000:0024 reads 0000:0000 —
+the harness starts at the game entry 0x4260 and SKIPS the C-runtime startup at
+0x0084 that installs the game's interrupt handlers (INT 9 at 0x0155..0x018B, etc).
+So no ISRs exist to fire. The correct continuation is:
+1. Start emulation at the true entry (CS:IP 0:0 -> jmp 0x84) with ES=PSP set up
+   (PSP seg just below the load seg, command tail length 0 at PSP:0x80), stubbing
+   the startup's INT 21 (alloc 0x48/0x4A) and INT 33 (mouse init). This runs the
+   full init, INSTALLS the ISRs, then falls into the game loop (called at 0x019B).
+2. Fire the now-valid INT 9 handler with staged port-0x60 scancodes to deliver
+   real keypresses; drive the mouse handler similarly.
+3. Reverse Captive's FRONT-END navigation using the framebuffer render (already
+   working, 0xB000): the exact key/click sequence title -> new game -> probe
+   select -> land that reaches a dungeon. THIS sequence is the genuine unknown;
+   it needs UI-state decoding + interaction RE (or knowledge of how the game is
+   played), and is the multi-session core of the remaining work.
+Everything up to step 3 is mechanical and tool-supported; step 3 is the real
+research. Fast alternative remains one user-driven capsnap capture. All
+non-interactive engine pieces (RNG, primitives, layout, render converter,
+run+render+drive harness) are complete and committed.
