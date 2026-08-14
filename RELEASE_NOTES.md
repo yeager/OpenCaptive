@@ -1,5 +1,22 @@
 # OpenCaptive Release Notes
 
+## v1.1.141 (2026-08-14)
+
+### Fixed
+
+- **(Captive)** Launching the Captive DOS game opened DOSBox to an empty
+  `Z:\>` prompt when the game data was inside a ZIP (the normal case —
+  `Captive_DOS_EN.zip`). DOSBox mounts a real directory, but the launcher only
+  handled loose files. It now extracts the archive that carries `CAPTIVE.BAT`
+  to a temp directory (via the SHA-256 VFS) and mounts the directory that
+  actually contains `CAPTIVE.BAT`, so Captive starts instead of a bare prompt.
+  New `vfs_extract_archive_tree()` performs the extraction (path-safe,
+  preserving the archive's directory layout). Verified against
+  `Captive_DOS_EN.zip`: all 119 files extract and the mount level resolves to
+  the folder holding `CAPTIVE.BAT`.
+
+# OpenCaptive Release Notes
+
 ## v1.1.140 (2026-08-14)
 
 ### Fixed
