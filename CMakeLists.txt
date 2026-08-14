@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.142 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.143 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -80,6 +80,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/texture_atlas.c
     src/data/dos_vga_reference.c
     src/data/captive_dos_map.c
+    src/data/captive_dos_generator.c
     src/data/captive_dos_descriptor.c
     src/render/captive_dos_runtime.c
     src/data/captive_cappo_descriptors.c
@@ -295,6 +296,11 @@ add_executable(test_captive_dos_map tests/test_captive_dos_map.c
     src/data/captive_dos_map.c)
 target_include_directories(test_captive_dos_map PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME captive_dos_map COMMAND test_captive_dos_map)
+
+add_executable(test_captive_dos_generator tests/test_captive_dos_generator.c
+    src/data/captive_dos_generator.c)
+target_include_directories(test_captive_dos_generator PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME captive_dos_generator COMMAND test_captive_dos_generator)
 
 add_executable(test_frame_compare tests/test_frame_compare.c
     src/render/frame_compare.c)
