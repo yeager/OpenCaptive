@@ -107,12 +107,36 @@ static void test_carve(void) {
     assert(captive_gen_is_wall(cells[captive_gen_index(0, 0)]));
 }
 
+static void test_rng(void) {
+    /* LCG: state = state*0x5E5 + 0x29 (mod 2^16), from CAPPO 0x44EF. */
+    uint16_t s = 0;
+    assert(captive_gen_rng_next(&s) == 0x0029);            /* 0*0x5E5+0x29 */
+    /* 0x29*0x5E5 = 0xF4C5; +0x29 = 0xF4EE */
+    assert(captive_gen_rng_next(&s) == (uint16_t)(0x29u * 0x5E5u + 0x29u));
+    /* determinism: same seed -> same stream */
+    uint16_t a = 12345, b = 12345;
+    for (int i = 0; i < 100; ++i)
+        assert(captive_gen_rng_next(&a) == captive_gen_rng_next(&b));
+
+    /* direction is always 0..3 */
+    for (uint32_t v = 0; v < 0x10000u; v += 7)
+        assert(captive_gen_rng_dir((uint16_t)v) >= 0 &&
+               captive_gen_rng_dir((uint16_t)v) <= 3);
+    /* spot-check the rol-rol-&3 extraction: low byte 0x40 -> rol2 = 0x01 -> 1 */
+    assert(captive_gen_rng_dir(0x0040) == 1);
+    /* low byte 0x80 -> rol2 = 0x02 -> 2 */
+    assert(captive_gen_rng_dir(0x0080) == 2);
+    /* low byte 0xC0 -> rol2 = 0x03 -> 3 */
+    assert(captive_gen_rng_dir(0x00C0) == 3);
+}
+
 int main(void) {
     test_direction_deltas();
     test_index_and_bounds();
     test_postprocess();
     test_wall_predicate();
     test_carve();
+    test_rng();
     printf("captive_dos_generator: all tests passed\n");
     return 0;
 }

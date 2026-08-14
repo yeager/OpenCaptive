@@ -272,3 +272,36 @@ driver/role and the seed requires correctly disassembling the second code
 segment (relocate to its real load segment, then analyse) or one runtime
 snapshot of DS:0x5E6A..0x995C after a level is entered. Next concrete static
 step: carve segment 2 out of the image and disassemble it as its own segment.
+
+## GENERATOR CORE RECOVERED: RNG + phase machine + lifecycle (2026-08-14)
+The driver DOES exist in segment 0 — the earlier "no caller" was a search gap.
+Full generator now recovered statically:
+- RNG (0x44EF..0x44FA), an LCG on word[0x9322]:
+    state = state * 0x05E5 + 0x0029   (mod 2^16)
+- Direction (0x4605): al=state&0xff; rol al,1; rol al,1; dir = al & 3  (0..3).
+- Per-tick driver: the main mode handler at 0x44CE runs the RNG each tick, then
+  at 0x4514: `if word[0x931E]!=0 call 0x4610` (the generator dispatcher).
+- Dispatcher 0x4610 keyed on word[0x931E] (phase):
+    phase 1 (0x4622): decrement word[0x931C]; when it hits 0, carve a 5x5 ROOM
+      around word[0x931A] (cx-=0x202 to top-left, 5x5 loop via 0x2ABA index,
+      cells with ch&0x7e==0x28 get byte[di]-=2), then set phase 2.
+    phase 2 (0x46CC): throttled drunkard walk (acts 1-in-14), step via 0x4764
+      using the direction, then stamp the plus-brush of 0x26; on out-of-range it
+      sets phase 3 (word[0x931E]=3, word[0x92F6]=3).
+    phase 4 (0x468A): finalize.
+- START (0x7148): word[0x931A]=word[0x5E95] (start pos), word[0x931C]=0x64,
+  word[0x931E]=1.
+- COMPLETE (0x64xx handlers): set word[0x931E]=0, place the party at the entry
+  coords word[0x8CF5]/word[0x8CF7] into word[0x5E80]/word[0x5E82].
+- SEED: word[0x9322] is zeroed by the level-init clear (0x49C8) and only ever
+  advanced by the LCG (no explicit per-level reseed found), so the maze follows
+  from the RNG state at generation time. A faithful C reimplementation of this
+  exact RNG + phase machine reproduces the game's own generator output (real
+  Captive data); a single runtime snapshot can pin the exact seed for a numbered
+  level if byte-exact level-N matching is later required.
+
+Transcribed to tested C (captive_dos_generator.c): captive_gen_rng_next
+(0x05E5/0x0029) and captive_gen_rng_dir (rol-rol-&3), alongside the carve/brush/
+post-proc/deltas/index/bounds primitives. NEXT (task #7): assemble the full
+phase machine (room carve + throttled walk) into a deterministic C generator and
+wire its map into captive_view_window + the compositor.

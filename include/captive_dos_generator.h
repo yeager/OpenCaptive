@@ -53,6 +53,32 @@ typedef enum {
 extern const int8_t captive_gen_dx[4];
 extern const int8_t captive_gen_dy[4];
 
+/*
+ * CAPPO's pseudo-random generator, exactly the LCG at 0x44EF..0x44FA:
+ *   state = state * 0x05E5 + 0x0029   (mod 2^16)
+ * The 16-bit state lives at DS:0x9322.  captive_gen_rng_next advances *state
+ * in place and returns the new value.
+ */
+#define CAPTIVE_GEN_RNG_MUL 0x05E5u
+#define CAPTIVE_GEN_RNG_ADD 0x0029u
+
+static inline uint16_t captive_gen_rng_next(uint16_t *state) {
+    *state = (uint16_t)(*state * CAPTIVE_GEN_RNG_MUL + CAPTIVE_GEN_RNG_ADD);
+    return *state;
+}
+
+/*
+ * Direction (0..3) derived from the RNG state, exactly CAPPO 0x4605:
+ *   ax = state; rol al,1; rol al,1; ax &= 3
+ * i.e. two left-rotates of the LOW byte, then the low two bits — which selects
+ * bits 6 and 7 of the low byte (wrapped) as a 0..3 direction index.
+ */
+static inline int captive_gen_rng_dir(uint16_t state) {
+    uint8_t al = (uint8_t)(state & 0xFFu);
+    al = (uint8_t)((al << 2) | (al >> 6)); /* rol al,1 twice */
+    return al & 3;
+}
+
 /* Flat map index from (x,y), exactly CAPPO 0x4749: (y<<6)+x. */
 static inline int captive_gen_index(int x, int y) {
     return (y << 6) + x;
