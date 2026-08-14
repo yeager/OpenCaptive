@@ -319,3 +319,14 @@ the write to that record+8 during a real bank/shop interaction, and read the
 live values + backtrace. That yields the category→mc map empirically without
 guessing. SOLID regardless: mc read = word[0x6890(a5)+8]+3; bank/repair are
 named NPCs (proven); 0xd444 is the PRNG; 0xa738 decode modeled.
+
+## Testable hypothesis for the generic-service map (verify dynamically)
+IF `record+2` low nibble equals the building type (0-8), then
+`mc = 0xa738(type)+3` gives a clean 9-way map: SHOP(0)→mc3, BAR(1)→4,
+BUSINESS(2)→5, INDUSTRIAL(3)→6, RESIDENCE(4)→7, LIBRARY(5)→8, POLICE(6)→9,
+RECORDS(7)→0, SPECIAL(8)→1. This is a HYPOTHESIS only — the type is stored in
+record[1] (not +2) by 0xc800, and a spot cross-check of the CTE dialogue per mc
+did not cleanly confirm the semantic fit, so it is NOT wired. Verify by dynamic
+analysis: at a live shop/bank interaction, read record+2 and the resulting mc.
+If confirmed, the generic-service transaction dialogue can be driven by
+mc=0xa738(building_type)+3 through the existing CTE interpreter.
