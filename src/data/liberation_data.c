@@ -169,6 +169,23 @@ static void load_descriptions(LiberationData *data) {
     }
 }
 
+/* Parse the authentic in-city interaction script (CTE).  Stored as the binary
+ * section table decoded by cte_table_parse; the buffer is retained because the
+ * sections point into it, and freed in liberation_data_close. */
+static void load_city_text(LiberationData *data) {
+    data->city_text_loaded = false;
+    size_t size = 0;
+    uint8_t *text = liberation_data_read(data, LIBERATION_RESOURCE_CITY_TEXT,
+                                         &size);
+    if (!text) return;
+    if (cte_table_parse(&data->city_text, text, size)) {
+        data->city_text_data = text;
+        data->city_text_loaded = true;
+    } else {
+        free(text);
+    }
+}
+
 static bool liberation_cd32_available(const DataVFS *vfs) {
     size_t size = 0;
     uint8_t *track = vfs_find_sha256(vfs, cd32_track_sha256, &size);
@@ -235,6 +252,7 @@ bool liberation_data_open_source(LiberationData *data, const DataVFS *vfs,
             load_optional_presentation_frames(data);
             load_optional_ui_font(data);
             load_descriptions(data);
+            load_city_text(data);
             return true;
         }
     }
@@ -259,6 +277,7 @@ bool liberation_data_open_source(LiberationData *data, const DataVFS *vfs,
         data->source = LIBERATION_SOURCE_AMIGA_ADF;
         load_optional_ui_font(data);
         load_descriptions(data);
+        load_city_text(data);
         return true;
     }
 
@@ -288,6 +307,7 @@ void liberation_data_close(LiberationData *data) {
     }
     free(data->disc_data);
     free(data->descriptions_data);
+    free(data->city_text_data);
     liberation_anim_frame_free(&data->city_frame);
     liberation_anim_frame_free(&data->intro_frame);
     liberation_anim_script_free(&data->city_script);

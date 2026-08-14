@@ -6,6 +6,7 @@
 #include "liberation_anim.h"
 #include "liberation_fnt.h"
 #include "liberation_text_table.h"
+#include "liberation_cte.h"
 #include <stdbool.h>
 
 typedef enum {
@@ -37,6 +38,14 @@ typedef struct {
     LibTextTable descriptions;
     bool descriptions_loaded;
     uint8_t *descriptions_data;
+    /* Authentic in-city interaction script (CITY_TEXT / CTE), parsed once at
+     * open into addressable sections.  Expanded on demand via cte_expand.  Not
+     * every building context is wired to the overlay yet; the table is bound so
+     * the interpreter can be driven from verified data rather than any invented
+     * dialogue. */
+    CteTable city_text;
+    bool city_text_loaded;
+    uint8_t *city_text_data;
 } LiberationData;
 
 typedef enum {

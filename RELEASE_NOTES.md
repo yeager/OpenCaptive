@@ -1,5 +1,27 @@
 # OpenCaptive Release Notes
 
+## v1.1.135 (2026-08-14)
+
+### Fixed
+
+- **CI:** `test_version_consistency` failed on every build since v1.1.132
+  because `include/opencaptive.h` (pinned at 131) was not bumped alongside the
+  CMake project version. Both are now synced to 1.1.135. The version header must
+  be updated with the CMake version on every bump.
+
+### Added
+
+- **(Liberation)** The verified CITY_TEXT (CTE) interaction script is now parsed
+  once at data open into `LiberationData.city_text` (via `cte_table_parse`),
+  freed in `liberation_data_close`. This binds the authentic dialogue table so
+  the interpreter can be driven from real data. Not yet routed to the building
+  overlay — the bank interaction is confirmed self-contained (reaches only its
+  own sections, no `mc` gate) and is the first wiring candidate.
+
+### Removed
+
+None.
+
 ## v1.1.134 (2026-08-14)
 
 ### Added

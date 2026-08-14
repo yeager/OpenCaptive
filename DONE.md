@@ -1,5 +1,22 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (Fix CI version test + bind CTE table, v1.1.135)
+
+- Fixed the CI build: test_version_consistency had failed on every build since
+  v1.1.132 because include/opencaptive.h (131) lagged the CMake project version.
+  Synced both to 1.1.135. (Root cause: version bumps touched only CMakeLists;
+  the header must move with it.)
+- Bound the verified CITY_TEXT (CTE) table into LiberationData at data open
+  (cte_table_parse into data->city_text, freed in liberation_data_close), and
+  added liberation_cte.c to every test target that links liberation_data.c.
+- Confirmed the bank interaction is self-contained for wiring: its call closure
+  is {14000-14004} and uses only vars a,b — no mc gate — so with a zero
+  (first-encounter) state it yields fully authentic bank dialogue (balance /
+  withdrawal / deposit / leave menu). First building to wire next.
+- Full build + all 65 tests pass locally (built via
+  DEVELOPER_DIR=/Library/Developer/CommandLineTools to work around a mid-session
+  Xcode-license block on the default /usr/bin toolchain).
+
 ## 2026-08-14 (CTE player-menu expansion, v1.1.134)
 
 - Found via the data that `^XM[...]` holds the player's dialogue choices (bank

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.134 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.135 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -452,7 +452,7 @@ add_executable(test_custom_features tests/test_custom_features.c
 target_include_directories(test_custom_features PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME custom_features COMMAND test_custom_features)
 
-add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c src/engine/save_thumbnail.c src/data/i18n.c src/data/stb_image_impl.c src/data/data_vfs.c src/data/sha256.c src/data/amiga_ofs.c src/data/captive_amiga_data.c src/data/captive_scene_assets.c src/data/amiga_hunk.c src/data/amiga_planar.c src/data/liberation_data.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c src/data/rnc_decoder.c src/data/iso9660_reader.c src/data/liberation_anim.c)
+add_executable(test_start_menu tests/test_start_menu.c src/engine/start_menu.c src/engine/save_thumbnail.c src/data/i18n.c src/data/stb_image_impl.c src/data/data_vfs.c src/data/sha256.c src/data/amiga_ofs.c src/data/captive_amiga_data.c src/data/captive_scene_assets.c src/data/amiga_hunk.c src/data/amiga_planar.c src/data/liberation_data.c src/data/liberation_cte.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c src/data/rnc_decoder.c src/data/iso9660_reader.c src/data/liberation_anim.c)
 target_include_directories(test_start_menu PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(test_start_menu PRIVATE SDL3::SDL3 ${SDL3_TTF_TARGET} ${MATH_LIBRARY} ZLIB::ZLIB)
 add_test(NAME start_menu COMMAND test_start_menu)
@@ -688,7 +688,7 @@ target_link_libraries(amiga_ofs_inventory PRIVATE ZLIB::ZLIB)
 
 add_executable(verify_liberation
     tools/verify_liberation.c
-    src/data/liberation_data.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
+    src/data/liberation_data.c src/data/liberation_cte.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c
     src/data/rnc_decoder.c
     src/data/iso9660_reader.c
@@ -701,7 +701,7 @@ target_link_libraries(verify_liberation PRIVATE ZLIB::ZLIB)
 
 add_executable(liberation_extract
     tools/liberation_extract.c
-    src/data/liberation_data.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
+    src/data/liberation_data.c src/data/liberation_cte.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c
     src/data/rnc_decoder.c
     src/data/iso9660_reader.c
@@ -715,7 +715,7 @@ target_link_libraries(liberation_extract PRIVATE ZLIB::ZLIB)
 add_executable(liberation_hunk_info
     tools/liberation_hunk_info.c
     src/data/amiga_hunk.c
-    src/data/liberation_data.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
+    src/data/liberation_data.c src/data/liberation_cte.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c
     src/data/rnc_decoder.c
     src/data/iso9660_reader.c
@@ -731,7 +731,7 @@ add_executable(liberation_inventory
     src/data/data_vfs.c
     src/data/amiga_ofs.c
     src/data/iso9660_reader.c
-    src/data/liberation_data.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
+    src/data/liberation_data.c src/data/liberation_cte.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c
     src/data/rnc_decoder.c
     src/data/sha256.c)
@@ -743,7 +743,7 @@ add_executable(liberation_form_inventory
     src/data/data_vfs.c
     src/data/amiga_ofs.c
     src/data/iso9660_reader.c
-    src/data/liberation_data.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
+    src/data/liberation_data.c src/data/liberation_cte.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c
     src/data/rnc_decoder.c
     src/data/sha256.c)
@@ -752,7 +752,7 @@ target_link_libraries(liberation_form_inventory PRIVATE ZLIB::ZLIB)
 
 add_executable(liberation_presentation_inventory
     tools/liberation_presentation_inventory.c
-    src/data/liberation_data.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
+    src/data/liberation_data.c src/data/liberation_cte.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c
     src/data/rnc_decoder.c
     src/data/iso9660_reader.c
@@ -765,7 +765,7 @@ target_link_libraries(liberation_presentation_inventory PRIVATE ZLIB::ZLIB)
 
 add_executable(liberation_presentation_capture
     tools/liberation_presentation_capture.c
-    src/data/liberation_data.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
+    src/data/liberation_data.c src/data/liberation_cte.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c
     src/data/rnc_decoder.c
     src/data/iso9660_reader.c
@@ -778,7 +778,7 @@ target_link_libraries(liberation_presentation_capture PRIVATE ZLIB::ZLIB)
 
 add_executable(liberation_vgm_verify
     tools/liberation_vgm_verify.c
-    src/data/liberation_data.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
+    src/data/liberation_data.c src/data/liberation_cte.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c src/data/liberation_vgm.c
     src/data/amos_sprite.c
     src/data/rnc_decoder.c
@@ -791,7 +791,7 @@ target_include_directories(liberation_vgm_verify PRIVATE ${CMAKE_SOURCE_DIR}/inc
 target_link_libraries(liberation_vgm_verify PRIVATE ZLIB::ZLIB)
 
 add_executable(amos_sprite_dump tools/amos_sprite_dump.c src/data/amos_sprite.c
-    src/data/data_vfs.c src/data/amiga_ofs.c src/data/iso9660_reader.c src/data/liberation_data.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
+    src/data/data_vfs.c src/data/amiga_ofs.c src/data/iso9660_reader.c src/data/liberation_data.c src/data/liberation_cte.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c src/data/rnc_decoder.c src/data/sha256.c)
 target_include_directories(amos_sprite_dump PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(amos_sprite_dump PRIVATE ZLIB::ZLIB)
@@ -821,7 +821,7 @@ add_executable(captive_runtime_render tools/captive_runtime_render.c
 target_include_directories(captive_runtime_render PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 add_executable(dump_pge tools/dump_pge.c
-    src/data/liberation_data.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
+    src/data/liberation_data.c src/data/liberation_cte.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c src/data/rnc_decoder.c
     src/data/iso9660_reader.c src/data/data_vfs.c
     src/data/amiga_ofs.c src/data/sha256.c
@@ -830,7 +830,7 @@ target_include_directories(dump_pge PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(dump_pge PRIVATE ZLIB::ZLIB)
 
 add_executable(dump_plotgen tools/dump_plotgen.c
-    src/data/liberation_data.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
+    src/data/liberation_data.c src/data/liberation_cte.c src/data/liberation_text_table.c src/data/liberation_fnt.c src/data/liberation_string_tables.c
     src/data/liberation_anim.c src/data/rnc_decoder.c
     src/data/iso9660_reader.c src/data/data_vfs.c
     src/data/amiga_ofs.c src/data/sha256.c)
