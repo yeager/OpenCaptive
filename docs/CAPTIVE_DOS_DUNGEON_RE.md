@@ -84,3 +84,16 @@ stored. Consequence for the native engine:
   level-init to recover the generation algorithm), then reimplement in C.
 This is the concrete multi-session path; milestone 1's static analysis is done
 (map format, cells, access, render, post-process, and generation-is-procedural).
+
+## Dynamic-tracing environment ready (for the generator pass)
+DOSBox-X 2026.07.02 (at /opt/homebrew/bin/dosbox-x) has the heavy debugger
+(`-break-start` breaks into the interactive debugger at startup). This is an RE
+TOOL only — never shipped inside OpenCaptive. Captive DOS files extracted for RE
+at /Volumes/Extern-disk/opencaptive-re/captive_run/ (CAPPO.EXE + CAPICS/*.PL5).
+Generator-trace recipe (next pass): launch CAPPO under dosbox-x -break-start,
+set a memory-write breakpoint on the map at DS:7CB3 (BPM), continue, drive CAPPO
+past character creation into the first dungeon so a level generates, and when the
+breakpoint fires read the code address writing the map -> the procedural
+generator; backtrace to the level-init/seed. Then reimplement in C from the
+recovered algorithm. This is an interactive, multi-turn RE pass; environment and
+recipe are set up so it can be driven directly.
