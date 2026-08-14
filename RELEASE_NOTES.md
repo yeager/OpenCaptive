@@ -1,5 +1,22 @@
 # OpenCaptive Release Notes
 
+## v1.1.140 (2026-08-14)
+
+### Fixed
+
+- **Startup:** the "Missing Game Data" dialog now distinguishes the two real
+  causes so users can act: **no archives found** in the folder (files not placed
+  yet, still copying, or the app cannot read the folder — e.g. macOS folder
+  access) versus **archives found but none contain the verified content** (wrong
+  edition or an incomplete copy). Previously both showed the same generic
+  message. Verified that the current build loads a minimal real data set
+  (Captive_DOS_EN.zip + the Liberation CD32 disc-image zip) — Captive DOS and
+  Liberation both verify and render — so a correct, complete `~/.opencaptive`
+  starts the game; the old generic dialog most often appeared when the 443 MB
+  Liberation image had not finished copying at launch.
+
+# OpenCaptive Release Notes
+
 ## v1.1.139 (2026-08-14)
 
 ### Added

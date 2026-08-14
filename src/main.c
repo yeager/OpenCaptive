@@ -967,19 +967,37 @@ static void show_missing_liberation_data_dialog(const char *data_path) {
         "OpenCaptive - Liberation data not found", msg, NULL);
 }
 
-static void show_missing_data_dialog(const char *data_path) {
-    char msg[1024];
+static void show_missing_data_dialog_diag(const char *data_path, int num_zips) {
+    char msg[1200];
+    /* Distinguish the two very different failure causes so users can act:
+     * an empty/unreadable folder (files not placed, or the app cannot read the
+     * folder) vs. archives present that do not contain the verified content. */
+    char diag[256];
+    if (num_zips <= 0) {
+        snprintf(diag, sizeof(diag),
+            "No game archives were found in that folder.\n"
+            "Make sure your Captive/Liberation ZIP files are placed there and\n"
+            "the app is allowed to read it (macOS may block folder access).\n\n");
+    } else {
+        snprintf(diag, sizeof(diag),
+            "Found %d archive(s) there, but none contained the verified content.\n"
+            "The files may be incomplete (still copying?) or a different edition.\n\n",
+            num_zips);
+    }
     snprintf(msg, sizeof(msg),
         "Game data files not found!\n\n"
         "OpenCaptive requires the original Captive game data to run.\n\n"
         "Expected location:\n  %s\n\n"
-        "Place your Captive game files there, or use:\n"
-        "  --data <path>  to specify a different location.\n\n"
-        "Required content is identified by SHA-256 manifests, not filenames.\n\n"
-        "You can also change the data path in Settings.",
-        data_path);
+        "%s"
+        "Required content is identified by SHA-256 manifests, not filenames.\n"
+        "You can set a different folder with --data <path> or in Settings.",
+        data_path, diag);
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
         "OpenCaptive - Missing Game Data", msg, NULL);
+}
+
+static void show_missing_data_dialog(const char *data_path) {
+    show_missing_data_dialog_diag(data_path, -1);
 }
 
 static bool load_intro_anm(const DataVFS *vfs, ANMAnimation *anim) {
@@ -3400,13 +3418,13 @@ int main(int argc, char *argv[]) {
      * do not seed the former generated dungeon beneath them. */
     if (start_directly && requested_game == GAME_CAPTIVE) {
         if (!validate_data_path(&vfs)) {
-            show_missing_data_dialog(config.data_path);
+            show_missing_data_dialog_diag(config.data_path, vfs.num_zips);
             capture_failed = capture_frame_path != NULL;
         } else if (!textures_loaded) {
             /* The startup hash set is a fast identity gate.  The renderer
              * still needs every decoded PL5 surface before attaching a live
              * emulator session. */
-            show_missing_data_dialog(config.data_path);
+            show_missing_data_dialog_diag(config.data_path, vfs.num_zips);
             capture_failed = capture_frame_path != NULL;
         } else if (!captive_dos_memory_active && !capture_frame_path) {
             /* Interactive Captive belongs to the original DOS runtime.  The
@@ -3704,12 +3722,12 @@ int main(int argc, char *argv[]) {
                             vfs_free(&vfs);
                             vfs_init(&vfs, config.data_path);
                             if (!validate_data_path(&vfs)) {
-                                show_missing_data_dialog(config.data_path);
+                                show_missing_data_dialog_diag(config.data_path, vfs.num_zips);
                                 break;
                             }
                             textures_loaded = reload_captive_assets(&atlas, &vfs, &hud_bg, &shop_bg);
                             if (!textures_loaded) {
-                                show_missing_data_dialog(config.data_path);
+                                show_missing_data_dialog_diag(config.data_path, vfs.num_zips);
                                 break;
                             }
                             {
