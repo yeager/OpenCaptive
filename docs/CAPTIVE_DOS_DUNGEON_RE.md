@@ -69,3 +69,18 @@ for a native map source: pin the generator (dynamic trace, or emulate the
 level-init), reimplement it in C, then state/movement/monsters/combat and wire to
 captive_view_window + compositor. This is a genuine multi-session engine build;
 milestone 1 (map format + access + render + post-process) is largely mapped.
+
+## Confirmed: dungeon is procedurally generated (no level data files)
+The Captive DOS archive contains ONLY graphics (CAPICS/*.PL5: WALLA-E, DOORS1/2,
+OBJECTS, ROOFS, ALIEN1-6, SHOP1/2, ICONS, GAMESCRN), animations (ANIMS/*.ANM),
+sound (SOUND/*.MID), and the executables — NO level/map data files. So Captive's
+dungeon (its famous ~65000 levels) is PROCEDURALLY GENERATED from a seed, not
+stored. Consequence for the native engine:
+- The wall/door/object GRAPHICS are in the archive and read directly (good).
+- The MAP LAYOUT must come from reimplementing CAPPO's procedural generator,
+  which is behind computed dispatch (no static caller) -> requires DYNAMIC
+  tracing (run CAPPO under a debugger AS AN RE TOOL — never inside OpenCaptive —
+  breakpoint the map post-processor FUN_4661 / the map fill, and backtrace the
+  level-init to recover the generation algorithm), then reimplement in C.
+This is the concrete multi-session path; milestone 1's static analysis is done
+(map format, cells, access, render, post-process, and generation-is-procedural).
