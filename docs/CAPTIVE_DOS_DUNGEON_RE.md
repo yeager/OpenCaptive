@@ -97,3 +97,17 @@ breakpoint fires read the code address writing the map -> the procedural
 generator; backtrace to the level-init/seed. Then reimplement in C from the
 recovered algorithm. This is an interactive, multi-turn RE pass; environment and
 recipe are set up so it can be driven directly.
+
+## Dynamic-trace attempt blocked (2026-08-14)
+Attempted the generator trace: launched CAPPO under DOSBox-X (RE tool, via a
+.app wrapper so computer-use can observe it) and tried to run it. Obstacle:
+synthetic keyboard input to DOSBox-X does not register reliably via computer-use
+(typed characters do not reach the emulator; only bare Return gets through), so
+CAPPO cannot be driven to a level, and the interactive debugger cannot be
+commanded (BPM etc.). So BOTH paths to the generator are currently blocked for
+autonomous execution: static = computed-dispatch wall (no caller); dynamic =
+can't drive the emulator's keyboard. Options to unblock next pass: (a) DOSBox-X
+with a scripted/mapper input file or a debugger command script (-c / a debugger
+startup script) instead of live keystrokes; (b) the user drives CAPPO to a level
+and I read the memory/backtrace; (c) heavier static analysis of the level-init
+dispatch table. Milestone-1 static analysis stands complete regardless.
