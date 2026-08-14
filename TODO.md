@@ -470,13 +470,17 @@ they are left explicit rather than half-invented.
       - [x] CTE section parser (`liberation_cte.c`, v1.1.131) — the binary
             `<id> 0x00 <len> [content]` framing is reverse-engineered and the
             real sections are addressable and tested.
-      - [ ] CTE bytecode interpreter: expand a section's ~40 `^X`/`^F` opcodes
-            (variant `^XO`, case `^XC`, conditionals on live state `^XI`, jumps
-            `^XG`/`^XS`, string/section refs). Must read the game's real state
-            (mission class, reputation, inventory, gold, flags) so conditionals
-            evaluate correctly — a partial interpreter would emit the wrong
-            branch, i.e. real text in the wrong context, which is worse than the
-            documented boundary. Do not wire until it is complete and correct.
+      - [ ] CTE bytecode interpreter (in progress — RE located, build pending).
+            The authentic interpreter is disassembled and mapped in
+            `docs/LIBERATION_CTE_INTERPRETER_RE.md`: dispatch at 0xa29a, `^XI`
+            conditionals at 0x7b54, state base register `%a5`, flag word at
+            `%a5@(0x68de)`, building record at `%a5@(0x68e0)`, plus dozens of
+            state fields at fixed `%a5` offsets. Building a faithful interpreter
+            means modelling those state fields AND every place the rest of the
+            225 KB binary writes them (mission/reputation/inventory/plot flags)
+            — a reverse-engineering of Liberation's whole interaction state
+            machine, done in full before wiring, since a partial model emits the
+            wrong branch (real text, wrong context).
       - [ ] Map the game's building interactions to the correct CTE entry
             points and route the overlay through the interpreter, replacing the
             invented nodes.
