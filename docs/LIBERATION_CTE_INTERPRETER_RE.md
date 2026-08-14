@@ -304,3 +304,18 @@ through the CTE with that mc — NOT adding a bank BuildingType. The generic
 building services (mc 0–9) are the part that maps to the current random
 buildings. NEXT: locate where named-NPC professions (person+8 in the 0x1d96(a5)
 people list) are assigned, to place bank/repair NPCs faithfully.
+
+## Static analysis limit — dynamic analysis needed to close the record layout
+The exact building-record layout (what `record+2` holds, how the category that
+feeds `0xa738` is generated) cannot be closed statically: the building-record
+functions are jump-table dispatched with no direct callers (0xc800 type-gen sets
+record[1]=type|randbit and record[0]=0x80; the category bits-2-5 live in
+record+3; the interacted building is swapped through 0x7e42(a5)↔0x68e0(a5) at
+0x7288). r2 static tracing keeps stopping at the indirect dispatch, and my
+intermediate layout assumptions have needed correction. The reliable close is
+DYNAMIC: run the game under an m68k debugger (FS-UAE/vAmiga) or the DOS build
+under DOSBox-X debug, breakpoint the read at 0xa1a2 (`word[0x6890(a5)+8]`) and
+the write to that record+8 during a real bank/shop interaction, and read the
+live values + backtrace. That yields the category→mc map empirically without
+guessing. SOLID regardless: mc read = word[0x6890(a5)+8]+3; bank/repair are
+named NPCs (proven); 0xd444 is the PRNG; 0xa738 decode modeled.
