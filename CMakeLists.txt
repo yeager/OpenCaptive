@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.138 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.139 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -100,6 +100,7 @@ set(OPENCAPTIVE_SOURCES
     src/game/liberation_bar.c
     src/game/liberation_building_interact.c
     src/game/liberation_descriptions.c
+    src/game/liberation_service_mc.c
     src/game/liberation_city_text.c
     src/game/liberation_combat.c
     src/game/liberation_npc_dialogue.c
@@ -610,6 +611,9 @@ target_include_directories(test_renderer_map PRIVATE ${CMAKE_SOURCE_DIR}/include
 target_link_libraries(test_renderer_map PRIVATE SDL3::SDL3 ${MATH_LIBRARY})
 add_test(NAME renderer_map COMMAND test_renderer_map)
 
+add_executable(test_liberation_service_mc tests/test_liberation_service_mc.c src/game/liberation_service_mc.c)
+target_include_directories(test_liberation_service_mc PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME liberation_service_mc COMMAND test_liberation_service_mc)
 add_executable(test_liberation_cte tests/test_liberation_cte.c src/data/liberation_cte.c)
 target_include_directories(test_liberation_cte PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME liberation_cte COMMAND test_liberation_cte)

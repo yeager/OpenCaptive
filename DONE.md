@@ -1,5 +1,17 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (Recovered mc-derivation as tested code, v1.1.139)
+
+- Installed Ghidra 12.1.2 headless, which resolved the jump-table dispatch that
+  blocked radare2 and let the decompiler CONFIRM (independently of the earlier
+  arithmetic proof) that bank/repair are named NPCs and pin the generic-service
+  formula: mc = 0xa738(interaction_record[byte 5]) + 3.
+- Implemented that recovered decode as tested C (liberation_service_mc), the
+  first implementation step toward authentic building transaction dialogue.
+  Unit-tested: real category bytes yield only mc 0-9, never bank(13)/repair(16,18).
+
+# OpenCaptive — Completed work
+
 ## 2026-08-14 (Authentic clues in library/records, v1.1.138)
 
 - The library archives and City Records Office lookup now deliver authentic

@@ -1,5 +1,23 @@
 # OpenCaptive Release Notes
 
+## v1.1.139 (2026-08-14)
+
+### Added
+
+- **(Liberation)** `liberation_service_mc` — the reverse-engineered
+  generic-building-service `mc` derivation, implemented as tested C. The
+  CITY_TEXT (CTE) conversation script branches on `mc` to pick a building's
+  service dialogue; recovered from the game binary (radare2 + Ghidra decompiler,
+  function 0xa738), a generic building's `mc` is `0xa738(category_byte) + 3`.
+  This module implements that decode and is unit-tested to yield only the
+  generic-service range (mc 0-9) and never a named-NPC profession — the property
+  that proved bank/repair are named NPCs, not building categories. This extracts
+  real game logic into code (permitted: the purpose is to reproduce authentic
+  behaviour), the first implementation step toward wiring authentic building
+  transaction dialogue.
+
+# OpenCaptive Release Notes
+
 ## v1.1.138 (2026-08-14)
 
 ### Changed
