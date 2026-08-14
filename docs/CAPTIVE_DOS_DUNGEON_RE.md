@@ -229,3 +229,24 @@ seeded maze), OR snapshot DS:0x5E6A..0x995C once after a level is entered to
 capture the real map+field for validation. captive_dos_generator.c already
 reproduces the carve/render/layout faithfully; only the seeded direction-field
 fill remains for byte-exact per-level dungeons.
+
+## CORRECTION: role of 0x46cc is unconfirmed (2026-08-14) — honesty note
+Do NOT over-read the earlier "drunkard's-walk GENERATOR" framing. New evidence:
+- The map (0x7CB3) and field (0x84D3) are filled by NO stosb and NO absolute
+  write in code segment 0 (a full opcode scan for mov [imm16] and rep stos into
+  [0x7CB3..0x8CD3] finds only 4 single-cell pokes at 0x83C3/0x83FA/0x88B8).
+  So the map is only ever written cell-by-cell by the stamp writer 0x4736.
+- 0x46CC and 0x4749 are entries in FUNCTION-POINTER DISPATCH TABLES in DGROUP
+  (0x46CC at DS:0xCAFD; 0x4749 in six table slots at DS:~0xAE09.. etc). They are
+  dispatched by type/index, not called linearly from the new-level driver.
+Therefore 0x46CC is a table-dispatched handler whose ROLE (level generator vs.
+per-entity/creature walk that reveals-or-carves as it moves vs. a cell-type
+handler) is NOT yet confirmed. What IS confirmed and faithfully transcribed:
+the map-mutation PRIMITIVES — stamp writer 0x4736 (map[i]=(map[i]&0x80)|0x26,
+bounds 64x32), plus-brush 0x4706..472A, post-processor 0x4661, cardinal deltas
+DS:0x5E18/0x5E20, index (y<<6)+x, and the holomap wall test (>0x1A at 0xBAF4).
+src/data/captive_dos_generator.c transcribes those primitives correctly; it does
+NOT assert they constitute the whole level generator. Confirming 0x46CC's role
+needs either resolving the DGROUP dispatch table at DS:0xCAFD (what indexes it)
+or one runtime observation. This correction supersedes the "generator algorithm
+recovered" heading's implication that 0x46CC is definitively the level builder.
