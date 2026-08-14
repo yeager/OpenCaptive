@@ -250,3 +250,25 @@ NOT assert they constitute the whole level generator. Confirming 0x46CC's role
 needs either resolving the DGROUP dispatch table at DS:0xCAFD (what indexes it)
 or one runtime observation. This correction supersedes the "generator algorithm
 recovered" heading's implication that 0x46CC is definitively the level builder.
+
+## RIGOR NOTE: dispatch-table claim retracted; limits of flat seg-0 analysis
+Retract the "0x46CC is a DGROUP dispatch handler at DS:0xCAFD" claim from the
+previous section: 0x46CC occurs at file 0x1AEED = DS:0xCAFD, an ODD offset that
+straddles two entries of a word-aligned table whose real entries are cbXX/ccXX
+addresses — i.e. a coincidental byte match, not a pointer. Likewise several of
+the 0x4749 "table" hits are at odd offsets and are unreliable.
+Rigorous conclusion: in code segment 0, 0x46CC has NO confirmed caller (no near
+CALL, no clean word-aligned pointer entry). It is therefore reached from the
+SECOND code segment (the image is >64KB: DGROUP occupies para 0x0E3F..~0x1E3F,
+and there is code after it at file >0x1E3F0 that a flat CS=0 disassembly does
+NOT decode correctly), or by computed/far dispatch. The same segment-2 code is
+the most likely home of the direction-field (0x84D3) seed fill, which is absent
+from segment 0.
+WHAT REMAINS SOLID (unaffected by the above): the transcribed map-mutation
+primitives in captive_dos_generator.c (stamp 0x4736, brush 0x4706, post-proc
+0x4661, deltas 0x5E18/0x5E20, index (y<<6)+x, bounds, wall test >0x1A at 0xBAF4)
+— each verified against the original bytes and unit-tested. Confirming the
+driver/role and the seed requires correctly disassembling the second code
+segment (relocate to its real load segment, then analyse) or one runtime
+snapshot of DS:0x5E6A..0x995C after a level is entered. Next concrete static
+step: carve segment 2 out of the image and disassemble it as its own segment.
