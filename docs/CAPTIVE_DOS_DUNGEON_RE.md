@@ -186,3 +186,26 @@ the initial pos word[0x931a] — i.e. the RNG/seed feeding the walk. Next: find
 where DS:0x84D3 and word[0x931a] are initialised (the "new level" entry), and
 what seeds the RNG (level number vs timer). Then the C generator can reproduce
 CAPPO's exact per-level maze.
+
+## Data layout + the parallel direction field (2026-08-14 cont.)
+The dungeon state is three parallel per-cell/lookup arrays in DGROUP (para 0x0e3f):
+- DS:0x7CB3  the 64x32 map (2048 bytes) — cell values, walk stamps 0x26.
+- DS:0x84D3  a 64x32 DIRECTION FIELD (2048 bytes, 0x20 past the map end). The
+  walker (0x4764) reads byte[index + 0x84D3] (encoded as [bx-0x7b2d]) to choose
+  its next step direction. This is the maze "flow field": whoever fills it IS
+  the seed-bearing generator.
+- DS:0x7C2F  16-entry x 6-byte teleporter/link table (on-enter code 0x36).
+Walk start: 0x7148 sets word[0x931a] (walk pos) = word[0x5e95] (current pos),
+word[0x931c]=0x64 (throttle primed to act at once), word[0x931e]=1 — i.e. a
+"begin carving from here" trigger gated by dx in [0x5c,0x76] and byte[0x92cf]
+== 0x1b.
+
+Nothing in code segment 0 writes DS:0x84D3 by immediate (searched bf/bb/be d3
+84 -> none), so the direction-field fill lives in another code segment (image is
+>64KB / multi-segment) or uses computed addressing. THAT fill + its RNG seed is
+the single remaining unknown for byte-exact per-level reproduction. Two ways to
+close it next: (a) disassemble the later code segments (file offset >0x10000)
+for the routine that stosb-fills a 2048-byte region at DS:0x84D3; (b) one memory
+snapshot of DS:0x84D3 + word[0x931a] right after a level is entered, to validate
+a reconstructed fill. Everything else in the map subsystem is recovered and, for
+the carve/render/layout parts, transcribed to tested C in captive_dos_generator.c.
