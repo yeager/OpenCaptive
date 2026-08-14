@@ -76,9 +76,16 @@ static void build_generic_dialogue(BuildingInteraction *bi, const char *building
         case INTERACT_POLICE: {
             if (!have_real) snprintf(greeting, sizeof(greeting),
                      _("This is the %s police station. State your business."), building_name);
-            unsigned report = dialogue_tree_add_text(tree, npc,
-                _("We have reports of suspicious activity in the industrial district. "
-                  "Stay alert out there."), exit_node);
+            /* The "information" the desk passes on is one of the game's
+             * authentic clue quotes; the invented briefing is the no-data
+             * fallback only.  The fine mechanics below are unaffected. */
+            char report_text[DIALOGUE_MAX_TEXT];
+            if (!liberation_city_text_clue((uint32_t)bi->building_index + 7u,
+                                           report_text, sizeof(report_text)))
+                snprintf(report_text, sizeof(report_text), "%s",
+                    _("We have reports of suspicious activity in the industrial district. "
+                      "Stay alert out there."));
+            unsigned report = dialogue_tree_add_text(tree, npc, report_text, exit_node);
             unsigned fine_node = dialogue_tree_add_text(tree, npc,
                 _("You have been fined 100 gold for disturbing the peace."), exit_node);
             bi->fine_node = (int)fine_node;

@@ -1,5 +1,16 @@
 # OpenCaptive Release Notes
 
+## v1.1.137 (2026-08-14)
+
+### Changed
+
+- **(Liberation)** Extended the authentic-clue wiring to the police station's
+  "Ask for information" response, which previously showed an invented briefing.
+  It now delivers a real clue quote (same `liberation_city_text` provider, with
+  the no-data fallback preserved). The fine mechanics and mission logic are
+  unchanged. Shop, bar, residence, and police informational lines now all
+  surface authentic Liberation clue text instead of synthetic rumor.
+
 ## v1.1.136 (2026-08-14)
 
 ### Added

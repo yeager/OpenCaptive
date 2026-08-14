@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (Extend authentic clues to police info, v1.1.137)
+
+- The police "Ask for information" response now delivers a real CTE clue quote
+  instead of the invented briefing (same liberation_city_text provider, no-data
+  fallback preserved). Fine mechanics and mission logic untouched. Shop, bar,
+  residence, and police informational lines now all show authentic clue text.
+- Build + all 66 tests pass.
+
 ## 2026-08-14 (Wire authentic CTE clues on-screen, v1.1.136)
 
 - First on-screen wiring of authentic CTE dialogue. Added
