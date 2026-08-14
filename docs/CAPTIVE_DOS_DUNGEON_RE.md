@@ -445,3 +445,22 @@ or (c) provide the 0040:00F0 params FILEPLAY passes. Then drive 0x4284 + ticks a
 read DS:0x7CB3. The Unicorn harness (opencaptive-re/emu_common.py + emu_tick.py)
 already executes the real code headlessly and correctly (RNG + phase machine
 verified), so this is now pure RE of the template stage — no user input, no GUI.
+
+## EXHAUSTIVE autonomous sweep (2026-08-14): generator is parameterized, not a bare call
+Ran emu_sweep.py: after 0x4284 init, snapshot memory, then call EACH of the 853
+near-call targets in code segment 0 (memory restored between calls) and check
+whether the map at DS:0x7CB3 gains a template (>50 cells in 0x1A..0x6F). Result:
+ZERO hits. So no single function, invoked from the initialized state with no
+arguments, generates a dungeon. Combined with the trace result (only 0x49E3
+clears the map during normal ticks), this exhaustively establishes that Captive's
+maze generator is PARAMETERIZED and STATE-DRIVEN: it fires only from the
+probe-entry flow with the right inputs (the level/probe params GM/FILEPLAY pass
+via BIOS comm area 0040:00F0, plus the base/probe game state and mode transition
+through word[0x8D5B]). It is not reachable by a bare call.
+CONSEQUENCE: producing a real generated level autonomously now requires supplying
+those inputs — i.e. reconstructing the probe-entry parameter setup (which level
+number, the 0040:00F0 bytes, the mode handler value, entry coords 0x8CF5/0x8CF7)
+and then running the tick loop. That is a bounded but genuinely multi-session RE
+task. Tools are all in place (emu_common.py harness executes real code + traces
+map writes; captive_dos_map_to_level renders the result). The fast alternative
+remains one user-driven capture (capsnap/ pipeline) of a real level.
