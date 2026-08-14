@@ -489,9 +489,23 @@ they are left explicit rather than half-invented.
             66/198 sections now emit authentic text under an empty state,
             including the game's real clue quotes. Remaining sections gate on
             flags/menus (next step).
-      - [ ] Map each `^XI` condition variable (`mc`, `v`, `g`, `s`, `H`, `I`,
-            `K`, `E`, …) to its `%a5@(offset)` state field by tracing the
-            binary's writers, then model the needed subset in the runtime.
+      - [x] Expand `^XM` player menus (v1.1.134). `^XM[...]` holds the player's
+            spoken choices (bank/police/business menus) — authentic text, now
+            emitted. Authentic-text sections rose 66 → **188/198**. Confirmed
+            from data: zc=1 male / zc=0 female. Dialogue topology mapped:
+            14000=bank, 17000=police, 300-331=clue quotes, 40000-band=main
+            (mc-gated), 19999/29999=letter→id dispatch into 20000/30000 bands.
+      - [ ] **Master gate = `mc` (building/NPC category).** CTE `mc` uses ~18
+            values (0,3,4-13,16-18,20-22) — a FINER space than the reconstructed
+            `BuildingType` enum (0-8, liberation_citygen.h). So `mc` is the
+            ORIGINAL category code; do NOT assume mc==BuildingType. Derive the
+            authentic mc→category mapping from the CityGen resource (which
+            assigns each building its category) or the binary before wiring.
+      - [ ] Map each remaining `^XI` variable (`v`, `g`, `s`, `H`, `I`, `K`,
+            `E`, …) to its game-state field. Needs a recursive-descent
+            (Ghidra-class) disassembly of the Amiga CODE hunk — linear
+            m68k objdump is unreliable through the data/jump-table regions.
+            An all-zero state already yields correct first-encounter dialogue.
       - [ ] Map the game's building interactions to the correct CTE entry
             points and route the overlay through the interpreter, replacing the
             invented nodes.
