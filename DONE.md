@@ -1,5 +1,18 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (Liberation bar drink label, v1.1.130)
+
+- Replaced the invented bar drink brand names (Synthi-Ale, Neuro-Fizz,
+  Grav-Tonic, Plasma Punch...) with the factual label "Drink". The original
+  Liberation bar has no drink menu in the data at all, but the purchasable items
+  cannot simply be deleted: buying one drives a real gameplay mechanic (a seeded
+  chance to start a bar fight, which feeds reputation and the police fine flow,
+  covered by test_bar_fight_uses_seeded_quarter_chance). So the fabricated lore
+  names are stripped while the mechanic is preserved. Whether the bar should
+  have a drink shop at all is a remaining owner design decision.
+- (An attempt to remove the drink shop entirely was reverted once its bar-fight
+  dependency surfaced — that is a feature change, not a data fix.)
+
 ## 2026-08-14 (Liberation real enemy designation, v1.1.129)
 
 - Replaced the eight invented combat enemy names (Guard, Soldier, Enforcer,

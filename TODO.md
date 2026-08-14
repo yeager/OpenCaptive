@@ -476,14 +476,14 @@ they are left explicit rather than half-invented.
       per-enemy name table in the data — the original enemies are security
       droids. The combat STATS remain a self-declared approximation until the
       Liberation combat formula is decoded (numbers, not fabricated lore).
-- [ ] **Bar drink menu** (`liberation_shop.c` `bar_item_names` + the
-      `lib_shop_generate_bar_menu` shop, and STATE_BAR's guessing game). This is
-      an INVENTED GAMEPLAY FEATURE, not synthetic data standing in for real
-      data: the original Liberation bar is only a location you enter (its real
-      room description is now shown, v1.1.128) — it has no drink-buying menu in
-      the game data at all. Removing the invented drink shop is a design call
-      for the owner (it has established tests and a "drinks consumed" mechanic),
-      so it is left explicit rather than ripped out.
+- [x] **Bar drink names** — DONE (v1.1.130). The invented brand names
+      (Synthi-Ale, Neuro-Fizz…) are replaced with the factual label "Drink". The
+      original bar has no drink menu in the data, but the purchasable items
+      drive a real gameplay mechanic — buying a drink has a seeded chance to
+      start a bar fight (reputation/police). Removing the shop outright would
+      break that chain (test_bar_fight_uses_seeded_quarter_chance), so the fix
+      strips the fabricated lore while keeping the mechanic. Whether Liberation
+      bars should have a drink shop at all remains an owner design call.
 - [ ] **Dead fabricated modules** still compiled into the binary though never
       called: `liberation_cutscene.c` (invented `cs_font`, mission-intro text,
       procedural starfield, credits) and `liberation_npc.c`'s solid-colour NPC

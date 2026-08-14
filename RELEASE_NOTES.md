@@ -1,5 +1,19 @@
 # OpenCaptive Release Notes
 
+## v1.1.130 (2026-08-14)
+
+### Changed
+
+- **(Liberation)** Bar items show the factual label "Drink" instead of invented
+  brand names (Synthi-Ale, Neuro-Fizz, Grav-Tonic…). The original bar has no
+  drink menu in the data; the items remain only because buying one drives the
+  real bar-fight mechanic, so the fabricated lore is removed while the mechanic
+  is preserved.
+
+### Removed
+
+None.
+
 ## v1.1.129 (2026-08-14)
 
 ### Changed

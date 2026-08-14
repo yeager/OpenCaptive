@@ -20,10 +20,10 @@ static const uint8_t shop_item_ids[] = {
     11, 55, 49, 8, 43, 11, 5, 56,
 };
 
-static const char *bar_item_names[] = {
-    "Synthi-Ale", "Neuro-Fizz", "Grav-Tonic", "Plasma Punch",
-    "Ion Brew", "Dark Matter", "Quasar Shot", "Nebula Wine",
-};
+/* The original Liberation bar is only a location with no drink menu in the game
+ * data, so there are no authentic drink names to use.  The bar-fight mechanic
+ * still needs purchasable items, so they carry the factual label "Drink" rather
+ * than invented brand names (Synthi-Ale, Neuro-Fizz…). */
 
 void lib_shop_init(LibShopState *shop, const CityBuilding *building, uint16_t seed) {
     if (!shop || !building) return;
@@ -68,8 +68,10 @@ void lib_shop_generate_bar_menu(LibShopState *shop) {
     shop->item_count = 0;
     for (int i = 0; i < count; i++) {
         LibShopItem *item = &shop->items[shop->item_count++];
+        /* Consume the roll that used to pick an invented brand name so the
+         * item_type marker and prices are unchanged, then use a factual label. */
         unsigned name_idx = shop_prng(&state) % 8;
-        snprintf(item->name, sizeof(item->name), "%s", bar_item_names[name_idx]);
+        snprintf(item->name, sizeof(item->name), "%s", _("Drink"));
         item->price = 5 + (shop_prng(&state) % 20);
         item->item_type = (uint16_t)(name_idx + 100);
         item->quantity = 10;
