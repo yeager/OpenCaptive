@@ -485,3 +485,22 @@ reconstructing that base/probe navigation flow (large, multi-session) OR one
 user-driven level capture (capsnap/ pipeline, built + proven). All other pieces
 (RNG, carve primitives, data layout, render converter, execution harness) are
 done and tested.
+
+## Rendering + input injection (2026-08-14): game seen at probe UI; multi-step gate
+Extended the Unicorn harness to render CAPPO's framebuffer and inject input:
+- CAPPO renders to an off-screen buffer at seg 0xB000 (~26k nonzero bytes). A
+  linear 4bpp decode shows a status/panel row + the text "CAPTIVE" and a GRID at
+  the bottom — i.e. the game is sitting at its pre-dungeon probe/mission selection
+  screen (evidence: opencaptive-re/cappo_b000_linear.png). The dungeon map at
+  DS:0x7CB3 is empty, confirming no dungeon is entered.
+- Implemented INT 33 mouse (reset/get-pos/get-press) and swept button-1 clicks
+  across the whole grid region (x 110..300, y 120..195, press+release each). The
+  map stayed empty at every position: blind clicks do NOT launch a probe.
+CONCLUSION (now proven with the game running, rendering, AND receiving injected
+input): reaching a dungeon requires the specific MULTI-STEP probe-launch UI
+sequence (select probe/target/confirm), which cannot be reproduced blind. The
+harness can now run + render + drive CAPPO, so the remaining autonomous path is
+to decode the 0xB000 framebuffer format precisely, read the UI state, and script
+the exact probe-launch interaction — a bounded but multi-session task. The fast
+alternative is unchanged: one user-driven capture via capsnap/. All non-interactive
+pieces (RNG, primitives, layout, render converter, harness) are done and tested.
