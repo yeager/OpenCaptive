@@ -504,3 +504,22 @@ to decode the 0xB000 framebuffer format precisely, read the UI state, and script
 the exact probe-launch interaction — a bounded but multi-session task. The fast
 alternative is unchanged: one user-driven capture via capsnap/. All non-interactive
 pieces (RNG, primitives, layout, render converter, harness) are done and tested.
+
+## ROOT CAUSE of input gate (2026-08-14): CAPPO is driven by hardware ISRs, not INT polling
+Instrumented every software interrupt during the main loop: CAPPO makes ZERO
+INT 33/INT 16/INT 21 calls while running at 0x4404. It does not poll input via
+BIOS/DOS interrupts. Instead it installs its OWN hardware ISRs at boot (INT 9
+keyboard reading port 0x60 directly; the timer INT 8/1C; the mouse IRQ) and the
+main loop waits on flags those ISRs set. A headless Unicorn run never raises
+hardware interrupts, so no key/mouse input ever reaches the game — which is the
+true reason blind INT 16/INT 33 injection and mouse sweeps did nothing.
+PRECISE REMAINING MECHANISM to drive CAPPO autonomously: (1) read the installed
+INT 9 vector at 0000:0024 and periodically INVOKE that handler with a scancode
+staged for its `in al,0x60` (delivering real keypresses); (2) likewise drive the
+mouse handler; (3) then reverse the exact navigation sequence (title -> new game
+-> probe select -> land) that reaches a dungeon, using the framebuffer render to
+read UI state. Each is bounded but together they are genuinely multi-session
+(it is effectively building the input/interrupt layer of an emulator plus
+reversing Captive's front-end flow). The harness already runs + renders CAPPO, so
+this is the concrete continuation. Fast alternative unchanged: one user-driven
+capsnap capture. All non-interactive engine pieces remain done and tested.
