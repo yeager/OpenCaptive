@@ -305,3 +305,24 @@ Transcribed to tested C (captive_dos_generator.c): captive_gen_rng_next
 post-proc/deltas/index/bounds primitives. NEXT (task #7): assemble the full
 phase machine (room carve + throttled walk) into a deterministic C generator and
 wire its map into captive_view_window + the compositor.
+
+## Multiple map systems; the RNG feeds entity "diggers" (2026-08-14)
+Clarification after tracing where the RNG direction (0x4605) is consumed: it is
+called from 0x4561/0x45CC/0x45D5, all inside the ENTITY update 0x454A — NOT the
+maze walk. So randomness drives 8 entities (records at DS:0x5EB7, stride 6:
+word=pos, byte+4=dir, byte+5=state), updated in the 8x loop at 0x4503. Each
+entity: takes/refreshes an RNG direction, moves (0x6284), and where it lands on
+a cell of type 0x20/0x60 it rewrites it to 0x1E (byte[di]=(byte[di]&0x81)|0x1E);
+blocked terrains 0xFF/0xFE/0xFA/0x28/0x36 make it repick a direction. These are
+random-walking "diggers".
+So at least THREE systems mutate the 64x32 map: (1) the phase machine
+(0x4610: 5x5 room carve + drunkard walk stamping 0x26, driven by word[0x931E]);
+(2) the 8 RNG diggers (0x454A stamping 0x1E); (3) the on-enter cell handlers
+(0x478C). Disentangling which of these is "initial level generation" vs. runtime
+creature/gameplay behaviour is the remaining RE work, together with the still-
+unlocated fill of the walk's direction field DS:0x84D3.
+SOLID + TESTED so far: the RNG (LCG 0x5E5/0x29) and its direction extraction,
+the carve/brush/post-proc primitives, deltas, index, bounds, wall test, and the
+full data layout + generator lifecycle map. These are real, verified building
+blocks; a byte-exact whole-dungeon generator additionally needs the three
+systems disentangled (or one runtime snapshot of DS:0x5E6A..0x995C to anchor it).
