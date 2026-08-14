@@ -1,5 +1,32 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (Liberation real font + real shop names, v1.1.127)
+
+- Eliminated the two Liberation synthetic-display violations where authentic
+  data was already available and decodable:
+  - The real 114-glyph 0Liberation.FNT had been decoded and hash-bound since
+    v1.1.98 but never rendered. Resolved the two-bitplane blocker by inspecting
+    the glyph data (plane0 = ink letterform, plane1 = outline), added
+    fnt_blit_glyph/fnt_blit_text, and routed the live building-interaction text
+    through it. Real lowercase now renders; the invented simple_font stays only
+    as an Amiga-floppy fallback.
+  - The shop mapped real Captive item ids but showed invented product names
+    ("Laser Pistol"…) that leaked into the purchase message and inventory.
+    lib_shop_generate_inventory now resolves the authentic item-database name
+    from the real id (PISTOL, RIFLE, MONO-CANNON…); the invented name table is
+    gone. The shop test asserts name == item_db name for the id.
+- Verified end to end against the real CD32 data (font decodes and blits "Ag!"
+  legibly; Liberation still verifies; 64/64 tests pass).
+- Documented the remaining synthetic-data boundary in TODO: building dialogue
+  content, bar drink names, and combat enemy names/stats all have real sources
+  in the game data but no decoder yet, so eliminating them means writing the
+  extractor (CTE/DTE interpreter, Liberation creature table) first — the
+  invention is only acceptable as a step toward that, never as the endpoint.
+- Note: this session's build/commit for the shop fix was done from a fresh
+  GitHub clone in a writable location because the working disk
+  (/Volumes/Extern-disk) started returning EPERM to git/cmake mid-session; the
+  external volume needs attention (reconnect / grant disk access).
+
 ## 2026-08-14 (Correct authentic Mission 0001 target gate)
 
 - Corrected the DOSBox-X route verifier after comparing complete original VGA

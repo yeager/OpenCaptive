@@ -424,11 +424,16 @@
 - [x] Add verified SHA-256 entries for `0Liberation.FNT` / `1Liberation.FNT`
 - [x] Confirm `liberation_fnt.c` decodes the original file (114 glyphs, 2 planes,
       proportional, full printable ASCII including lowercase)
-- [ ] Write a glyph blitter for the two-bitplane format. Blocked on one unknown:
-      the two planes give a 2-bit value per pixel, and which palette entries
-      those four values select is not recoverable from the font file alone.
-      Guessing the mapping would be inventing colour data — recover it from the
-      CD32 executable's text-drawing routine first.
+- [x] Write a glyph blitter for the two-bitplane format. The blocker is
+      resolved: plane0 is the ink (the letterform), plane1 is the original
+      outline/shadow plane. plane0 alone is a fully legible glyph, so no shape
+      is invented and no palette mapping is needed to draw authentic
+      letterforms in the caller's colour. `fnt_blit_glyph`/`fnt_blit_text` in
+      `liberation_fnt.c`.
+- [x] Wire the real font on the live Liberation building-interaction path
+      (`lib_draw_text` in `src/main.c`), with the invented `simple_font` kept
+      only as a fallback for a source with no recovered font hash (Amiga
+      floppies).
 - [ ] Retire the seven invented 5x7 tables once the blitter exists:
       `simple_font` (src/main.c), `digit_4x6` (src/render/hud.c),
       `ui_font` (src/engine/droid_ui.c), `tiny_font` + `glyphs` (src/engine/shop.c),
@@ -442,6 +447,40 @@
       invented glyph on purpose — the table is due for removal, and hand-drawing
       one more character would add exactly the kind of fabricated data this work
       exists to eliminate.
+
+### Remaining synthetic-data boundary (real data exists but is not yet decoded)
+
+These show fabricated content the player sees, while the authentic source
+exists in the game data but has no decoder yet. Per the project rule, the fix
+is to DECODE the real data (synthetic is only acceptable as a step toward
+extracting it) — not to keep the invention. Fixing any of these means writing
+the extractor first; failing closed (blank text) would break the prototype, so
+they are left explicit rather than half-invented.
+
+- [ ] **Building-interaction dialogue** (`liberation_building_interact.c`
+      `build_generic_dialogue`). Invented English for library/police/records/
+      residence/industrial/special. The real source is the DTE/CTE tables
+      (`DIALOGUE_TEXT`/`CITY_TEXT`, hash-bound and dumpable via `dump_pge`); the
+      CTE table is a full interaction bytecode VM (`^X` opcodes, conditionals,
+      item and shop refs). `liberation_npc_dialogue.c` already expands real DTE
+      by building type — the remaining work is a faithful CTE/DTE interpreter,
+      then routing the building overlay through it. Large.
+- [ ] **Bar drink menu** (`liberation_shop.c` `bar_item_names`, synthetic ids
+      `name_idx + 100`). No real Captive item backs these; the authentic drink
+      names live in the CTE text and need the interpreter above.
+- [ ] **Combat enemy names + stats** (`liberation_combat.c` `enemy_names`, and
+      the whole `lib_combat_generate_encounter`, a self-declared compatibility
+      approximation). No decoded Liberation creature/enemy table exists; the
+      enemy carries no real type id to resolve a name from (unlike the shop,
+      which maps to real Captive item ids). Needs the Liberation creature data
+      decoded first.
+- [ ] **Dead fabricated modules** still compiled into the binary though never
+      called: `liberation_cutscene.c` (invented `cs_font`, mission-intro text,
+      procedural starfield, credits) and `liberation_npc.c`'s solid-colour NPC
+      rectangles. Real replacements are already wired (mission-menu bitmap,
+      intro/city frames; real NPC sprites are decodable via `amos_sprite.c`).
+      Removal or real wiring is a maintainer call, not done here to avoid
+      colliding with in-flight work.
 
 ### City NPCs
 - [x] Implement animated NPC sprites walking city streets (pedestrians, police)

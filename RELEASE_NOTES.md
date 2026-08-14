@@ -1,5 +1,30 @@
 # OpenCaptive Release Notes
 
+## v1.1.127 (2026-08-14)
+
+### Added
+
+- **(Liberation)** `fnt_blit_glyph`/`fnt_blit_text` render the authentic
+  decoded font, with tests pinning ink/shadow placement, scaling, advance
+  width, and clipping against the real glyph data.
+
+### Changed
+
+- **(Liberation)** Building-interaction dialogue, choice labels, the NPC
+  indicator, and the shop line now draw with the real 0Liberation.FNT instead
+  of the invented `simple_font`, so authentic letterforms — lowercase included —
+  appear on the live path. The invented font remains only as a fallback for a
+  source with no recovered font hash (the Amiga floppies).
+- **(Liberation)** The shop shows the authentic item-database name for each item
+  it stocks (id 18 = PISTOL, 21 = RIFLE, 30 = MONO-CANNON…) instead of a
+  parallel table of invented product names that had been propagating into the
+  purchase message and the player's inventory.
+
+### Removed
+
+- **(Liberation)** The invented shop product-name table and, effectively, the
+  decoded-but-unused status of the real font.
+
 ## v1.1.126 (2026-08-13)
 
 ### Added
