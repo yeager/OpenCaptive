@@ -235,21 +235,13 @@ static void captive_accept_live_frame(GameState *gs,
 }
 
 static bool captive_start_live_session(const char *data_path, GameState *gs) {
+    /* DOSBox is never used inside OpenCaptive: Captive renders natively and
+     * reads its data directly from the archive.  This entry point is retained
+     * only so callers compile; it deliberately never starts an external
+     * runtime. */
+    (void)data_path;
     (void)gs;
-    if (!data_path || captive_live_session_active ||
-        captive_external_runtime_launched)
-        return false;
-
-    /* The normal player path must not run CAPPO under the debugger-backed
-     * dump harness.  DOSBox-X pauses that harness around every MEMDUMPBIN,
-     * which makes CAPPO's original INT 33 mouse path and real-time clock
-     * non-interactive.  Launch the untouched CAPTIVE.BAT chain instead;
-     * debugger sessions remain available through the explicit verification
-     * tools and never become gameplay. */
-    if (!captive_emulator_launch(data_path)) return false;
-    captive_external_runtime_launched = true;
-    printf("Started authentic Captive runtime in normal DOSBox-X mode\n");
-    return true;
+    return false;
 }
 
 /* CAPPO's ORBIT command is a real transit phase: the green planet marker
@@ -3221,8 +3213,15 @@ int main(int argc, char *argv[]) {
                                   compare_rect_set ? compare_rect : NULL,
                                   compare_rect_set ? compare_actual_rect : NULL);
 
-    if (captive_authentic_requested)
-        return captive_emulator_launch(config.data_path) ? 0 : 1;
+    if (captive_authentic_requested) {
+        /* DOSBox is not used inside OpenCaptive.  Captive runs natively and
+         * reads its data directly from the archive, so this legacy opt-in no
+         * longer shells out to an external DOS runtime. */
+        fprintf(stderr,
+            "--captive-authentic is no longer supported: OpenCaptive runs "
+            "Captive natively and never launches DOSBox.\n");
+        return 1;
+    }
 
     if (captive_dos_dump_path) {
         captive_dos_memory = load_captive_dos_dump(captive_dos_dump_path);
@@ -3656,23 +3655,10 @@ int main(int argc, char *argv[]) {
                                 show_missing_data_dialog(config.data_path);
                                 break;
                             }
-                            /* Launch the original CAPPO runtime directly.
-                             * Normal play must remain outside the
-                             * debugger-backed dump bridge so DOSBox-X owns
-                             * its real mouse, timer, audio and VGA loop. */
-                            if (!captive_start_live_session(config.data_path,
-                                                            &gs)) {
-                                show_missing_data_dialog(config.data_path);
-                                break;
-                            }
-                            /* CAPPO owns the complete interactive window:
-                             * intro animation, VGA timing, audio, mouse and
-                             * game state.  Do not leave a second native
-                             * Captive surface running behind it. */
-                            if (captive_external_runtime_launched) {
-                                running = false;
-                                break;
-                            }
+                            /* Captive renders natively, reading its assets
+                             * directly from the archive (zip/ADF/ISO) via the
+                             * VFS.  OpenCaptive never shells out to DOSBox and
+                             * never unpacks game data to disk. */
                             fade_target = gs.mode;
                             gs.mode = STATE_LOADING;
                             loading_frames = 0;

@@ -1,5 +1,20 @@
 # OpenCaptive Release Notes
 
+## v1.1.142 (2026-08-14)
+
+### Changed
+
+- **(Captive)** DOSBox is no longer used anywhere inside OpenCaptive. Every path
+  that could shell out to DOSBox-X (the default/menu Captive launch, the live
+  session, and the legacy `--captive-authentic` opt-in) has been removed or
+  neutralised. Captive now always renders natively, reading its assets directly
+  from the archive (zip/ADF/ISO) via the SHA-256 VFS, with no external runtime
+  and nothing written to disk. Verified: launching Captive against zipped data
+  loads the holomap/navigation references straight from the zip and renders,
+  and no DOSBox process is started.
+
+# OpenCaptive Release Notes
+
 ## v1.1.141 (2026-08-14)
 
 ### Changed
