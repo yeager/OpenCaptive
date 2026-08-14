@@ -97,16 +97,30 @@ proc integration_write32 {index value} {
 }
 proc inject_mouse_dx {delta} {
     if {$delta < -127 || $delta > 127} { return }
-    # DOSBox-X bios.cpp decodes mouse X from bits 16..23:
-    # Mouse_CursorMoved(((reg >> 16) / 256) - 1, ...).
-    set encoded [expr {($delta + 1) << 16 | 0x0900}]
-    integration_write32 0x00804200 $encoded
+    # DOSBox-X bios.cpp decodes the full high word from bits 16..31:
+    # Mouse_CursorMoved(((reg >> 16) / 256) - 1, ...). A positive integer
+    # delta therefore occupies bits 24..31. The protocol has no signed
+    # representation below -1, so emit repeated -1 steps for negative
+    # motion. These remain real DOSBox-X mouse events, not game-state writes.
+    if {$delta < -1} {
+        for {set i 0} {$i > $delta} {incr i -1} {
+            integration_write32 0x00804200 0x00000900
+        }
+    } else {
+        set encoded [expr {($delta + 1) << 24 | 0x0900}]
+        integration_write32 0x00804200 $encoded
+    }
 }
 proc inject_mouse_dy {delta} {
     if {$delta < -127 || $delta > 127} { return }
-    # DOSBox-X bios.cpp decodes mouse Y from bits 16..23.
-    set encoded [expr {($delta + 1) << 16 | 0x0A00}]
-    integration_write32 0x00804200 $encoded
+    if {$delta < -1} {
+        for {set i 0} {$i > $delta} {incr i -1} {
+            integration_write32 0x00804200 0x00000A00
+        }
+    } else {
+        set encoded [expr {($delta + 1) << 24 | 0x0A00}]
+        integration_write32 0x00804200 $encoded
+    }
 }
 proc inject_mouse_button {pressed} {
     set value [expr {$pressed ? 0x880 : 0x800}]

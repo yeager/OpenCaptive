@@ -106,9 +106,13 @@ this keeps a bad emulator handoff visible as a failure instead of presenting
 synthetic-looking viewport graphics.
 
 The diagnostic `MOUSE_DX:n`, `MOUSE_DY:n`, `MOUSE_DOWN`, and `MOUSE_UP`
-commands are transport messages to the original CAPPO session. They are useful
-for debugger experiments, but are not a substitute for testing the normal
-DOSBox-X mouse path.
+commands are transport messages to the original CAPPO session. The movement
+encoding follows DOSBox-X's integration device: the normalized relative value
+is stored in the high word of register `0x804200` and decoded as
+`(value / 256) - 1`. Negative movement is therefore sent as repeated `-1`
+steps; no absolute pointer coordinate or CAPPO state is written. These
+commands are useful for debugger experiments, but are not a substitute for
+testing the normal DOSBox-X mouse path.
 
 The bundled DOSBox-X profile uses `mouse emulation=locked` and the original
 INT 33 range. DOSBox-X's `integration` mode only emulates mouse motion while
@@ -271,16 +275,16 @@ buffer from being mistaken for gameplay evidence. It never creates or modifies
 game data.
 
 The Mission 0001 reference target is measured from the verified marker in
-`holamap-target.png`: frame coordinate `(63,150)` maps to CAPPO cursor
-coordinate `(58,108)` using the original map window. This is a selection
-reference only. Live CAPPO testing shows that its displayed flight coordinate
-can reach `150E-150N` while the status remains `FLIGHT PATH SET`; coordinate
-equality is therefore not an Orbit/arrival proof.
+`holamap-target.png`: the green component is at frame pixels
+`(103,110)`, `(104,110)`, `(103,111)`, and `(104,111)`, directly beneath
+CAPPO's six-pixel magenta cursor. This is a selection reference only. Live
+CAPPO testing shows that its displayed flight coordinate can change while the
+status remains `FLIGHT PATH SET`; coordinate equality is therefore not an
+Orbit/arrival proof.
 
-The live DOSBox-X check reproduces the original numpad path: three keypad-left
-inputs, three keypad-down inputs, one keypad-up input, then keypad 7 with the
-cursor on the green marker. CAPPO responds with its own `FLIGHT PATH SET`
-message. In the currently verified session, keypad 9 still reports
+The live DOSBox-X check starts from the authentic Mission 0001 frame with the
+cursor already over the green marker, then sends keypad 7. CAPPO responds with
+its own `FLIGHT PATH SET` message. In the currently verified session, keypad 9 still reports
 `SWAN NOT YET IN ORBIT`; no post-landing surface is accepted until the original
 runtime proves arrival. `ORBIT` therefore starts transit only: `LAND` remains
 disabled until CAPPO returns the authenticated in-orbit VGA frame. A subsequent keypad-8 Forward command is likewise
