@@ -398,3 +398,29 @@ is captured automatically), or (b) grant emulator GUI control. With the captured
 <state>.map.bin, the native engine can render the REAL level immediately, and
 comparing several captures pins down the generator parameters for full native
 generation.
+
+## AUTONOMOUS EXECUTION of the real generator via Unicorn (2026-08-14) — no emulator GUI
+Breakthrough: CAPPO's actual generation code can be executed directly in a
+Unicorn (x86-16) harness — no DOSBox GUI, no user input, no keystroke driving.
+opencaptive-re/emu_gen.py:
+- loads CAPPO_UNP.EX's load image at seg 0x1000, applies the MZ relocations,
+  sets CS=0x1000, DS=ES=DGROUP(0x1E3F), stack, and stubs INT 10/16/21/33.
+- Validated end-to-end: running CAPPO's RNG bytes (0x44EF) reproduces the LCG
+  exactly (seed 0->0x29, 0x3039->0x4026, 0xABCD->0xAF8A) — the harness executes
+  the real code correctly.
+- Calling the new-level driver 0x4284 runs the whole init fan-out cleanly and
+  returns; it sets up state but does NOT itself build the maze (word[0x931E]=0),
+  confirming generation is a separate, triggered step.
+- Triggering generation (word[0x931A]=start, word[0x931C], word[0x931E]=1) and
+  driving the phase dispatcher 0x4610 executes the real carve code and STAMPS
+  0x26 cells into the map at DS:0x7CB3 (verified: 49 cells written, a walk
+  column). So the real generator runs autonomously and writes real map bytes.
+REMAINING to get a COMPLETE level: the single phase-machine walk is degenerate
+because the walk direction comes from the per-cell flags low bits (0x84D3), which
+are populated during play; the fuller maze is built by the 8 RNG "diggers"
+(0x454A) over many ticks. Next: drive the full tick handler 0x44CE (RNG +
+diggers + phase machine) across simulated ticks, with diggers spawned as the
+game does (0x70ED), so the real code fills the whole 64x32 map. Then read
+DS:0x7CB3 and feed it through captive_dos_map_to_level() -> renderer. This path
+needs NO user input and NO GUI — it runs the game's own code. (extract_map.py's
+savestate route remains a valid cross-check.)
