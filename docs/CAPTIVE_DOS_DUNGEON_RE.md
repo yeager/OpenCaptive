@@ -209,3 +209,23 @@ for the routine that stosb-fills a 2048-byte region at DS:0x84D3; (b) one memory
 snapshot of DS:0x84D3 + word[0x931a] right after a level is entered, to validate
 a reconstructed fill. Everything else in the map subsystem is recovered and, for
 the carve/render/layout parts, transcribed to tested C in captive_dos_generator.c.
+
+## New-level entry + state clear (2026-08-14 cont.)
+Found the "new level" driver: 0x4284.
+- 0x4284 -> call 0x49c8 (state clear): sets DS=ES=DGROUP(0xe3f), preserves
+  words[0x9348/0x934a/0x934c], then `mov cx,0x3af2; xor al,al; mov di,0x5e6a;
+  rep stosb` — ZEROS the whole dungeon-state block DS:0x5E6A..0x995C, which
+  contains the map (0x7CB3), the direction field (0x84D3), the teleporter table
+  (0x7C2F) and the position vars (0x5E80/0x5E95). Then seeds a few bytes
+  (DS:0x8DBD..0x8DC0 = 3,2,1,0; word[0x8DC3]=1) and copies ROM tables via 0x4B42
+  (di=0x8DC7<-si=0x9AF6, di=0x8ED5<-si=0x9B0C, ...).
+- After the clear, 0x4284 runs a long init fan-out: 0xE44, 0xE99, 0x435D
+  (overlay/gfx load), 0xED7, 0x5500, 0x59F8, 0x4B83 (var clear), 0x5035, 0x69FD,
+  0x643B, 0x63D7, 0xBC26, 0x851E, 0x44C4, 0x53C9, 0xA220, 0x432E, ... The maze
+  builder (the routine that populates the direction field 0x84D3 with the
+  seeded walk directions, then the map) is one of these calls.
+NEXT: walk the 0x4284 fan-out to find the routine that writes DS:0x84D3 (the
+seeded maze), OR snapshot DS:0x5E6A..0x995C once after a level is entered to
+capture the real map+field for validation. captive_dos_generator.c already
+reproduces the carve/render/layout faithfully; only the seeded direction-field
+fill remains for byte-exact per-level dungeons.
