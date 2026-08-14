@@ -43,13 +43,4 @@ uint8_t *vfs_find_sha256(const DataVFS *vfs, const char expected_sha256[65],
 // Check if a file exists (on disk or in any ZIP)
 bool vfs_file_exists(const DataVFS *vfs, const char *rel_path);
 
-// Extract the archive that contains `marker` (e.g. "CAPTIVE.BAT") into dest_dir,
-// preserving entry paths, for runtimes (DOSBox) that must mount loose files.
-// Writes the directory that directly contains the marker into mount_dir_out.
-// Returns true on success. If a loose copy of the marker already exists under
-// the data path, the caller can mount that directly and skip this.
-bool vfs_extract_archive_tree(const DataVFS *vfs, const char *marker,
-                              const char *dest_dir, char *mount_dir_out,
-                              size_t mount_dir_size);
-
 #endif

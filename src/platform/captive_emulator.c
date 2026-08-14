@@ -12,7 +12,6 @@ extern char *mkdtemp(char *template_name);
 #endif
 
 #include "captive_emulator.h"
-#include "data_vfs.h"
 
 #include <SDL3/SDL.h>
 #include <stdio.h>
@@ -317,44 +316,17 @@ bool captive_emulator_launch(const char *data_path) {
         fprintf(stderr, "Authentic Captive launch requires a valid data path\n");
         return false;
     }
-    /* DOSBox mounts a real directory.  The DOS game may be present as loose
-     * files under the data path, or (the common case) inside a ZIP archive that
-     * the SHA-256 VFS recognises.  Prefer loose files; otherwise extract the
-     * archive that carries CAPTIVE.BAT to a temp directory and mount that, so
-     * the runtime does not open to an empty DOSBox prompt. */
-    char mount_source[1024];
     int written = snprintf(captive_bat, sizeof(captive_bat), "%s/CAPTIVE.BAT", data_path);
-    if (written > 0 && (size_t)written < sizeof(captive_bat) && file_exists(captive_bat)) {
-        if (snprintf(mount_source, sizeof(mount_source), "%s", data_path)
-                >= (int)sizeof(mount_source)) return false;
-    } else {
-        DataVFS vfs;
-        if (!vfs_init(&vfs, data_path)) {
-            fprintf(stderr, "Authentic Captive launch: cannot read data path: %s\n", data_path);
-            return false;
-        }
-        char template_path[1024];
-        const char *tmp = getenv("TMPDIR");
-        if (snprintf(template_path, sizeof(template_path),
-                     "%sopencaptive-dos-XXXXXX", tmp && *tmp ? tmp : "/tmp/")
-                >= (int)sizeof(template_path)) { vfs_free(&vfs); return false; }
-        char *td = mkdtemp(template_path);
-        if (!td || !vfs_extract_archive_tree(&vfs, "CAPTIVE.BAT", td,
-                                             mount_source, sizeof(mount_source))) {
-            fprintf(stderr,
-                "Authentic Captive launch: CAPTIVE.BAT not found (loose or in a ZIP) in: %s\n",
-                data_path);
-            vfs_free(&vfs);
-            return false;
-        }
-        vfs_free(&vfs);
-        printf("Extracted Captive DOS runtime to %s\n", mount_source);
+    if (written <= 0 || (size_t)written >= sizeof(captive_bat) ||
+        !file_exists(captive_bat)) {
+        fprintf(stderr, "Authentic Captive launch requires CAPTIVE.BAT in: %s\n", data_path);
+        return false;
     }
     if (!build_profile_path(profile, sizeof(profile))) {
         fprintf(stderr, "DOSBox-X Captive profile is missing beside OpenCaptive\n");
         return false;
     }
-    written = snprintf(mount_command, sizeof(mount_command), "mount c \"%s\"", mount_source);
+    written = snprintf(mount_command, sizeof(mount_command), "mount c \"%s\"", data_path);
     if (written <= 0 || (size_t)written >= sizeof(mount_command)) return false;
 
     binary = find_dosbox_binary();
