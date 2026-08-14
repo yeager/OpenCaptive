@@ -247,3 +247,20 @@ override branch supplies 16/18. The exact per-service category values need a
 path-by-path check of 0xa738 (incl. the 0xd444 PRNG output range) before any
 BuildingType→category map is committed. Mechanism and formula are solid; the
 final numeric table is the remaining precision step.
+
+### CORRECTION: the read→write chain is not yet closed
+Checking against ground truth exposes a real gap in the tentative
+`mc = 0xa738(category_byte)+3` story: bank `mc=13` requires `0xa738` to return
+10, but category byte 10 (0b01010) has bit 3 set, so it takes the −1/−2 path,
+NOT the commercial full-byte path. Therefore the chain as traced does not
+produce the observed values. Likely cause: `person+8` for the *interaction* NPC
+is written by a different site than the 0xa6ba one I followed — there are ~10
+writers of a word at record+8 (0x32f0, 0xa6ba, 0xa82a, 0x16896, 0x168fa,
+0x1699c, 0x17f68, 0x1be4e, 0x1c392, 0x1c3c0); the interaction NPC's profession
+is probably set in the NPC/person generator (0x168xx range), not the CTE-side
+0xa6ba. SOLID facts remain: mc is read at 0xa1a2 as `word[0x6890(a5)+8] + 3`;
+0x6890(a5) is the current person record (bound at 0xa55c); interpreter anchors
+0xa29a/0x7b54 confirmed. NEXT PASS: identify which record 0x6890(a5) points to
+during a building interaction, and which of the ~10 record+8 writers sets its
+profession — that writer's input is the true mc source. Until then no numeric
+map is committed.
