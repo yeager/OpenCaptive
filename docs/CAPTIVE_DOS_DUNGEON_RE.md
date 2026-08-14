@@ -375,3 +375,26 @@ building blocks for that; the remaining work is to recover the exact level-entry
 trigger sequence + parameters (which commands, in what order, with what start
 positions) — best pinned by one runtime trace, since it is control-flow through
 the command dispatch rather than a single routine.
+
+## Runtime capture pipeline PROVEN WORKING (2026-08-14) — one step left
+Built and verified a non-debugger way to read Captive's live dungeon state:
+- DOSBox-X `autosave=N` writes periodic savestates (no heavy debugger needed).
+  Config at opencaptive-re/capsnap/cap.conf mounts the game dir and runs CAPPO.
+- A savestate is a ZIP whose `Memory` entry is the full guest RAM (16MB).
+- opencaptive-re/capsnap/extract_map.py locates CAPPO in that RAM by its RNG
+  code signature (a1 22 93 ba e5 05 f7 e2 = CODE 0x44EF), derives code_base and
+  DGROUP, and reads the map at DGROUP:0x7CB3 and flags at DGROUP:0x84D3, dumping
+  <state>.map.bin / <state>.flags.bin — REAL level data for the C engine.
+- Verified end-to-end: CAPPO's code was found (code_base=0x82C8) and the map
+  region read correctly. In a fresh CAPPO boot the map is all-zero (confirming
+  the level is generated only after the game is driven past its title/FILEPLAY
+  into play; CAPTIVE.BAT is INTRO -> FILEPLAY -> CAPPO <arg>).
+THE ONLY REMAINING STEP is to drive CAPPO into a dungeon so a level exists in
+RAM, then run extract_map.py on the autosave. Driving needs live keystrokes:
+DOSBox-X AUTOTYPE can't fire while CAPPO holds the shell, and interactive GUI
+control here was declined. So this final step needs the user to either (a) run
+CAPPO to its first dungeon once with capsnap/cap.conf's autosave on (the state
+is captured automatically), or (b) grant emulator GUI control. With the captured
+<state>.map.bin, the native engine can render the REAL level immediately, and
+comparing several captures pins down the generator parameters for full native
+generation.
