@@ -470,17 +470,26 @@ they are left explicit rather than half-invented.
       - [x] CTE section parser (`liberation_cte.c`, v1.1.131) — the binary
             `<id> 0x00 <len> [content]` framing is reverse-engineered and the
             real sections are addressable and tested.
-      - [ ] CTE bytecode interpreter (in progress — RE located, build pending).
-            The authentic interpreter is disassembled and mapped in
-            `docs/LIBERATION_CTE_INTERPRETER_RE.md`: dispatch at 0xa29a, `^XI`
-            conditionals at 0x7b54, state base register `%a5`, flag word at
-            `%a5@(0x68de)`, building record at `%a5@(0x68e0)`, plus dozens of
-            state fields at fixed `%a5` offsets. Building a faithful interpreter
-            means modelling those state fields AND every place the rest of the
-            225 KB binary writes them (mission/reputation/inventory/plot flags)
-            — a reverse-engineering of Liberation's whole interaction state
-            machine, done in full before wiring, since a partial model emits the
-            wrong branch (real text, wrong context).
+      - [x] CTE bytecode interpreter (`cte_expand`, v1.1.132). The read-only
+            expander handles the self-contained text opcodes — `^O<n>[..]`
+            random, `^XI<cond>[then|else]` conditional (with `~` negation,
+            `= < >` ops, compound `(a!b)`/`(a&b)`), `^XC<var>[..]` case, `^^`
+            newline, `^;` comment — and safely skips side-effect opcodes.
+            Validated against the real CITY_TEXT: all 48 sections expand with no
+            leaked opcode markers/branch groups; unit-tested. The authentic
+            m68k interpreter it mirrors is disassembled in
+            `docs/LIBERATION_CTE_INTERPRETER_RE.md` (dispatch 0xa29a, `^XI` at
+            0x7b54, state base `%a5`, flag word `%a5@(0x68de)`, building record
+            `%a5@(0x68e0)`).
+      - [ ] Resolve cross-table calls: `^XS`/`^XG` targets are 5-digit label
+            ids (14001, 17001, 30014, 40006, …), disjoint from CTE section
+            bytes (31–180). They index a separate string/label table. Until
+            these resolve, a call-only section expands to empty text (never
+            invented text). This is what most sections need to yield their real
+            spoken line.
+      - [ ] Map each `^XI` condition variable (`mc`, `v`, `g`, `s`, `H`, `I`,
+            `K`, `E`, …) to its `%a5@(offset)` state field by tracing the
+            binary's writers, then model the needed subset in the runtime.
       - [ ] Map the game's building interactions to the correct CTE entry
             points and route the overlay through the interpreter, replacing the
             invented nodes.

@@ -44,6 +44,93 @@ static void test_nested_brackets(void) {
     assert(s && s->length == 5 && memcmp(s->content, "a[b]c", 5) == 0);
 }
 
+/* Build a one-section table around a bytecode body and expand it. */
+static void expand_body(const uint8_t *body, size_t body_len, CteState *st,
+                        char *out, size_t out_size) {
+    uint8_t buf[512];
+    assert(body_len + 4 <= sizeof(buf));
+    buf[0] = 0x41; buf[1] = 0x00; buf[2] = (uint8_t)(body_len + 3);
+    buf[3] = '[';
+    memcpy(buf + 4, body, body_len);
+    buf[4 + body_len] = ']';
+    CteTable t;
+    assert(cte_table_parse(&t, buf, body_len + 5));
+    const CteSection *s = cte_section_find(&t, 0x41);
+    assert(s);
+    assert(cte_expand(&t, s, st, out, out_size));
+}
+
+#define EXPAND(lit, st, out) expand_body((const uint8_t *)(lit), sizeof(lit) - 1, (st), (out), sizeof(out))
+
+static void test_plain_text(void) {
+    CteState st; cte_state_init(&st, 1);
+    char out[256];
+    EXPAND("Good day, citizen.", &st, out);
+    assert(strcmp(out, "Good day, citizen.") == 0);
+}
+
+static void test_newline_and_comment(void) {
+    CteState st; cte_state_init(&st, 1);
+    char out[256];
+    EXPAND("A^^B", &st, out);
+    assert(strcmp(out, "A\nB") == 0);
+}
+
+/* ^XI<cond>[then|else]: pick branch by evaluating the condition on state. */
+static void test_conditional_true_false(void) {
+    char out[256];
+    CteState st; cte_state_init(&st, 1);
+    cte_state_set(&st, "E", 0);
+    EXPAND("^XIE=0[no record|on record]", &st, out);
+    assert(strcmp(out, "no record") == 0);
+
+    cte_state_set(&st, "E", 4);
+    EXPAND("^XIE=0[no record|on record]", &st, out);
+    assert(strcmp(out, "on record") == 0);
+}
+
+/* Compound OR condition (a!b): true if either term holds. */
+static void test_conditional_compound_or(void) {
+    char out[256];
+    CteState st; cte_state_init(&st, 1);
+    cte_state_set(&st, "mc", 16);
+    EXPAND("^XI(mc=16!mc=18)[match|nomatch]", &st, out);
+    assert(strcmp(out, "match") == 0);
+    cte_state_set(&st, "mc", 5);
+    EXPAND("^XI(mc=16!mc=18)[match|nomatch]", &st, out);
+    assert(strcmp(out, "nomatch") == 0);
+}
+
+/* Compound AND condition (a&b): true only if both terms hold. */
+static void test_conditional_compound_and(void) {
+    char out[256];
+    CteState st; cte_state_init(&st, 1);
+    cte_state_set(&st, "g", 0);
+    cte_state_set(&st, "v", 0);
+    EXPAND("^XI(g=0&v<1)[both|not]", &st, out);
+    assert(strcmp(out, "both") == 0);
+    cte_state_set(&st, "v", 5);
+    EXPAND("^XI(g=0&v<1)[both|not]", &st, out);
+    assert(strcmp(out, "not") == 0);
+}
+
+/* ^XC<var>[c0|c1|c2]: switch on the variable's integer value. */
+static void test_case_switch(void) {
+    char out[256];
+    CteState st; cte_state_init(&st, 1);
+    cte_state_set(&st, "H", 2);
+    EXPAND("^XCH[zero|one|two|three]", &st, out);
+    assert(strcmp(out, "two") == 0);
+}
+
+/* Side-effect opcodes emit nothing but must not corrupt surrounding text. */
+static void test_skips_side_effects(void) {
+    char out[256];
+    CteState st; cte_state_init(&st, 1);
+    EXPAND("Pay ^X=g100 now.", &st, out);
+    assert(strcmp(out, "Pay  now.") == 0);
+}
+
 /* Parse the real CTE when a raw dump is provided via OPENCAPTIVE_TEST_CTE. */
 static void test_real_cte_if_available(void) {
     const char *path = getenv("OPENCAPTIVE_TEST_CTE");
@@ -56,13 +143,34 @@ static void test_real_cte_if_available(void) {
     CteTable t;
     assert(cte_table_parse(&t, buf, n));
     assert(t.section_count >= 40);
-    printf("PASS: real_cte (%u sections)\n", t.section_count);
+
+    /* Expand every authentic section with an empty (initial) state: the
+     * interpreter must terminate, stay within the output buffer, and never
+     * leave a raw opcode marker ('^') in the emitted text. */
+    unsigned expanded = 0;
+    for (unsigned i = 0; i < t.section_count; i++) {
+        CteState st; cte_state_init(&st, 1);
+        char out[8192];
+        assert(cte_expand(&t, &t.sections[i], &st, out, sizeof(out)));
+        assert(strchr(out, '^') == NULL);   /* no unparsed opcode escaped */
+        assert(strchr(out, '[') == NULL);   /* no raw branch group leaked */
+        expanded++;
+    }
+    printf("PASS: real_cte (%u sections, %u expanded)\n",
+           t.section_count, expanded);
 }
 
 int main(void) {
     test_parse_fixture();
     test_rejects_empty();
     test_nested_brackets();
+    test_plain_text();
+    test_newline_and_comment();
+    test_conditional_true_false();
+    test_conditional_compound_or();
+    test_conditional_compound_and();
+    test_case_switch();
+    test_skips_side_effects();
     test_real_cte_if_available();
     printf("All liberation_cte tests passed\n");
     return 0;

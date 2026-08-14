@@ -54,3 +54,24 @@ is wired.
 2. Identify each `%a5@(offset)` state field's meaning by tracing its writers.
 3. Model the needed subset in the runtime, kept in sync with real game state.
 4. Route the building overlay through the interpreter; retire the invented nodes.
+
+## Interpreter implemented (read-only expander)
+`cte_expand()` in `src/data/liberation_cte.c` now expands a section to authentic
+text for a supplied `CteState`. It handles the self-contained, text-producing
+opcodes and safely skips side effects:
+- plain text; `^^` -> newline; `^;` -> comment to end of line
+- `^O<n>[a|b|...]` random variant (seeded PRNG, deterministic per state)
+- `^XI<cond>[then|else]` conditional; conditions support `~` negation, ops
+  `= < >`, and compound `(a!b)` (OR) / `(a&b)` (AND)
+- `^XC<var>[c0|c1|...]` switch on a variable's integer value
+- all other `^X…`, `^F…`, `^X=` etc. consume their operand and emit nothing
+Validated against the real CITY_TEXT (48/48 sections expand with no leaked
+opcode markers or bracket groups); unit-tested in `tests/test_liberation_cte.c`.
+
+## Cross-table call targets (found)
+`^XS`/`^XG` targets are **5-digit label ids** (14001, 17001, 30014, 40006, …),
+disjoint from the CTE section-id space (bytes 31–180). They index a separate
+string/label table, not other CTE sections. Resolving them (so a call-only
+section yields its real spoken line) is the remaining work before the
+interpreter can be wired to on-screen dialogue — this is what makes most
+sections currently expand to empty text under an initial state.

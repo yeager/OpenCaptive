@@ -11,11 +11,15 @@
  * frame: <id byte> 0x00 <len byte> [ content ], where len = content length + 3
  * and the id byte is the token that the script's ^XG/^XS jumps reference.
  *
- * This is step one of decoding the CTE: it makes the authentic sections
- * addressable.  The bytecode interpreter that expands a section's content
- * (evaluating its ^X opcodes against live game state) is built on top of this
- * and is not part of this file yet — nothing here is wired to on-screen text,
- * so no partial/invented output is shown while the interpreter is incomplete. */
+ * The section parser makes the authentic sections addressable; the read-only
+ * bytecode interpreter below expands a section's content, evaluating its ^X
+ * opcodes against supplied game state.  It is complete for the self-contained,
+ * text-producing opcodes (^O random, ^XI conditional, ^XC case, ^^ newline,
+ * ^; comment) and safely skips side-effect opcodes.  Cross-table calls
+ * (^XS/^XG to 5-digit label ids in a separate string table) are not yet
+ * resolved, so a call-only section expands to empty text rather than invented
+ * text.  Nothing here is wired to on-screen dialogue until call resolution is
+ * done, so no partial/wrong-context output is ever shown. */
 
 #define CTE_MAX_SECTIONS 256
 
@@ -39,5 +43,35 @@ bool cte_table_parse(CteTable *table, const uint8_t *data, size_t size);
 
 /* Find a section by its id token, or NULL. */
 const CteSection *cte_section_find(const CteTable *table, uint16_t id);
+
+/* --- Bytecode interpreter (decoder step 2) ---------------------------------
+ *
+ * CTE section content is a bytecode script over the same `^X` language as DTE,
+ * plus conditionals on game state and calls between sections.  Expanding a
+ * section to text requires evaluating those conditionals, so the caller
+ * supplies the script variables' current values.  The variable names are the
+ * short tokens used in the script conditions (e.g. "mc", "E", "g", "H", "u").
+ * Unset variables read as 0 (the initial-interaction state for most flags).
+ *
+ * This interpreter is deliberately read-only: it emits the authentic text for
+ * a given state but performs none of the script's side effects (^X=, ^X+,
+ * ^Xf..., ^FS...) — those mutate the live game and are the runtime's job. */
+
+#define CTE_MAX_VARS 64
+
+typedef struct {
+    struct { char name[4]; int value; } vars[CTE_MAX_VARS];
+    unsigned count;
+    uint32_t prng_state;
+} CteState;
+
+void cte_state_init(CteState *state, uint32_t seed);
+void cte_state_set(CteState *state, const char *name, int value);
+int  cte_state_get(const CteState *state, const char *name);
+
+/* Expand a section to authentic text using the supplied state.  Returns true
+ * and NUL-terminates out on success. */
+bool cte_expand(const CteTable *table, const CteSection *section,
+                CteState *state, char *out, size_t out_size);
 
 #endif

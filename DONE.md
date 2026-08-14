@@ -1,5 +1,25 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (CTE decoder step 2: bytecode interpreter, v1.1.132)
+
+- Built `cte_expand()`, a read-only expander for the authentic CITY_TEXT
+  bytecode. It emits the real dialogue a section produces for a supplied game
+  state and performs none of the script's side effects. Implemented the
+  self-contained text opcodes: `^O<n>[..]` random variant (seeded,
+  deterministic PRNG), `^XI<cond>[then|else]` conditional with `~` negation,
+  `= < >` comparisons and compound `(a!b)` OR / `(a&b)` AND, `^XC<var>[..]`
+  case switch, `^^` newline, `^;` comment; every other `^X…`/`^F…` opcode has
+  its operand consumed and emits nothing.
+- Verified against the real CITY_TEXT (extracted via the verified ISO hash):
+  all 48 sections expand cleanly — no leaked opcode markers, no raw branch
+  groups. Added per-opcode unit tests plus a real-data smoke test in
+  `tests/test_liberation_cte.c`.
+- Found that `^XS`/`^XG` call targets are 5-digit label ids (14001, 17001,
+  30014, 40006, …) into a separate string table, disjoint from CTE section
+  bytes (31–180). So cross-table call resolution is the next step; until then
+  a call-only section expands to empty text (never invented text). The
+  interpreter stays unwired from the overlay until that lands.
+
 ## 2026-08-14 (CTE decoder step 1: section parser, v1.1.131)
 
 - Began the real decoder for the CTE interaction table (the last big

@@ -1,5 +1,37 @@
 # OpenCaptive Release Notes
 
+## v1.1.132 (2026-08-14)
+
+### Added
+
+- **(Liberation)** CTE bytecode interpreter — `cte_expand()` expands an
+  authentic CITY_TEXT section to text for a supplied game state. It is a
+  deliberately read-only expander: it emits the real dialogue a section
+  produces but performs none of the script's side effects. It handles the
+  self-contained, text-producing opcodes — `^O<n>[a|b|…]` random variant
+  (seeded, deterministic), `^XI<cond>[then|else]` conditional (with `~`
+  negation, `= < >` comparisons, and compound `(a!b)` OR / `(a&b)` AND),
+  `^XC<var>[c0|c1|…]` case switch, `^^` newline, `^;` comment — and safely
+  skips side-effect/action opcodes by consuming their operands. Validated
+  against the real CITY_TEXT: all 48 sections expand with no leaked opcode
+  markers or branch groups; unit-tested for each opcode.
+- **(docs)** `LIBERATION_CTE_INTERPRETER_RE.md` extended with the implemented
+  opcode set and a key finding: `^XS`/`^XG` call targets are 5-digit label ids
+  into a separate string table (disjoint from CTE section bytes), so
+  cross-table call resolution — not the interpreter itself — is the remaining
+  work before the dialogue is wired on-screen.
+
+### Notes
+
+The interpreter is not yet wired to the building overlay: call-only sections
+depend on cross-table label resolution, so wiring now would show empty or
+wrong-context text. It stays behind the parser until call resolution lands —
+no partial/invented output is shown.
+
+### Removed
+
+None.
+
 ## v1.1.131 (2026-08-14)
 
 ### Added
