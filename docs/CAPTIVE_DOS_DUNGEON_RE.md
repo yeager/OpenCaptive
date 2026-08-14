@@ -326,3 +326,25 @@ the carve/brush/post-proc primitives, deltas, index, bounds, wall test, and the
 full data layout + generator lifecycle map. These are real, verified building
 blocks; a byte-exact whole-dungeon generator additionally needs the three
 systems disentangled (or one runtime snapshot of DS:0x5E6A..0x995C to anchor it).
+
+## CORRECTION: DS:0x84D3 is a per-cell FLAGS/visibility array, not a direction field
+Tracing writes to map+0x820 (= DS:0x84D3) shows it is accessed with BIT ops, not
+as 0..7 directions:
+- 0x6580/0x659F: the auto-map REVEAL. For a cell whose map value (&0x7E)!=0x60 it
+  sets field bit 0x80 on the cell (or byte[di+0x820],0x80) AND on its 4 bounds-
+  checked neighbours (di+0x821 E, di+0x81F W, di+0x860 S, di+0x7E0 N). bit 0x80
+  = "explored/visible" (drives the holomap).
+- 0xC3F9/0xC404: test/or bit 0x40 of the same field byte (another per-cell flag).
+So DS:0x84D3 is a per-cell FLAGS byte (bit7=revealed, bit6=another flag, ...),
+NOT the maze "direction field" the earlier notes assumed. Consequently the
+0x46CC walk's `byte[index+0x84D3] & 7` reads the LOW bits of that flags byte
+(normally 0), so 0x46CC is NOT confirmed to be the maze generator either.
+NET (honest): the map's INITIAL structure builder is still not cleanly isolated.
+The strongest remaining candidate for procedural carving is the 8 RNG "diggers"
+(0x454A), but they may equally be creature behaviour. Captive's dungeon is a web
+of subsystems (carve phase machine, diggers, visibility reveal, on-enter, teleport)
+all sharing the 64x32 map + this flags array; cleanly separating "level generation"
+from runtime behaviour needs deeper multi-pass RE or one runtime snapshot. What is
+solid and tested stays solid: the RNG (LCG 0x5E5/0x29), the carve/brush/post-proc
+primitives, the deltas/index/bounds, the wall test, and the data layout — none of
+which depend on this correction.
