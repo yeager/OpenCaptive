@@ -6,20 +6,29 @@
 #include <stdint.h>
 
 /*
- * Native reconstruction of CAPPO.EXE's procedural dungeon generator.
+ * Native reconstruction of CAPPO.EXE's dungeon map primitives.
  *
- * Captive's DOS archive ships NO level files: the dungeon is generated at
- * runtime into a flat 64x32 byte map at DS:7CB3.  This module transcribes the
- * pieces of that generator that have been recovered by static analysis of the
- * LZEXE-unpacked CAPPO image (see docs/CAPTIVE_DOS_DUNGEON_RE.md).  Every value
- * and transform here is copied from the original code, not invented, so the
- * output is the game's own real data rather than a synthetic maze.
+ * Captive's DOS archive ships NO level files: the dungeon lives at runtime in a
+ * flat 64x32 byte map at DS:7CB3.  This module transcribes the map-mutation
+ * PRIMITIVES recovered by static analysis of the LZEXE-unpacked CAPPO image
+ * (see docs/CAPTIVE_DOS_DUNGEON_RE.md).  Every value and transform here is
+ * copied byte-for-byte from the original code, not invented, so anything built
+ * from them is the game's own real data rather than a synthetic maze.
+ *
+ * SCOPE / HONESTY: these are the confirmed primitives (the cell writer, the
+ * plus-brush, the post-processor, the cardinal deltas, the index and bounds).
+ * They are NOT yet the whole level generator: the routine 0x46CC that drives a
+ * walk with these primitives is a DGROUP dispatch-table handler (at DS:0xCAFD)
+ * whose exact role (level builder vs. per-entity walk) is still unconfirmed,
+ * and the seeded fill of the parallel direction field DS:0x84D3 has not been
+ * located in code segment 0.  This module therefore exposes verified building
+ * blocks; it does not claim to reproduce a full per-level dungeon yet.
  *
  * Provenance (CAPPO_CODE.bin offsets, code segment CS=0; DGROUP paragraph
  * 0x0E3F so a datum at DS:O lives at file 0x0E3F0+O):
  *   - map:            DS:0x7CB3, 64x32 = 2048 cells.
  *   - index calc:     0x4749  -> cell = (y<<6) + x.
- *   - walker:         0x4764  -> dir = step_table[..]&7; cx+=DX[dir]; dx+=DY[dir].
+ *   - walker:         0x4764  -> dir = field[i]&7; cx+=DX[dir]; dx+=DY[dir].
  *   - direction deltas: DX @DS:0x5E18, DY @DS:0x5E20 (see tables below).
  *   - bounds check:   0x498C  -> x in [0,63], y in [0,31].
  *   - post-processor: 0x4661  -> per-cell finishing pass (see below).
