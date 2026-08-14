@@ -464,3 +464,24 @@ and then running the tick loop. That is a bounded but genuinely multi-session RE
 task. Tools are all in place (emu_common.py harness executes real code + traces
 map writes; captive_dos_map_to_level renders the result). The fast alternative
 remains one user-driven capture (capsnap/ pipeline) of a real level.
+
+## Full-boot emulation (2026-08-14): game runs headless but waits for UI navigation
+Ran CAPPO's real game entry 0x4260 in the Unicorn harness with INT stubs, port-I/O
+stubs (VGA status 0x3DA toggles for vsync waits), and an emulated timer tick
+(periodic decrement of the CS-relative frame counter cs:[0x1A]). Results:
+- Without the timer, the boot hangs in a frame-delay spin at 0x439E
+  (cmp cs:[0x1A],0; jne) — cs:[0x1A] is a countdown decremented by the timer ISR.
+- WITH the emulated timer, the game advances past that delay into its main
+  presentation loop (settles around 0x4404, the screen-buffer rep movsw), running
+  frames — but the map at DS:0x7CB3 stays empty across 60x4M instructions.
+CONCLUSION (execution-proven, not assumed): CAPPO boots and runs headless, but it
+does NOT auto-generate a dungeon; it sits in the base/menu UI waiting for the
+player to NAVIGATE into a dungeon (probe select + land). That navigation is
+mouse/icon + render dependent, so a headless harness cannot drive it blind.
+Combined with the exhaustive 853-function sweep (no bare call generates a level),
+this is the definitive characterization: the maze generator is reachable only
+through interactive UI navigation. Autonomous completion therefore requires
+reconstructing that base/probe navigation flow (large, multi-session) OR one
+user-driven level capture (capsnap/ pipeline, built + proven). All other pieces
+(RNG, carve primitives, data layout, render converter, execution harness) are
+done and tested.
