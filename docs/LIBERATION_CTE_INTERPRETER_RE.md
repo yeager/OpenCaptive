@@ -75,3 +75,33 @@ string/label table, not other CTE sections. Resolving them (so a call-only
 section yields its real spoken line) is the remaining work before the
 interpreter can be wired to on-screen dialogue — this is what makes most
 sections currently expand to empty text under an initial state.
+
+## Section framing corrected + calls resolved (v1.1.133)
+Two structural corrections, both verified against the real CITY_TEXT:
+
+1. **Section id is 16-bit big-endian, not one byte.** Each section is framed
+   `0xD7 <id-hi> <id-lo> 0x00 <len> [ content ]`. The id is the decimal label
+   the script uses (`0x36b0`=14000, `0x4268`=17000, …). The earlier
+   bracket-scan parser truncated the id to its low byte and merged sections,
+   finding only 48; the marker-based parser finds the true **198 sections**.
+   `<len>` is a one-byte hint that overflows past 255 bytes, so content is
+   delimited by bracket matching / the next `0xD7` frame, not by `<len>`.
+
+2. **`^XS`/`^XG` targets are these same 16-bit section ids** — calls resolve
+   *inside* the CTE table, not into a separate string table as first suspected.
+   Of 101 distinct call targets, 193/198 sections and all but 8 targets
+   resolve; the 8 (4, 203, 40001, 40003, 40012, 40016, 40028, 40030) are
+   dangling/terminal refs that end the interaction and correctly inline nothing.
+
+`cte_expand` now inlines `^XS` (subroutine: insert then continue) and `^XG`
+(goto: insert then end the section), with a per-expansion call stack that
+refuses to re-enter an active id (cycle-safe, recursion-bounded). Skipped
+opcode families were widened to consume their operands + bracket groups: the
+`^Xf*…[…]` flag family, `^XM[…]` menus, and the lowercase location/status
+templater (`^L<lo>-<hi>[…]` range, `^A/^Z/^s/^h/^w` substitutions).
+
+Result: 66/198 sections emit authentic text under an empty state — including
+the real clue quotes ("The tigers of wrath are wiser…", "Prisons are built
+with stones of Law…", the full 32-entry set). The remaining sections gate on
+game flags/menus, so their real lines need the state-field model (next step)
+before they render. No section leaks a raw opcode marker or bracket group.

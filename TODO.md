@@ -481,12 +481,14 @@ they are left explicit rather than half-invented.
             `docs/LIBERATION_CTE_INTERPRETER_RE.md` (dispatch 0xa29a, `^XI` at
             0x7b54, state base `%a5`, flag word `%a5@(0x68de)`, building record
             `%a5@(0x68e0)`).
-      - [ ] Resolve cross-table calls: `^XS`/`^XG` targets are 5-digit label
-            ids (14001, 17001, 30014, 40006, …), disjoint from CTE section
-            bytes (31–180). They index a separate string/label table. Until
-            these resolve, a call-only section expands to empty text (never
-            invented text). This is what most sections need to yield their real
-            spoken line.
+      - [x] Resolve cross-table calls (v1.1.133). Corrected the framing: the
+            section id is 16-bit big-endian (`0xD7 <hi> <lo> 0x00 <len> [`), so
+            the true table has **198 sections** (not 48), and `^XS`/`^XG`
+            targets ARE these same ids — calls resolve *within* the CTE table.
+            `cte_expand` inlines `^XS`/`^XG` with a cycle-safe call stack.
+            66/198 sections now emit authentic text under an empty state,
+            including the game's real clue quotes. Remaining sections gate on
+            flags/menus (next step).
       - [ ] Map each `^XI` condition variable (`mc`, `v`, `g`, `s`, `H`, `I`,
             `K`, `E`, …) to its `%a5@(offset)` state field by tracing the
             binary's writers, then model the needed subset in the runtime.

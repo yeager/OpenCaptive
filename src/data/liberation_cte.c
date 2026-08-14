@@ -4,47 +4,66 @@
 #include <ctype.h>
 #include <limits.h>
 
+/* Section frame: each section is introduced by a 5-byte header
+ *   0xD7  <id-hi>  <id-lo>  0x00  <len>
+ * where the id is a 16-bit big-endian value (the decimal label the script's
+ * ^XS/^XG jumps reference, e.g. 0x4268 == 17000) and content starts at the
+ * '[' immediately after the header.  <len> is a one-byte hint that overflows
+ * for sections longer than 255 bytes, so it is not load-bearing: a section's
+ * content runs from its opening '[' to the matching ']' (bracket-balanced),
+ * and the next header follows.  The leading bytes before the first 0xD7 are
+ * the default/opening record (a differently-framed preamble) and are not an
+ * addressable, call-referenced section, so parsing begins at the first frame.
+ *
+ * A raw 0xD7 can occur inside content, but only a 0xD7 whose third following
+ * byte is the 0x00 frame separator is a header — the others are excluded. */
+static bool is_frame(const uint8_t *d, size_t size, size_t i) {
+    return i + 4 < size && d[i] == 0xD7 && d[i + 3] == 0x00;
+}
+
 bool cte_table_parse(CteTable *table, const uint8_t *data, size_t size) {
     if (!table || !data || !size) return false;
     memset(table, 0, sizeof(*table));
     table->raw = data;
     table->raw_size = size;
 
-    /* Walk the buffer tracking bracket depth.  A '[' at depth 0 opens a
-     * section; its content runs to the matching ']'.  The section's id token
-     * sits three bytes before the '[' when the middle byte is the 0x00 frame
-     * separator (id, 0x00, len, '['), which is how every section after the
-     * leading preamble is framed. */
-    int depth = 0;
-    size_t i = 0;
-    while (i < size) {
-        if (data[i] == '[') {
-            if (depth == 0) {
-                /* find matching ']' */
-                int d = 1;
-                size_t j = i + 1;
-                while (j < size && d > 0) {
-                    if (data[j] == '[') d++;
-                    else if (data[j] == ']') d--;
-                    if (d > 0) j++;
-                }
-                if (d != 0) break; /* unbalanced: stop */
-                if (i >= 3 && data[i - 2] == 0x00 &&
-                    table->section_count < CTE_MAX_SECTIONS) {
-                    CteSection *s = &table->sections[table->section_count++];
-                    s->id = data[i - 3];
-                    s->content = data + i + 1;
-                    s->length = j - (i + 1);
-                }
-                i = j + 1;
-                depth = 0;
-                continue;
-            }
-            depth++;
-        } else if (data[i] == ']') {
-            if (depth > 0) depth--;
+    for (size_t i = 0; i + 4 < size; i++) {
+        if (!is_frame(data, size, i)) continue;
+        if (table->section_count >= CTE_MAX_SECTIONS) break;
+
+        uint16_t id = (uint16_t)((data[i + 1] << 8) | data[i + 2]);
+        size_t cs = i + 5;                 /* content start (the '[') */
+
+        /* Delimit by the next frame (or end of buffer). */
+        size_t end = size;
+        for (size_t j = cs; j + 4 < size; j++) {
+            if (is_frame(data, size, j)) { end = j; break; }
         }
-        i++;
+
+        const uint8_t *content;
+        size_t length;
+        if (cs < end && data[cs] == '[') {
+            /* Strip the outer [ ] wrapper via bracket matching. */
+            int depth = 0;
+            size_t j = cs, close = end;
+            for (; j < end; j++) {
+                if (data[j] == '[') depth++;
+                else if (data[j] == ']') { if (--depth == 0) { close = j; break; } }
+            }
+            content = data + cs + 1;
+            length = (close > cs + 1) ? close - (cs + 1) : 0;
+        } else {
+            /* Rare section that is not bracket-wrapped: take the whole span. */
+            content = data + cs;
+            length = end - cs;
+        }
+
+        CteSection *s = &table->sections[table->section_count++];
+        s->id = id;
+        s->content = content;
+        s->length = length;
+
+        i = end - 1;  /* resume scan at the next frame */
     }
     return table->section_count > 0;
 }
@@ -100,7 +119,11 @@ int cte_state_get(const CteState *state, const char *name) {
     return 0;  /* unset flags read as 0 (the initial-interaction state) */
 }
 
-typedef struct { char *out; size_t pos, cap; } CteOut;
+typedef struct {
+    char *out; size_t pos, cap;
+    uint16_t callstack[CTE_MAX_RECURSION];  /* active ^XS/^XG ids: cycle guard */
+    unsigned calldepth;
+} CteOut;
 
 static void cte_emit(CteOut *o, char c) {
     if (o->pos + 1 < o->cap) o->out[o->pos++] = c;
@@ -217,14 +240,33 @@ static void expand_branch(const CteTable *table, const char *s,
         cte_process(table, s + start, end - start, st, o, depth + 1);
 }
 
+/* Inline the text of a called section (^XS subroutine / ^XG goto target).
+ * A negative id is a control operand (return/end), not a section lookup, so it
+ * inlines nothing.  Cycles are broken by refusing to re-enter a section that is
+ * already on the active call stack, which also bounds recursion. */
+static void cte_call(const CteTable *table, int id, CteState *st,
+                     CteOut *o, unsigned depth) {
+    if (id < 0 || !table) return;
+    const CteSection *sec = cte_section_find(table, (uint16_t)id);
+    if (!sec) return;                       /* dangling target: emit nothing */
+    for (unsigned k = 0; k < o->calldepth; k++)
+        if (o->callstack[k] == (uint16_t)id) return;  /* already active */
+    if (o->calldepth >= CTE_MAX_RECURSION || depth >= CTE_MAX_RECURSION) return;
+    o->callstack[o->calldepth++] = (uint16_t)id;
+    cte_process(table, (const char *)sec->content, sec->length, st, o, depth + 1);
+    o->calldepth--;
+}
+
 /* Consume a side-effect opcode's operand: a variable/target token (letters)
  * and an optional signed integer, then an optional bracket group (e.g. the
  * `[*]` of ^XF85[*]).  This deliberately stops at the first byte that is not
  * part of the operand so surrounding narrative text is preserved. */
 static void skip_effect(const char *s, size_t len, size_t *p) {
+    if (*p < len && s[*p] == '*') (*p)++;             /* flag-family prefix */
     while (*p < len && isalpha((unsigned char)s[*p])) (*p)++;
-    if (*p < len && (s[*p] == '-' || s[*p] == '+')) (*p)++;
-    while (*p < len && isdigit((unsigned char)s[*p])) (*p)++;
+    /* numeric operand, possibly a range like 3-6 (sign/hyphen and digits) */
+    while (*p < len && (isdigit((unsigned char)s[*p]) ||
+                        s[*p] == '-' || s[*p] == '+')) (*p)++;
     if (*p < len && s[*p] == '[') skip_group(s, len, p);
 }
 
@@ -276,6 +318,13 @@ static void cte_process(const CteTable *table, const char *s, size_t len,
                         expand_branch(table, s, starts[idx], ends[idx], st, o, depth);
                     continue;
                 }
+                if (x == 'S' || x == 'G') {  /* ^XS call / ^XG goto <id> */
+                    i++;
+                    int id = read_int(s, len, &i);
+                    cte_call(table, id, st, o, depth);
+                    if (x == 'G') return;  /* goto: rest of this section is dead */
+                    continue;
+                }
                 if (x == 'P') { i++; continue; }  /* person-name insert: no
                                                      authentic name source yet,
                                                      so emit nothing */
@@ -290,7 +339,16 @@ static void cte_process(const CteTable *table, const char *s, size_t len,
                 skip_effect(s, len, &i);
                 continue;
             }
-            /* Unknown ^-escape: drop the marker. */
+            /* Any other ^<letter> opcode (the lowercase location/status family
+             * ^L range, ^A/^Z/^s/^h/^w substitutions, etc.) is a side effect or
+             * a state-dependent substitution we cannot fill read-only: consume
+             * its operand and emit nothing rather than leak the raw bytes. */
+            if (isalpha((unsigned char)op)) {
+                i++;
+                skip_effect(s, len, &i);
+                continue;
+            }
+            /* Unknown non-letter ^-escape: drop just the marker. */
             i++;
             continue;
         }
@@ -305,7 +363,7 @@ bool cte_expand(const CteTable *table, const CteSection *section,
                 CteState *state, char *out, size_t out_size) {
     if (!table || !section || !state || !out || out_size < 2) return false;
     if (state->prng_state == 0) state->prng_state = 1;  /* seed if uninitialised */
-    CteOut o = { out, 0, out_size };
+    CteOut o = { out, 0, out_size, { section->id }, 1 };  /* seed cycle guard */
     cte_process(table, (const char *)section->content, section->length,
                 state, &o, 0);
     out[o.pos] = '\0';

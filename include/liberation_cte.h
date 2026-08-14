@@ -8,18 +8,23 @@
 /* Parser for the Liberation CITY_TEXT (CTE) interaction table — the original
  * shop/bank/police/clue conversation script.  Unlike the DTE "location
  * descriptions" table (ASCII `|id[...]` sections), CTE uses a binary section
- * frame: <id byte> 0x00 <len byte> [ content ], where len = content length + 3
- * and the id byte is the token that the script's ^XG/^XS jumps reference.
+ * frame: 0xD7 <id-hi> <id-lo> 0x00 <len> [ content ].  The id is a 16-bit
+ * big-endian value — the decimal label (e.g. 0x4268 == 17000) that the
+ * script's ^XG/^XS jumps reference — so calls resolve to other CTE sections
+ * within this same table.  <len> is a one-byte hint that overflows for long
+ * sections, so content is delimited by bracket matching, not by <len>.
  *
  * The section parser makes the authentic sections addressable; the read-only
  * bytecode interpreter below expands a section's content, evaluating its ^X
  * opcodes against supplied game state.  It is complete for the self-contained,
  * text-producing opcodes (^O random, ^XI conditional, ^XC case, ^^ newline,
- * ^; comment) and safely skips side-effect opcodes.  Cross-table calls
- * (^XS/^XG to 5-digit label ids in a separate string table) are not yet
- * resolved, so a call-only section expands to empty text rather than invented
- * text.  Nothing here is wired to on-screen dialogue until call resolution is
- * done, so no partial/wrong-context output is ever shown. */
+ * ^; comment), resolves ^XS/^XG calls to other sections (with cycle
+ * protection), and safely skips side-effect and state-dependent substitution
+ * opcodes.  Branches gated on game flags that the caller has not set read as
+ * their initial state, so a flag-heavy section expands to only its
+ * unconditional text — never invented text.  The interpreter is not yet wired
+ * to on-screen dialogue: correct branch selection needs the game-state field
+ * model (mc, v, g, s, H, E, …), so no partial/wrong-context output is shown. */
 
 #define CTE_MAX_SECTIONS 256
 

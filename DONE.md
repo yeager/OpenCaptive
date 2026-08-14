@@ -1,5 +1,25 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (CTE call resolution + framing fix, v1.1.133)
+
+- Corrected the CTE section framing: the id is 16-bit big-endian
+  (`0xD7 <id-hi> <id-lo> 0x00 <len> [content]`), not a single byte, and the
+  one-byte len overflows for long sections so content is bracket-delimited.
+  The marker-based parser now finds the true 198 sections (the old bracket
+  parser truncated ids and merged sections into 48).
+- Found that `^XS`/`^XG` targets are these same 16-bit section ids — calls
+  resolve within the CTE table. Implemented `^XS` (subroutine inline) and
+  `^XG` (goto: inline then end section) in `cte_expand`, with a per-expansion
+  call stack that refuses to re-enter an active id (cycle-safe, bounded).
+- Widened skipped-opcode handling to consume the `^Xf*…[…]` flag family,
+  `^XM[…]` menus, and the lowercase location/status templater (`^L` range,
+  `^A/^Z/^s/^h/^w` substitutions) so nothing leaks.
+- Verified against the real CITY_TEXT: 198/198 sections expand with no leaked
+  markers/brackets; 66 emit authentic text under an empty state, including the
+  game's real clue quotes (the full 32-entry poetry set). Remaining sections
+  gate on game flags/menus and need the state-field model to render. Added
+  unit tests for call inlining, goto, and cycle safety.
+
 ## 2026-08-14 (CTE decoder step 2: bytecode interpreter, v1.1.132)
 
 - Built `cte_expand()`, a read-only expander for the authentic CITY_TEXT

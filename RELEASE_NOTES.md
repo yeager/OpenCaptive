@@ -1,5 +1,38 @@
 # OpenCaptive Release Notes
 
+## v1.1.133 (2026-08-14)
+
+### Fixed
+
+- **(Liberation)** CTE section framing was reverse-engineered incorrectly. The
+  section id is a **16-bit big-endian** value framed `0xD7 <id-hi> <id-lo> 0x00
+  <len> [ content ]`, not a single byte; the one-byte `<len>` overflows for long
+  sections so content is bracket-delimited. The corrected marker-based parser
+  finds the true **198 sections** (the old bracket-scan parser truncated ids and
+  merged sections, finding only 48).
+
+### Added
+
+- **(Liberation)** CTE cross-table call resolution. The `^XS`/`^XG` jump targets
+  are the same 16-bit section ids, so calls resolve *within* the CTE table.
+  `cte_expand` now inlines `^XS` (subroutine) and `^XG` (goto) with a
+  per-expansion call stack that refuses to re-enter an active id (cycle-safe).
+  Skipped-opcode handling was widened to consume the `^Xf*…[…]` flag family,
+  `^XM[…]` menus, and the lowercase location/status templater (`^L` range,
+  `^A/^Z/^s/^h/^w` substitutions). Verified against the real CITY_TEXT: all 198
+  sections expand with no leaked markers; **66 emit authentic text under an
+  empty state — including the game's real clue quotes** ("The tigers of wrath
+  are wiser…" and the full set). Remaining sections gate on game flags/menus and
+  need the state-field model before they render. New unit tests cover call
+  inlining, goto, and cycle safety.
+
+### Notes
+
+Still not wired to the building overlay: correct branch selection for
+flag-gated sections needs the game-state field model (mc, v, g, s, H, E, …).
+Until then, wiring would show only unconditional text, so it stays behind the
+interpreter — no partial/wrong-context output is shown.
+
 ## v1.1.132 (2026-08-14)
 
 ### Added
