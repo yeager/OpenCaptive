@@ -1,5 +1,26 @@
 # OpenCaptive Release Notes
 
+## v1.1.134 (2026-08-14)
+
+### Added
+
+- **(Liberation)** CTE `^XM` player-menu expansion. `^XM[...]` holds the
+  player's spoken choices (e.g. the bank menu "I'd like to make a withdrawal
+  from AC/No…", the police "Get on with it."), so its options are authentic
+  text and are now emitted (newline-separated) instead of skipped. Verified
+  against the real CITY_TEXT: sections producing authentic text under an empty
+  state rose from 66 to **188 of 198** — the bank, police-negotiation, and
+  business menus now surface their real lines. `^Xf[...]` branches, which
+  contain only flag-actions (no dialogue), remain correctly skipped. All 198
+  still expand with no leaked markers. New unit test covers menu expansion.
+
+### Notes
+
+The remaining gap to on-screen wiring is unchanged: `^XI`/`^XC` branches gated
+on plot flags need the game-state field model. An all-zero state gives the
+correct first-encounter dialogue, so wiring will start from there once the
+field model lands.
+
 ## v1.1.133 (2026-08-14)
 
 ### Fixed

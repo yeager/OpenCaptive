@@ -134,6 +134,15 @@ static void test_skips_side_effects(void) {
     assert(strcmp(out, "Pay  now.") == 0);
 }
 
+/* ^XM[a|b|c] is the player's choice menu — every option is authentic text and
+ * is emitted (newline-separated), not skipped. */
+static void test_menu_expands(void) {
+    CteState st; cte_state_init(&st, 1);
+    char out[256];
+    EXPAND("^XM[Deposit.|Withdraw.|Leave.]", &st, out);
+    assert(strcmp(out, "Deposit.\nWithdraw.\nLeave.") == 0);
+}
+
 /* ^XS<id> inlines a called section's text and continues; ^XG<id> inlines then
  * ends the current section (goto). Build a two-section table by hand. */
 static void test_call_inlining(void) {
@@ -213,6 +222,7 @@ int main(void) {
     test_conditional_compound_and();
     test_case_switch();
     test_skips_side_effects();
+    test_menu_expands();
     test_call_inlining();
     test_call_cycle_safe();
     test_real_cte_if_available();

@@ -1,5 +1,22 @@
 # OpenCaptive — Completed work
 
+## 2026-08-14 (CTE player-menu expansion, v1.1.134)
+
+- Found via the data that `^XM[...]` holds the player's dialogue choices (bank
+  withdrawal/deposit menu, police negotiation lines) — authentic text, not a
+  side effect. `cte_expand` now emits every `^XM` option (newline-separated)
+  instead of skipping it. `^Xf[...]` branches, which hold only flag-actions,
+  stay correctly skipped.
+- Verified against the real CITY_TEXT: sections emitting authentic text under
+  an empty state rose from 66 to 188/198; all 198 still expand with no leaks.
+  Also confirmed from data alone: zc=1 male / zc=0 female.
+- Reverse-engineering setup captured for the next step (state-field model):
+  extracted the Amiga HUNK game binary via VFS (tools/hash_extract), parsed the
+  CODE hunk (163476 bytes at file offset 48). Linear m68k disassembly is
+  unreliable through data/jump tables — a recursive-descent (Ghidra-class)
+  disassembly is needed to trace the ~26 condition variables to their %a5
+  state offsets. Documented in the CTE decoder memory + TODO.
+
 ## 2026-08-14 (CTE call resolution + framing fix, v1.1.133)
 
 - Corrected the CTE section framing: the id is 16-bit big-endian

@@ -318,6 +318,15 @@ static void cte_process(const CteTable *table, const char *s, size_t len,
                         expand_branch(table, s, starts[idx], ends[idx], st, o, depth);
                     continue;
                 }
+                if (x == 'M') {  /* ^XM[opt|opt|...] player choice menu */
+                    i++;
+                    unsigned n = split_branches(s, len, &i, starts, ends, 40);
+                    for (unsigned b = 0; b < n; b++) {
+                        if (b) cte_emit(o, '\n');
+                        expand_branch(table, s, starts[b], ends[b], st, o, depth);
+                    }
+                    continue;
+                }
                 if (x == 'S' || x == 'G') {  /* ^XS call / ^XG goto <id> */
                     i++;
                     int id = read_int(s, len, &i);
