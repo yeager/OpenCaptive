@@ -184,3 +184,37 @@ opcode byte (no char comparisons), which is why char-anchored searches missed
 it. The remaining `mc` trace — find the `^XI` variable read's `%a5` offset, then
 its writers — is now tractable and is the next step (jump-table dispatch means
 r2's `aa` under-covers; drive analysis manually from anchors).
+
+## mc-derivation CRACKED with radare2 (2026-08-14)
+Traced on the CD32 game binary db61f7e3… (CODE hunk 225396 bytes, the one the
+earlier anchors match; extract via hash_extract, CODE at file offset 44).
+radare2 (`~/.local/bin/r2portable -a m68k -b 32 -e cfg.bigendian=true`) gives
+clean disassembly; addresses below are CODE-hunk-relative.
+
+**`mc` is the current NPC/person's profession field, not the building type.**
+- The `^XI`/`^XC` condition reader (dispatch under the `^X` handler at 0xa29a;
+  `^XI` at 0x7b54) resolves `mc` at 0xa1a2: `a0 = *(0x6890(a5)); d2 = word[a0+8]`.
+  `0x6890(a5)` is the current person/NPC record pointer (default static buffer
+  0x6894(a5) set at 0x6190; a real NPC bound at 0xa55c). So **mc = word at
+  person_record+8 = the NPC's profession/service code.** (`me` at 0xa18a reads
+  the *building* record+2 category byte instead; building record = 0x68e0(a5).)
+
+**The profession (person+8) is computed from the building record's category
+byte via function 0xa738** (set at 0xa6b4-0xa6ba: `d0 = building_record[+2];
+bsr 0xa738; move.w d1,person+8`). 0xa738 decodes the category byte → mc:
+- plot-flag overrides (globals 0x75b8/0x75b9/0x75bb(a5)) → mc 20–23 (0x14–0x17)
+- category **bit 3 set** → mc = −1/−2 (0xff/0xfe: no normal service)
+- category **& 7 == 0** → mc = 0  (general shop/vendor)
+- category **& 7 == 7** → mc = −3 (0xfd)
+- category **& 7 in 1..6** → pseudo-random pick via 0xa988→0xd444: 0xa988 hashes
+  building_record bytes [0],[1],[2] plus a global (0x1d7b(a5)) into a seed
+  (stored 0x5a66(a5)) and calls the PRNG 0xd444, selecting the specific
+  commercial service (bank=13, repair=16/18, …) deterministically per building.
+
+**Implication for wiring bank/repair:** the reconstruction must (1) form the
+building record's category byte (it already keeps a category in flags bits 2-5),
+(2) apply the 0xa738 decode + 0xa988/0xd444 selection to get `mc`, (3) run the
+CTE with that `mc`. Remaining to fully replicate: decode 0xd444 (the PRNG) and
+0xa988's exact seed→service mapping so the 1..6 commercial split (which building
+becomes a bank vs repair vs vendor) is byte-faithful. This is now tractable in
+r2 — the mechanism and every entry point are located.
