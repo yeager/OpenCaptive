@@ -201,6 +201,8 @@ typedef struct {
 void game_state_init(GameState *gs, GameType type, int mission);
 bool game_state_new_mission(GameState *gs, int mission);
 bool game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed);
+/* Native Captive dungeon entry using the byte-exact GM.EXE generator (no DOSBox). */
+bool game_state_new_captive_mission(GameState *gs, int planet);
 bool game_state_change_floor(GameState *gs, int direction);
 bool game_state_complete_mission(GameState *gs);
 

@@ -1,5 +1,17 @@
 # OpenCaptive Release Notes
 
+## v1.1.181 (2026-08-20)
+
+### Added
+
+- **(Captive)** `game_state_new_captive_mission(gs, planet)` — the engine entry point for
+  native Captive dungeon play: it generates the level with the byte-exact GM.EXE port
+  (`captive_gm_build_level`) instead of running CAPPO/DOSBox, places the party on a real
+  floor cell, counts generators and enters STATE_GAME.  Deterministic per planet, real
+  GM.EXE geometry (test in `test_game_state`).  This is the engine-side foundation for
+  wiring Captive's landing to the native generator; the render-loop side (calling
+  `viewport_render` for Captive STATE_GAME with a texture atlas) is the remaining step.
+
 ## v1.1.180 (2026-08-20)
 
 ### Fixed

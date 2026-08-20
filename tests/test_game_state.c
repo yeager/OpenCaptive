@@ -3,6 +3,8 @@
 #include "puzzle.h"
 #include "xp_level.h"
 #include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
@@ -1752,6 +1754,32 @@ int main(void) {
     assert(game_state_change_floor(&gs, -1));
     assert(gs.current_level == initial_level);
     assert(!game_state_change_floor(&gs, -1));
+
+    /* Native Captive dungeon entry via the byte-exact GM.EXE generator. */
+    assert(!game_state_new_captive_mission(NULL, 1));
+    {
+        GameState *cg = calloc(1, sizeof(*cg));
+        assert(cg != NULL);
+        game_state_init(cg, GAME_CAPTIVE, 1);
+        assert(game_state_new_captive_mission(cg, 1));
+        assert(cg->num_levels == 1);
+        assert(cg->mode == STATE_GAME);
+        /* Real GM.EXE geometry: a mix of walls and floors, party on a floor cell. */
+        int walls = 0, floors = 0;
+        for (int y = 0; y < MAP_HEIGHT; y++)
+            for (int x = 0; x < MAP_WIDTH; x++) {
+                if (cg->levels[0].cells[y][x].type == CELL_WALL) walls++;
+                else if (cg->levels[0].cells[y][x].type == CELL_FLOOR) floors++;
+            }
+        assert(walls > 0 && floors > 0);
+        assert(cg->levels[0].cells[cg->party_y][cg->party_x].type == CELL_FLOOR);
+        /* Determinism per planet. */
+        GameState *cg2 = calloc(1, sizeof(*cg2));
+        game_state_init(cg2, GAME_CAPTIVE, 1);
+        assert(game_state_new_captive_mission(cg2, 1));
+        assert(memcmp(&cg->levels[0], &cg2->levels[0], sizeof(cg->levels[0])) == 0);
+        free(cg); free(cg2);
+    }
 
     puts("All game state tests passed");
     return 0;

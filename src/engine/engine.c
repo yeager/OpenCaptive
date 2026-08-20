@@ -1,6 +1,7 @@
 #include "game_state.h"
 #include "captive_data.h"
 #include "map_gen.h"
+#include "captive_dos_map_load.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -122,6 +123,43 @@ bool game_state_new_mission_seeded(GameState *gs, int mission, uint32_t seed) {
         }
     }
     placed:
+    gs->party_dir = DIR_NORTH;
+    gs->mode = STATE_GAME;
+    return true;
+}
+
+bool game_state_new_captive_mission(GameState *gs, int planet) {
+    /* Native Captive dungeon entry: generate the level with the byte-exact GM.EXE
+     * port (captive_gm_build_level) instead of running CAPPO/DOSBox.  The map is real
+     * GM.EXE output, deterministic per planet.  Level params beyond the planet number
+     * (word[0x4F6..0x4FA]) are not yet resolved from CAPPO's runtime state, so the
+     * base planet parameter is used; see docs/CAPTIVE_GM_PORT_PLAN.md. */
+    if (!gs) return false;
+    if (planet < 1) planet = 1;
+
+    if (captive_gm_build_level(&gs->levels[0], (uint16_t)planet) != 0)
+        return false;
+    gs->num_levels = 1;
+    gs->current_level = 0;
+    gs->mission = planet;
+
+    gs->generators_total = 0;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+        for (int x = 0; x < MAP_WIDTH; x++)
+            if (gs->levels[0].cells[y][x].type == CELL_GENERATOR)
+                gs->generators_total++;
+    gs->generators_destroyed = 0;
+
+    gs->party_x = 1; gs->party_y = 1;
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (gs->levels[0].cells[y][x].type == CELL_FLOOR) {
+                gs->party_x = x; gs->party_y = y;
+                goto cap_placed;
+            }
+        }
+    }
+    cap_placed:
     gs->party_dir = DIR_NORTH;
     gs->mode = STATE_GAME;
     return true;
