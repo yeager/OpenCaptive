@@ -1,0 +1,68 @@
+#ifndef CAPTIVE_GM_GENERATOR_H
+#define CAPTIVE_GM_GENERATOR_H
+
+#include <stdint.h>
+#include <stddef.h>
+
+/*
+ * Native transcription of GM.EXE, Captive DOS's dungeon level generator (the
+ * child program CAPPO.EXE execs).  See docs/CAPTIVE_GM_PORT_PLAN.md for the full
+ * pipeline and docs/CAPTIVE_DOS_DUNGEON_RE.md for provenance.
+ *
+ * GM.EXE operates on a single ~0x6AAC-byte work segment (the relocated `0x2CF`
+ * data segment).  We model it as a flat byte buffer with the SAME offsets as the
+ * original so every transcribed routine reads/writes exactly where GM does; this
+ * lets each pass be verified byte-for-byte against the real GM.EXE via the oracle
+ * (opencaptive-re/gm_oracle.py).  Generation is deterministic per mission
+ * parameter, so the transcription is exact, not approximate.  Nothing here is
+ * synthetic: it reproduces the game's own generator.
+ *
+ * Build-out is incremental (see the port plan).  Implemented so far:
+ *   - captive_gm_entry_setup : entry pointer-table + mission-param storage (0x08)
+ *   - captive_gm_seed        : the seed/constant init (0x2F2..0x3B0)
+ * The ~35-routine pass chain (0x3B1..0x45F) and the 0xEE generate loop are
+ * transcribed pass-by-pass on top of this foundation.
+ */
+
+#define CAPTIVE_GM_WORK_SIZE 0x6AACu
+
+typedef struct {
+    uint8_t b[CAPTIVE_GM_WORK_SIZE];
+} CaptiveGmWork;
+
+/* 16-bit little-endian word accessors at a work-segment offset (as GM's code,
+ * which is DS-relative with DS = the work segment). */
+static inline uint16_t captive_gm_wget(const CaptiveGmWork *w, uint16_t off) {
+    return (uint16_t)(w->b[off] | (w->b[(uint16_t)(off + 1)] << 8));
+}
+static inline void captive_gm_wset(CaptiveGmWork *w, uint16_t off, uint16_t v) {
+    w->b[off] = (uint8_t)(v & 0xFFu);
+    w->b[(uint16_t)(off + 1)] = (uint8_t)(v >> 8);
+}
+
+/*
+ * Entry setup, transcribed from GM_UNP.EXE 0x08..0xB5 (after the segment clear):
+ * stores the four mission parameters at their fixed slots and initialises the
+ * buffer pointer table (0x357E..0x3594, 0x3578/0x357A/0x357C).  `w` must be
+ * zero-initialised first (GM clears the segment at 0x2C..0x38).
+ *   ax = mission param (word[0:0x4F4]);  bx,cx,dx = word[0:0x4F6/0x4F8/0x4FA].
+ */
+void captive_gm_entry_setup(CaptiveGmWork *w, uint16_t ax, uint16_t bx,
+                            uint16_t cx, uint16_t dx);
+
+/*
+ * Seed / constant init, transcribed from GM_UNP.EXE 0x2F2..0x3B0: computes
+ * word[0x3560] from the mission param, clears the working buffers the pointer
+ * table addresses, and writes the fixed generation seeds (0x1000/0x0FF8/0x8882/
+ * 0x8881 etc.).  Must be called after captive_gm_entry_setup.
+ * Returns 0 for the normal path, 1 if GM would branch to its 0x684 alt-path
+ * (word[0x33DC] bit 1 set) — recorded so later passes can honour it.
+ */
+int captive_gm_seed(CaptiveGmWork *w);
+
+/* Offsets of the key work-segment fields (for callers/tests). */
+#define CAPTIVE_GM_OFF_MISSION   0x3078u  /* mission param copy */
+#define CAPTIVE_GM_OFF_OUTMAP    0x5A68u  /* output 64x32 map (ptr at 0x3578) */
+#define CAPTIVE_GM_OFF_PTRTAB    0x357Eu  /* first pointer-table entry */
+
+#endif /* CAPTIVE_GM_GENERATOR_H */

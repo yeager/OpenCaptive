@@ -1,5 +1,21 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port started: entry+seed transcribed & oracle-verified, v1.1.148)
+
+- Chose the faithful native-port path for GM.EXE's level generator. Built the
+  byte-exact verification oracle (`opencaptive-re/gm_oracle.py`) that snapshots
+  GM's work segment at labelled breakpoints; caught and fixed a memory-model bug
+  (GM's work segment is the RELOCATED 0x2CF => runtime DS=0x32F, not 0x2CF).
+- Documented the full ~35-routine generation pipeline and verification strategy in
+  `docs/CAPTIVE_GM_PORT_PLAN.md`; recorded that generation is deterministic per
+  mission param (so the port is byte-verifiable).
+- Transcribed the first stage of the generator into `src/data/captive_gm_generator.c`
+  (`captive_gm_entry_setup` = pointer table + mission-param storage, GM 0x08..0xB5;
+  `captive_gm_seed` = seed/constant init, GM 0x2F2..0x3B0), verified in
+  `tests/test_captive_gm_generator.c` against the real GM.EXE work-segment values
+  captured by the oracle (pointer table, seed structs 0x1000/0x0FF8/0x8882/0x8881,
+  scalars, mission scaling). All 71 tests pass.
+
 ## 2026-08-20 (Captive level generator found: GM.EXE — translator transcribed, v1.1.147)
 
 - Resolved the long-open question "what fills the 64x32 map at DS:0x7CB3": the

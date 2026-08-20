@@ -1,5 +1,16 @@
 # OpenCaptive Release Notes
 
+## v1.1.148 (2026-08-20)
+
+### Added
+
+- **(Captive)** Started the faithful native port of GM.EXE's level generator:
+  `captive_gm_generator` with the entry setup (pointer table + mission params) and
+  the seed/constant init, transcribed from GM.EXE and verified byte-for-byte against
+  the real generator's work-segment state (via `opencaptive-re/gm_oracle.py`).
+- **(Captive)** `docs/CAPTIVE_GM_PORT_PLAN.md` — the full generation-pipeline roadmap
+  and byte-exact verification strategy.
+
 ## v1.1.147 (2026-08-20)
 
 ### Added

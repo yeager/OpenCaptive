@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.147 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.148 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -82,6 +82,7 @@ set(OPENCAPTIVE_SOURCES
     src/data/captive_dos_map.c
     src/data/captive_dos_generator.c
     src/data/captive_gm_translate.c
+    src/data/captive_gm_generator.c
     src/data/captive_dos_map_load.c
     src/data/captive_dos_descriptor.c
     src/render/captive_dos_runtime.c
@@ -313,6 +314,11 @@ add_executable(test_captive_gm_translate tests/test_captive_gm_translate.c
     src/data/captive_gm_translate.c)
 target_include_directories(test_captive_gm_translate PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME captive_gm_translate COMMAND test_captive_gm_translate)
+
+add_executable(test_captive_gm_generator tests/test_captive_gm_generator.c
+    src/data/captive_gm_generator.c)
+target_include_directories(test_captive_gm_generator PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_test(NAME captive_gm_generator COMMAND test_captive_gm_generator)
 
 add_executable(test_frame_compare tests/test_frame_compare.c
     src/render/frame_compare.c)
