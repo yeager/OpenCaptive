@@ -26,6 +26,13 @@
 
 void captive_dos_map_to_level(DungeonLevel *out, const uint8_t *bytes);
 
+/*
+ * Generate the dungeon for `mission` with the native GM.EXE port and convert its output
+ * map into `out`.  This is the real, byte-exact game generator feeding the engine's
+ * renderer — no captured map, no DOSBox, no original code.  Returns 0 on success.
+ */
+int captive_gm_build_level(DungeonLevel *out, uint16_t mission);
+
 /* True when a captured cell byte is a solid/drawn wall: (byte & 0x7F) > 0x1A. */
 static inline int captive_dos_cell_is_wall(uint8_t cell) {
     return (uint8_t)(cell & 0x7Fu) > 0x1Au;

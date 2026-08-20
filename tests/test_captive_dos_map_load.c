@@ -59,10 +59,35 @@ static void test_null_safe(void) {
     (void)level;
 }
 
+static void test_build_level_from_generator(void) {
+    /* End-to-end: the native GM.EXE generator feeds the DungeonLevel converter.  The
+     * result must be a plausible dungeon (a mix of walls and floors) and deterministic
+     * per mission.  The floor counts are those of the byte-exact GM output map for
+     * missions 1/2/3 (2048 - non-wall cells of the finished level). */
+    struct { uint16_t m; int walls; } cases[] = { {1u, 437}, {2u, 464}, {3u, 428} };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        DungeonLevel level;
+        assert(captive_gm_build_level(&level, cases[c].m) == 0);
+        int walls = 0, floors = 0;
+        for (int y = 0; y < MAP_HEIGHT; ++y)
+            for (int x = 0; x < MAP_WIDTH; ++x) {
+                if (level.cells[y][x].type == CELL_WALL) ++walls; else ++floors;
+            }
+        assert(walls == cases[c].walls);
+        assert(floors == MAP_WIDTH * MAP_HEIGHT - cases[c].walls);
+        assert(walls > 0 && floors > 0);              /* a real dungeon, not all-solid */
+        /* Determinism: a second run must match byte-for-byte. */
+        DungeonLevel again;
+        assert(captive_gm_build_level(&again, cases[c].m) == 0);
+        assert(memcmp(&level, &again, sizeof(level)) == 0);
+    }
+}
+
 int main(void) {
     test_wall_predicate();
     test_convert();
     test_null_safe();
+    test_build_level_from_generator();
     printf("captive_dos_map_load: all tests passed\n");
     return 0;
 }

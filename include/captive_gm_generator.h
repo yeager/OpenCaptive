@@ -210,6 +210,18 @@ void captive_gm_pass_1460(CaptiveGmWork *w);
  */
 void captive_gm_generate_output(CaptiveGmWork *w);
 
+/* Work-segment offset of the finished output level map (2048 bytes, 64x32 row-major)
+ * and the parallel second map, after captive_gm_run / captive_gm_generate_output. */
+#define CAPTIVE_GM_OUTPUT_MAP  0x5A68u
+#define CAPTIVE_GM_SECOND_MAP  0x6288u
+
+/*
+ * Run the complete GM.EXE dungeon generator for `mission` (deterministic; no original
+ * code executed).  On return, &w->b[CAPTIVE_GM_OUTPUT_MAP] is the finished 64x32 level
+ * map, byte-identical to the real GM.EXE.  `w` need not be pre-initialised.
+ */
+void captive_gm_run(CaptiveGmWork *w, uint16_t mission);
+
 /* Offsets of the key work-segment fields (for callers/tests). */
 #define CAPTIVE_GM_OFF_MISSION   0x3078u  /* mission param copy */
 #define CAPTIVE_GM_OFF_OUTMAP    0x5A68u  /* output 64x32 map (ptr at 0x3578) */

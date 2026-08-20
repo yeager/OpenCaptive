@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE port: generator -> DungeonLevel bridge, v1.1.177)
+
+- Added `captive_gm_run` (full generator in one call) and `captive_gm_build_level`
+  (generator output -> DungeonLevel via captive_dos_map_to_level).  The byte-exact
+  native generator can now produce an engine level directly; test_build_level_from_generator
+  checks wall/floor counts and determinism for missions 1/2/3.  Next: replace the synthetic
+  map_generate_base call sites (engine.c, main.c) with this path.
+
 ## 2026-08-20 (GM.EXE native port: end-to-end output map byte-exact, v1.1.176)
 
 - Added `test_full_pipeline_output`: the full pass chain + 0xEE translate produces an

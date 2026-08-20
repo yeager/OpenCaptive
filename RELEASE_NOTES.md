@@ -1,5 +1,16 @@
 # OpenCaptive Release Notes
 
+## v1.1.177 (2026-08-20)
+
+### Added
+
+- **(Captive)** `captive_gm_run(mission)` — one call runs the whole native GM.EXE
+  generator and leaves the finished 64x32 output map at `w->b[CAPTIVE_GM_OUTPUT_MAP]`
+  (0x5A68).  `captive_gm_build_level(DungeonLevel*, mission)` bridges that output through
+  `captive_dos_map_to_level` into the engine's level struct — the real, byte-exact game
+  generator now feeds the renderer directly (no captured map, no DOSBox).  Covered by
+  `test_build_level_from_generator` (wall/floor counts + determinism for missions 1/2/3).
+
 ## v1.1.176 (2026-08-20)
 
 ### Added

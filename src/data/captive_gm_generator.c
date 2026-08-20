@@ -2744,6 +2744,33 @@ void captive_gm_generate_output(CaptiveGmWork *w) {
     }
 }
 
+void captive_gm_run(CaptiveGmWork *w, uint16_t mission) {
+    /* The whole GM.EXE dungeon generator: seed -> the full pass chain (0x3B1..0x45E) ->
+     * the 0xEE translate driver.  Deterministic per mission param; on return the output
+     * level map lives at work[0x5A68] (2048 bytes) and the second map at work[0x6288].
+     * Verified byte-identical to the real GM.EXE (test_full_pipeline_output). */
+    captive_gm_init(w);
+    captive_gm_entry_setup(w, mission, 0u, 0u, 0u);
+    captive_gm_seed(w);
+    captive_gm_pass_14c9(w); captive_gm_pass_45f(w);
+    captive_gm_pass_526(w); captive_gm_pass_5d4(w);
+    captive_gm_wset(w, 0x3070u, 1u);
+    captive_gm_pass_1cb5(w); captive_gm_pass_1617(w); captive_gm_pass_d12(w);
+    captive_gm_pass_2589(w); captive_gm_pass_26be(w); captive_gm_pass_28b2(w);
+    captive_gm_pass_29f6(w); captive_gm_pass_28b2(w); captive_gm_pass_2888(w);
+    captive_gm_pass_164c(w); captive_gm_pass_2940(w); captive_gm_pass_e12(w);
+    captive_gm_pass_1736(w); captive_gm_pass_1806(w); captive_gm_pass_2a9d(w);
+    captive_gm_pass_2abc(w); captive_gm_pass_a2a(w);
+    captive_gm_pass_2595(w, 0xFFC3u, 0x0000u); captive_gm_pass_9c3(w);
+    captive_gm_pass_967(w); captive_gm_pass_f61(w); captive_gm_pass_2284(w);
+    captive_gm_pass_22ba(w); captive_gm_pass_22eb(w); captive_gm_pass_2310(w);
+    captive_gm_pass_2400(w); captive_gm_pass_242e(w);
+    captive_gm_pass_2595(w, 0xFFC4u, 0xFFF6u); captive_gm_pass_157e(w);
+    captive_gm_pass_13e3(w); captive_gm_pass_237f(w); captive_gm_pass_23b4(w);
+    captive_gm_pass_1460(w);
+    captive_gm_generate_output(w);
+}
+
 void captive_gm_pass_5d4(CaptiveGmWork *w) {
     /* GM 0x5D4..0x640: expand the 4x4 room grid into the 2048-word input map at
      * work[0x38..].  Each of the 4 grid rows (dh) writes:
