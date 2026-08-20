@@ -1,5 +1,15 @@
 # OpenCaptive Release Notes
 
+## v1.1.164 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0x2940 (`captive_gm_pass_2940`), the
+  objective / special-item placer — stamps a 3x3 block of code 9 around the first
+  qualifying room record (or a single cell at a random surviving dead-end), completing
+  the first post-0xD12 pass group.  Verified byte-identical to the real GM.EXE
+  (cell-type map, RNG in sync) for missions 1/2/3.
+
 ## v1.1.163 (2026-08-20)
 
 ### Added

@@ -1304,6 +1304,77 @@ void captive_gm_pass_2888(CaptiveGmWork *w) {
     captive_gm_wset(w, 0x3074u, saved);
 }
 
+/* GM 0x29CA: 1 iff (cl,ch) is in bounds and its cell type is a room code
+ * (0x35/0x36/0x37/0x33/0x1F). */
+static int gm_29ca(CaptiveGmWork *w, uint8_t cl, uint8_t ch) {
+    if (cl >= 0x40u || ch >= 0x20u) return 0;
+    uint8_t dl = w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch))];
+    return (dl == 0x35u || dl == 0x36u || dl == 0x37u || dl == 0x33u || dl == 0x1Fu);
+}
+
+/* GM 0x2974: stamp a 3x3 block of code `al` around (cl,ch), stepping toward the open
+ * side (dh from the east neighbour, bh from the south), skipping wall-type cells. */
+static void gm_2974(CaptiveGmWork *w, uint8_t cl, uint8_t ch, uint8_t al) {
+    int dh = gm_29ca(w, (uint8_t)(cl + 1u), ch) ? 1 : -1;
+    int bh = gm_29ca(w, cl, (uint8_t)(ch + 1u)) ? 1 : -1;
+    uint8_t rch = ch;
+    for (int oy = 2; oy >= 0; --oy) {
+        uint8_t rcl = cl;
+        for (int ox = 2; ox >= 0; --ox) {
+            uint16_t bp = captive_gm_map_index(rcl, rch);
+            uint8_t ah = w->b[(uint16_t)(GM_MAP_TYPE + bp)];
+            if (!(ah == 0x35u || ah == 0x36u || ah == 0x37u ||
+                  ah == 4u || ah == 5u || ah == 6u))
+                w->b[(uint16_t)(GM_MAP_TYPE + bp)] = al;
+            rcl = (uint8_t)(rcl + dh);
+        }
+        rch = (uint8_t)(rch + bh);
+    }
+}
+
+/* GM 0x16D7: pick a random still-0x7F dead-end from the 0x3098 list; clears stale
+ * (non-0x7F) entries as it probes.  Returns 1 (and *pcell) on success. */
+static int gm_16d7(CaptiveGmWork *w, uint16_t *pcell) {
+    uint16_t bx = (uint16_t)(captive_gm_rng_next(w) & 0x1FEu);   /* 0x16DD */
+    int dl = 0;
+    for (;;) {
+        uint16_t v = captive_gm_wget(w, (uint16_t)(0x3098u + bx));
+        if (v == 0u) {                                          /* 0x16EA empty slot */
+            bx = (uint16_t)((bx + 2u) & 0x1FEu);
+            dl = (dl - 1) & 0xFF;
+            if (dl == 0) return 0;                              /* probed all -> fail */
+            continue;
+        }
+        uint16_t bp = captive_gm_map_index((uint8_t)v, (uint8_t)(v >> 8));
+        if (w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 0x7Fu) {      /* 0x1702 */
+            *pcell = v; return 1;
+        }
+        captive_gm_wset(w, (uint16_t)(0x3098u + bx), 0u);       /* 0x1708 clear stale */
+        /* jmp 0x16E6: re-mask the same bx and re-probe */
+    }
+}
+
+/* ==== Pass 0x2940: objective / special-item placement ====
+ * Find the first of the 64 room records at 0x3298 whose shape flags have both a low
+ * (0x07) and a mid (0x38) bit set, and stamp a 3x3 block of code 9 around its cell.
+ * If none qualifies, place a single code-9 cell at a random surviving dead-end. */
+void captive_gm_pass_2940(CaptiveGmWork *w) {
+    uint16_t bx = 0x3298u;
+    for (int cx = 0x40; cx > 0; --cx) {
+        bx = (uint16_t)(bx + 4u);
+        uint8_t flags = w->b[(uint16_t)(bx - 1u)];
+        if ((flags & 0x07u) != 0u && (flags & 0x38u) != 0u) {  /* 0x2949/0x294F */
+            uint16_t cell = captive_gm_wget(w, (uint16_t)(bx - 4u));
+            gm_2974(w, (uint8_t)cell, (uint8_t)(cell >> 8), 9u);
+            return;
+        }
+    }
+    /* 0x2957: no record qualified -> random dead-end. */
+    uint16_t cell;
+    while (!gm_16d7(w, &cell)) { /* retry */ }
+    w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index((uint8_t)cell, (uint8_t)(cell >> 8)))] = 9u;
+}
+
 void captive_gm_generate_output(CaptiveGmWork *w) {
     /* GM 0xEE: the final translate driver.  For each of the 2048 cells it reads the
      * cell type at word[0x1048+2k], the selector at word[0x38+2k], and the aux at

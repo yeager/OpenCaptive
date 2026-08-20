@@ -460,9 +460,9 @@ static void test_pass_group_164c(void) {
      * 0x28B2 -> 0x29F6 -> 0x28B2 -> 0x2888 -> 0x164C; verified byte-identical to the
      * real GM.EXE for missions 1/2/3 (0x29F6 and 0x2888 draw RNG that stays in sync). */
     struct { uint16_t m; int tnz; uint32_t tck; int snz; uint32_t sck; } cases[] = {
-        {1u, 702, 0x4F59u, 999, 0x1B5F6u},
-        {2u, 559, 0x33ECu, 1203, 0x23F2Du},
-        {3u, 504, 0x2C90u, 1193, 0x20B9Fu},
+        {1u, 703, 0x4EB2u, 999, 0x1B5F6u},
+        {2u, 559, 0x3326u, 1203, 0x23F2Du},
+        {3u, 504, 0x2BCAu, 1193, 0x20B9Fu},
     };
     for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
         CaptiveGmWork ws;
@@ -484,6 +484,7 @@ static void test_pass_group_164c(void) {
         captive_gm_pass_28b2(&ws);
         captive_gm_pass_2888(&ws);
         captive_gm_pass_164c(&ws);
+        captive_gm_pass_2940(&ws);
         int tnz = 0, snz = 0; uint32_t tck = 0, sck = 0;
         for (int i = 0; i < 4096; ++i) {
             uint8_t t = ws.b[0x1048 + i], s = ws.b[0x38 + i];
