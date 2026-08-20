@@ -1,5 +1,15 @@
 # OpenCaptive Release Notes
 
+## v1.1.172 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0x2ABC (`captive_gm_pass_2abc`), which places
+  up to 0x20 guard creatures at 2-then-1 junctions off dead ends — placing a chest via
+  0x168D, inserting into the spawn list (0x233D/0x1226 with the discard flag), and
+  spawning through the 0xFE2 engine.  Verified byte-identical to the real GM.EXE (maps +
+  entity buffers) for missions 1/2/3 (`test_pass_2abc`).
+
 ## v1.1.171 (2026-08-20)
 
 ### Added

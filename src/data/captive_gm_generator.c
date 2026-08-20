@@ -1811,8 +1811,7 @@ static void gm_1a0b(CaptiveGmWork *w) {
 }
 
 /* GM 0x1226: insert a creature type into the sorted spawn list at word[0x358C]. */
-static void gm_1226(CaptiveGmWork *w, uint16_t cx, uint8_t al, uint8_t dh, uint8_t dl) {
-    captive_gm_wset(w, 0x356Eu, 0u);
+static void gm_1226_body(CaptiveGmWork *w, uint16_t cx, uint8_t al, uint8_t dh, uint8_t dl) {
     captive_gm_wset(w, 0x3516u, cx);
     w->b[0x3518u] = al; w->b[0x3519u] = dh; w->b[0x351Au] = dl;
     uint16_t bx = captive_gm_wget(w, 0x358Cu);
@@ -1850,6 +1849,12 @@ static void gm_1226(CaptiveGmWork *w, uint16_t cx, uint8_t al, uint8_t dh, uint8
         }
         si = (uint16_t)(si + a);
     }
+}
+
+/* GM 0x1226: reset the discard flag, then insert. */
+static void gm_1226(CaptiveGmWork *w, uint16_t cx, uint8_t al, uint8_t dh, uint8_t dl) {
+    captive_gm_wset(w, 0x356Eu, 0u);
+    gm_1226_body(w, cx, al, dh, dl);
 }
 
 /* GM 0x1A3A: find a corridor spot, record the path cells (byte[0x33A2..0x33CC]) and the
@@ -2054,6 +2059,65 @@ void captive_gm_pass_2a9d(CaptiveGmWork *w) {
         if (!gm_16d7(w, &cell)) return;
         gm_2b79(w, (uint8_t)cell, (uint8_t)(cell >> 8));
         if (captive_gm_wget(w, 0x33D4u) >= 0x10u) return;
+    }
+}
+
+/* GM 0x12DA: derive creature HP/level scalars (word[0x3568]/word[0x356A]) from the RNG. */
+static void gm_12da(CaptiveGmWork *w) {
+    uint16_t ax = captive_gm_wget(w, 0x3078u); if (ax > 0x16u) ax = 0x16u; ++ax;
+    uint16_t dx = (uint16_t)(((uint32_t)ax * captive_gm_wget(w, 0x3074u)) >> 16);
+    dx = (uint16_t)(dx + 0x36u); if (dx > 0x4Cu) dx = 0x4Cu;
+    captive_gm_wset(w, 0x3568u, dx);
+    captive_gm_wset(w, 0x356Au, (uint16_t)(captive_gm_wget(w, 0x3074u) & 0x3Fu));
+    w->b[0x356Bu] |= (uint8_t)(captive_gm_wget(w, 0x3074u) & 0xE0u);
+}
+
+/* GM 0x233D (main entry at 0x2344 jmp 0x2366): insert a creature into the spawn list
+ * with the discard flag word[0x356E]=0xFF (so 0x1226 uses ax=0, not a fresh RNG). */
+static void gm_233d(CaptiveGmWork *w, uint16_t cx) {
+    uint16_t dx = captive_gm_wget(w, 0x356Au);
+    uint8_t al = w->b[0x3568u];
+    captive_gm_wset(w, 0x356Eu, 0xFFu);
+    gm_1226_body(w, cx, al, (uint8_t)(dx >> 8), (uint8_t)dx);
+}
+
+/* GM 0x2AD4: at a dead end whose 2-step flow reaches a 2-then-1 junction, place a chest
+ * (0x22 / 0xFFC3) at an adjacent empty cell and spawn a creature there. */
+static void gm_2ad4(CaptiveGmWork *w, uint16_t axoff, uint8_t cl, uint8_t ch) {
+    captive_gm_wset(w, 0x339Cu, axoff);
+    w->b[0x339Eu] = cl; w->b[0x33A0u] = ch;
+    gm_2a59(w, &cl, &ch); if (gm_2675(w, cl, ch) != 2u) return;   /* 0x2AE8 */
+    if (!gm_2468(w, cl, ch)) return;                             /* 0x2AF0 */
+    gm_2a59(w, &cl, &ch); if ((int8_t)gm_2675(w, cl, ch) < 1) return;  /* 0x2AF8 */
+    if (!gm_2468(w, cl, ch)) return;                             /* 0x2B00 */
+    uint8_t dh; if (!gm_168d(w, &cl, &ch, &dh)) return;          /* 0x2B05 */
+    uint16_t chest_dx = (uint16_t)(((dh << 1) << 8) | 0x22u);
+    uint16_t bp = captive_gm_map_index(cl, ch);
+    captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + bp), chest_dx);  /* 0x2B0B chest */
+    captive_gm_wset(w, (uint16_t)(GM_MAP_SEL + bp), 0xFFC3u);
+    w->b[0x33A2u] = cl; w->b[0x33B6u] = ch;
+    gm_12da(w);                                                  /* 0x2B1B */
+    gm_233d(w, (uint16_t)(((uint16_t)ch << 8) | cl));            /* 0x2B1E */
+    cl = w->b[0x339Eu]; ch = w->b[0x33A0u];                      /* dead end */
+    captive_gm_wset(w, 0x36u, 2u); w->b[0x3564u] |= 0x10u; captive_gm_wset(w, 0x3566u, 0u);
+    { uint16_t r = gm_fe2(w, (uint16_t)(((uint16_t)ch << 8) | cl), 0u, chest_dx);  /* 0x2B41 */
+      if (r & 0x8000u) return; }
+    w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch))] |= 0x80u;  /* 0x2B48 */
+    gm_2a59(w, &cl, &ch);                                        /* 0x2B4F */
+    { uint16_t rbx = (uint16_t)(captive_gm_wget(w, 0x33D2u) * 4u + captive_gm_wget(w, 0x3590u));
+      captive_gm_wset(w, rbx, (uint16_t)(((uint16_t)w->b[0x33B6u] << 8) | w->b[0x33A2u]));
+      captive_gm_wset(w, (uint16_t)(rbx + 2u), (uint16_t)(((uint16_t)ch << 8) | cl));
+      captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch)), 0u);  /* 0x2B6F */
+      captive_gm_wset(w, 0x33D2u, (uint16_t)(captive_gm_wget(w, 0x33D2u) + 1u)); }
+}
+
+/* ==== Pass 0x2ABC: place up to 0x20 guard creatures at 2-1 junctions off dead ends ==== */
+void captive_gm_pass_2abc(CaptiveGmWork *w) {
+    for (int bx = 0x64; bx >= 0; --bx) {
+        uint16_t cell, off;
+        if (!gm_16d7_off(w, &cell, &off)) return;
+        gm_2ad4(w, off, (uint8_t)cell, (uint8_t)(cell >> 8));
+        if (captive_gm_wget(w, 0x33D2u) > 0x1Fu) return;         /* 0x2AC9 */
     }
 }
 

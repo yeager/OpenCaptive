@@ -660,6 +660,39 @@ static void test_pass_2a9d(void) {
         assert(snz == cases[c].snz && sck == cases[c].sck);
     }
 }
+static void test_pass_2abc(void) {
+    /* type/selector checksums after ... 0x1806 -> 0x2ABC (guard creatures);
+     * verified byte-identical to the real GM.EXE for missions 1/2/3. */
+    struct { uint16_t m; int tnz; uint32_t tck; int snz; uint32_t sck; uint32_t eck; } cases[] = {
+        {1u, 719, 0x5094u, 1023, 0x1DBD1u, 0x260F0u},
+        {2u, 592, 0x3C31u, 1256, 0x27A75u, 0x25999u},
+        {3u, 536, 0x339Fu, 1246, 0x24F41u, 0x25E85u},
+    };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, cases[c].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws); captive_gm_pass_45f(&ws);
+        captive_gm_pass_526(&ws); captive_gm_pass_5d4(&ws);
+        captive_gm_wset(&ws, 0x3070u, 1u);
+        captive_gm_pass_1cb5(&ws); captive_gm_pass_1617(&ws); captive_gm_pass_d12(&ws);
+        captive_gm_pass_2589(&ws); captive_gm_pass_26be(&ws); captive_gm_pass_28b2(&ws);
+        captive_gm_pass_29f6(&ws); captive_gm_pass_28b2(&ws); captive_gm_pass_2888(&ws);
+        captive_gm_pass_164c(&ws); captive_gm_pass_2940(&ws); captive_gm_pass_e12(&ws);
+        captive_gm_pass_1736(&ws); captive_gm_pass_1806(&ws); captive_gm_pass_2a9d(&ws); captive_gm_pass_2abc(&ws);
+        int tnz = 0, snz = 0; uint32_t tck = 0, sck = 0, eck = 0;
+        for (int i = 0; i < 4096; ++i) {
+            uint8_t t = ws.b[0x1048 + i], s = ws.b[0x38 + i];
+            if (t) ++tnz; tck += t;
+            if (s) ++snz; sck += s;
+        }
+        for (int i = 0x3DE2; i < 0x6288; ++i) eck += ws.b[i];
+        assert(tnz == cases[c].tnz && tck == cases[c].tck);
+        assert(snz == cases[c].snz && sck == cases[c].sck);
+        assert(eck == cases[c].eck);
+    }
+}
 
 int main(void) {
     test_entry_pointer_table();
@@ -682,6 +715,7 @@ int main(void) {
     test_pass_1736();
     test_pass_1806();
     test_pass_2a9d();
+    test_pass_2abc();
     test_generate_output();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
