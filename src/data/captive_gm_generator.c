@@ -1,4 +1,5 @@
 #include "captive_gm_generator.h"
+#include "captive_gm_translate.h"
 
 #include <string.h>
 
@@ -284,6 +285,29 @@ void captive_gm_pass_526(CaptiveGmWork *w) {
     }
     captive_gm_wset(w, 0x0020u, ax);
     captive_gm_wset(w, 0x0022u, w->b[(uint16_t)(ax >> 4)]);
+}
+
+void captive_gm_generate_output(CaptiveGmWork *w) {
+    /* GM 0xEE: the final translate driver.  For each of the 2048 cells it reads the
+     * cell type at word[0x1048+2k], the selector at word[0x38+2k], and the aux at
+     * word[0x2058+2k], and writes:
+     *   output map  (0x5A68+k) = translate(type_lo, type_hi, selector)
+     *   second map  (0x6288+k) = aux_hi, expanded to (v<<3)|v unless the selector
+     *                            is 0 or 0xFFFF (an empty cell). */
+    uint16_t out = captive_gm_wget(w, 0x3578u);   /* 0x5A68 */
+    uint16_t out2 = captive_gm_wget(w, 0x357Au);  /* 0x6288 */
+    for (uint16_t k = 0; k < 0x800u; ++k) {
+        uint16_t si = (uint16_t)(k * 2u);
+        uint16_t type = captive_gm_wget(w, (uint16_t)(0x1048u + si));
+        uint16_t ax = captive_gm_wget(w, (uint16_t)(0x0038u + si));
+        w->b[(uint16_t)(out + k)] =
+            captive_gm_translate_cell((uint8_t)(type & 0xFFu),
+                                      (uint8_t)(type >> 8), ax);
+        uint8_t bh = (uint8_t)(captive_gm_wget(w, (uint16_t)(0x2058u + si)) >> 8);
+        if (ax != 0u && ax != 0xFFFFu)               /* GM 0x10C/0x10E */
+            bh = (uint8_t)((bh << 3) | bh);
+        w->b[(uint16_t)(out2 + k)] = bh;
+    }
 }
 
 void captive_gm_pass_5d4(CaptiveGmWork *w) {

@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: the 0xEE translate driver, v1.1.155)
+
+- Transcribed GM.EXE's final translate driver (`captive_gm_generate_output`, GM 0xEE):
+  converts the cell-type map (work[0x1048]) — gated by the selector map (0x38) and aux
+  map (0x2058) — into the 64x32 output map (work[0x5A68]) plus the second map (0x6288),
+  via the verified `captive_gm_translate_cell`. Both ends of the generator pipeline now
+  exist (input-map passes + translate driver); the middle map-refinement passes remain.
+  Driver wiring verified with controlled inputs against the translator. All 71 tests pass.
+
 ## 2026-08-20 (GM.EXE native port: pass 0x5D4 input-map expander, v1.1.154)
 
 - Transcribed GM.EXE pass 0x5D4 (`captive_gm_pass_5d4`): expands the 4x4 room grid

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenCaptive VERSION 1.1.154 LANGUAGES C)
+project(OpenCaptive VERSION 1.1.155 LANGUAGES C)
 if(APPLE)
     enable_language(OBJC)
 endif()
@@ -316,7 +316,8 @@ target_include_directories(test_captive_gm_translate PRIVATE ${CMAKE_SOURCE_DIR}
 add_test(NAME captive_gm_translate COMMAND test_captive_gm_translate)
 
 add_executable(test_captive_gm_generator tests/test_captive_gm_generator.c
-    src/data/captive_gm_generator.c)
+    src/data/captive_gm_generator.c
+    src/data/captive_gm_translate.c)
 target_include_directories(test_captive_gm_generator PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME captive_gm_generator COMMAND test_captive_gm_generator)
 

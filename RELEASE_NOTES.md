@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.155 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: the final 0xEE translate driver
+  (`captive_gm_generate_output`), producing the 64x32 output map from the cell-type
+  map via the verified translator.
+
 ## v1.1.154 (2026-08-20)
 
 ### Added

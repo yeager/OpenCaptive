@@ -1,4 +1,5 @@
 #include "captive_gm_generator.h"
+#include "captive_gm_translate.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -228,6 +229,43 @@ static void test_pass_5d4(void) {
     }
 }
 
+static void test_generate_output(void) {
+    /* The 0xEE driver must read the type map (0x1048), gate by the selector map
+     * (0x38), and emit translate() into the output map (0x5A68).  Verify the wiring
+     * with controlled inputs against the independently-verified translator. */
+    CaptiveGmWork ws;
+    captive_gm_init(&ws);
+    captive_gm_entry_setup(&ws, 1u, 0u, 0u, 0u);
+    /* cell 0: type 0x20 (-> wall 0xA0), selector non-zero, aux 0x0500. */
+    captive_gm_wset(&ws, 0x1048u, 0x0020u);
+    captive_gm_wset(&ws, 0x0038u, 0x0001u);
+    captive_gm_wset(&ws, 0x2058u, 0x0500u);
+    /* cell 1: type 0x1E, selector 0xFFFF -> translator sees the empty selector. */
+    captive_gm_wset(&ws, 0x104Au, 0x001Eu);
+    captive_gm_wset(&ws, 0x003Au, 0xFFFFu);
+    captive_gm_wset(&ws, 0x205Au, 0x0300u);
+    /* cell 2: type 0x22 door with aux high byte selecting the direction. */
+    captive_gm_wset(&ws, 0x104Cu, 0x0422u);   /* type_lo=0x22, type_hi=0x04 */
+    captive_gm_wset(&ws, 0x003Cu, 0x0007u);
+    captive_gm_wset(&ws, 0x205Cu, 0x0000u);
+
+    captive_gm_generate_output(&ws);
+    uint16_t out = captive_gm_wget(&ws, 0x3578u);
+
+    /* cell 0: translate(0x20, .., sel=1) = 0xA0 (wall). */
+    assert(ws.b[out + 0] == captive_gm_translate_cell(0x20u, 0x00u, 0x0001u));
+    assert(ws.b[out + 0] == 0xA0u);
+    /* cell 1: translate(0x1E, .., sel=0xFFFF) -> the 0x1E early-match still wins. */
+    assert(ws.b[out + 1] == captive_gm_translate_cell(0x1Eu, 0x00u, 0xFFFFu));
+    /* cell 2: door translate(0x22, aux_hi=0x04, sel=7). */
+    assert(ws.b[out + 2] == captive_gm_translate_cell(0x22u, 0x04u, 0x0007u));
+
+    /* Second map (0x6288): aux_hi expanded (v<<3)|v unless selector empty. */
+    uint16_t out2 = captive_gm_wget(&ws, 0x357Au);
+    assert(ws.b[out2 + 0] == (uint8_t)((0x05u << 3) | 0x05u)); /* sel!=0/FFFF */
+    assert(ws.b[out2 + 1] == 0x03u);                            /* sel==FFFF: unchanged */
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_seed_values();
@@ -238,6 +276,7 @@ int main(void) {
     test_pass_45f();
     test_pass_526();
     test_pass_5d4();
+    test_generate_output();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
 }

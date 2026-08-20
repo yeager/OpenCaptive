@@ -119,6 +119,15 @@ void captive_gm_pass_526(CaptiveGmWork *w);
  */
 void captive_gm_pass_5d4(CaptiveGmWork *w);
 
+/*
+ * The final translate driver (GM 0xEE): converts the cell-type map at work[0x1048]
+ * — gated by the selector map at work[0x38] and the aux map at work[0x2058] — into
+ * the 64x32 output map at work[0x5A68] (and the second map at 0x6288), using
+ * captive_gm_translate_cell.  Run after all the map-building passes.  The output
+ * map is CAPTIVE_GM_OFF_OUTMAP (0x5A68), 2048 bytes, row-major 64-wide.
+ */
+void captive_gm_generate_output(CaptiveGmWork *w);
+
 /* Offsets of the key work-segment fields (for callers/tests). */
 #define CAPTIVE_GM_OFF_MISSION   0x3078u  /* mission param copy */
 #define CAPTIVE_GM_OFF_OUTMAP    0x5A68u  /* output 64x32 map (ptr at 0x3578) */
