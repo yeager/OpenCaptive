@@ -29,7 +29,7 @@
  * (e.g. the mission table at 0x6D16).  The buffer therefore spans past 0x6AAC to
  * cover those tables (GM's data reaches ~0x6EE8). */
 #define CAPTIVE_GM_CLEAR_SIZE 0x6AACu
-#define CAPTIVE_GM_WORK_SIZE  0x6F00u
+#define CAPTIVE_GM_WORK_SIZE  0x10002u  /* full 64K segment: navigation may wrap 16-bit map offsets */
 
 typedef struct {
     uint8_t b[CAPTIVE_GM_WORK_SIZE];
@@ -179,6 +179,7 @@ void captive_gm_pass_2888(CaptiveGmWork *w);
 void captive_gm_pass_2940(CaptiveGmWork *w);
 void captive_gm_pass_1314(CaptiveGmWork *w);
 void captive_gm_pass_e12(CaptiveGmWork *w);
+void captive_gm_pass_1736(CaptiveGmWork *w);
 
 /*
  * The final translate driver (GM 0xEE): converts the cell-type map at work[0x1048]

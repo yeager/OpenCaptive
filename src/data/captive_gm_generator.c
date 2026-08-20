@@ -1680,6 +1680,83 @@ void captive_gm_pass_e12(CaptiveGmWork *w) {
     captive_gm_wset(w, bx, b);
 }
 
+/* GM 0x2A6D: step (cl,ch) by the direction index `ax` via the 0x6AE4/0x6AEC tables. */
+static void gm_2a6d(CaptiveGmWork *w, uint8_t *pcl, uint8_t *pch, uint16_t ax) {
+    *pcl = (uint8_t)(*pcl + w->b[(uint16_t)(ax + 0x6AE4u)]);
+    *pch = (uint8_t)(*pch + w->b[(uint16_t)(ax + 0x6AECu)]);
+}
+
+/* GM 0x2A7A: a direction derived from a cell's flow flag = (aux_high << 1) ^ 4. */
+static uint16_t gm_2a7a(CaptiveGmWork *w, uint8_t cl, uint8_t ch) {
+    uint16_t bp = captive_gm_map_index(cl, ch);
+    uint16_t al = w->b[(uint16_t)(GM_MAP_AUX + bp + 1u)];
+    return (uint16_t)(((al << 1) ^ 4u) & 0xFFu);
+}
+
+/* GM 0x170C: pick a random non-empty room record from 0x3298 (draws one RNG). */
+static int gm_170c(CaptiveGmWork *w, uint16_t *paxoff, uint16_t *pcx) {
+    uint16_t di = 0x3298u;
+    uint16_t bx = (uint16_t)(captive_gm_rng_next(w) & 0xFCu);
+    for (int dl = 0x20; dl >= 0; --dl) {
+        uint16_t v = captive_gm_wget(w, (uint16_t)(bx + di));
+        if (v != 0u) { *pcx = v; *paxoff = bx; return 1; }
+        bx = (uint16_t)(bx + 4u);
+    }
+    *paxoff = bx; return 0;
+}
+
+/* GM 0x1755: from a room record, navigate by the room's shape flags to an adjacent
+ * empty cell bordering room floor, and place a chest/altar (type 0x21 / selector
+ * 0xFFEC) with a 0x0E marker on the floor side. */
+static void gm_1755(CaptiveGmWork *w, uint16_t axoff, uint16_t cx) {
+    captive_gm_wset(w, 0x339Cu, axoff);
+    uint8_t flags = w->b[(uint16_t)(0x3298u + axoff + 3u)];
+    uint16_t nsteps = (uint16_t)(((flags & 0x38u) >> 3) + (flags & 7u));
+    uint8_t cl = (uint8_t)cx, ch = (uint8_t)(cx >> 8);
+    for (int i = (int)nsteps + 1; i >= 0; --i) gm_2a59(w, &cl, &ch);   /* 0x176E */
+    uint16_t ax = gm_2a7a(w, cl, ch);                                  /* 0x1774 */
+    gm_2a6d(w, &cl, &ch, ax);                                          /* 0x177A */
+    gm_2a6d(w, &cl, &ch, ax);                                          /* 0x177D */
+    /* 0x1782: current cell — a valid, non-floor selector cell means abort. */
+    int valid0 = (captive_gm_cell_check(w, GM_MAP_SEL, cl, ch) == CAPTIVE_GM_CELL_VALID);
+    uint8_t t0 = w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch))];
+    if (valid0 && t0 != 0x1Fu && t0 != 0x33u) return;                  /* 0x1798 */
+    /* 0x179B: step to the opposite cell (the candidate) and require at least one
+     * perpendicular neighbour to be empty; otherwise abort.  GM keeps the opposite
+     * cell (cl,ch) as the candidate — the perpendicular steps are only probes. */
+    ax ^= 4u;
+    gm_2a6d(w, &cl, &ch, ax);                                          /* 0x179F candidate */
+    uint8_t a1 = cl, b1 = ch; gm_2a6d(w, &a1, &b1, (uint16_t)((ax + 2u) & 6u));  /* 0x17A4 */
+    int perp_empty = (captive_gm_cell_check(w, GM_MAP_SEL, a1, b1) != CAPTIVE_GM_CELL_VALID);
+    if (!perp_empty) {
+        uint8_t a2 = cl, b2 = ch; gm_2a6d(w, &a2, &b2, (uint16_t)((ax - 2u) & 6u));  /* 0x17B8 */
+        perp_empty = (captive_gm_cell_check(w, GM_MAP_SEL, a2, b2) != CAPTIVE_GM_CELL_VALID);
+    }
+    if (!perp_empty) return;                                           /* 0x17C7 */
+    /* 0x17CC: the empty candidate must border room floor to receive the chest. */
+    uint16_t bp_c = captive_gm_map_index(cl, ch);
+    uint8_t tc = w->b[(uint16_t)(GM_MAP_TYPE + bp_c)];
+    if (tc != 0x1Fu && tc != 0x33u) return;
+    uint8_t rcl = cl, rch = ch;
+    gm_2a59(w, &rcl, &rch);                                            /* 0x17DF step to floor */
+    uint16_t bp_f = captive_gm_map_index(rcl, rch);
+    uint8_t tf = w->b[(uint16_t)(GM_MAP_TYPE + bp_f)];
+    if (tf != 0x1Fu && tf != 0x33u) return;                            /* 0x1804 */
+    w->b[(uint16_t)(GM_MAP_TYPE + bp_f)] = 0x0Eu;                      /* 0x17F1 */
+    w->b[(uint16_t)(GM_MAP_TYPE + bp_c)] = 0x21u;                      /* 0x17F6 */
+    captive_gm_wset(w, (uint16_t)(GM_MAP_SEL + bp_c), 0xFFECu);        /* 0x17FA */
+    captive_gm_wset(w, 0x33D8u, (uint16_t)(captive_gm_wget(w, 0x33D8u) + 1u));
+}
+
+/* ==== Pass 0x1736: place up to 0x3D chests/altars at random rooms ==== */
+void captive_gm_pass_1736(CaptiveGmWork *w) {
+    captive_gm_wset(w, 0x33D8u, 0u);
+    for (int limit = 0x3C; limit >= 0; --limit) {
+        uint16_t axoff, cx;
+        if (gm_170c(w, &axoff, &cx)) gm_1755(w, axoff, cx);
+    }
+}
+
 void captive_gm_generate_output(CaptiveGmWork *w) {
     /* GM 0xEE: the final translate driver.  For each of the 2048 cells it reads the
      * cell type at word[0x1048+2k], the selector at word[0x38+2k], and the aux at
