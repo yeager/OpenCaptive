@@ -1,5 +1,12 @@
 # OpenCaptive Release Notes
 
+## v1.1.153 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0x526 (`captive_gm_pass_526`), the
+  region-connection + entry-cell pass, transcribed and verified against the real GM.EXE.
+
 ## v1.1.152 (2026-08-20)
 
 ### Added

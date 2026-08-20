@@ -243,6 +243,49 @@ after_regions:                                  /* GM 0x4E0 */
     }
 }
 
+/* GM 0x532/0x557: find a room-grid cell holding region `id`, scanning from a
+ * random start index (rng & 0xF) forward mod 16.  Returns the 4-bit index. */
+static uint16_t gm_find_region_cell(CaptiveGmWork *w, uint16_t si, uint8_t id) {
+    uint16_t idx = (uint16_t)(captive_gm_rng_next(w) & 0x0Fu);
+    while (w->b[(uint16_t)(si + idx)] != id)
+        idx = (uint16_t)((idx + 1u) & 0x0Fu);
+    return idx;
+}
+
+void captive_gm_pass_526(CaptiveGmWork *w) {
+    const uint16_t si = 0u;
+    uint16_t regions = captive_gm_wget(w, 0x002Eu);
+
+    /* GM 0x526..0x598: for each adjacent region pair, store the (col,row) delta
+     * between one cell of region dx and one of region dx+1, scaled (col<<4, row<<3)
+     * at word[0x10+(dx-1)*2] and word[0x18+(dx-1)*2]. */
+    for (uint16_t dx = 1u; dx < regions; ++dx) {
+        uint16_t i1 = gm_find_region_cell(w, si, (uint8_t)dx);
+        uint16_t col1 = i1 & 3u, row1 = (i1 >> 2) & 3u;
+        uint16_t i2 = gm_find_region_cell(w, si, (uint8_t)(dx + 1u));
+        uint16_t col2 = i2 & 3u, row2 = (i2 >> 2) & 3u;
+        uint16_t ax = (uint16_t)(col2 - col1);      /* GM 0x570: sub (wraps) */
+        uint16_t bx = (uint16_t)(row2 - row1);      /* GM 0x574 */
+        uint16_t bp = (uint16_t)(0x10u + (dx - 1u) * 2u);
+        captive_gm_wset(w, bp, (uint16_t)(ax << 4));
+        captive_gm_wset(w, (uint16_t)(bp + 8u), (uint16_t)(bx << 3));
+    }
+
+    /* GM 0x59A..0x5D3: pick the entry cell.  Draw rng&0x3F until (v&0xF)!=0xF;
+     * for mission 0 the grid is reset to the default table and v forced to 0x1E.
+     * word[0x20]=v (entry), word[0x22]=grid cell at (v>>4). */
+    uint16_t ax;
+    do {
+        ax = (uint16_t)(captive_gm_rng_next(w) & 0x3Fu);
+    } while ((ax & 0x0Fu) == 0x0Fu);
+    if (captive_gm_wget(w, 0x3078u) == 0u) {
+        memcpy(&w->b[0], GM_TBL_6D3E, sizeof(GM_TBL_6D3E));
+        ax = 0x1Eu;
+    }
+    captive_gm_wset(w, 0x0020u, ax);
+    captive_gm_wset(w, 0x0022u, w->b[(uint16_t)(ax >> 4)]);
+}
+
 void captive_gm_pass_14c9(CaptiveGmWork *w) {
     uint16_t result;
 

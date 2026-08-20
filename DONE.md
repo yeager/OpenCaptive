@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: pass 0x526 region-connection + entry, v1.1.153)
+
+- Transcribed GM.EXE pass 0x526 (`captive_gm_pass_526`): computes the scaled
+  (col,row) connection deltas between adjacent regions (work[0x10+]) by locating a
+  cell of each region via RNG scan, and picks the entry cell (word[0x20]/[0x22],
+  with the mission-0 default-grid reset). Byte-for-byte verified against the real
+  GM.EXE for missions 1/2/3. All 71 tests pass.
+
 ## 2026-08-20 (GM.EXE native port: pass 0x45F room-grid generator, v1.1.152)
 
 - Transcribed GM.EXE pass 0x45F (`captive_gm_pass_45f`) — the 16-cell room-grid

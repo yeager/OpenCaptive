@@ -176,6 +176,32 @@ static void test_pass_45f(void) {
     }
 }
 
+static void test_pass_526(void) {
+    /* Connection vectors + entry, captured from the real GM.EXE (oracle 0x3BA). */
+    struct {
+        uint16_t m;
+        uint16_t words[8];   /* work[0x10..0x1E] */
+        uint16_t w20, w22;
+    } cases[] = {
+        {1u, {0x0010,0,0,0,0,0,0,0}, 0x000Cu, 0x0001u},
+        {2u, {0x0000,0x0010,0x0020,0xFFF0,0x0008,0xFFF8,0x0000,0x0008}, 0x0000u, 0x0001u},
+        {3u, {0x0030,0xFFE0,0x0010,0x0000,0x0000,0x0000,0x0010,0x0000}, 0x000Eu, 0x0001u},
+    };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, cases[c].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws);
+        captive_gm_pass_45f(&ws);
+        captive_gm_pass_526(&ws);
+        for (int i = 0; i < 8; ++i)
+            assert(w(&ws, (uint16_t)(0x10u + i*2)) == cases[c].words[i]);
+        assert(w(&ws, 0x0020u) == cases[c].w20);
+        assert(w(&ws, 0x0022u) == cases[c].w22);
+    }
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_seed_values();
@@ -184,6 +210,7 @@ int main(void) {
     test_rng();
     test_rng_pos();
     test_pass_45f();
+    test_pass_526();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
 }

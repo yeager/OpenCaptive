@@ -105,6 +105,13 @@ void captive_gm_pass_14c9(CaptiveGmWork *w);
  */
 void captive_gm_pass_45f(CaptiveGmWork *w);
 
+/*
+ * Pass 0x526: computes inter-region connection vectors (scaled col/row deltas
+ * between adjacent regions, at work[0x10+]) and picks the entry cell (word[0x20]
+ * = entry index, word[0x22] = its grid cell).  Must run after pass 0x45F.
+ */
+void captive_gm_pass_526(CaptiveGmWork *w);
+
 /* Offsets of the key work-segment fields (for callers/tests). */
 #define CAPTIVE_GM_OFF_MISSION   0x3078u  /* mission param copy */
 #define CAPTIVE_GM_OFF_OUTMAP    0x5A68u  /* output 64x32 map (ptr at 0x3578) */
