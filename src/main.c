@@ -2833,6 +2833,31 @@ static void game_handle_input(GameState *gs, const SDL_Event *event) {
     }
 }
 
+/* Native Captive dungeon movement: turn or step the party through the
+ * GM.EXE-generated level, honouring walls.  Directions match the viewport's
+ * forward tables (N/E/S/W). */
+static void captive_dungeon_move(GameState *gs, SDL_Keycode key) {
+    if (!gs || gs->game_type != GAME_CAPTIVE || gs->num_levels <= 0 ||
+        gs->current_level < 0 || gs->current_level >= gs->num_levels)
+        return;
+    static const int fx[4] = {0, 1, 0, -1};
+    static const int fy[4] = {-1, 0, 1, 0};
+    const DungeonLevel *lvl = &gs->levels[gs->current_level];
+    int d = gs->party_dir & 3;
+    int nx = gs->party_x, ny = gs->party_y;
+    switch (key) {
+        case SDLK_LEFT:  case SDLK_A: gs->party_dir = (gs->party_dir + 3) & 3; return;
+        case SDLK_RIGHT: case SDLK_D: gs->party_dir = (gs->party_dir + 1) & 3; return;
+        case SDLK_UP:    case SDLK_W: nx += fx[d]; ny += fy[d]; break;
+        case SDLK_DOWN:  case SDLK_S: nx -= fx[d]; ny -= fy[d]; break;
+        default: return;
+    }
+    if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) return;
+    if (lvl->cells[ny][nx].type == CELL_WALL) return;
+    gs->party_x = nx;
+    gs->party_y = ny;
+}
+
 int main(int argc, char *argv[]) {
     static char default_data_path[512];
     get_default_data_path(default_data_path, sizeof(default_data_path));
@@ -3453,6 +3478,22 @@ int main(int argc, char *argv[]) {
                 } else {
                     combat_init(&creatures);
                     puzzle_init(&puzzles);
+                    /* Optional scripted moves (WASD/arrows-as-letters) for
+                     * headless capture verification, e.g. CAPTIVE_MOVES=wwaw. */
+                    const char *moves = getenv("CAPTIVE_MOVES");
+                    if (moves) {
+                        for (; *moves; ++moves) {
+                            SDL_Keycode k = 0;
+                            switch (*moves) {
+                                case 'w': k = SDLK_W; break;
+                                case 's': k = SDLK_S; break;
+                                case 'a': k = SDLK_A; break;
+                                case 'd': k = SDLK_D; break;
+                                default: break;
+                            }
+                            if (k) captive_dungeon_move(&gs, k);
+                        }
+                    }
                 }
             } else if (captive_dos_memory_active) {
                 /* A DOSBox-X dump is an already-running CAPPO state.  Start
@@ -3952,6 +3993,11 @@ int main(int argc, char *argv[]) {
                                captive_live_session_active &&
                                event.type == SDL_EVENT_KEY_DOWN) {
                         (void)captive_live_send_key(event.key.key);
+                    } else if (gs.game_type == GAME_CAPTIVE &&
+                               gs.num_levels > 0 &&
+                               event.type == SDL_EVENT_KEY_DOWN) {
+                        /* Native dungeon: walk the GM.EXE-generated level. */
+                        captive_dungeon_move(&gs, event.key.key);
                     } else if (gs.game_type == GAME_LIBERATION) {
                         if (liberation_intro_active && event.type == SDL_EVENT_KEY_DOWN) {
                             liberation_intro_active = false;

@@ -1,5 +1,16 @@
 # OpenCaptive Release Notes
 
+## v1.1.183 (2026-08-20)
+
+### Added
+
+- **(Captive)** Native dungeon movement: in the native Captive dungeon, the arrow keys
+  (or WASD) turn the party left/right and step forward/back through the GM.EXE-generated
+  level, honouring walls.  Combined with v1.1.182's native render, the party can now walk
+  a real, byte-exact Captive dungeon with the authentic HUD and live automap — no DOSBox,
+  no synthetic map.  `CAPTIVE_MOVES=` (WASD string) scripts moves for headless
+  `--capture-frame` verification.
+
 ## v1.1.182 (2026-08-20)
 
 ### Added
