@@ -629,6 +629,38 @@ static void test_pass_1806(void) {
     }
 }
 
+static void test_pass_2a9d(void) {
+    /* type/selector checksums after ... 0x1806 -> 0x2A9D (chests at dead ends);
+     * verified byte-identical to the real GM.EXE for missions 1/2/3. */
+    struct { uint16_t m; int tnz; uint32_t tck; int snz; uint32_t sck; } cases[] = {
+        {1u, 716, 0x4D83u, 1013, 0x1D307u},
+        {2u, 583, 0x34D9u, 1232, 0x2655Du},
+        {3u, 529, 0x2C53u, 1222, 0x23A29u},
+    };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, cases[c].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws); captive_gm_pass_45f(&ws);
+        captive_gm_pass_526(&ws); captive_gm_pass_5d4(&ws);
+        captive_gm_wset(&ws, 0x3070u, 1u);
+        captive_gm_pass_1cb5(&ws); captive_gm_pass_1617(&ws); captive_gm_pass_d12(&ws);
+        captive_gm_pass_2589(&ws); captive_gm_pass_26be(&ws); captive_gm_pass_28b2(&ws);
+        captive_gm_pass_29f6(&ws); captive_gm_pass_28b2(&ws); captive_gm_pass_2888(&ws);
+        captive_gm_pass_164c(&ws); captive_gm_pass_2940(&ws); captive_gm_pass_e12(&ws);
+        captive_gm_pass_1736(&ws); captive_gm_pass_1806(&ws); captive_gm_pass_2a9d(&ws);
+        int tnz = 0, snz = 0; uint32_t tck = 0, sck = 0;
+        for (int i = 0; i < 4096; ++i) {
+            uint8_t t = ws.b[0x1048 + i], s = ws.b[0x38 + i];
+            if (t) ++tnz; tck += t;
+            if (s) ++snz; sck += s;
+        }
+        assert(tnz == cases[c].tnz && tck == cases[c].tck);
+        assert(snz == cases[c].snz && sck == cases[c].sck);
+    }
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_map_primitives();
@@ -649,6 +681,7 @@ int main(void) {
     test_pass_e12();
     test_pass_1736();
     test_pass_1806();
+    test_pass_2a9d();
     test_generate_output();
     printf("captive_gm_generator: all tests passed\n");
     return 0;

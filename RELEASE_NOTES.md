@@ -1,5 +1,14 @@
 # OpenCaptive Release Notes
 
+## v1.1.171 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0x2A9D (`captive_gm_pass_2A9D`), which places up
+  to 0x10 chests (type 0x22 / selector 0xFFC3) at random dead ends by walking a corridor
+  (0x2B79) and picking an adjacent empty cell (0x168D), writing 6-byte path records.
+  Verified byte-identical to the real GM.EXE for missions 1/2/3 (`test_pass_2a9d`).
+
 ## v1.1.170 (2026-08-20)
 
 ### Added

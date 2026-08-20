@@ -1990,6 +1990,73 @@ void captive_gm_pass_1806(CaptiveGmWork *w) {
     }
 }
 
+/* GM 0x168D: find the first empty (type 0 and selector 0) orthogonal neighbour in
+ * N,S,W,E order; on success move (cl,ch) there, set *pdh (0/2/1/3), return 1. */
+static int gm_168d(CaptiveGmWork *w, uint8_t *pcl, uint8_t *pch, uint8_t *pdh) {
+    uint8_t cl = *pcl, ch = *pch;
+#define GM_168D_CK(dir, x, y) do { *pdh = (dir); \
+    if (!((x) >= 0x40u || (y) >= 0x20u)) { uint16_t bp = captive_gm_map_index((x), (y)); \
+        if (w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 0u && captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + bp)) == 0u) { \
+            *pcl = (x); *pch = (y); return 1; } } } while (0)
+    ch = (uint8_t)(ch - 1u); GM_168D_CK(0u, cl, ch);
+    ch = (uint8_t)(ch + 2u); GM_168D_CK(2u, cl, ch);
+    ch = (uint8_t)(ch - 1u); cl = (uint8_t)(cl - 1u); GM_168D_CK(1u, cl, ch);
+    cl = (uint8_t)(cl + 2u); GM_168D_CK(3u, cl, ch);
+#undef GM_168D_CK
+    return 0;
+}
+
+/* GM 0x2B79: walk a corridor from a dead end and place a chest (type 0x22 / selector
+ * 0xFFC3) at an empty cell beside its start, recording the 3-cell path. */
+static int gm_2b79(CaptiveGmWork *w, uint8_t cl, uint8_t ch) {
+    w->b[0x33A2u] = cl; w->b[0x33B6u] = ch;
+    int bx = (int)((captive_gm_wget(w, 0x3074u) & 7u) + 8u);
+walk:
+    for (;;) {
+        gm_2a59(w, &cl, &ch);
+        if (gm_2468(w, cl, ch)) { /* valid -> just decrement */ }
+        else {
+            uint8_t t = w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch))];
+            if (t == 6u || t == 0x37u || t == 4u || t == 5u || t == 0x35u || t == 0x36u) ++bx;
+            else return 0;
+        }
+        if (--bx < 0) break;
+    }
+cell2:
+    w->b[0x33A4u] = cl; w->b[0x33B8u] = ch;                        /* path cell 2 */
+    gm_2a59(w, &cl, &ch);
+    { uint16_t t = captive_gm_wget(w, (uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch)));
+      if (t == 0x1Fu || t == 0x33u || t == 0x11u) { ++bx; if (bx >= 0) goto walk; goto cell2; }  /* GM word compares */
+      if (t != 7u) return 0; }
+    w->b[0x33A6u] = cl; w->b[0x33BAu] = ch;                        /* path cell 3 */
+    cl = w->b[0x33A2u]; ch = w->b[0x33B6u];
+    uint8_t dh;
+    if (!gm_168d(w, &cl, &ch, &dh)) return 0;
+    w->b[0x33A2u] = cl; w->b[0x33B6u] = ch;
+    { uint16_t bp = captive_gm_map_index(cl, ch);
+      captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + bp), (uint16_t)(((dh << 1) << 8) | 0x22u));
+      captive_gm_wset(w, (uint16_t)(GM_MAP_SEL + bp), 0xFFC3u); }
+    captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + captive_gm_map_index(w->b[0x33A6u], w->b[0x33BAu])), 0x0Fu);
+    captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + captive_gm_map_index(w->b[0x33A4u], w->b[0x33B8u])), 0x25u);
+    { uint16_t rbx = (uint16_t)(captive_gm_wget(w, 0x33D4u) * 6u + captive_gm_wget(w, 0x3592u));
+      captive_gm_wset(w, rbx, (uint16_t)(((uint16_t)w->b[0x33B8u] << 8) | w->b[0x33A4u]));
+      captive_gm_wset(w, (uint16_t)(rbx + 2u), (uint16_t)(((uint16_t)w->b[0x33BAu] << 8) | w->b[0x33A6u]));
+      captive_gm_wset(w, (uint16_t)(rbx + 4u), (uint16_t)(((uint16_t)w->b[0x33B6u] << 8) | w->b[0x33A2u])); }
+    captive_gm_wset(w, 0x33D4u, (uint16_t)(captive_gm_wget(w, 0x33D4u) + 1u));
+    return 1;
+}
+
+/* ==== Pass 0x2A9D: place up to 0x10 chests at random dead ends ==== */
+void captive_gm_pass_2a9d(CaptiveGmWork *w) {
+    if (captive_gm_wget(w, 0x3078u) == 0u) return;
+    for (int bx = 0x64; bx >= 0; --bx) {
+        uint16_t cell;
+        if (!gm_16d7(w, &cell)) return;
+        gm_2b79(w, (uint8_t)cell, (uint8_t)(cell >> 8));
+        if (captive_gm_wget(w, 0x33D4u) >= 0x10u) return;
+    }
+}
+
 void captive_gm_generate_output(CaptiveGmWork *w) {
     /* GM 0xEE: the final translate driver.  For each of the 2048 cells it reads the
      * cell type at word[0x1048+2k], the selector at word[0x38+2k], and the aux at
