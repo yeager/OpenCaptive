@@ -455,6 +455,46 @@ static void test_pass_26be(void) {
     }
 }
 
+static void test_pass_group_164c(void) {
+    /* cell-type (0x1048) and selector (0x38) checksums after the post-0xD12 group
+     * 0x28B2 -> 0x29F6 -> 0x28B2 -> 0x2888 -> 0x164C; verified byte-identical to the
+     * real GM.EXE for missions 1/2/3 (0x29F6 and 0x2888 draw RNG that stays in sync). */
+    struct { uint16_t m; int tnz; uint32_t tck; int snz; uint32_t sck; } cases[] = {
+        {1u, 702, 0x4F59u, 999, 0x1B5F6u},
+        {2u, 559, 0x33ECu, 1203, 0x23F2Du},
+        {3u, 504, 0x2C90u, 1193, 0x20B9Fu},
+    };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, cases[c].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws);
+        captive_gm_pass_45f(&ws);
+        captive_gm_pass_526(&ws);
+        captive_gm_pass_5d4(&ws);
+        captive_gm_wset(&ws, 0x3070u, 1u);
+        captive_gm_pass_1cb5(&ws);
+        captive_gm_pass_1617(&ws);
+        captive_gm_pass_d12(&ws);
+        captive_gm_pass_2589(&ws);
+        captive_gm_pass_26be(&ws);
+        captive_gm_pass_28b2(&ws);
+        captive_gm_pass_29f6(&ws);
+        captive_gm_pass_28b2(&ws);
+        captive_gm_pass_2888(&ws);
+        captive_gm_pass_164c(&ws);
+        int tnz = 0, snz = 0; uint32_t tck = 0, sck = 0;
+        for (int i = 0; i < 4096; ++i) {
+            uint8_t t = ws.b[0x1048 + i], s = ws.b[0x38 + i];
+            if (t) ++tnz; tck += t;
+            if (s) ++snz; sck += s;
+        }
+        assert(tnz == cases[c].tnz && tck == cases[c].tck);
+        assert(snz == cases[c].snz && sck == cases[c].sck);
+    }
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_map_primitives();
@@ -471,6 +511,7 @@ int main(void) {
     test_pass_d12();
     test_pass_2589();
     test_pass_26be();
+    test_pass_group_164c();
     test_generate_output();
     printf("captive_gm_generator: all tests passed\n");
     return 0;

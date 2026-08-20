@@ -42,8 +42,20 @@ static const uint8_t GM_TBL_6D5E[64] = {
     0x00, 0x04, 0x00, 0x44, 0x00, 0x04, 0x00, 0x44,
 };
 
+/* ws:0x6AB2 — a block of baked constant lookup tables the post-0xD12 passes read
+ * (mission-invariant in GM_UNP.EXE's image).  Notably the 4-direction step deltas at
+ * 0x6AE4 (dx: N=0,W=-1,S=0,E=+1) and 0x6AEC (dy: N=-1,W=0,S=+1,E=0) used by 0x2A59. */
+static const uint8_t GM_TBL_6AB2[0x4E] = {
+    0x02,0x00,0x80,0xFF,0xFE,0xFF,0x80,0x00,0x01,0x00,0x00,0x00,0xFF,0xFF,0x00,0x00,
+    0x00,0x00,0xFF,0xFF,0x00,0x00,0x01,0x00,0x02,0x00,0x00,0x00,0x06,0x00,0x06,0x00,
+    0x04,0x00,0x04,0x00,0x02,0x00,0x02,0x00,0x00,0x01,0x01,0xFF,0xFF,0x00,0xFF,0x00,
+    0x01,0xFF,0x00,0x00,0xFF,0xFF,0x00,0x00,0x01,0x00,0xFF,0xFF,0x00,0x00,0x01,0x00,
+    0x00,0x00,0x00,0x02,0x03,0x05,0x00,0x07,0x03,0x05,0x04,0x02,0x01,0x08,
+};
+
 void captive_gm_init(CaptiveGmWork *w) {
     memset(w, 0, sizeof(*w));
+    memcpy(&w->b[0x6AB2u], GM_TBL_6AB2, sizeof(GM_TBL_6AB2));
     memcpy(&w->b[0x6D16u], GM_TBL_6D16, sizeof(GM_TBL_6D16));
     memcpy(&w->b[0x6D20u], GM_TBL_6D20, sizeof(GM_TBL_6D20));
     memcpy(&w->b[0x6D2Eu], GM_TBL_6D2E, sizeof(GM_TBL_6D2E));
@@ -589,15 +601,25 @@ static uint16_t gm_2055_full(CaptiveGmWork *w, uint8_t *pcl, uint8_t *pch, uint8
     for (int bxa = (int)ext_y; bxa >= 0; --bxa) {
         uint8_t rcl = vcl, rch = vch;
         for (int bxb = (int)ext_x; bxb >= 0; --bxb) {
-            if (mode == 1u && rch == 0u) goto abort;      /* 0x2118 */
-            uint8_t dl = gm_2681(w, rcl, rch);            /* 0x2133 */
-            if (captive_gm_wget(w, 0x3092u) != 0u) dl = (uint8_t)(dl - 1u);
-            if (dl != 3u) goto abort;                     /* 0x2144 */
+            if (mode >= 2u) {                             /* GM 0x1B21 mode>1 */
+                CaptiveGmCellStatus st = captive_gm_cell_check(w, GM_MAP_SEL, rcl, rch);
+                if (st == CAPTIVE_GM_CELL_BLOCKED) goto abort;   /* OOB/>=0xFFCF */
+                if (st == CAPTIVE_GM_CELL_VALID)                 /* 0x1B2D */
+                    captive_gm_wset(w, 0x355Au, (uint16_t)(captive_gm_wget(w, 0x355Au) + 1u));
+                /* EMPTY or VALID -> place (fall through to inc 0x3092) */
+            } else {
+                if (mode == 1u && rch == 0u) goto abort;  /* 0x2118 */
+                uint8_t dl = gm_2681(w, rcl, rch);        /* 0x2133 */
+                if (captive_gm_wget(w, 0x3092u) != 0u) dl = (uint8_t)(dl - 1u);
+                if (dl != 3u) goto abort;                 /* 0x2144 */
+            }
             captive_gm_wset(w, 0x3092u, (uint16_t)(captive_gm_wget(w, 0x3092u) + 1u));
             gm_226e(w, &rcl, &rch);
         }
         gm_2272(w, &vcl, &vch, 0);
     }
+    /* GM 0x1B5C: a mode>1 room with no VALID cell found is rejected. */
+    if (mode > 1u && captive_gm_wget(w, 0x355Au) == 0u) goto abort;
 
     /* Draw scan (GM 0x216D..0x221B). */
     gm_2272(w, &cl, &ch, 0);
@@ -681,16 +703,9 @@ static void gm_2055(CaptiveGmWork *w, uint8_t cl, uint8_t ch) {
     gm_2055_full(w, &cl, &ch, &dh);
 }
 
-void captive_gm_pass_1617(CaptiveGmWork *w) {
-    captive_gm_wset(w, 0x3510u, 1u);
-    uint16_t bx = captive_gm_wget(w, 0x3078u);         /* mission */
-    if (bx != 0u) {
-        if ((bx & 2u) == 0u) return;                   /* GM 0x1625 */
-        bx = (uint16_t)(~bx);
-        bx = gm_165b(w, bx);
-    }
-    /* loop bx+1 times: draw one room from a random cell.  GM 0x1632/0x1647 wraps
-     * the loop with push/pop word[0x3074], so the RNG use here is discarded. */
+/* GM 0x1632: draw bx+1 rooms from random cells (current word[0x3510] mode), wrapping
+ * the loop with push/pop word[0x3074] so its RNG use is discarded. */
+static void gm_1632_loop(CaptiveGmWork *w, uint16_t bx) {
     uint16_t saved_rng = captive_gm_wget(w, 0x3074u);
     for (;;) {
         uint16_t pos = captive_gm_rng_pos(w);          /* GM 0x1C97 */
@@ -700,6 +715,24 @@ void captive_gm_pass_1617(CaptiveGmWork *w) {
         --bx;
     }
     captive_gm_wset(w, 0x3074u, saved_rng);
+}
+
+void captive_gm_pass_1617(CaptiveGmWork *w) {
+    captive_gm_wset(w, 0x3510u, 1u);
+    uint16_t bx = captive_gm_wget(w, 0x3078u);         /* mission */
+    if (bx != 0u) {
+        if ((bx & 2u) == 0u) return;                   /* GM 0x1625 */
+        bx = (uint16_t)(~bx);
+        bx = gm_165b(w, bx);
+    }
+    gm_1632_loop(w, bx);
+}
+
+/* GM 0x164C: like 0x1617 but mode 2 — draws 0x2055 "fill" rooms (type 0x23 /
+ * selector 0xFFC4) from gm_165b(mission)+1 random cells, RNG discarded. */
+void captive_gm_pass_164c(CaptiveGmWork *w) {
+    captive_gm_wset(w, 0x3510u, 2u);
+    gm_1632_loop(w, gm_165b(w, captive_gm_wget(w, 0x3078u)));
 }
 
 /* ==== Pass 0xD12: drunkard's-walk room/corridor placement machine ====
@@ -1170,6 +1203,105 @@ void captive_gm_pass_26be(CaptiveGmWork *w) {
     }
     for (uint16_t rec = 0x3462u; rec != (uint16_t)(0x3462u + 5u * 0x0Au); rec += 0x0Au)
         gm_2774(w, rec);
+}
+
+/* GM 0x2675: like 0x2681 but gated on the centre being a VALID selector cell (not
+ * empty) — dl = number of non-VALID (empty/blocked) selector neighbours, else 0. */
+static uint8_t gm_2675(CaptiveGmWork *w, uint8_t cl, uint8_t ch) {
+    if (captive_gm_cell_check(w, GM_MAP_SEL, cl, ch) != CAPTIVE_GM_CELL_VALID)
+        return 0;
+    uint8_t dl = 0;
+    static const int8_t dxs[4] = { -1, +1, 0, 0 }, dys[4] = { 0, 0, -1, +1 };
+    for (int i = 0; i < 4; ++i) {
+        uint8_t x = (uint8_t)(cl + dxs[i]), y = (uint8_t)(ch + dys[i]);
+        dl = (uint8_t)(dl + (captive_gm_cell_check(w, GM_MAP_SEL, x, y)
+                             != CAPTIVE_GM_CELL_VALID ? 1 : 0));
+    }
+    return dl;
+}
+
+/* ==== Pass 0x28B2: dead-end (3-wall) spur marker ====
+ * Scan every cell (ch high->low, cl high->low); a VALID cell with exactly 3
+ * non-VALID selector neighbours, that is not the entry cell and whose type is not a
+ * special code, is marked 0x7F and appended (as a packed cell) to the list at
+ * 0x3098 (count in word[0x3096]), up to 0xFE cells. */
+void captive_gm_pass_28b2(CaptiveGmWork *w) {
+    for (int i = 0; i < 0x100; ++i) captive_gm_wset(w, (uint16_t)(0x3098u + i * 2), 0u);
+    captive_gm_wset(w, 0x3096u, 0u);
+    uint16_t bx = 0x3098u;
+    int limit = 0xFE;
+    for (int ch = 0x1F; ch >= 0; --ch)
+        for (int cl = 0x3F; cl >= 0; --cl) {
+            if (limit == 0) continue;                        /* 0x28D1 */
+            if (gm_2675(w, (uint8_t)cl, (uint8_t)ch) != 3u) continue;   /* 0x28D9 */
+            uint16_t bp = captive_gm_map_index((uint8_t)cl, (uint8_t)ch);
+            if (ch == 0 && (uint8_t)cl == w->b[0x0020u]) continue;      /* 0x28E4 entry */
+            uint8_t al = w->b[(uint16_t)(GM_MAP_TYPE + bp)];
+            if (al == 6u || al == 0x37u || al == 0x1Cu || al == 0x1Du ||
+                al == 0x1Au || al == 0x1Bu || al == 5u || al == 4u ||
+                al == 0x36u || al == 0x35u || al == 0x0Fu || al == 0x21u ||
+                al == 0x18u) continue;                       /* 0x28F1..0x2923 */
+            captive_gm_wset(w, bx, (uint16_t)(((uint16_t)ch << 8) | (uint16_t)cl));
+            bx = (uint16_t)(bx + 2u);
+            captive_gm_wset(w, 0x3096u, (uint16_t)(captive_gm_wget(w, 0x3096u) + 1u));
+            w->b[(uint16_t)(GM_MAP_TYPE + bp)] = 0x7Fu;
+            --limit;
+        }
+}
+
+/* GM 0x2A59: move (cl,ch) one step along its flow direction (the aux-map high byte
+ * set by 0x26BE): 4 = forward connection vector, 5 = back, else the cardinal step
+ * from the 0x6AE4/0x6AEC tables. */
+static void gm_2a59(CaptiveGmWork *w, uint8_t *pcl, uint8_t *pch) {
+    uint16_t bp = captive_gm_map_index(*pcl, *pch);
+    uint8_t al = w->b[(uint16_t)(GM_MAP_AUX + bp + 1u)];
+    if (al == 4u) { uint8_t dh = captive_gm_grid_cell(w, *pcl, *pch); gm_h286e(w, pcl, pch, &dh); return; }
+    if (al == 5u) { uint8_t dh = captive_gm_grid_cell(w, *pcl, *pch); gm_2854(w, pcl, pch, &dh); return; }
+    uint16_t bx = (uint16_t)(al << 1);
+    *pcl = (uint8_t)(*pcl + w->b[(uint16_t)(bx + 0x6AE4u)]);
+    *pch = (uint8_t)(*pch + w->b[(uint16_t)(bx + 0x6AECu)]);
+}
+
+/* ==== Pass 0x29F6: probabilistic dead-end pruning ====
+ * Walk the 0x28B2 dead-end list; for 256 RNG draws, when the draw exceeds a
+ * mission-scaled threshold and the cell it points to (following the flow direction)
+ * is not a 2/3-junction, clear that dead-end cell (selector + type = 0). */
+void captive_gm_pass_29f6(CaptiveGmWork *w) {
+    uint16_t bx = 0x3098u;
+    uint16_t mission = captive_gm_wget(w, 0x3078u);
+    uint16_t thr = (mission <= 0x1Fu)
+        ? (uint16_t)(gm_ror16(mission, 5) & 0xF800u)
+        : 0xFFFFu;
+    captive_gm_wset(w, 0x33E2u, thr);
+    for (int limit = 0xFF; limit >= 0; --limit, bx = (uint16_t)(bx + 2u)) {
+        uint16_t ax = captive_gm_rng_next(w);            /* 0x2A1F */
+        if (ax <= thr) continue;                         /* 0x2A26 jbe */
+        uint16_t cell = captive_gm_wget(w, bx);
+        if (cell == 0u) continue;                        /* 0x2A28 */
+        uint8_t cl = (uint8_t)cell, ch = (uint8_t)(cell >> 8);
+        gm_2a59(w, &cl, &ch);                            /* 0x2A2F step to neighbour */
+        uint8_t dl = gm_2675(w, cl, ch);                 /* 0x2A32 */
+        if (dl == 3u || dl == 2u) continue;              /* 0x2A35/0x2A3A keep */
+        uint16_t bp = captive_gm_map_index((uint8_t)cell, (uint8_t)(cell >> 8));
+        captive_gm_wset(w, (uint16_t)(GM_MAP_SEL + bp), 0u);   /* 0x2A44 */
+        captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + bp), 0u);  /* 0x2A49 */
+    }
+}
+
+/* ==== Pass 0x2888: shuffle the dead-end list ====
+ * 513 random pair swaps over the 0x3098 list (indices masked to even byte offsets
+ * 0..0x1FE), with word[0x3074] saved/restored so the RNG use is discarded. */
+void captive_gm_pass_2888(CaptiveGmWork *w) {
+    uint16_t saved = captive_gm_wget(w, 0x3074u);
+    for (int i = 0; i < 0x201; ++i) {
+        uint16_t bp = (uint16_t)(captive_gm_rng_next(w) & 0x1FEu);
+        uint16_t bx = (uint16_t)(captive_gm_rng_next(w) & 0x1FEu);
+        uint16_t a = captive_gm_wget(w, (uint16_t)(0x3098u + bp));
+        uint16_t b = captive_gm_wget(w, (uint16_t)(0x3098u + bx));
+        captive_gm_wset(w, (uint16_t)(0x3098u + bp), b);
+        captive_gm_wset(w, (uint16_t)(0x3098u + bx), a);
+    }
+    captive_gm_wset(w, 0x3074u, saved);
 }
 
 void captive_gm_generate_output(CaptiveGmWork *w) {

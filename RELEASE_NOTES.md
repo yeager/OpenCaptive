@@ -1,5 +1,22 @@
 # OpenCaptive Release Notes
 
+## v1.1.163 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: the post-0xD12 pass group 0x28B2 / 0x29F6 / 0x2888
+  / 0x164C — dead-end (3-wall spur) detection & listing, probabilistic dead-end pruning
+  (RNG-driven), the dead-end list shuffle, and the mode-2 "fill" room drawer.  Verified
+  byte-identical to the real GM.EXE (cell-type + selector maps, and the RNG state stays
+  in sync) for missions 1/2/3 (`test_pass_group_164c`).
+- **(Captive)** Baked GM constant table block at ws:0x6AB2 (the 4-direction step deltas
+  at 0x6AE4/0x6AEC and neighbouring lookup tables the post-0xD12 passes read).
+
+### Changed
+
+- **(Captive)** GM 0x2055 now supports mode 2 (cell-check validation + word[0x355A]
+  valid-cell gate + 0x23/0xFFC4 fill draw), so 0x164C and later fill passes work.
+
 ## v1.1.162 (2026-08-20)
 
 ### Added
