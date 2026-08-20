@@ -1,5 +1,12 @@
 # OpenCaptive Release Notes
 
+## v1.1.151 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: the RNG position generator
+  (`captive_gm_rng_pos`, GM 0x1C97), transcribed and verified.
+
 ## v1.1.150 (2026-08-20)
 
 ### Added

@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: RNG position generator, v1.1.151)
+
+- Transcribed GM.EXE's RNG position generator (`captive_gm_rng_pos`, GM 0x1C97:
+  one RNG draw packed as (y<<8)|x, x=r&0x3F, y=ror(r,6)&0x1F) — the random-cell
+  source used by the placement passes. Verified against the oracle-verified RNG
+  stream (mission 1). All 71 tests pass.
+
 ## 2026-08-20 (GM.EXE native port: generation RNG transcribed, v1.1.150)
 
 - Transcribed GM.EXE's generation RNG (`captive_gm_rng_next`, GM 0x1C6E: state at

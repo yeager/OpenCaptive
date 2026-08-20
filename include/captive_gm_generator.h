@@ -82,6 +82,13 @@ int captive_gm_seed(CaptiveGmWork *w);
 uint16_t captive_gm_rng_next(CaptiveGmWork *w);
 
 /*
+ * Random map cell coordinate, transcribed from GM_UNP.EXE 0x1C97: draws one RNG
+ * value r and packs a position as (y << 8) | x, with x = r & 0x3F (0..63) and
+ * y = ror(r,6) & 0x1F (0..31).  Used by the RNG-driven placement passes.
+ */
+uint16_t captive_gm_rng_pos(CaptiveGmWork *w);
+
+/*
  * Pass 0x14C9 (first of the generation pass chain): computes word[0x359A], a
  * cell-type/room selector.  For mission <= 9 it reads the baked table at 0x6D16;
  * otherwise it derives the value from two LCG steps (x*0x5E5+0x29) followed by the

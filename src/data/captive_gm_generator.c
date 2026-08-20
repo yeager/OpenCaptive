@@ -108,6 +108,16 @@ uint16_t captive_gm_rng_next(CaptiveGmWork *w) {
     return (uint16_t)(r ^ 0x0800u);
 }
 
+uint16_t captive_gm_rng_pos(CaptiveGmWork *w) {
+    /* GM 0x1C97: r = rng(); returns cx with cl = r & 0x3F (x in 0..63) and
+     * ch = ror(r,6) & 0x1F (y in 0..31) — a random map cell coordinate. */
+    uint16_t r = captive_gm_rng_next(w);
+    uint16_t x = (uint16_t)(r & 0x3Fu);
+    uint16_t ror6 = (uint16_t)((r >> 6) | (r << 10));
+    uint16_t y = (uint16_t)(ror6 & 0x1Fu);
+    return (uint16_t)((y << 8) | x);
+}
+
 void captive_gm_pass_14c9(CaptiveGmWork *w) {
     uint16_t result;
 

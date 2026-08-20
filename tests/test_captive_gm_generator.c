@@ -124,12 +124,29 @@ static void test_rng(void) {
         assert(captive_gm_rng_next(&a) == captive_gm_rng_next(&b));
 }
 
+static void test_rng_pos(void) {
+    /* rng_pos packs (y<<8)|x from one RNG draw: x=r&0x3F, y=ror(r,6)&0x1F.  The
+     * expected values are the packing of the oracle-verified RNG stream for
+     * mission 1 (0xE860, 0xF30A, 0x4F7B): pack -> 0x0120, 0x0C0A, 0x1D3B. */
+    static const uint16_t EXPECT[3] = { 0x0120u, 0x0C0Au, 0x1D3Bu };
+    CaptiveGmWork ws;
+    captive_gm_init(&ws);
+    captive_gm_entry_setup(&ws, 1u, 0u, 0u, 0u);
+    for (int i = 0; i < 3; ++i) {
+        uint16_t p = captive_gm_rng_pos(&ws);
+        assert(p == EXPECT[i]);
+        assert((p & 0xFFu) <= 0x3Fu);          /* x in range */
+        assert(((p >> 8) & 0xFFu) <= 0x1Fu);   /* y in range */
+    }
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_seed_values();
     test_seed_mission_scaling();
     test_pass_14c9();
     test_rng();
+    test_rng_pos();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
 }
