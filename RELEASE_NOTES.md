@@ -1,5 +1,17 @@
 # OpenCaptive Release Notes
 
+## v1.1.176 (2026-08-20)
+
+### Added
+
+- **(Captive)** End-to-end verification of the GM.EXE native port: `test_full_pipeline_output`
+  runs the complete pass chain followed by the 0xEE translate driver
+  (`captive_gm_generate_output`) and asserts the resulting output level map
+  (work[0x5A68..0x6288]) and second map (work[0x6288..0x6A00]) are byte-identical to the
+  real GM.EXE's post-generate state (oracle 0x128) for missions 1/2/3.  **The native C
+  dungeon generator now reproduces the game's playable level byte-for-byte, from mission
+  seed to finished map, with no original code executed.**
+
 ## v1.1.175 (2026-08-20)
 
 ### Added

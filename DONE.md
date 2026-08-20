@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: end-to-end output map byte-exact, v1.1.176)
+
+- Added `test_full_pipeline_output`: the full pass chain + 0xEE translate produces an
+  output level map + second map byte-identical to the real GM.EXE (oracle 0x128) for
+  missions 1/2/3.  The native generator now reproduces the game's playable level
+  byte-for-byte from seed to finished map.  (One scratch byte, work[0x351C], is left
+  non-zero by the last spawn call and cleared by GM later; it is outside every map/entity
+  region and does not affect the level.)
+
 ## 2026-08-20 (GM.EXE native port: ENTIRE pass chain byte-exact, v1.1.175)
 
 - Transcribed the final decoration group (0x2595[FFC4], 0x157E, 0x13E3 stairs pairing,

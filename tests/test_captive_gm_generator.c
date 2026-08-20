@@ -814,6 +814,49 @@ static void test_pass_group_1460(void) {
     }
 }
 
+static void gm_full_chain(CaptiveGmWork *ws, uint16_t m) {
+    captive_gm_init(ws);
+    captive_gm_entry_setup(ws, m, 0u, 0u, 0u);
+    captive_gm_seed(ws);
+    captive_gm_pass_14c9(ws); captive_gm_pass_45f(ws);
+    captive_gm_pass_526(ws); captive_gm_pass_5d4(ws);
+    captive_gm_wset(ws, 0x3070u, 1u);
+    captive_gm_pass_1cb5(ws); captive_gm_pass_1617(ws); captive_gm_pass_d12(ws);
+    captive_gm_pass_2589(ws); captive_gm_pass_26be(ws); captive_gm_pass_28b2(ws);
+    captive_gm_pass_29f6(ws); captive_gm_pass_28b2(ws); captive_gm_pass_2888(ws);
+    captive_gm_pass_164c(ws); captive_gm_pass_2940(ws); captive_gm_pass_e12(ws);
+    captive_gm_pass_1736(ws); captive_gm_pass_1806(ws); captive_gm_pass_2a9d(ws);
+    captive_gm_pass_2abc(ws); captive_gm_pass_a2a(ws);
+    captive_gm_pass_2595(ws, 0xFFC3u, 0x0000u); captive_gm_pass_9c3(ws);
+    captive_gm_pass_967(ws); captive_gm_pass_f61(ws); captive_gm_pass_2284(ws);
+    captive_gm_pass_22ba(ws); captive_gm_pass_22eb(ws); captive_gm_pass_2310(ws);
+    captive_gm_pass_2400(ws); captive_gm_pass_242e(ws);
+    captive_gm_pass_2595(ws, 0xFFC4u, 0xFFF6u); captive_gm_pass_157e(ws);
+    captive_gm_pass_13e3(ws); captive_gm_pass_237f(ws); captive_gm_pass_23b4(ws);
+    captive_gm_pass_1460(ws);
+}
+
+static void test_full_pipeline_output(void) {
+    /* End-to-end: the full pass chain + the 0xEE translate driver.  The resulting output
+     * level map (work[0x5A68..0x6288]) and second map (work[0x6288..0x6A00]) are verified
+     * byte-identical to the real GM.EXE post-generate state (oracle 0x128) for missions
+     * 1/2/3 — this is the finished, playable dungeon. */
+    struct { uint16_t m; int onz; uint32_t ock; uint32_t mck; } cases[] = {
+        {1u, 579, 0x5F4Bu, 0x14E9u},
+        {2u, 615, 0x6A9Eu, 0x1A19u},
+        {3u, 575, 0x66C9u, 0x18D5u},
+    };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        CaptiveGmWork ws;
+        gm_full_chain(&ws, cases[c].m);
+        captive_gm_generate_output(&ws);
+        int onz = 0; uint32_t ock = 0, mck = 0;
+        for (int i = 0x5A68; i < 0x6288; ++i) { if (ws.b[i]) ++onz; ock += ws.b[i]; }
+        for (int i = 0x6288; i < 0x6A00; ++i) mck += ws.b[i];
+        assert(onz == cases[c].onz && ock == cases[c].ock && mck == cases[c].mck);
+    }
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_map_primitives();
@@ -840,6 +883,7 @@ int main(void) {
     test_pass_group_242e();
     test_pass_group_1460();
     test_generate_output();
+    test_full_pipeline_output();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
 }
