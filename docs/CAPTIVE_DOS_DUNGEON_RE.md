@@ -621,3 +621,17 @@ special cases.  Remaining for a fully-native generator: transcribe the `0x1F00`
 placement state machine and the `0x2F2` seed model (the RNG/counter model), which
 feed the already-transcribed translator.  Until then, real levels are obtainable by
 running GM.EXE headless (gmbuf.py) and converting via `captive_dos_map_to_level`.
+
+### GM.EXE generation is DETERMINISTIC per mission param (2026-08-20)
+Verified in the harness: running GM.EXE with the same mission parameter yields a
+byte-identical 64x32 map every time (no time/entropy seeding — the seeds at 0x2F2
+are the fixed constants 0x8882/0x8881); different params yield different maps.
+Consequences:
+ - A level extracted from GM.EXE for a given mission is byte-identical to what the
+   game produces at runtime, so it is faithful REAL data (not a one-off snapshot).
+ - A native C transcription of the generator can be verified byte-for-byte against
+   the GM.EXE oracle (opencaptive-re/gmbuf.py) for every mission parameter — the
+   safe, drift-free way to port the ~dozen stateful generation passes incrementally.
+Two real completion paths, both non-synthetic: (A) full native transcription of the
+generator (large but oracle-verifiable, deterministic target); (B) extract the real
+deterministic levels via GM.EXE and load them through captive_dos_map_to_level.
