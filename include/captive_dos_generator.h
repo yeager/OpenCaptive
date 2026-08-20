@@ -17,9 +17,13 @@
  *
  * SCOPE / HONESTY: these are the confirmed primitives (the cell writer, the
  * plus-brush, the post-processor, the cardinal deltas, the index and bounds).
- * They are NOT yet the whole level generator: the routine 0x46CC that drives a
- * walk with these primitives is a DGROUP dispatch-table handler (at DS:0xCAFD)
- * whose exact role (level builder vs. per-entity walk) is still unconfirmed.
+ * They are CAPPO's in-play map-mutation primitives, NOT the level generator.
+ * RESOLVED (2026-08-20): the actual level generator is a SEPARATE child program,
+ * GM.EXE, which CAPPO launches via INT 21h AH=4Bh (EXEC) from its level-setup
+ * path (0xC9D9 -> 0x0DBC).  GM.EXE builds the 64x32 base map and copies it back
+ * into CAPPO's DGROUP.  See docs/CAPTIVE_DOS_DUNGEON_RE.md ("GM.EXE" section) and
+ * captive_gm_translate.h/.c for GM.EXE's per-cell code translator.  The 0x46CC
+ * walk here is thus CAPPO's per-entity/in-play walk, not the level builder.
  * The parallel array at DS:0x84D3 (= map+0x820) is a per-cell FLAGS/visibility
  * byte (bit 0x80 = explored, set by the auto-map reveal at 0x6580), NOT a maze
  * direction field.  Which subsystem builds the map's initial structure (the
