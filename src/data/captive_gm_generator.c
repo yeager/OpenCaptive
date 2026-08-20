@@ -99,6 +99,15 @@ int captive_gm_seed(CaptiveGmWork *w) {
     return (captive_gm_wget(w, 0x33DCu) & 0x0002u) ? 1 : 0;
 }
 
+uint16_t captive_gm_rng_next(CaptiveGmWork *w) {
+    /* GM 0x1C6E: state = state*0x5E5 + 0x29; return ror(state,4) ^ 0x800. */
+    uint16_t st = captive_gm_wget(w, 0x3074u);
+    st = (uint16_t)(st * 0x05E5u + 0x0029u);
+    captive_gm_wset(w, 0x3074u, st);
+    uint16_t r = (uint16_t)((st >> 4) | (st << 12)); /* ror ax,1 x4 */
+    return (uint16_t)(r ^ 0x0800u);
+}
+
 void captive_gm_pass_14c9(CaptiveGmWork *w) {
     uint16_t result;
 

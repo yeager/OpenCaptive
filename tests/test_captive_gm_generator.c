@@ -105,11 +105,31 @@ static void test_pass_14c9(void) {
     }
 }
 
+static void test_rng(void) {
+    /* First RNG outputs for mission=1, captured from the real GM.EXE (0x1C6E). */
+    static const uint16_t EXPECT[12] = {
+        0xE860u, 0xF30Au, 0x4F7Bu, 0xD182u, 0xA816u, 0xBD5Fu,
+        0x050Bu, 0x99D9u, 0x6F70u, 0x7168u, 0xCC9Eu, 0x53C4u,
+    };
+    CaptiveGmWork ws;
+    captive_gm_init(&ws);
+    captive_gm_entry_setup(&ws, 1u, 0u, 0u, 0u);   /* seeds word[0x3074]=1 */
+    for (int i = 0; i < 12; ++i)
+        assert(captive_gm_rng_next(&ws) == EXPECT[i]);
+    /* Determinism: same seed -> same stream. */
+    CaptiveGmWork a, b;
+    captive_gm_init(&a); captive_gm_entry_setup(&a, 7u, 0u, 0u, 0u);
+    captive_gm_init(&b); captive_gm_entry_setup(&b, 7u, 0u, 0u, 0u);
+    for (int i = 0; i < 50; ++i)
+        assert(captive_gm_rng_next(&a) == captive_gm_rng_next(&b));
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_seed_values();
     test_seed_mission_scaling();
     test_pass_14c9();
+    test_rng();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
 }

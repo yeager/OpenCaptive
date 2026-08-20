@@ -1,5 +1,12 @@
 # OpenCaptive Release Notes
 
+## v1.1.150 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: the generation RNG (`captive_gm_rng_next`,
+  GM 0x1C6E), transcribed and verified byte-for-byte against the real GM.EXE.
+
 ## v1.1.149 (2026-08-20)
 
 ### Added

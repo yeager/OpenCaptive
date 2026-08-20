@@ -73,6 +73,15 @@ void captive_gm_entry_setup(CaptiveGmWork *w, uint16_t ax, uint16_t bx,
 int captive_gm_seed(CaptiveGmWork *w);
 
 /*
+ * GM.EXE's generation RNG, transcribed from GM_UNP.EXE 0x1C6E.  The 16-bit state
+ * lives at word[0x3074] (seeded to the mission param at entry, hence
+ * deterministic).  Each call advances state = state*0x5E5 + 0x29 (mod 2^16) and
+ * returns ror(state, 4) XOR 0x800.  This is the entropy source threaded through
+ * the RNG-driven placement passes.
+ */
+uint16_t captive_gm_rng_next(CaptiveGmWork *w);
+
+/*
  * Pass 0x14C9 (first of the generation pass chain): computes word[0x359A], a
  * cell-type/room selector.  For mission <= 9 it reads the baked table at 0x6D16;
  * otherwise it derives the value from two LCG steps (x*0x5E5+0x29) followed by the

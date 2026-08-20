@@ -1,5 +1,12 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: generation RNG transcribed, v1.1.150)
+
+- Transcribed GM.EXE's generation RNG (`captive_gm_rng_next`, GM 0x1C6E: state at
+  word[0x3074] seeded by mission, state=state*0x5E5+0x29, return ror(state,4)^0x800)
+  — the entropy source for the RNG-driven placement passes. Verified against the
+  real GM.EXE (first 12 outputs for mission 1) plus determinism. All 71 tests pass.
+
 ## 2026-08-20 (GM.EXE native port: pass 0x14C9 transcribed + baked-table loader, v1.1.149)
 
 - Added `captive_gm_init` (installs GM.EXE's baked constant tables into the work
