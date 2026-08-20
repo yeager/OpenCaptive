@@ -1375,6 +1375,68 @@ void captive_gm_pass_2940(CaptiveGmWork *w) {
     w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index((uint8_t)cell, (uint8_t)(cell >> 8)))] = 9u;
 }
 
+/* GM 0x1BF5: 5-bit adjacency mask of the cells reached by applying the cumulative
+ * deltas at 0x6ADA/0x6ADB (S, E, centre, W, N); a bit is set (MSB=first) when that
+ * cell's selector is non-VALID. */
+static uint8_t gm_1bf5(CaptiveGmWork *w, uint8_t cl, uint8_t ch) {
+    uint8_t dl = 0;
+    for (int i = 0; i < 5; ++i) {
+        uint16_t bx = (uint16_t)(i * 2);
+        dl = (uint8_t)(dl << 1);
+        cl = (uint8_t)(cl + w->b[(uint16_t)(0x6ADAu + bx)]);
+        ch = (uint8_t)(ch + w->b[(uint16_t)(0x6ADBu + bx)]);
+        if (captive_gm_cell_check(w, GM_MAP_SEL, cl, ch) != CAPTIVE_GM_CELL_VALID)
+            dl |= 1u;
+    }
+    return dl;
+}
+
+/* GM 0x13D2: accept a corridor cell iff its adjacency mask has bit2 clear and equals
+ * 0x0A or 0x11. */
+static int gm_13d2(CaptiveGmWork *w, uint8_t cl, uint8_t ch) {
+    uint8_t dl = gm_1bf5(w, cl, ch);
+    if (dl & 4u) return 0;
+    if (dl == 0x0Au) return 1;
+    return (dl == 0x11u);
+}
+
+/* ==== Pass 0x1314: longest-dead-end objective placement ====
+ * The orchestrator runs this ONLY when word[0x307C]==1 (GM 0x3FB cmp/jne); the
+ * standard missions (word[0x307C]==0) skip it, so it is not in the normal pass chain.
+ * Walk the 0x3098 dead-end list; for each qualifying dead end (0x13D2), follow the
+ * flow direction (0x2A59) counting corridor length to the top edge, tracking the
+ * longest in word[0x352A] (best cell in 0x352C/0x352E).  The found branch (which
+ * marks the corridor end and spawns the objective/guardians via the 0xAB4/0xB00/0xFCB
+ * entity subsystem, ws:0x6B16 spawn database) is not yet transcribed.  The search
+ * itself is faithful — gm_1bf5 is verified byte-for-byte against GM via gm_call.py. */
+void captive_gm_pass_1314(CaptiveGmWork *w) {
+    captive_gm_wset(w, 0x352Au, 0u);
+    for (int cx = 0x100; cx > 0; --cx) {
+        uint16_t bx = (uint16_t)(0x3098u + (0x100 - cx) * 2);
+        uint16_t cell = captive_gm_wget(w, bx);
+        if (cell == 0u) continue;                         /* 0x1323 */
+        uint8_t cl = (uint8_t)cell, ch = (uint8_t)(cell >> 8);
+        w->b[0x33A2u] = cl; w->b[0x33B6u] = ch;           /* save this dead end */
+        gm_2a59(w, &cl, &ch);                             /* 0x1398 step */
+        if (!gm_13d2(w, cl, ch)) continue;                /* 0x139E reject */
+        uint16_t len = 0;                                 /* word[0x33A6] */
+        for (;;) {                                        /* 0x13A6 count to top edge */
+            gm_2a59(w, &cl, &ch);
+            if (ch == 0xFFu) break;                       /* 0x13A9 */
+            ++len;
+            if (len & 0x8000u) break;                     /* jns guard */
+        }
+        if (captive_gm_wget(w, 0x352Au) <= len) {         /* 0x13B9 keep the longest */
+            captive_gm_wset(w, 0x352Au, len);
+            captive_gm_wset(w, 0x352Cu, w->b[0x33A2u]);
+            captive_gm_wset(w, 0x352Eu, w->b[0x33B6u]);
+        }
+    }
+    /* GM 0x1332: word[0x352A]==0 -> nothing found -> return (the standard case).
+     * The found branch (objective + guardian spawn) is a separate entity subsystem
+     * (0xAB4/0xB00/0xFCB, ws:0x6B16 spawn database) still to be transcribed. */
+}
+
 void captive_gm_generate_output(CaptiveGmWork *w) {
     /* GM 0xEE: the final translate driver.  For each of the 2048 cells it reads the
      * cell type at word[0x1048+2k], the selector at word[0x38+2k], and the aux at

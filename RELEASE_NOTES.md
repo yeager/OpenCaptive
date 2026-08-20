@@ -1,5 +1,16 @@
 # OpenCaptive Release Notes
 
+## v1.1.165 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0x1314 (`captive_gm_pass_1314`) — the
+  longest-dead-end objective search (helpers 0x1BF5 adjacency mask, 0x13D2 accept
+  test).  The orchestrator runs it only when word[0x307C]==1 (standard missions skip
+  it), so it is outside the normal pass chain; its found branch (objective/guardian
+  spawn via the 0xAB4/0xB00/0xFCB entity subsystem) is left for later.  gm_1BF5 is
+  verified byte-for-byte against GM via gm_call.py.
+
 ## v1.1.164 (2026-08-20)
 
 ### Added
