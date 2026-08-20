@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: pass 0xA2A item/creature-nest distribution byte-exact, v1.1.173)
+
+- Transcribed pass 0xA2A (`captive_gm_pass_a2a`) and its item placer subsystem
+  (0xB00/0xB35/0xB73, 0xAB4/0xAD6/0xAEE, 0x15F2) — the item and creature-nest
+  distribution pass — verified byte-identical to the real GM.EXE across the whole work
+  segment for missions 1/2/3 (`test_pass_a2a`).
+- Fixed the 0xAB4 classifier: its caller branches on the CPU flags (SF from the internal
+  `cmp mask,0x11`/`cmp type,7`), not the returned AX. The port now breaks/steps/places
+  to match GM exactly.
+
 ## 2026-08-20 (GM.EXE native port: pass 0xD12 placement machine byte-exact, v1.1.160)
 
 - Completed and verified the full GM.EXE 0xD12 placement machine (`captive_gm_pass_d12`)

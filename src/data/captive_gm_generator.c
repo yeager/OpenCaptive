@@ -1436,8 +1436,9 @@ void captive_gm_pass_2940(CaptiveGmWork *w) {
 }
 
 /* GM 0x1BF5: 5-bit adjacency mask of the cells reached by applying the cumulative
- * deltas at 0x6ADA/0x6ADB (S, E, centre, W, N); a bit is set (MSB=first) when that
- * cell's selector is non-VALID. */
+ * deltas at 0x6ADA/0x6ADB (S, E, centre, W, N).  `mov dl,bl` runs once before the
+ * loop (dl=0); the loop-back target is the `shl dl,1`, so dl accumulates: MSB = first
+ * step, a bit set when that cell's selector is non-VALID. */
 static uint8_t gm_1bf5(CaptiveGmWork *w, uint8_t cl, uint8_t ch) {
     uint8_t dl = 0;
     for (int i = 0; i < 5; ++i) {
@@ -2118,6 +2119,225 @@ void captive_gm_pass_2abc(CaptiveGmWork *w) {
         if (!gm_16d7_off(w, &cell, &off)) return;
         gm_2ad4(w, off, (uint8_t)cell, (uint8_t)(cell >> 8));
         if (captive_gm_wget(w, 0x33D2u) > 0x1Fu) return;         /* 0x2AC9 */
+    }
+}
+
+/* ==== Pass 0xA2A: item / creature-nest distribution ====
+ * Two loops.  First: 25 records from word[0x3586] each place a plain type-0x15 item
+ * (code 9, or 1 when the east-neighbour type is 0x1A..0x1D) via 0xB00.  Second: 300
+ * RNG-seeded probe walks; at each cell classify (0xAB4), reject neighbours already
+ * holding a 0x15 (0xAD6), then place an item whose code = GM_TBL[0x6AF4+((rng ror5)&7)]
+ * + dl through 0xAEE -> 0xB00.  Item code low-3-bits select the placer sub-mode:
+ * 0/1/5/7 = plain item, 2 = timed/counted item (0xB35), 3 = a creature nest (0xB73)
+ * that walks a trail, writes the nest anchor + a 0x2C marker, and spawns creatures
+ * via 0xFCB/0xFE2.  Verified byte-for-byte against GM (m1/m2/m3). */
+
+/* GM 0x15F2: stamp a type-0x2C marker at (cl,ch) and append a 4-byte record
+ * {cx, al, dl} to the buffer at word[0x3582] (indexed by word[0x354C]). */
+static void gm_15f2(CaptiveGmWork *w, uint8_t cl, uint8_t ch, uint16_t cx,
+                    uint8_t al, uint8_t dl, uint8_t dh) {
+    uint16_t bp = captive_gm_map_index(cl, ch);
+    w->b[(uint16_t)(GM_MAP_TYPE + bp + 1u)] = dh;               /* byte[bp+si+1] = dh */
+    w->b[(uint16_t)(GM_MAP_TYPE + bp)] = 0x2Cu;                 /* byte[bp+si]   = 0x2C */
+    uint16_t t = (uint16_t)(captive_gm_wget(w, 0x3582u) + (captive_gm_wget(w, 0x354Cu) << 2));
+    captive_gm_wset(w, t, cx);
+    w->b[(uint16_t)(t + 2u)] = al;
+    w->b[(uint16_t)(t + 3u)] = dl;
+    captive_gm_wset(w, 0x354Cu, (uint16_t)(captive_gm_wget(w, 0x354Cu) + 1u));
+}
+
+/* GM 0xB73 (0xB00 dl==3): place a creature nest.  Returns 1 on success (GM ZF=1),
+ * 0 on any early bail (GM `or ax,0xffff`). */
+static int gm_b73(CaptiveGmWork *w, uint8_t al_item, uint16_t cx) {
+    uint8_t cl = (uint8_t)cx, ch = (uint8_t)(cx >> 8);
+    if (captive_gm_wget(w, 0x354Cu) >= 0x64u) return 0;               /* 0xB73 */
+    { uint16_t bp = captive_gm_wget(w, 0x3588u);
+      if (captive_gm_wget(w, (uint16_t)(bp + 2u)) <= 0x14u) return 0; } /* 0xB81 ja */
+    if (captive_gm_wget(w, 0x354Au) >= 8u) return 0;                  /* 0xB8B */
+    captive_gm_wset(w, 0x33A8u, al_item);                             /* save item code (ah=0) */
+    captive_gm_wset(w, 0x33A2u, cl);                                  /* save orig cl */
+    captive_gm_wset(w, 0x33B6u, ch);                                  /* save orig ch */
+    gm_2a59(w, &cl, &ch);                                             /* 0xBA4 step */
+    captive_gm_wset(w, 0x33AAu, cl);
+    captive_gm_wset(w, 0x33BEu, ch);
+    if ((int8_t)ch < 0) return 0;                                    /* 0xBB3 */
+    if (captive_gm_cell_check(w, GM_MAP_SEL, cl, ch) != CAPTIVE_GM_CELL_VALID) return 0; /* 0xBBA */
+    if (!gm_2468(w, cl, ch)) return 0;                              /* 0xBC4 */
+    uint8_t dh;
+    if (!gm_168d(w, &cl, &ch, &dh)) {                               /* 0xBCC */
+        gm_2a59(w, &cl, &ch);                                       /* 0xBD1 second step */
+        captive_gm_wset(w, 0x33AAu, cl);
+        captive_gm_wset(w, 0x33BEu, ch);
+        if ((int8_t)ch < 0) return 0;                              /* 0xBE0 */
+        if (captive_gm_cell_check(w, GM_MAP_SEL, cl, ch) != CAPTIVE_GM_CELL_VALID) return 0; /* 0xBE7 */
+        if (!gm_2468(w, cl, ch)) return 0;                        /* 0xBF1 */
+        if (!gm_168d(w, &cl, &ch, &dh)) return 0;                 /* 0xBF9 */
+    }
+    /* 0xC01: cl,ch = 168d-found empty cell; dh = its direction */
+    captive_gm_wset(w, 0x33BCu, dh);                                /* save dir */
+    captive_gm_wset(w, 0x33B8u, ch);                               /* save found ch */
+    captive_gm_wset(w, 0x33A4u, cl);                               /* save found cl */
+    uint16_t bxcnt = (uint16_t)((captive_gm_wget(w, 0x3074u) & 0xFu) + 3u); /* trail length */
+    cl = (uint8_t)captive_gm_wget(w, 0x33A2u);                     /* restore orig */
+    ch = (uint8_t)captive_gm_wget(w, 0x33B6u);
+    gm_2a59(w, &cl, &ch);                                          /* 0xC24 */
+    if ((int8_t)ch < 0) return 0;                                 /* 0xC27 */
+    for (;;) {                                                     /* 0xC2E walk */
+        gm_2a59(w, &cl, &ch);
+        if ((int8_t)ch < 0) return 0;                            /* 0xC31 */
+        if (captive_gm_cell_check(w, GM_MAP_SEL, cl, ch) != CAPTIVE_GM_CELL_VALID) continue; /* 0xC38 */
+        bxcnt = (uint16_t)(bxcnt - 1u);                          /* 0xC3F dec bx; jns */
+        if ((int16_t)bxcnt < 0) break;
+    }
+    if (!gm_2468(w, cl, ch)) return 0;                            /* 0xC42 */
+    w->b[0x33A6u] = cl;                                            /* 0xC4A walk-end */
+    w->b[0x33BAu] = ch;
+    /* 0xC52: write the nest anchor at the original cell */
+    cl = (uint8_t)captive_gm_wget(w, 0x33A2u);
+    ch = (uint8_t)captive_gm_wget(w, 0x33B6u);
+    { uint16_t bp = captive_gm_map_index(cl, ch);
+      uint8_t ah = w->b[0x33A8u];
+      captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + bp), (uint16_t)(((uint16_t)ah << 8) | 0x15u)); } /* 0xC63 */
+    /* 0xC66: mark the found empty cell in the selector map + a 0x2C record */
+    cl = (uint8_t)captive_gm_wget(w, 0x33A4u);
+    ch = (uint8_t)captive_gm_wget(w, 0x33B8u);
+    { uint16_t bp = captive_gm_map_index(cl, ch);
+      captive_gm_wset(w, (uint16_t)(GM_MAP_SEL + bp), 0xFFC3u); }   /* 0xC71 */
+    uint8_t dl_lo = (uint8_t)captive_gm_wget(w, 0x354Au);           /* dx = word[0x354A], dh=0 */
+    captive_gm_wset(w, 0x3568u, 0x65u);
+    captive_gm_wset(w, 0x356Au, dl_lo);
+    uint16_t dir = captive_gm_wget(w, 0x33BCu);
+    uint8_t dh2 = w->b[(uint16_t)(dir + 0x6AFCu)];                  /* table_6AFC[dir] */
+    gm_15f2(w, cl, ch, (uint16_t)(((uint16_t)ch << 8) | cl), 1u, dl_lo, dh2); /* 0xC90 */
+    /* 0xC93: spawn creatures at the walk-end */
+    cl = w->b[0x33A6u]; ch = w->b[0x33BAu];
+    captive_gm_wset(w, 0x36u, 0u);                                  /* 0xCA1 */
+    captive_gm_wset(w, 0x3564u, (uint16_t)(captive_gm_wget(w, 0x3564u) & 0xEFu));
+    captive_gm_wset(w, 0x3566u, 0xFFu);
+    { uint16_t dxv = (uint16_t)(((uint16_t)dh2 << 8) | dl_lo);
+      gm_fcb(w, (uint16_t)(((uint16_t)ch << 8) | cl), 5u, dxv); }   /* 0xCB3 */
+    /* 0xCB6: high-bit the walk-end type, floor the stepped cell */
+    cl = w->b[0x33A6u]; ch = w->b[0x33BAu];
+    w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch))] |= 0x80u; /* 0xCC1 */
+    cl = (uint8_t)captive_gm_wget(w, 0x33AAu);
+    ch = (uint8_t)captive_gm_wget(w, 0x33BEu);
+    w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch))] = 0x0Fu;  /* 0xCD0 */
+    /* 0xCD4: append a 4-cell record to buffer word[0x3594] */
+    { uint16_t bx = (uint16_t)(captive_gm_wget(w, 0x3594u) + (captive_gm_wget(w, 0x354Au) << 2));
+      w->b[bx]        = (uint8_t)captive_gm_wget(w, 0x33A4u);
+      w->b[(uint16_t)(bx + 1u)] = (uint8_t)captive_gm_wget(w, 0x33B8u);
+      w->b[(uint16_t)(bx + 2u)] = (uint8_t)captive_gm_wget(w, 0x33A2u);
+      w->b[(uint16_t)(bx + 3u)] = (uint8_t)captive_gm_wget(w, 0x33B6u); }
+    captive_gm_wset(w, 0x354Au, (uint16_t)(captive_gm_wget(w, 0x354Au) + 1u));
+    return 1;                                                       /* 0xD03 cmp ax,ax */
+}
+
+/* GM 0xB35 (0xB00 dl==2, and dl==4 with do_check=0): place a counted item and record
+ * a slot in buffer word[0x3584]. */
+static int gm_b35(CaptiveGmWork *w, uint8_t al, uint16_t cx, uint16_t bp_rng,
+                  int do_check, uint16_t bx) {
+    uint8_t dh = w->b[0x3540u];
+    if (do_check && dh == 0u) return 1;                            /* 0xB70 no-op success */
+    w->b[bx] = 0x15u; w->b[(uint16_t)(bx + 1u)] = al;              /* 0xB3D gm_b18 */
+    captive_gm_wset(w, 0x3540u, (uint16_t)(captive_gm_wget(w, 0x3540u) - 1u));
+    uint16_t axoff = (uint16_t)((uint8_t)(7u - dh) * 4u);
+    uint16_t di = (uint16_t)(captive_gm_wget(w, 0x3584u) + axoff);
+    uint16_t axv = (uint16_t)((uint16_t)(((uint32_t)0x18u * bp_rng) >> 16) << 4); /* (0x18*bp).hi << 4 */
+    captive_gm_wset(w, di, cx);
+    axv = (uint16_t)((axv >> 8) | (axv << 8));                     /* xchg ah,al */
+    captive_gm_wset(w, (uint16_t)(di + 2u), axv);
+    return 1;
+}
+
+/* GM 0xB00: the item placer.  al = item code, cx = packed (cl,ch), bp_rng = the
+ * caller's RNG (used by the dl==2/3 sub-modes).  Returns 1 on success (GM ZF=1). */
+static int gm_b00(CaptiveGmWork *w, uint8_t al, uint16_t cx, uint16_t bp_rng) {
+    uint8_t cl = (uint8_t)cx, ch = (uint8_t)(cx >> 8);
+    uint16_t bx = (uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch));
+    uint8_t dl = (uint8_t)(al & 7u);
+    if (dl == 2u) return gm_b35(w, al, cx, bp_rng, 1, bx);
+    if (dl == 3u) return gm_b73(w, al, cx);
+    if (dl == 4u) return gm_b35(w, al, cx, bp_rng, 0, bx);
+    captive_gm_wset(w, 0x3536u, (uint16_t)(captive_gm_wget(w, 0x3536u) + 1u)); /* 0xB14 */
+    w->b[bx] = 0x15u; w->b[(uint16_t)(bx + 1u)] = al;
+    return 1;
+}
+
+/* GM 0xAEE: dispatch to 0xB00 for missions != 0 (mission 0 uses a simplified place). */
+static int gm_aee(CaptiveGmWork *w, uint8_t al, uint16_t cx, uint16_t bp_rng) {
+    if (captive_gm_wget(w, 0x3078u) != 0u) return gm_b00(w, al, cx, bp_rng); /* 0xAF3 */
+    if ((al & 7u) != 0u) al = (uint8_t)((al & 0xF8u) | 5u);        /* 0xAF5 */
+    uint8_t cl = (uint8_t)cx, ch = (uint8_t)(cx >> 8);
+    uint16_t bx = (uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch));
+    captive_gm_wset(w, 0x3536u, (uint16_t)(captive_gm_wget(w, 0x3536u) + 1u));
+    w->b[bx] = 0x15u; w->b[(uint16_t)(bx + 1u)] = al;
+    return 1;
+}
+
+/* GM 0xAB4: classify (cl,ch) for placement.  The caller branches on the FLAGS left
+ * by 0xAB4 (js -> break, jne -> step), not on ax, so this returns the flag outcome:
+ *   -1 = break (GM SF=1), 0 = step to neighbour (GM ZF=0, SF=0), 1 = place here.
+ * *pdl receives the sub-mode bias (0 or 8). */
+static int gm_ab4(CaptiveGmWork *w, uint8_t cl, uint8_t ch, uint8_t *pdl) {
+    uint8_t mask = gm_1bf5(w, cl, ch);
+    *pdl = 0u;
+    if (mask & 4u) return -1;                                      /* 0xAD2: or ax,0xffff -> SF=1 */
+    if (mask != 0x0Au && mask != 0x11u)                           /* 0xAD1: flags = cmp mask,0x11 */
+        return (mask < 0x11u) ? -1 : 0;                          /* SF=1 -> break; SF=0 -> step */
+    if (mask == 0x11u) *pdl = 8u;                                 /* 0xAC7 */
+    uint8_t t = w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch))]; /* 0xACE cmp byte,7 */
+    if (t < 7u) return -1;                                        /* SF=1 -> break */
+    return (t == 7u) ? 1 : 0;                                     /* ZF=1 -> place; else step */
+}
+
+/* GM 0xAD6: return 1 if any 4-neighbour of (cl,ch) already holds a type-0x15 item. */
+static int gm_ad6(CaptiveGmWork *w, uint8_t cl, uint8_t ch) {
+    uint16_t bx = (uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch));
+    if (w->b[(uint16_t)(bx + 2u)] == 0x15u) return 1;
+    if (w->b[(uint16_t)(bx - 2u)] == 0x15u) return 1;
+    if (w->b[(uint16_t)(bx - 0x80u)] == 0x15u) return 1;
+    if (w->b[(uint16_t)(bx + 0x80u)] == 0x15u) return 1;
+    return 0;
+}
+
+void captive_gm_pass_a2a_firstloop(CaptiveGmWork *w) {
+    /* First loop: 25 records from word[0x3586]. */
+    uint16_t bx = captive_gm_wget(w, 0x3586u);
+    for (int cnt = 0x18; cnt >= 0; --cnt) {
+        uint16_t cx = captive_gm_wget(w, bx); bx = (uint16_t)(bx + 2u);
+        if ((int8_t)(uint8_t)cx < 0) continue;                     /* 0xA3A or cl,cl; js */
+        uint16_t bp = captive_gm_map_index((uint8_t)cx, (uint8_t)(cx >> 8));
+        uint8_t dl = w->b[(uint16_t)(GM_MAP_TYPE + bp + 2u)];       /* east-neighbour type */
+        uint8_t code = 9u;
+        if (dl > 0x19u && dl < 0x1Eu) code = 1u;                    /* 0x1A..0x1D */
+        gm_b00(w, code, cx, 0u);
+    }
+}
+
+void captive_gm_pass_a2a(CaptiveGmWork *w) {
+    captive_gm_pass_a2a_firstloop(w);
+    /* Second loop: 300 RNG-seeded probe walks. */
+    for (int outer = 0x12B; outer >= 0; --outer) {
+        uint16_t r = captive_gm_rng_next(w);                       /* 0xA67 */
+        r = (uint16_t)((r >> 1) | (r << 15));                      /* ror ax,1 */
+        uint16_t x = (uint16_t)(r & 0x3Fu);                        /* 0x1C9A pos(ax) */
+        uint16_t ror6 = (uint16_t)((r >> 6) | (r << 10));
+        uint16_t y = (uint16_t)(ror6 & 0x1Fu);
+        uint8_t cl = (uint8_t)x, ch = (uint8_t)y;
+        for (int inner = 0x10; inner >= 0; --inner) {
+            uint8_t dl;
+            int st = gm_ab4(w, cl, ch, &dl);                       /* 0xA76 */
+            if (st < 0) break;                                    /* js 0xAAF */
+            if (st > 0) {                                         /* jne skips to step */
+                if (gm_ad6(w, cl, ch)) break;                    /* 0xA80 je 0xAAF */
+                uint16_t rr = captive_gm_rng_next(w);            /* 0xA82 */
+                uint16_t idx = (uint16_t)(gm_ror16(rr, 5) & 7u);
+                uint8_t code = (uint8_t)(w->b[(uint16_t)(idx + 0x6AF4u)] + dl);
+                if (gm_aee(w, code, (uint16_t)(((uint16_t)ch << 8) | cl), rr)) break; /* 0xA9F je */
+            }
+            gm_2a59(w, &cl, &ch);                                 /* 0xAA1 */
+            if ((int8_t)ch < 0) break;                            /* 0xAA4 js 0xAAF */
+        }
     }
 }
 

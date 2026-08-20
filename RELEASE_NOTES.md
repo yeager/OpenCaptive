@@ -1,5 +1,27 @@
 # OpenCaptive Release Notes
 
+## v1.1.173 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0xA2A (`captive_gm_pass_a2a`), the item /
+  creature-nest distribution pass.  A first loop places 25 plain type-0x15 items from
+  the record list at word[0x3586]; a second loop runs 300 RNG-seeded probe walks that
+  classify each cell (0xAB4/0x1BF5), skip cells adjacent to an existing item (0xAD6),
+  and place an item (0xAEE -> 0xB00) whose sub-mode (item / counted item / creature
+  nest) is chosen from the low 3 bits of a baked code table (0x6AF4).  The creature-nest
+  case (0xB73) walks a trail, writes the nest anchor + a 0x2C marker, records into the
+  0x3582/0x3594 buffers, and spawns creatures through the 0xFCB/0xFE2 engine.  Verified
+  byte-identical to the real GM.EXE across the whole work segment for missions 1/2/3
+  (`test_pass_a2a`).
+
+### Fixed
+
+- **(Captive)** GM 0xAB4 classifier: the caller branches on the CPU flags 0xAB4 leaves
+  (the SF from its internal `cmp mask,0x11` / `cmp type,7`), not on the returned AX, so
+  a cell whose adjacency mask is below 0x11 now correctly breaks the probe walk instead
+  of stepping.  Only surfaced with pass 0xA2A.
+
 ## v1.1.172 (2026-08-20)
 
 ### Added
