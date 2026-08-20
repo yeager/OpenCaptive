@@ -4407,6 +4407,19 @@ int main(int argc, char *argv[]) {
                                  * the modern synthetic shop here; ignore it
                                  * until the real CAPPO shop state is decoded. */
                                 break;
+                            case SDLK_L:
+                                /* Native dungeon entry: the DOSBox-gated
+                                 * space-nav flight/orbit path is unreachable
+                                 * without a live session, so land directly into
+                                 * the byte-exact GM.EXE-generated dungeon. */
+                                if (!captive_live_session_active &&
+                                    game_state_new_captive_mission(&gs, gs.mission)) {
+                                    combat_init(&creatures);
+                                    puzzle_init(&puzzles);
+                                    automap_init(&automap_state);
+                                    music_play_for_game(&gs, MUSIC_BASE);
+                                }
+                                break;
                             case SDLK_ESCAPE:
                                 gs.mode = STATE_MENU;
                                 sync_menu_from_config(&menu, &config, &custom,

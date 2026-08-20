@@ -1,5 +1,15 @@
 # OpenCaptive Release Notes
 
+## v1.1.185 (2026-08-20)
+
+### Added
+
+- **(Captive)** Reachable native dungeon from the normal launch: on the Captive holomap,
+  pressing **L** lands directly into a byte-exact GM.EXE-generated dungeon (the original
+  space-flight/orbit/landing path is gated on a live DOSBox session, which OpenCaptive
+  never starts).  Combined with the native render + movement, Captive is now playable
+  end-to-end from the menu with real generated dungeons — no DOSBox, no synthetic map.
+
 ## v1.1.183 (2026-08-20)
 
 ### Added
