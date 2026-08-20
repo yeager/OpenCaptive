@@ -17,7 +17,7 @@ static uint16_t w(const CaptiveGmWork *ws, uint16_t off) {
 
 static void test_entry_pointer_table(void) {
     CaptiveGmWork ws;
-    memset(&ws, 0, sizeof(ws));
+    captive_gm_init(&ws);
     captive_gm_entry_setup(&ws, 1u, 0u, 0u, 0u);
 
     /* Pointer table, GM 0x5C..0xB5. */
@@ -44,7 +44,7 @@ static void test_entry_pointer_table(void) {
 
 static void test_seed_values(void) {
     CaptiveGmWork ws;
-    memset(&ws, 0, sizeof(ws));
+    captive_gm_init(&ws);
     captive_gm_entry_setup(&ws, 1u, 0u, 0u, 0u);
     int alt = captive_gm_seed(&ws);
     assert(alt == 0); /* mission 1: word[0x33DC]=0, normal path */
@@ -82,10 +82,26 @@ static void test_seed_mission_scaling(void) {
     };
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
         CaptiveGmWork ws;
-        memset(&ws, 0, sizeof(ws));
+        captive_gm_init(&ws);
         captive_gm_entry_setup(&ws, cases[i].m, 0u, 0u, 0u);
         captive_gm_seed(&ws);
         assert(w(&ws, 0x3560u) == cases[i].expect);
+    }
+}
+
+static void test_pass_14c9(void) {
+    /* word[0x359A] captured from the real GM.EXE (oracle, at GM 0x3B4). */
+    struct { uint16_t m, expect; } cases[] = {
+        {1u, 0x0003u}, {2u, 0x0003u}, {5u, 0x0006u},  /* baked table 0x6D16 */
+        {10u, 0x0005u}, {20u, 0x0006u},               /* LCG-derived path */
+    };
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, cases[i].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws);
+        assert(w(&ws, 0x359Au) == cases[i].expect);
     }
 }
 
@@ -93,6 +109,7 @@ int main(void) {
     test_entry_pointer_table();
     test_seed_values();
     test_seed_mission_scaling();
+    test_pass_14c9();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
 }

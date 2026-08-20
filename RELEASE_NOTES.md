@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.149 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: baked-table loader (`captive_gm_init`) and the
+  first generation pass (`captive_gm_pass_14c9`), transcribed from GM.EXE and
+  verified byte-for-byte against the real generator via the oracle.
+
 ## v1.1.148 (2026-08-20)
 
 ### Added

@@ -2,6 +2,19 @@
 
 #include <string.h>
 
+/*
+ * Baked constant tables from GM.EXE's data segment (real game data, transcribed
+ * from GM_UNP.EXE at the corresponding work-segment offsets).  Installed into the
+ * work buffer by captive_gm_init so the passes read them exactly where GM does.
+ */
+/* ws:0x6D16 — mission (0..9) -> initial cell/room selector, read by pass 0x14C9. */
+static const uint8_t GM_TBL_6D16[10] = { 3, 3, 3, 5, 3, 6, 5, 3, 5, 5 };
+
+void captive_gm_init(CaptiveGmWork *w) {
+    memset(w, 0, sizeof(*w));
+    memcpy(&w->b[0x6D16u], GM_TBL_6D16, sizeof(GM_TBL_6D16));
+}
+
 /* Fill `n` bytes at work offset `off` with `val` (GM's `rep stosb`). */
 static void gm_fill(CaptiveGmWork *w, uint16_t off, uint16_t n, uint8_t val) {
     for (uint16_t i = 0; i < n; ++i)
@@ -84,4 +97,28 @@ int captive_gm_seed(CaptiveGmWork *w) {
 
     /* GM 0x3A6..0x3B0: `test word[0x33DC],2` selects the alt-path (0x684). */
     return (captive_gm_wget(w, 0x33DCu) & 0x0002u) ? 1 : 0;
+}
+
+void captive_gm_pass_14c9(CaptiveGmWork *w) {
+    uint16_t result;
+
+    if (captive_gm_wget(w, 0x307Cu) == 1u) {
+        /* GM 0x14CE: word[0x307C]==1 forces the selector to 8. */
+        result = 8u;
+    } else {
+        uint16_t mission = captive_gm_wget(w, 0x3078u);
+        if (mission <= 9u) {
+            /* GM 0x1507: al = byte[mission + 0x6D16] (baked table). */
+            result = w->b[(uint16_t)(0x6D16u + mission)];
+        } else {
+            /* GM 0x14DD..0x14EF: two LCG steps then the high word of (x*3). */
+            uint16_t x = mission;
+            x = (uint16_t)(x * 0x05E5u + 0x0029u);
+            x = (uint16_t)(x * 0x05E5u + 0x0029u);
+            uint16_t hi = (uint16_t)(((uint32_t)x * 3u) >> 16); /* dx of `mul bx` */
+            /* GM 0x14F1: 0 -> 3, 1 -> 5, else -> 6. */
+            result = (hi == 0u) ? 3u : (hi == 1u) ? 5u : 6u;
+        }
+    }
+    captive_gm_wset(w, 0x359Au, result);
 }

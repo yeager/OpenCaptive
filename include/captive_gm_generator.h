@@ -24,11 +24,23 @@
  * transcribed pass-by-pass on top of this foundation.
  */
 
-#define CAPTIVE_GM_WORK_SIZE 0x6AACu
+/* GM clears the first 0x6AAC bytes of its work segment at startup; the region
+ * above that holds BAKED constant tables from GM.EXE's image that the passes read
+ * (e.g. the mission table at 0x6D16).  The buffer therefore spans past 0x6AAC to
+ * cover those tables (GM's data reaches ~0x6EE8). */
+#define CAPTIVE_GM_CLEAR_SIZE 0x6AACu
+#define CAPTIVE_GM_WORK_SIZE  0x6F00u
 
 typedef struct {
     uint8_t b[CAPTIVE_GM_WORK_SIZE];
 } CaptiveGmWork;
+
+/*
+ * Initialise the work segment to GM's post-load, post-clear state: zero the
+ * [0, 0x6AAC) region GM clears, and install the baked constant tables (extracted
+ * from GM.EXE, real game data) in the region above it.  Call before entry_setup.
+ */
+void captive_gm_init(CaptiveGmWork *w);
 
 /* 16-bit little-endian word accessors at a work-segment offset (as GM's code,
  * which is DS-relative with DS = the work segment). */
@@ -59,6 +71,14 @@ void captive_gm_entry_setup(CaptiveGmWork *w, uint16_t ax, uint16_t bx,
  * (word[0x33DC] bit 1 set) — recorded so later passes can honour it.
  */
 int captive_gm_seed(CaptiveGmWork *w);
+
+/*
+ * Pass 0x14C9 (first of the generation pass chain): computes word[0x359A], a
+ * cell-type/room selector.  For mission <= 9 it reads the baked table at 0x6D16;
+ * otherwise it derives the value from two LCG steps (x*0x5E5+0x29) followed by the
+ * high word of (x*3), mapped 0->3 / 1->5 / 2->6.  word[0x307C]==1 forces 8.
+ */
+void captive_gm_pass_14c9(CaptiveGmWork *w);
 
 /* Offsets of the key work-segment fields (for callers/tests). */
 #define CAPTIVE_GM_OFF_MISSION   0x3078u  /* mission param copy */

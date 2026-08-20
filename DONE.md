@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: pass 0x14C9 transcribed + baked-table loader, v1.1.149)
+
+- Added `captive_gm_init` (installs GM.EXE's baked constant tables into the work
+  segment above the cleared region — real game data) and transcribed the first
+  generation pass `captive_gm_pass_14c9` (word[0x359A] cell/room selector: baked
+  table 0x6D16 for mission<=9, else the two-LCG + high-word-of-x*3 path), verified
+  against the real GM.EXE oracle for missions 1/2/5/10/20. All 71 tests pass.
+
 ## 2026-08-20 (GM.EXE native port started: entry+seed transcribed & oracle-verified, v1.1.148)
 
 - Chose the faithful native-port path for GM.EXE's level generator. Built the
