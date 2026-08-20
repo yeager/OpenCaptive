@@ -57,11 +57,37 @@ Pass chain (called from 0x3B1..0x45F, in order):
 Generate:
 - `0xEE`   2048-cell loop: per cell calls the translator `0x129` -> output map [DONE]
 
+## Map-writing passes (which passes build the visible dungeon)
+
+The 0xEE driver translates the cell-type map at work[0x1048] (gated by the selector
+map at work[0x38], with aux at work[0x2058]) into the output map at 0x5A68.  A write
+trace (opencaptive-re/whichpass.py) shows which passes touch those map regions:
+
+- work[0x38] (selector):   0x5D4 [done], and many of the 0x1048 passes also update it.
+- work[0x1048] (cell type): 0xD12, 0x26BE, 0x28B2, 0x29F6, 0x2940, 0xE12, 0x1736,
+  0x1806, 0x2A9D, 0x2ABC, 0xA2A, 0x2595, 0x9C3, 0x967, 0xF61, 0x22BA, 0x22EB, 0x157E,
+  0x1F00.
+- work[0x2058] (aux):       0x26BE.
+
+The remaining pass-chain routines (0x1CB5, 0x1617, 0x2589, 0x2888, 0x164C, 0x1314,
+0x2284, 0x2310, 0x2400, 0x242E, 0x13E3, 0x237F, 0x23B4, 0x1460) build the supporting
+data structures (region graph, connection lists, work buffers) the map passes read,
+and must still be transcribed in order because the pipeline is stateful.
+
 ## Landed so far
 
 - `src/data/captive_gm_translate.c` — the `0x129` per-cell code translator,
   verified against the full 256-entry GM.EXE ground truth (`test_captive_gm_translate`).
 - `opencaptive-re/gm_oracle.py` — the byte-exact verification oracle.
+- `src/data/captive_gm_generator.c` (`test_captive_gm_generator`), all oracle-verified:
+  - `captive_gm_init` — baked-table loader (0x6D16/0x6D20/0x6D2E/0x6D36/0x6D3E).
+  - `captive_gm_entry_setup` + `captive_gm_seed` — entry pointer table, mission
+    params, seed constants (GM 0x08..0x3B0).
+  - `captive_gm_rng_next` / `captive_gm_rng_pos` — the generation RNG (0x1C6E/0x1C97).
+  - `captive_gm_pass_14c9` — room/cell selector.
+  - `captive_gm_pass_45f` — the 16-cell room grid (region growing) + helpers.
+  - `captive_gm_pass_526` — region-connection vectors + entry cell.
+  - `captive_gm_pass_5d4` — the full 2048-word input map (selector map at 0x38).
 
 ## Next
 
