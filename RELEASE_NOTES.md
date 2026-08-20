@@ -1,5 +1,12 @@
 # OpenCaptive Release Notes
 
+## v1.1.154 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0x5D4 (`captive_gm_pass_5d4`), which expands
+  the room grid into the full 2048-word input map, verified against the real GM.EXE.
+
 ## v1.1.153 (2026-08-20)
 
 ### Added

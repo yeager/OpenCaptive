@@ -286,6 +286,48 @@ void captive_gm_pass_526(CaptiveGmWork *w) {
     captive_gm_wset(w, 0x0022u, w->b[(uint16_t)(ax >> 4)]);
 }
 
+void captive_gm_pass_5d4(CaptiveGmWork *w) {
+    /* GM 0x5D4..0x640: expand the 4x4 room grid into the 2048-word input map at
+     * work[0x38..].  Each of the 4 grid rows (dh) writes:
+     *   Part1 (0x5DC): 7 x 4 groups of {15 zero words, then a horizontal-wall word
+     *                  = 0xFFFF when the grid cell differs from its right neighbour}
+     *   Part2 (0x608): 4 x 16 words = a vertical-wall word derived from the grid
+     *                  cell vs the cell one grid-row down and the value one map-row
+     *                  up (word[di-0x80]).
+     * si advances by 4 (one grid row) each outer pass. */
+    uint16_t si = 0u;
+    uint16_t di = 0x38u;
+    for (int dh = 0; dh < 4; ++dh) {
+        for (int cxo = 7; cxo >= 1; --cxo) {            /* GM 0x5DC loop */
+            for (int bp = 0; bp < 4; ++bp) {            /* GM 0x5E1 loop */
+                for (int k = 0; k < 15; ++k) {          /* GM 0x5E7 rep stosw */
+                    captive_gm_wset(w, di, 0u); di = (uint16_t)(di + 2u);
+                }
+                uint16_t val = 0u;                       /* GM 0x5EA */
+                if (bp < 3 &&
+                    w->b[(uint16_t)(bp + si + 1)] != w->b[(uint16_t)(bp + si)])
+                    val = 0xFFFFu;
+                captive_gm_wset(w, di, val); di = (uint16_t)(di + 2u);
+            }
+        }
+        for (int bp = 0; bp < 4; ++bp) {                /* GM 0x608/0x60A loop */
+            uint8_t dl = 0u;                             /* GM 0x60D */
+            if (dh < 3 &&
+                w->b[(uint16_t)(bp + si + 4)] != w->b[(uint16_t)(bp + si)])
+                dl = 0xFFu;
+            for (int cx2 = 0; cx2 < 16; ++cx2) {        /* GM 0x61F loop */
+                uint16_t val;
+                if (captive_gm_wget(w, (uint16_t)(di - 0x80u)) == 0u)
+                    val = (uint16_t)(dl | (dl << 8));
+                else
+                    val = 0xFFFFu;
+                captive_gm_wset(w, di, val); di = (uint16_t)(di + 2u);
+            }
+        }
+        si = (uint16_t)(si + 4u);
+    }
+}
+
 void captive_gm_pass_14c9(CaptiveGmWork *w) {
     uint16_t result;
 

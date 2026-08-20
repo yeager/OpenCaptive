@@ -202,6 +202,32 @@ static void test_pass_526(void) {
     }
 }
 
+static void test_pass_5d4(void) {
+    /* Full 2048-word input map (work[0x38..0x1038]) aggregate checks captured from
+     * the real GM.EXE (oracle 0x3BD): byte-sum and non-zero count. */
+    struct { uint16_t m; unsigned nonzero; uint32_t sum; } cases[] = {
+        {1u, 172u, 0x0000AB54u}, {2u, 298u, 0x000128D6u}, {3u, 312u, 0x000136C8u},
+    };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, cases[c].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws);
+        captive_gm_pass_45f(&ws);
+        captive_gm_pass_526(&ws);
+        captive_gm_pass_5d4(&ws);
+        unsigned nz = 0; uint32_t sum = 0;
+        for (int i = 0; i < 4096; ++i) {
+            uint8_t b = ws.b[0x38 + i];
+            if (b) ++nz;
+            sum += b;
+        }
+        assert(nz == cases[c].nonzero);
+        assert(sum == cases[c].sum);
+    }
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_seed_values();
@@ -211,6 +237,7 @@ int main(void) {
     test_rng_pos();
     test_pass_45f();
     test_pass_526();
+    test_pass_5d4();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
 }

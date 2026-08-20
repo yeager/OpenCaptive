@@ -112,6 +112,13 @@ void captive_gm_pass_45f(CaptiveGmWork *w);
  */
 void captive_gm_pass_526(CaptiveGmWork *w);
 
+/*
+ * Pass 0x5D4: expands the 4x4 room grid into the 2048-word input map at
+ * work[0x38..0x1038] (horizontal + vertical wall words between grid cells) — the
+ * base layout the 0xEE driver later translates.  Must run after pass 0x526.
+ */
+void captive_gm_pass_5d4(CaptiveGmWork *w);
+
 /* Offsets of the key work-segment fields (for callers/tests). */
 #define CAPTIVE_GM_OFF_MISSION   0x3078u  /* mission param copy */
 #define CAPTIVE_GM_OFF_OUTMAP    0x5A68u  /* output 64x32 map (ptr at 0x3578) */

@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: pass 0x5D4 input-map expander, v1.1.154)
+
+- Transcribed GM.EXE pass 0x5D4 (`captive_gm_pass_5d4`): expands the 4x4 room grid
+  into the full 2048-word input map (work[0x38..0x1038]) with horizontal/vertical
+  wall words between grid cells — the base layout the 0xEE translate driver consumes.
+  Verified against the real GM.EXE (full-map byte-sum + non-zero count) for missions
+  1/2/3. All 71 tests pass.
+
 ## 2026-08-20 (GM.EXE native port: pass 0x526 region-connection + entry, v1.1.153)
 
 - Transcribed GM.EXE pass 0x526 (`captive_gm_pass_526`): computes the scaled
