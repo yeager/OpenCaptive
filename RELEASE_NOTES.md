@@ -1,5 +1,25 @@
 # OpenCaptive Release Notes
 
+## v1.1.179 (2026-08-20)
+
+### Fixed
+
+- **(Captive)** `gm_165b` mission-count LCG carry test: GM's `jb` after `add ax,0x29`
+  tests only the ADD carry, but the port also counted the preceding `mul`'s overflow, so
+  for larger mission params (e.g. planet 0x15) it halved the count one step too few/many.
+  Now matches GM exactly.  Affects passes 0x1617/0x164C/0x2284/0x2400.
+- **(Captive)** Transcribed the missing found branch of pass 0x1314 (only reached when
+  word[0x307C]==1, i.e. real in-game planets, not missions 1/2/3): it places the level
+  objective + a guardian (0xAB4/0xB00/0xFCB) at the longest dead-end corridor and mirrors
+  GM's scratch word[0x33A6].
+
+### Added
+
+- **(Captive)** Captured a real in-game GM param set from CAPPO (planet 0x15) and added
+  `test_planet21_through_1314`, verifying the generator is byte-exact through pass 0x1314
+  for the word[0x307C]==1 path.  (The remaining divergence for this planet is isolated to
+  the mission-scaled spawn engine in pass 0x1806 and is the next work item.)
+
 ## v1.1.178 (2026-08-20)
 
 ### Added

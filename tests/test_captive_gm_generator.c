@@ -857,6 +857,40 @@ static void test_full_pipeline_output(void) {
     }
 }
 
+static void test_planet21_through_1314(void) {
+    /* A real in-game param set captured from CAPPO (planet 0x15: ax=0x15, word[0x4F6]=0,
+     * word[0x4F8]=1, word[0x4FA]=1).  Unlike missions 1/2/3, word[0x307C]==1 here, so the
+     * orchestrator runs pass 0x1314 (dead-end objective + guardian).  Verified byte-exact
+     * against the real GM.EXE through pass 0x1314 (type/selector checksums + the chosen
+     * dead end); this locks in the gm_165b carry fix and the 0x1314 found branch. */
+    CaptiveGmWork ws;
+    captive_gm_init(&ws);
+    captive_gm_entry_setup(&ws, 0x15u, 0u, 1u, 1u);
+    captive_gm_seed(&ws);
+    captive_gm_pass_14c9(&ws); captive_gm_pass_45f(&ws);
+    captive_gm_pass_526(&ws); captive_gm_pass_5d4(&ws);
+    captive_gm_wset(&ws, 0x3070u, 1u);
+    { uint16_t rng = captive_gm_wget(&ws, 0x3074u);
+      captive_gm_pass_1cb5(&ws); captive_gm_wset(&ws, 0x3074u, rng); }
+    captive_gm_pass_1617(&ws); captive_gm_pass_d12(&ws);
+    captive_gm_pass_2589(&ws); captive_gm_pass_26be(&ws); captive_gm_pass_28b2(&ws);
+    captive_gm_pass_29f6(&ws); captive_gm_pass_28b2(&ws); captive_gm_pass_2888(&ws);
+    captive_gm_pass_164c(&ws); captive_gm_pass_2940(&ws);
+    assert(captive_gm_wget(&ws, 0x307Cu) == 1u);          /* this param set takes the 0x1314 path */
+    captive_gm_pass_1314(&ws);
+    int tnz = 0, snz = 0; uint32_t tck = 0, sck = 0;
+    for (int i = 0; i < 4096; ++i) {
+        uint8_t t = ws.b[0x1048 + i], s = ws.b[0x38 + i];
+        if (t) ++tnz; tck += t;
+        if (s) ++snz; sck += s;
+    }
+    assert(tnz == 1558 && tck == 0xB518u);
+    assert(snz == 2706 && sck == 0x42E12u);
+    assert(captive_gm_wget(&ws, 0x352Au) == 88u);         /* longest dead-end corridor */
+    assert(captive_gm_wget(&ws, 0x352Cu) == 0x0026u);
+    assert(captive_gm_wget(&ws, 0x352Eu) == 0x001Fu);
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_map_primitives();
@@ -884,6 +918,7 @@ int main(void) {
     test_pass_group_1460();
     test_generate_output();
     test_full_pipeline_output();
+    test_planet21_through_1314();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
 }

@@ -601,9 +601,10 @@ static uint16_t gm_165b(CaptiveGmWork *w, uint16_t bx) {
     bx += dx;                                          /* GM 0x1672 */
     uint16_t ax = captive_gm_wget(w, 0x3078u);
     for (;;) {                                         /* GM 0x167A */
-        uint32_t t = (uint32_t)ax * 0x05E5u + 0x0029u;
-        ax = (uint16_t)t;
-        if (t > 0xFFFFu) break;                        /* jb (carry) */
+        ax = (uint16_t)(ax * 0x05E5u);                 /* mul cx (only the low word is kept) */
+        uint32_t s = (uint32_t)ax + 0x0029u;           /* add ax,0x29 */
+        ax = (uint16_t)s;
+        if (s >> 16) break;                            /* jb: CF from the ADD only (not the mul) */
         if ((ax & 0x20u) == 0u) break;                 /* test al,0x20 / je */
         bx >>= 1;
     }
@@ -1466,10 +1467,12 @@ static int gm_13d2(CaptiveGmWork *w, uint8_t cl, uint8_t ch) {
  * standard missions (word[0x307C]==0) skip it, so it is not in the normal pass chain.
  * Walk the 0x3098 dead-end list; for each qualifying dead end (0x13D2), follow the
  * flow direction (0x2A59) counting corridor length to the top edge, tracking the
- * longest in word[0x352A] (best cell in 0x352C/0x352E).  The found branch (which
- * marks the corridor end and spawns the objective/guardians via the 0xAB4/0xB00/0xFCB
- * entity subsystem, ws:0x6B16 spawn database) is not yet transcribed.  The search
- * itself is faithful — gm_1bf5 is verified byte-for-byte against GM via gm_call.py. */
+ * longest in word[0x352A] (best cell in 0x352C/0x352E).  The found branch marks that
+ * corridor end and spawns the objective + guardian via 0xAB4/0xB00/0xFCB.  Verified
+ * byte-exact against the real GM.EXE for the word[0x307C]==1 case (planet 0x15). */
+static int gm_ab4(CaptiveGmWork *w, uint8_t cl, uint8_t ch, uint8_t *pdl);
+static int gm_b00(CaptiveGmWork *w, uint8_t al, uint16_t cx, uint16_t bp_rng);
+static uint16_t gm_fcb(CaptiveGmWork *w, uint16_t cx, uint16_t bx, uint16_t dx);
 void captive_gm_pass_1314(CaptiveGmWork *w) {
     captive_gm_wset(w, 0x352Au, 0u);
     for (int cx = 0x100; cx > 0; --cx) {
@@ -1480,22 +1483,38 @@ void captive_gm_pass_1314(CaptiveGmWork *w) {
         w->b[0x33A2u] = cl; w->b[0x33B6u] = ch;           /* save this dead end */
         gm_2a59(w, &cl, &ch);                             /* 0x1398 step */
         if (!gm_13d2(w, cl, ch)) continue;                /* 0x139E reject */
-        uint16_t len = 0;                                 /* word[0x33A6] */
+        captive_gm_wset(w, 0x33A6u, 0u);                  /* 0x13A0 */
         for (;;) {                                        /* 0x13A6 count to top edge */
             gm_2a59(w, &cl, &ch);
             if (ch == 0xFFu) break;                       /* 0x13A9 */
-            ++len;
-            if (len & 0x8000u) break;                     /* jns guard */
+            uint16_t n = (uint16_t)(captive_gm_wget(w, 0x33A6u) + 1u);
+            captive_gm_wset(w, 0x33A6u, n);               /* 0x13AE inc word[0x33A6] */
+            if (n & 0x8000u) break;                       /* jns guard */
         }
+        uint16_t len = captive_gm_wget(w, 0x33A6u);
         if (captive_gm_wget(w, 0x352Au) <= len) {         /* 0x13B9 keep the longest */
             captive_gm_wset(w, 0x352Au, len);
-            captive_gm_wset(w, 0x352Cu, w->b[0x33A2u]);
-            captive_gm_wset(w, 0x352Eu, w->b[0x33B6u]);
+            captive_gm_wset(w, 0x352Cu, captive_gm_wget(w, 0x33A2u));  /* WORD copy (0x13C5) */
+            captive_gm_wset(w, 0x352Eu, captive_gm_wget(w, 0x33B6u));
         }
     }
-    /* GM 0x1332: word[0x352A]==0 -> nothing found -> return (the standard case).
-     * The found branch (objective + guardian spawn) is a separate entity subsystem
-     * (0xAB4/0xB00/0xFCB, ws:0x6B16 spawn database) still to be transcribed. */
+    if (captive_gm_wget(w, 0x352Au) == 0u) return;        /* 0x1332: nothing found */
+    /* GM 0x133C: objective + guardian at the longest dead end. */
+    uint8_t cl = w->b[0x352Cu], ch = w->b[0x352Eu];
+    gm_2a59(w, &cl, &ch);                                 /* 0x1344 step */
+    uint8_t dl; gm_ab4(w, cl, ch, &dl);                   /* 0x1347 classify (only dl used) */
+    uint8_t code = (uint8_t)(4u + dl);                    /* 0x134A ax=4; add al,dl */
+    gm_b00(w, code, (uint16_t)(((uint16_t)ch << 8) | cl),
+           captive_gm_wget(w, 0x3074u));                  /* 0x134F bp=rng; 0x1353 place */
+    cl = w->b[0x352Cu]; ch = w->b[0x352Eu];               /* 0x1356 */
+    captive_gm_wset(w, 0x36u, 0u);                        /* 0x1364 */
+    w->b[0x3564u] |= 0x10u;                               /* 0x136A */
+    captive_gm_wset(w, 0x3566u, 0u);                      /* 0x136F */
+    gm_fcb(w, (uint16_t)(((uint16_t)ch << 8) | cl), 0x1Eu, 0u);  /* 0x1375 spawn guardian */
+    cl = w->b[0x352Cu]; ch = w->b[0x352Eu];               /* 0x1378 */
+    uint16_t bp = captive_gm_map_index(cl, ch);
+    w->b[(uint16_t)(GM_MAP_TYPE + bp)] |= 0x80u;          /* 0x1383 */
+    captive_gm_wset(w, (uint16_t)(GM_MAP_SEL + bp), 0xFFEAu);  /* 0x1387 */
 }
 
 /* ==== The creature/item spawn engine (0xFCB/0xFE2) + its placement pass 0xE12 ==== */
