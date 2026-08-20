@@ -1,5 +1,13 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (Captive: native dungeon rendering wired to the GM generator, v1.1.182)
+
+- Wired STATE_GAME for GAME_CAPTIVE to render the native first-person dungeon from a
+  GM.EXE-generated level (captive_view_window_build -> viewport_render_original_descriptors)
+  inside the authentic HUD. Added --captive-dungeon to enter it; verified headlessly with
+  --capture-frame (a real Captive dungeon HUD renders, distinct from the holomap). The
+  live Captive dungeon now uses the byte-exact real generator, not DOSBox or synthetic data.
+
 ## 2026-08-20 (GM.EXE port: byte-exact for a real high-mission param set, v1.1.180)
 
 - Fixed the gm_2675 ZF-vs-count bug in gm_1a3a (same class as the 0x9C3 fix): the

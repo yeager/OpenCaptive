@@ -1,5 +1,19 @@
 # OpenCaptive Release Notes
 
+## v1.1.182 (2026-08-20)
+
+### Added
+
+- **(Captive)** Native Captive dungeon rendering, driven by the byte-exact GM.EXE port.
+  STATE_GAME now draws a real first-person Captive dungeon for GAME_CAPTIVE (when a level
+  is present and no DOSBox dump is active): it builds the 19-cell view window from the
+  generated GameState and renders it through the verified PL5 panel compositor
+  (`viewport_render_original_descriptors`) inside the authentic HUD — no DOSBox, no
+  synthetic map.  New `--captive-dungeon` launch flag generates a level with
+  `game_state_new_captive_mission` and drops straight into the viewport; combined with
+  `--capture-frame` it renders the dungeon headlessly.  This closes the long-standing
+  "dungeon compositor pending" gap for Captive.
+
 ## v1.1.181 (2026-08-20)
 
 ### Added
