@@ -1,5 +1,23 @@
 # OpenCaptive Release Notes
 
+## v1.1.170 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0x1806 (`captive_gm_pass_1806`), the **main
+  creature/item distribution** — the largest generator pass (~500 instructions across
+  0x1840/0x1A3A/0x1226 and helpers).  For up to 0x1E0 random dead ends it finds a
+  corridor spot (0x1A3A), records the path cells, optionally places a door and searches
+  for a guard cell, then stamps the level markers and spawns creatures/items via the
+  0x1226 sorted-list inserter and the 0xFE2 spawn engine, writing full entity records.
+  Verified byte-identical to the real GM.EXE (cell-type + selector maps, entity buffers,
+  both RNG states) for missions 1/2/3 (`test_pass_1806`).
+
+### Fixed
+
+- **(Captive)** GM 0xFE2 spawn engine: the word[0x356A] scalar uses an 8-bit `ror al,3`
+  (not a 16-bit rotate) — exercised for the first time by 0x1806's creature spawns.
+
 ## v1.1.167 (2026-08-20)
 
 ### Added

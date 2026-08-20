@@ -1308,14 +1308,17 @@ void captive_gm_pass_28b2(CaptiveGmWork *w) {
 /* GM 0x2A59: move (cl,ch) one step along its flow direction (the aux-map high byte
  * set by 0x26BE): 4 = forward connection vector, 5 = back, else the cardinal step
  * from the 0x6AE4/0x6AEC tables. */
-static void gm_2a59(CaptiveGmWork *w, uint8_t *pcl, uint8_t *pch) {
+/* Returns aux_high<<1 for a cardinal step, or 0xFFFF for a forward/back relocation
+ * (GM 0x2A6B shl ax,1 vs 0x2A8F/0x2A99 or ax,0xFFFF). */
+static uint16_t gm_2a59(CaptiveGmWork *w, uint8_t *pcl, uint8_t *pch) {
     uint16_t bp = captive_gm_map_index(*pcl, *pch);
     uint8_t al = w->b[(uint16_t)(GM_MAP_AUX + bp + 1u)];
-    if (al == 4u) { uint8_t dh = captive_gm_grid_cell(w, *pcl, *pch); gm_h286e(w, pcl, pch, &dh); return; }
-    if (al == 5u) { uint8_t dh = captive_gm_grid_cell(w, *pcl, *pch); gm_2854(w, pcl, pch, &dh); return; }
+    if (al == 4u) { uint8_t dh = captive_gm_grid_cell(w, *pcl, *pch); gm_h286e(w, pcl, pch, &dh); return 0xFFFFu; }
+    if (al == 5u) { uint8_t dh = captive_gm_grid_cell(w, *pcl, *pch); gm_2854(w, pcl, pch, &dh); return 0xFFFFu; }
     uint16_t bx = (uint16_t)(al << 1);
     *pcl = (uint8_t)(*pcl + w->b[(uint16_t)(bx + 0x6AE4u)]);
     *pch = (uint8_t)(*pch + w->b[(uint16_t)(bx + 0x6AECu)]);
+    return bx;
 }
 
 /* ==== Pass 0x29F6: probabilistic dead-end pruning ====
@@ -1390,7 +1393,7 @@ static void gm_2974(CaptiveGmWork *w, uint8_t cl, uint8_t ch, uint8_t al) {
 
 /* GM 0x16D7: pick a random still-0x7F dead-end from the 0x3098 list; clears stale
  * (non-0x7F) entries as it probes.  Returns 1 (and *pcell) on success. */
-static int gm_16d7(CaptiveGmWork *w, uint16_t *pcell) {
+static int gm_16d7_off(CaptiveGmWork *w, uint16_t *pcell, uint16_t *poff) {
     uint16_t bx = (uint16_t)(captive_gm_rng_next(w) & 0x1FEu);   /* 0x16DD */
     int dl = 0;
     for (;;) {
@@ -1403,12 +1406,13 @@ static int gm_16d7(CaptiveGmWork *w, uint16_t *pcell) {
         }
         uint16_t bp = captive_gm_map_index((uint8_t)v, (uint8_t)(v >> 8));
         if (w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 0x7Fu) {      /* 0x1702 */
-            *pcell = v; return 1;
+            *pcell = v; if (poff) *poff = bx; return 1;
         }
         captive_gm_wset(w, (uint16_t)(0x3098u + bx), 0u);       /* 0x1708 clear stale */
         /* jmp 0x16E6: re-mask the same bx and re-probe */
     }
 }
+static int gm_16d7(CaptiveGmWork *w, uint16_t *pcell) { return gm_16d7_off(w, pcell, 0); }
 
 /* ==== Pass 0x2940: objective / special-item placement ====
  * Find the first of the 64 room records at 0x3298 whose shape flags have both a low
@@ -1568,7 +1572,8 @@ static uint16_t gm_fe2(CaptiveGmWork *w, uint16_t cx, uint16_t bx, uint16_t dx) 
             if (captive_gm_wget(w, 0x33DAu) != 0u) {
                 captive_gm_wset(w, 0x33DAu, (uint16_t)(captive_gm_wget(w, 0x33DAu) - 1u));
                 captive_gm_wset(w, 0x3568u, 0x62u);
-                uint8_t al = (uint8_t)gm_ror16((uint16_t)(captive_gm_wget(w, 0x33DAu) & 0xFFu), 3);
+                uint8_t ab = (uint8_t)(captive_gm_wget(w, 0x33DAu) & 0xFFu);  /* GM 0x10C1 ror al,3 (8-bit) */
+                uint8_t al = (uint8_t)((ab >> 3) | (ab << 5));
                 captive_gm_wset(w, 0x356Au, al);
             } else do_cc = 0;
         }
@@ -1765,6 +1770,223 @@ void captive_gm_pass_1736(CaptiveGmWork *w) {
     for (int limit = 0x3C; limit >= 0; --limit) {
         uint16_t axoff, cx;
         if (gm_170c(w, &axoff, &cx)) gm_1755(w, axoff, cx);
+    }
+}
+
+/* ==== Pass 0x1806: main creature/item distribution ==== */
+
+/* GM 0x1B75: count orthogonal neighbours that are empty selector cells of type 0x23. */
+static uint8_t gm_1b75(CaptiveGmWork *w, uint8_t cl, uint8_t ch) {
+    uint8_t dl = 0;
+#define GM_1B75_CHK(x, y) do { \
+    if (captive_gm_cell_check(w, GM_MAP_SEL, (x), (y)) == CAPTIVE_GM_CELL_EMPTY && \
+        w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index((x), (y)))] == 0x23u) ++dl; \
+    } while (0)
+    cl = (uint8_t)(cl - 1u); GM_1B75_CHK(cl, ch);
+    cl = (uint8_t)(cl + 2u); GM_1B75_CHK(cl, ch);
+    cl = (uint8_t)(cl - 1u); ch = (uint8_t)(ch - 1u); GM_1B75_CHK(cl, ch);
+    ch = (uint8_t)(ch + 2u); GM_1B75_CHK(cl, ch);
+#undef GM_1B75_CHK
+    return dl;
+}
+
+/* GM 0x1BA6: mission-scaled RNG lookup into 0x6DBC -> (*pax = al&3, *pdl = (al>>2)&3). */
+static void gm_1ba6(CaptiveGmWork *w, uint16_t *pax, uint8_t *pdl) {
+    uint16_t dx = captive_gm_wget(w, 0x3078u); if (dx > 0x1Fu) dx = 0x1Fu; ++dx;
+    uint16_t hi = (uint16_t)(((uint32_t)captive_gm_wget(w, 0x3074u) * dx) >> 16);
+    uint8_t al = w->b[(uint16_t)((hi & 0x1Fu) + 0x6DBCu)];
+    *pax = (uint16_t)(al & 3u);
+    *pdl = (uint8_t)((al >> 2) & 3u);
+}
+
+/* GM 0x1A0B: choose the item-type bit for the current group into word[0x3524]. */
+static void gm_1a0b(CaptiveGmWork *w) {
+    uint16_t bx = (uint16_t)(captive_gm_wget(w, 0x3520u) & 3u);
+    if (bx == 0u) w->b[0x3524u] = 0xFFu;
+    bx <<= 1;
+    uint16_t ax = captive_gm_wget(w, (uint16_t)(bx + 0x6DB4u));
+    uint16_t bx2 = captive_gm_wget(w, 0x3524u);
+    while ((ax & bx2) == 0u) bx2 = gm_ror16(bx2, 3);
+    captive_gm_wset(w, 0x3524u, (uint16_t)(bx2 & ax));
+}
+
+/* GM 0x1226: insert a creature type into the sorted spawn list at word[0x358C]. */
+static void gm_1226(CaptiveGmWork *w, uint16_t cx, uint8_t al, uint8_t dh, uint8_t dl) {
+    captive_gm_wset(w, 0x356Eu, 0u);
+    captive_gm_wset(w, 0x3516u, cx);
+    w->b[0x3518u] = al; w->b[0x3519u] = dh; w->b[0x351Au] = dl;
+    uint16_t bx = captive_gm_wget(w, 0x358Cu);
+    if (captive_gm_wget(w, (uint16_t)(bx + 2u)) <= 8u) return;
+    uint16_t ax = gm_1c57(w);
+    if (captive_gm_wget(w, 0x356Eu) != 0u) ax = 0u;
+    ax = (uint16_t)(gm_ror16(ax, 5) & 3u); ax |= 0x80u; w->b[0x351Bu] = (uint8_t)ax;
+    uint16_t si = (uint16_t)(bx + 4u);
+    cx = captive_gm_wget(w, 0x3516u);
+    for (;;) {
+        if (captive_gm_wget(w, si) == cx) {
+            uint16_t b2 = (uint16_t)(captive_gm_wget(w, 0x358Cu) + 0x800u);
+            do {
+                b2 = (uint16_t)(b2 - 4u);
+                captive_gm_wset(w, (uint16_t)(b2 + 4u), captive_gm_wget(w, b2));
+                captive_gm_wset(w, (uint16_t)(b2 + 6u), captive_gm_wget(w, (uint16_t)(b2 + 2u)));
+            } while (b2 > si);
+            bx = captive_gm_wget(w, 0x358Cu);
+            captive_gm_wset(w, (uint16_t)(si + 2u), (uint16_t)(captive_gm_wget(w, (uint16_t)(si + 2u)) + 4u));
+            captive_gm_wset(w, (uint16_t)(si + 4u), captive_gm_wget(w, 0x3518u));
+            captive_gm_wset(w, (uint16_t)(si + 6u), captive_gm_wget(w, 0x351Au));
+            captive_gm_wset(w, (uint16_t)(bx + 2u), (uint16_t)(captive_gm_wget(w, (uint16_t)(bx + 2u)) - 4u));
+            return;
+        }
+        uint16_t a = captive_gm_wget(w, (uint16_t)(si + 2u));
+        if (a & 0x8000u) {
+            captive_gm_wset(w, si, cx);
+            captive_gm_wset(w, (uint16_t)(si + 2u), 8u);
+            captive_gm_wset(w, (uint16_t)(si + 4u), captive_gm_wget(w, 0x3518u));
+            captive_gm_wset(w, (uint16_t)(si + 6u), captive_gm_wget(w, 0x351Au));
+            captive_gm_wset(w, (uint16_t)(si + 8u), 0x8882u);
+            captive_gm_wset(w, (uint16_t)(si + 0xAu), 0x8881u);
+            captive_gm_wset(w, (uint16_t)(bx + 2u), (uint16_t)(captive_gm_wget(w, (uint16_t)(bx + 2u)) - 8u));
+            return;
+        }
+        si = (uint16_t)(si + a);
+    }
+}
+
+/* GM 0x1A3A: find a corridor spot, record the path cells (byte[0x33A2..0x33CC]) and the
+ * group parameters; returns 1 on success (odl/odh receive the residual dl/dh for the
+ * follow-on spawn), 0 on failure. */
+static int gm_1a3a(CaptiveGmWork *w, uint8_t cl, uint8_t ch, uint8_t *odl, uint8_t *odh) {
+    w->b[0x33A2u] = cl; w->b[0x33B6u] = ch;
+    uint8_t dl = (uint8_t)(captive_gm_rng_next(w) & 0xFu);
+    for (int i = dl; i >= 0; --i) gm_2a59(w, &cl, &ch);
+    if (gm_2675(w, cl, ch) == 0u) return 0;
+    if (w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch))] != 7u) return 0;
+    uint8_t d2 = gm_1b75(w, cl, ch);
+    uint16_t bx;
+    if (d2 == 0u) {
+        bx = 7u; uint8_t am = gm_1bf5(w, cl, ch);
+        if (am & 4u) return 0;
+        w->b[0x3522u] = 6u;
+        if (am != 0x0Au) { w->b[0x3522u] = (uint8_t)(w->b[0x3522u] + 8u); if (am != 0x11u) bx = 6u; }
+    } else if (d2 == 1u) bx = 6u; else bx = 4u;
+    uint16_t ax0; uint8_t dl0; gm_1ba6(w, &ax0, &dl0);
+    uint16_t axm = (uint16_t)(ax0 - 1u);
+    if ((w->b[(uint16_t)(axm + 0x6DE8u)] & (uint8_t)bx) == 0u) return 0;
+    captive_gm_wset(w, 0x351Eu, axm);
+    captive_gm_wset(w, 0x3520u, (uint16_t)((axm & 0xFF00u) | dl0));
+    w->b[0x33A4u] = cl; w->b[0x33B8u] = ch;
+    dl = (uint8_t)(captive_gm_rng_next(w) & 7u);
+    for (;;) { if (gm_2a59(w, &cl, &ch) == 0xFFFFu) return 0; if ((int8_t)(--dl) < 0) break; }
+    uint8_t lastdh = captive_gm_grid_cell(w, cl, ch);
+    uint8_t cnt2675 = gm_2675(w, cl, ch);
+    if (cnt2675 == 0u) return 0;
+    w->b[0x33A6u] = cl; w->b[0x33BAu] = ch;
+    uint16_t axr = gm_2a59(w, &cl, &ch);
+    if (axr == 0xFFFFu) return 0;
+    uint16_t bxm = (uint16_t)((captive_gm_wget(w, 0x3074u) >> 8) & 3u);
+    { uint16_t axx = axr; if (bxm != 2u) axx = (uint16_t)((axx + bxm + bxm) & 3u); captive_gm_wset(w, 0x33CCu, axx); }
+    int bxn = (int)bxm, first = 1;
+    for (;;) {
+        if (!first) { w->b[0x33A6u] = cl; w->b[0x33BAu] = ch; gm_2a6d(w, &cl, &ch, captive_gm_wget(w, 0x33CCu)); }
+        first = 0;
+        if (cl > 0x3Fu || ch > 0x1Fu) return 0;
+        uint16_t sv = captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + captive_gm_map_index(cl, ch)));
+        if (sv & 0x8000u) return 0;
+        if (sv == 0u) break;
+        if (--bxn < 0) return 0;
+    }
+    w->b[0x33A8u] = cl; w->b[0x33BCu] = ch;
+    *odl = cnt2675; *odh = lastdh;
+    uint8_t rcl = w->b[0x33A6u], rch = w->b[0x33BAu];
+    uint8_t al = w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index(rcl, rch))];
+    if (gm_2468(w, rcl, rch)) return 1;
+    if (al == 6u || al == 0x37u || al == 4u || al == 5u || al == 0x35u ||
+        al == 0x36u || al == 9u || al == 0x0Eu || al == 0x7Fu) return 1;
+    return 0;
+}
+
+/* GM 0x1840: place one creature/item group at the spot found by 0x1A3A. */
+static void gm_1840(CaptiveGmWork *w, uint16_t axoff, uint8_t cl0, uint8_t ch0) {
+    captive_gm_wset(w, 0x339Cu, axoff);
+    uint8_t g_dl, g_dh;
+    if (!gm_1a3a(w, cl0, ch0, &g_dl, &g_dh)) return;
+    uint16_t ax = captive_gm_wget(w, 0x3074u); if (ax == 0u) ax = 0x4285u;
+    ax = gm_ror16(ax, 1); ax = (uint16_t)((ax << 8) | (ax >> 8));
+    captive_gm_wset(w, 0x3524u, ax);
+    gm_1a0b(w);
+    captive_gm_wset(w, 0x3530u, 0u);
+    uint16_t bx = (uint16_t)(captive_gm_wget(w,
+        (uint16_t)(GM_MAP_SEL + captive_gm_map_index(w->b[0x33A4u], w->b[0x33B8u]))) + 1u);
+    if (captive_gm_wget(w, 0x3520u) > 1u) {                 /* 0x1875 search for a door cell */
+        int found = 0; uint8_t dcl = 0, dch = 0;
+        for (int cnt = 0xA; cnt >= 0; --cnt) {
+            for (;;) {
+                uint16_t pos = captive_gm_rng_pos(w);
+                uint8_t pcl = (uint8_t)pos, pch = (uint8_t)(pos >> 8);
+                int16_t sv = (int16_t)captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + captive_gm_map_index(pcl, pch)));
+                if (gm_2468(w, pcl, pch)) {
+                    if (sv < 0 || sv <= 1) break;
+                    uint16_t axv = (uint16_t)(sv + 1);
+                    if (axv == bx) { captive_gm_wset(w, 0x3530u, 0xFFFFu); dcl = pcl; dch = pch; found = 1; break; }
+                    --axv; if (axv > bx) break;
+                    if (axv != bx) { dcl = pcl; dch = pch; found = 1; break; }
+                    break;
+                } else { if (sv < 1) continue; break; }
+            }
+            if (found) break;
+        }
+        if (!found) return;
+        uint16_t bp = captive_gm_map_index(dcl, dch);
+        w->b[(uint16_t)(GM_MAP_TYPE + bp)] = (w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 0x14u) ? 0x29u : 0x28u;
+        uint16_t creat = (captive_gm_wget(w, 0x3520u) == 2u) ? 0x5Cu : 0x5Du;
+        uint16_t dxv = captive_gm_wget(w, 0x3524u);
+        gm_1226(w, (uint16_t)(((uint16_t)dch << 8) | dcl), (uint8_t)creat, (uint8_t)(dxv >> 8), (uint8_t)dxv);
+    }
+    /* 0x18D3 common placement */
+    captive_gm_wset(w, (uint16_t)(0x3098u + captive_gm_wget(w, 0x339Cu)), 0u);
+    { uint16_t bp = captive_gm_map_index(w->b[0x33A2u], w->b[0x33B6u]);
+      w->b[(uint16_t)(GM_MAP_TYPE + bp)] = (w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 0x33u) ? 0x34u : 0x0Du; }
+    uint16_t startcx = (uint16_t)(((uint16_t)w->b[0x33B6u] << 8) | w->b[0x33A2u]);
+    uint16_t bpstart = captive_gm_map_index(w->b[0x33A2u], w->b[0x33B6u]);
+    { uint16_t dxv = (uint16_t)((captive_gm_wget(w, 0x3074u) & 0x3FFu) + 0x80u);
+      gm_1226(w, startcx, 0x19u, (uint8_t)(dxv >> 8), (uint8_t)dxv); }
+    captive_gm_wset(w, 0x36u, 0u); w->b[0x3564u] &= 0xEFu; captive_gm_wset(w, 0x3566u, 0u);
+    { uint16_t r = gm_fe2(w, startcx, 0u, (uint16_t)((g_dh << 8) | g_dl));
+      if (!(r & 0x8000u)) w->b[(uint16_t)(GM_MAP_TYPE + bpstart)] |= 0x80u; }
+    { uint16_t bp = captive_gm_map_index(w->b[0x33A4u], w->b[0x33B8u]);
+      if (captive_gm_wget(w, 0x3530u) != 0u) { w->b[(uint16_t)(GM_MAP_TYPE + bp)] = 0x32u; captive_gm_wset(w, 0x351Eu, 1u); }
+      else if (captive_gm_wget(w, 0x351Eu) == 0u) captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + bp), (uint16_t)((w->b[0x3522u] << 8) | 0x15u));
+      else if (captive_gm_wget(w, 0x351Eu) == 1u) w->b[(uint16_t)(GM_MAP_TYPE + bp)] = 0u;
+      else w->b[(uint16_t)(GM_MAP_TYPE + bp)] = 0x27u; }
+    { uint8_t c = w->b[0x33A6u], h = w->b[0x33BAu]; uint16_t bp = captive_gm_map_index(c, h);
+      if (gm_2468(w, c, h) || w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 0x7Fu) w->b[(uint16_t)(GM_MAP_TYPE + bp)] = 0x0Cu; }
+    { uint16_t bp = captive_gm_map_index(w->b[0x33A8u], w->b[0x33BCu]);
+      captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + bp), (uint16_t)((w->b[0x33CCu] << 8) | 0x22u));
+      captive_gm_wset(w, (uint16_t)(GM_MAP_SEL + bp), 0xFFC3u); }
+    { uint16_t rbx = (uint16_t)(captive_gm_wget(w, 0x358Au) + captive_gm_wget(w, 0x353Eu));
+      captive_gm_wset(w, rbx, (uint16_t)(((uint16_t)w->b[0x33BCu] << 8) | w->b[0x33A8u]));
+      captive_gm_wset(w, (uint16_t)(rbx + 2u), captive_gm_wget(w, 0x3524u));
+      captive_gm_wset(w, (uint16_t)(rbx + 4u), 0u);
+      captive_gm_wset(w, (uint16_t)(rbx + 6u), (uint16_t)(((uint16_t)w->b[0x33B8u] << 8) | w->b[0x33A4u]));
+      w->b[(uint16_t)(rbx + 8u)] = (uint8_t)captive_gm_wget(w, 0x3520u);
+      w->b[(uint16_t)(rbx + 8u)] |= (uint8_t)((w->b[0x351Eu] << 2) & 0x0Cu);
+      if (captive_gm_wget(w, 0x3074u) > 0x7000u) w->b[(uint16_t)(rbx + 8u)] |= 0x10u;
+      w->b[(uint16_t)(rbx + 9u)] = 0x20u;
+      captive_gm_wset(w, 0x353Eu, (uint16_t)(captive_gm_wget(w, 0x353Eu) + 0xAu));
+      captive_gm_wset(w, 0x33D6u, (uint16_t)(captive_gm_wget(w, 0x33D6u) + 1u));
+      captive_gm_wset(w, 0x3530u, 0u); }
+}
+
+void captive_gm_pass_1806(CaptiveGmWork *w) {
+    captive_gm_wset(w, 0x33D6u, 0u);
+    uint16_t bx = captive_gm_wget(w, 0x3078u); if (bx > 9u) bx = 9u;
+    bx = captive_gm_wget(w, (uint16_t)((bx << 1) + 0x6D9Eu));
+    captive_gm_wset(w, 0x3526u, bx);
+    for (int limit = 0x1E0; limit >= 0; --limit) {
+        uint16_t cx, off;
+        if (!gm_16d7_off(w, &cx, &off)) return;                 /* 0x182C no dead end left */
+        gm_1840(w, off, (uint8_t)cx, (uint8_t)(cx >> 8));
+        if (captive_gm_wget(w, 0x3526u) <= captive_gm_wget(w, 0x353Eu)) return;  /* 0x1836 */
     }
 }
 
