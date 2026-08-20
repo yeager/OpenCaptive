@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: ENTIRE pass chain byte-exact, v1.1.175)
+
+- Transcribed the final decoration group (0x2595[FFC4], 0x157E, 0x13E3 stairs pairing,
+  0x237F, 0x23B4, 0x1460) plus helpers (0x1513/0x1548 neighbour classifier).  **The
+  complete GM.EXE generation pass chain (0x3B1..0x45E) is now transcribed and verified
+  byte-identical to the real GM.EXE across the whole work segment for missions 1/2/3**
+  (`test_pass_group_1460`).
+- Fixed two control-flow readings: `jmp 0x683` inside helper 0x1548 is a shared `ret`
+  (returns from the helper, not the pass); pass 0x1460 is mission-0-only.
+
 ## 2026-08-20 (GM.EXE native port: post-A2A decoration/spawn group byte-exact, v1.1.174)
 
 - Transcribed the 10-pass decoration/spawn group (0x2595, 0x9C3, 0x967, 0xF61, 0x2284,

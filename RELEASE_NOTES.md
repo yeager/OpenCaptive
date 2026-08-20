@@ -1,5 +1,26 @@
 # OpenCaptive Release Notes
 
+## v1.1.175 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: the final decoration group (orchestrator
+  0x43A..0x452) — `captive_gm_pass_2595` (second call, 0xFFC4->0xFFF6),
+  `captive_gm_pass_157e` (type-0x2C markers via the 0x1513/0x1548 neighbour
+  classifier), `captive_gm_pass_13e3` (stairs pairing 0x2E/0x2F), `captive_gm_pass_237f`
+  (type-0x32 items), `captive_gm_pass_23b4` (type-0x30/0x31 items), and
+  `captive_gm_pass_1460` (mission-0-only fixed objective + spawn inserts).  **This
+  completes the entire GM.EXE generation pass chain (0x3B1..0x45E).**  The full chain is
+  now verified byte-identical to the real GM.EXE across the whole work segment for
+  missions 1/2/3 (`test_pass_group_1460`).
+
+### Fixed
+
+- **(Captive)** Two control-flow readings in the final group: the `jmp 0x683` targets
+  inside helper 0x1548 are a shared `ret` (return from the helper, not the pass), so
+  those neighbour types reject rather than abort; and pass 0x1460 runs its body only
+  when the mission param is 0 (it is a no-op for the standard missions).
+
 ## v1.1.174 (2026-08-20)
 
 ### Added
