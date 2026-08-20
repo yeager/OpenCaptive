@@ -4764,11 +4764,22 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-        /* Captive cannot advance from the landing transition on a wall-clock
-         * timer.  The original CAPPO runtime owns the landing result and the
-         * post-landing dungeon state; a still image captured from that
-         * runtime is evidence, not an event source.  Keep STATE_LANDING until
-         * a real DOSBox-X memory/state handoff proves that CAPPO landed. */
+        /* Captive landing: the byte-exact GM.EXE port owns the post-landing
+         * dungeon, so the landing resolves natively (no DOSBox handoff, which
+         * the project forbids at runtime).  Generate the level and enter the
+         * first-person view. */
+        if (gs.mode == STATE_LANDING && gs.game_type == GAME_CAPTIVE) {
+            gs.landing_tick++;
+            if (gs.landing_tick >= LANDING_TICKS) {
+                gs.landing_tick = 0;
+                if (game_state_new_captive_mission(&gs, gs.mission)) {
+                    combat_init(&creatures);
+                    puzzle_init(&puzzles);
+                    automap_init(&automap_state);
+                    music_play_for_game(&gs, MUSIC_BASE);
+                }
+            }
+        }
 
         switch (gs.mode) {
             case STATE_MENU:
