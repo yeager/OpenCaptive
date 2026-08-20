@@ -160,6 +160,12 @@ CaptiveGmCellStatus captive_gm_cell_check(const CaptiveGmWork *w, uint16_t map_o
 void captive_gm_pass_1cb5(CaptiveGmWork *w);
 
 /*
+ * Pass 0x1617: draws room outlines (0x2055) into the selector map for missions
+ * with bit 1 set.  Run after pass 0x1CB5.
+ */
+void captive_gm_pass_1617(CaptiveGmWork *w);
+
+/*
  * The final translate driver (GM 0xEE): converts the cell-type map at work[0x1048]
  * — gated by the selector map at work[0x38] and the aux map at work[0x2058] — into
  * the 64x32 output map at work[0x5A68] (and the second map at 0x6288), using

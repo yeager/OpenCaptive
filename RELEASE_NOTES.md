@@ -1,5 +1,17 @@
 # OpenCaptive Release Notes
 
+## v1.1.159 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0x1617/0x2055 (`captive_gm_pass_1617`), the
+  room-outline drawer, transcribed and verified byte-for-byte against the real GM.EXE.
+
+### Fixed
+
+- **(Captive)** GM.EXE native port: passes 0x1CB5 and 0x1617 now preserve the RNG state
+  (word[0x3074]) across the pass, matching GM's push/pop wrapping.
+
 ## v1.1.158 (2026-08-20)
 
 ### Changed

@@ -1,5 +1,18 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: pass 0x1617/0x2055 room-outline drawer, v1.1.159)
+
+- Transcribed GM.EXE pass 0x1617 -> 0x2055 (`captive_gm_pass_1617`): for missions with
+  bit 1 set, it draws room outlines (validated by 0x2681 neighbour-counts, sized from
+  the RNG value) into the selector map as 0xFFFD.  Includes 0x165B (draw-count scaler),
+  the 0x2272/0x226E steppers, and 0x2681.  Verified byte-for-byte against the real
+  GM.EXE (map38 identical) for missions 1/2/3.
+- Key fix: GM's orchestrator wraps 0x1CB5 (and 0x1617 wraps its own loop) with
+  push/pop word[0x3074] — both passes PRESERVE the RNG state (their internal RNG use is
+  discarded).  captive_gm_pass_1cb5 and captive_gm_pass_1617 now save/restore it, which
+  fixed the downstream RNG sequence (0x1617 had been running 2 draws ahead). All 71
+  tests pass.
+
 ## 2026-08-20 (GM.EXE native port: verify 0x1CB5 gate-on map writes, v1.1.158)
 
 - Strengthened the 0x1CB5 verification: besides the anchor array, the test now checks

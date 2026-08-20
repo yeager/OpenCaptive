@@ -341,6 +341,30 @@ static void test_pass_1cb5(void) {
     }
 }
 
+static void test_pass_1617(void) {
+    /* map38 checksums after 0x1617 captured from the real GM.EXE (oracle 0x3D7). */
+    struct { uint16_t m; int nz; uint32_t ck; } cases[] = {
+        {1u, 172, 0xAB54u},    /* mission 1: 0x1617 draws nothing (unchanged) */
+        {2u, 840, 0x33CD3u},
+        {3u, 1108, 0x448B6u},
+    };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, cases[c].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws);
+        captive_gm_pass_45f(&ws);
+        captive_gm_pass_526(&ws);
+        captive_gm_pass_5d4(&ws);
+        captive_gm_pass_1cb5(&ws);
+        captive_gm_pass_1617(&ws);
+        int nz = 0; uint32_t ck = 0;
+        for (int i = 0; i < 4096; ++i) { uint8_t b = ws.b[0x38 + i]; if (b) ++nz; ck += b; }
+        assert(nz == cases[c].nz && ck == cases[c].ck);
+    }
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_map_primitives();
@@ -353,6 +377,7 @@ int main(void) {
     test_pass_526();
     test_pass_5d4();
     test_pass_1cb5();
+    test_pass_1617();
     test_generate_output();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
