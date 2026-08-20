@@ -222,6 +222,15 @@ void captive_gm_generate_output(CaptiveGmWork *w);
  */
 void captive_gm_run(CaptiveGmWork *w, uint16_t mission);
 
+/*
+ * As captive_gm_run, but with the full four-word mission-param set (as CAPPO's DOS EXEC
+ * block passes them to GM.EXE: ax=planet at 0x04F4, then the words at 0x04F6/0x04F8/
+ * 0x04FA).  captive_gm_run is captive_gm_generate(w, mission, 0, 0, 0).  Faithfully
+ * follows GM.EXE's orchestrator conditionals so it is correct for any param set.
+ */
+void captive_gm_generate(CaptiveGmWork *w, uint16_t ax, uint16_t bx,
+                         uint16_t cx, uint16_t dx);
+
 /* Offsets of the key work-segment fields (for callers/tests). */
 #define CAPTIVE_GM_OFF_MISSION   0x3078u  /* mission param copy */
 #define CAPTIVE_GM_OFF_OUTMAP    0x5A68u  /* output 64x32 map (ptr at 0x3578) */

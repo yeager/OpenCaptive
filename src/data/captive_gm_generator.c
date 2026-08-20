@@ -2749,16 +2749,30 @@ void captive_gm_run(CaptiveGmWork *w, uint16_t mission) {
      * the 0xEE translate driver.  Deterministic per mission param; on return the output
      * level map lives at work[0x5A68] (2048 bytes) and the second map at work[0x6288].
      * Verified byte-identical to the real GM.EXE (test_full_pipeline_output). */
+    captive_gm_generate(w, mission, 0u, 0u, 0u);
+}
+
+void captive_gm_generate(CaptiveGmWork *w, uint16_t ax, uint16_t bx,
+                         uint16_t cx, uint16_t dx) {
+    /* Faithful transcription of GM.EXE's generation orchestrator (0x3B1..0x45E),
+     * including its conditional branches, so it is correct for any mission-param set,
+     * not just the (bx=cx=dx=0) case the oracle tests exercise. */
     captive_gm_init(w);
-    captive_gm_entry_setup(w, mission, 0u, 0u, 0u);
+    captive_gm_entry_setup(w, ax, bx, cx, dx);
     captive_gm_seed(w);
     captive_gm_pass_14c9(w); captive_gm_pass_45f(w);
     captive_gm_pass_526(w); captive_gm_pass_5d4(w);
-    captive_gm_wset(w, 0x3070u, 1u);
-    captive_gm_pass_1cb5(w); captive_gm_pass_1617(w); captive_gm_pass_d12(w);
+    captive_gm_wset(w, 0x3070u, 1u);                                   /* 0x3BD */
+    { uint16_t rng = captive_gm_wget(w, 0x3074u);                      /* 0x3C9 push */
+      captive_gm_pass_1cb5(w);
+      captive_gm_wset(w, 0x3074u, rng); }                             /* 0x3D0 pop */
+    captive_gm_pass_1617(w); captive_gm_pass_d12(w);
     captive_gm_pass_2589(w); captive_gm_pass_26be(w); captive_gm_pass_28b2(w);
     captive_gm_pass_29f6(w); captive_gm_pass_28b2(w); captive_gm_pass_2888(w);
-    captive_gm_pass_164c(w); captive_gm_pass_2940(w); captive_gm_pass_e12(w);
+    captive_gm_pass_164c(w); captive_gm_pass_2940(w);
+    if (captive_gm_wget(w, 0x33DCu) & 1u) return;                      /* 0x3F2 early ret */
+    if (captive_gm_wget(w, 0x307Cu) == 1u) captive_gm_pass_1314(w);    /* 0x3FB conditional */
+    captive_gm_pass_e12(w);
     captive_gm_pass_1736(w); captive_gm_pass_1806(w); captive_gm_pass_2a9d(w);
     captive_gm_pass_2abc(w); captive_gm_pass_a2a(w);
     captive_gm_pass_2595(w, 0xFFC3u, 0x0000u); captive_gm_pass_9c3(w);

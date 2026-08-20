@@ -1,5 +1,18 @@
 # OpenCaptive Release Notes
 
+## v1.1.178 (2026-08-20)
+
+### Added
+
+- **(Captive)** `captive_gm_generate(w, ax, bx, cx, dx)` — the generator with the full
+  four-word mission-param set CAPPO passes to GM.EXE (planet + the three level words),
+  a faithful transcription of GM.EXE's orchestrator INCLUDING its conditional branches
+  (the `word[0x307C]==1` -> 0x1314 pass, the `word[0x33DC]&1` early return, and the RNG
+  push/pop around 0x1CB5).  `captive_gm_run(w, mission)` is now `captive_gm_generate(w,
+  mission, 0, 0, 0)`.  This makes the native generator correct for any param set, not
+  just the (bx=cx=dx=0) case the oracle tests exercise, in preparation for feeding it the
+  real per-level params captured from CAPPO.  Missions 1/2/3 remain byte-exact.
+
 ## v1.1.177 (2026-08-20)
 
 ### Added
