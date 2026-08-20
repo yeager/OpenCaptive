@@ -1,5 +1,25 @@
 # OpenCaptive Release Notes
 
+## v1.1.160 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0xD12 (`captive_gm_pass_d12`), the full
+  drunkard's-walk room/corridor placement machine, transcribed and verified byte-exact
+  against the real GM.EXE.  After 0xD12 the cell-type map (0x1048), selector map (0x38),
+  and aux map (0x2058) are byte-identical to GM for missions 1/2/3, and both RNG states
+  match (map1048 m1 550/0x42D6, m2 280/0x17FE, m3 191/0x10DE — `test_pass_d12`).
+- **(Captive)** Baked GM constant table at ws:0x6D5E (the 2055 room skip-pattern table).
+
+### Fixed
+
+- **(Captive)** GM 0x2055 mode-0 tail: reload the cursor from word[0x6DE4] (last placed
+  cell) and step it with the draw-loop's leftover bp=0xFFFF before 0x25B5.
+- **(Captive)** GM 0x2055 draw scan: decrement word[0x33CE] per row so the final room
+  row carves every cell (skip pattern disabled), matching GM.
+- **(Captive)** GM carve (0x1FC5): run 0x25B5's junction relocation on the *stepped*
+  cursor, not the pre-step cursor.
+
 ## v1.1.159 (2026-08-20)
 
 ### Added

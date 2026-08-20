@@ -99,10 +99,27 @@ and must still be transcribed in order because the pipeline is stateful.
 5. Wire the output map -> `captive_dos_map_to_level` -> view_window/compositor,
    resolving the display-map cell semantics (wall test on GM output codes).
 
-## 0xD12 — the core placement machine (reverse-engineered 2026-08-20)
+## 0xD12 — the core placement machine (LANDED, byte-exact 2026-08-20)
 
 The largest generator subsystem: a drunkard's-walk room/corridor placer.  Fully
-disassembled; transcription pending (verified sub-routine by sub-routine).
+transcribed as `captive_gm_pass_d12` and verified byte-for-byte against the real
+GM.EXE — after 0xD12 the cell-type map (0x1048), selector map (0x38), and aux map
+(0x2058) are byte-identical to GM for missions 1/2/3, and both RNG states match
+(map1048 m1 550/0x42D6, m2 280/0x17FE, m3 191/0x10DE; `test_pass_d12`).
+
+Verification method that closed the last mile: an instruction-level diff harness
+(`gm_call.py` for isolated sub-routines; a Unicorn full-run hook tagging every
+word[0x3074] draw by call-site and every 0x1048 write by cell) pinned each divergence
+to a single routine.  Bugs found and fixed: carve's 0x25B5 must relocate the *stepped*
+cursor; the 0x2055 mode-0 tail must reload word[0x6DE4] and step with the leftover
+bp=0xFFFF; the 0x2055 draw scan must decrement word[0x33CE] per row; and the ws:0x6D5E
+skip-pattern table had to be baked (it was reading zeros).
+
+Note: 43 pre-0xD12 scratch bytes (word[0x3070], ws:0x6AB2..0x6AFF) are set by an earlier
+pass and neither read nor written by 0xD12, so they do not affect its output; resolve
+them when transcribing the passes after 0xD12.
+
+Historical structure notes (offsets in NOTE/CS=0 space, +0x600 vs the CS=BASE disasm):
 
 Structure (GM_UNP.EXE offsets):
 - `0xD12` driver: sets word[0x3510]=0 (mode 0), reads the entry cell (word[0x20]/

@@ -1,5 +1,22 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: pass 0xD12 placement machine byte-exact, v1.1.160)
+
+- Completed and verified the full GM.EXE 0xD12 placement machine (`captive_gm_pass_d12`)
+  byte-for-byte against the real GM code: the cell-type map (0x1048), selector map
+  (0x38), and aux map (0x2058) are byte-identical to GM for missions 1/2/3 after 0xD12,
+  and both RNG states (word[0x3074]/word[0x355C]) match.  map1048: m1 550/0x42D6,
+  m2 280/0x17FE, m3 191/0x10DE (`test_pass_d12`).
+- Three transcription bugs found by an instruction-level RNG-draw + type-map-write diff
+  against the Unicorn oracle and fixed: (1) carve's 0x25B5 junction relocation must run
+  on the stepped cursor; (2) the 0x2055 mode-0 tail must reload word[0x6DE4] and step
+  with the leftover bp=0xFFFF; (3) the 0x2055 draw scan must decrement word[0x33CE] per
+  row so the last row carves every cell.  Also baked the missing ws:0x6D5E skip-pattern
+  table (mine had read zeros, so no room cells were ever skipped).
+- Remaining: 43 pre-0xD12 scratch bytes (word[0x3070], ws:0x6AB2..0x6AFF) are set by an
+  earlier pass and never read/written by 0xD12 (so 0xD12's output is unaffected); resolve
+  when transcribing the passes after 0xD12.
+
 ## 2026-08-20 (GM.EXE native port: pass 0x1617/0x2055 room-outline drawer, v1.1.159)
 
 - Transcribed GM.EXE pass 0x1617 -> 0x2055 (`captive_gm_pass_1617`): for missions with

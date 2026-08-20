@@ -166,6 +166,12 @@ void captive_gm_pass_1cb5(CaptiveGmWork *w);
 void captive_gm_pass_1617(CaptiveGmWork *w);
 
 /*
+ * Pass 0xD12: the drunkard's-walk room/corridor placement machine (writes the
+ * cell-type map).  Run after pass 0x1617.
+ */
+void captive_gm_pass_d12(CaptiveGmWork *w);
+
+/*
  * The final translate driver (GM 0xEE): converts the cell-type map at work[0x1048]
  * — gated by the selector map at work[0x38] and the aux map at work[0x2058] — into
  * the 64x32 output map at work[0x5A68] (and the second map at 0x6288), using
