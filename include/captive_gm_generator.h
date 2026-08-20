@@ -170,6 +170,7 @@ void captive_gm_pass_1617(CaptiveGmWork *w);
  * cell-type map).  Run after pass 0x1617.
  */
 void captive_gm_pass_d12(CaptiveGmWork *w);
+void captive_gm_pass_2589(CaptiveGmWork *w);
 
 /*
  * The final translate driver (GM 0xEE): converts the cell-type map at work[0x1048]

@@ -393,6 +393,34 @@ static void test_pass_d12(void) {
     }
 }
 
+static void test_pass_2589(void) {
+    /* selector-map (0x38) checksums after 0xD12 -> 0x2589 (clears the 0xFFFD room
+     * outlines 0x1617 wrote); verified byte-identical to the real GM.EXE. */
+    struct { uint16_t m; int nz; uint32_t ck; } cases[] = {
+        {1u, 1063, 0x1CE3Fu},
+        {2u, 1280, 0x25745u},
+        {3u, 1254, 0x20B4Fu},
+    };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, cases[c].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws);
+        captive_gm_pass_45f(&ws);
+        captive_gm_pass_526(&ws);
+        captive_gm_pass_5d4(&ws);
+        captive_gm_wset(&ws, 0x3070u, 1u);          /* orchestrator step (GM 0x3BD) */
+        captive_gm_pass_1cb5(&ws);
+        captive_gm_pass_1617(&ws);
+        captive_gm_pass_d12(&ws);
+        captive_gm_pass_2589(&ws);
+        int nz = 0; uint32_t ck = 0;
+        for (int i = 0; i < 4096; ++i) { uint8_t b = ws.b[0x38 + i]; if (b) ++nz; ck += b; }
+        assert(nz == cases[c].nz && ck == cases[c].ck);
+    }
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_map_primitives();
@@ -407,6 +435,7 @@ int main(void) {
     test_pass_1cb5();
     test_pass_1617();
     test_pass_d12();
+    test_pass_2589();
     test_generate_output();
     printf("captive_gm_generator: all tests passed\n");
     return 0;

@@ -1,5 +1,16 @@
 # OpenCaptive Release Notes
 
+## v1.1.161 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0x2589 (`captive_gm_pass_2589`), which clears
+  the 0xFFFD room-outline markers 0x1617 wrote from the selector map.  Verified
+  byte-identical to the real GM.EXE for missions 1/2/3 (selector nz/ck 1063/0x1CE3F,
+  1280/0x25745, 1254/0x20B4F — `test_pass_2589`).  Also identified the orchestrator's
+  word[0x3070]=1 step (GM 0x3BD) and the full post-0xD12 pass sequence (0x2589, 0x26BE,
+  0x28B2, 0x29F6, 0x28B2, 0x2888, 0x164C, 0x2940, ...).
+
 ## v1.1.160 (2026-08-20)
 
 ### Added

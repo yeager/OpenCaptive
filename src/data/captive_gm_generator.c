@@ -933,6 +933,15 @@ static void gm_2590(CaptiveGmWork *w) {
     }
 }
 
+/* GM 0x2589: clear the 0xFFFD room-outline markers (written by 0x1617 mode 1) in the
+ * selector map back to 0.  Shares GM's 0x2595 clear loop with 0x2590 (di=0x38). */
+void captive_gm_pass_2589(CaptiveGmWork *w) {
+    for (int i = 0; i < 0x800; ++i) {
+        uint16_t off = (uint16_t)(GM_MAP_SEL + i * 2);
+        if (captive_gm_wget(w, off) == 0xFFFDu) captive_gm_wset(w, off, 0u);
+    }
+}
+
 /* GM 0x250D: place up to 0x31 satellite feature cells around the current cursor via
  * the 0x1F00 walker. */
 static void gm_250d(CaptiveGmWork *w, uint8_t *pcl, uint8_t *pch, uint8_t *pdh) {
