@@ -1068,6 +1068,110 @@ e05:
     }
 }
 
+/* ==== Pass 0x26BE: per-cell wall / flow-direction flag computation ====
+ * For every cell with a valid selector, encode into the high byte of the aux map
+ * (0x2058) the direction (0..5) toward the neighbouring cell with the smallest
+ * selector value (the "downhill" flow used by the renderer), and fill still-empty
+ * cell-type cells with 7.  Then stamp the entry cell and process the 5 door-record
+ * lists at 0x3462 into door codes (0x1A/0x1B). */
+
+#define GM_MAP_AUX 0x2058u
+
+/* GM 0x280C: if (cl,ch) is an in-bounds valid selector cell whose value <= *bx,
+ * lower the running minimum *bx to it and report a hit. */
+static int gm_280c(CaptiveGmWork *w, uint8_t cl, uint8_t ch, uint16_t *bx) {
+    if (cl >= 0x40u || ch >= 0x20u) return 0;
+    uint16_t bp = captive_gm_map_index(cl, ch);
+    uint16_t ax = captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + bp));
+    if (ax == 0u || ax == 0xFFFFu) return 0;
+    if (ax > *bx) return 0;
+    *bx = ax;
+    return 1;
+}
+
+/* GM 0x27BB: step forward by the connection vector; hit -> dir 4. */
+static void gm_27bb(CaptiveGmWork *w, uint8_t cl, uint8_t ch, uint8_t *dl, uint16_t *bx) {
+    uint8_t dh = captive_gm_grid_cell(w, cl, ch);        /* 0x2831 */
+    gm_h286e(w, &cl, &ch, &dh);                          /* 0x286E */
+    if (gm_280c(w, cl, ch, bx)) *dl = 4u;
+}
+
+/* GM 0x27CE: step back by the connection vector; hit -> dir 5. */
+static void gm_27ce(CaptiveGmWork *w, uint8_t cl, uint8_t ch, uint8_t *dl, uint16_t *bx) {
+    uint8_t dh = captive_gm_grid_cell(w, cl, ch);        /* 0x2831 */
+    gm_2854(w, &cl, &ch, &dh);                           /* 0x2854 */
+    if (gm_280c(w, cl, ch, bx)) *dl = 5u;
+}
+
+/* GM 0x27E1: check the 4 orthogonal neighbours (N,S,E,W); the last one that lowers
+ * the running minimum sets the flow direction (N=0, S=2, E=3, W=1). */
+static void gm_27e1(CaptiveGmWork *w, uint8_t cl, uint8_t ch, uint8_t *dl, uint16_t *bx) {
+    if (gm_280c(w, cl, (uint8_t)(ch - 1u), bx)) *dl = 0u;
+    if (gm_280c(w, cl, (uint8_t)(ch + 1u), bx)) *dl = 2u;
+    if (gm_280c(w, (uint8_t)(cl + 1u), ch, bx)) *dl = 3u;
+    if (gm_280c(w, (uint8_t)(cl - 1u), ch, bx)) *dl = 1u;
+}
+
+/* GM 0x2774: process one 5-entry door-record list (each entry a packed cell or a
+ * negative sentinel), stamping door codes (0x1A/0x1B) and aux flags. */
+static void gm_2774(CaptiveGmWork *w, uint16_t bx) {
+    uint8_t dl = 4u, dh = 0x1Au;
+    for (int i = 4; i >= 0; --i) {
+        uint16_t v = captive_gm_wget(w, bx);
+        bx = (uint16_t)(bx + 2u);
+        if (v & 0x8000u) continue;                       /* 0x2781 js: skip */
+        uint8_t cl = (uint8_t)v, ch = (uint8_t)(v >> 8);
+        uint16_t bp = captive_gm_map_index(cl, ch);
+        if (w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 0x1Du) {           /* 0x2789 */
+            uint8_t al = 3u;
+            if (cl != 0u &&
+                captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + bp - 2u)) != 0xFFFFu)
+                al = 1u;
+            w->b[(uint16_t)(GM_MAP_AUX + bp + 1u)] = al;
+            dl = 5u; dh = 0x1Bu;
+        } else {
+            w->b[(uint16_t)(GM_MAP_AUX + bp + 1u)] = dl;
+            w->b[(uint16_t)(GM_MAP_TYPE + bp)] = dh;
+            w->b[(uint16_t)(GM_MAP_TYPE + bp + 1u)] = 0u;
+        }
+    }
+}
+
+void captive_gm_pass_26be(CaptiveGmWork *w) {
+    for (int ch = 0; ch < 0x20; ++ch)
+        for (int cl = 0; cl < 0x40; ++cl) {
+            uint16_t bp = captive_gm_map_index((uint8_t)cl, (uint8_t)ch);
+            uint16_t sel = captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + bp));
+            if (sel == 0u || sel == 0xFFFFu) continue;   /* 0x26D0/0x26D5 */
+            uint16_t bx = 0x4000u;
+            uint8_t dl = 0xFEu;
+            uint8_t al = w->b[(uint16_t)(GM_MAP_TYPE + bp)];
+            int bb = 0, ce = 0, e1 = 0;
+            if (al == 0x1Cu)                     { bb = 1; ce = 1; }
+            else if (al == 0x37u || al == 6u)    { bb = 1; ce = 1; e1 = 1; }
+            else if (al == 0x1Au)                { bb = 1; }
+            else if (al == 0x35u || al == 4u)    { bb = 1; e1 = 1; }
+            else if (al == 0x1Bu)                { ce = 1; }
+            else if (al == 0x36u || al == 5u)    { ce = 1; e1 = 1; }
+            else                                 { e1 = 1; }
+            if (bb) gm_27bb(w, (uint8_t)cl, (uint8_t)ch, &dl, &bx);
+            if (ce) gm_27ce(w, (uint8_t)cl, (uint8_t)ch, &dl, &bx);
+            if (e1) gm_27e1(w, (uint8_t)cl, (uint8_t)ch, &dl, &bx);
+            w->b[(uint16_t)(GM_MAP_AUX + bp + 1u)] = dl;              /* 0x272B */
+            if (w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 0u)            /* 0x2730 */
+                w->b[(uint16_t)(GM_MAP_TYPE + bp)] = 7u;
+        }
+    /* Entry cell + the 5 door-record lists (GM 0x274B). */
+    {
+        uint8_t cl = w->b[0x0020u];
+        uint16_t bp = captive_gm_map_index(cl, 0u);
+        w->b[(uint16_t)(GM_MAP_TYPE + bp + 1u)] = 0x7Eu;            /* 0x2754 */
+        captive_gm_wset(w, (uint16_t)(GM_MAP_AUX + bp), 0u);        /* 0x2759 */
+    }
+    for (uint16_t rec = 0x3462u; rec != (uint16_t)(0x3462u + 5u * 0x0Au); rec += 0x0Au)
+        gm_2774(w, rec);
+}
+
 void captive_gm_generate_output(CaptiveGmWork *w) {
     /* GM 0xEE: the final translate driver.  For each of the 2048 cells it reads the
      * cell type at word[0x1048+2k], the selector at word[0x38+2k], and the aux at

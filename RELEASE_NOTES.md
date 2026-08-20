@@ -1,5 +1,15 @@
 # OpenCaptive Release Notes
 
+## v1.1.162 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0x26BE (`captive_gm_pass_26be`), the per-cell
+  wall / flow-direction flag pass — encodes into the aux map (0x2058) the direction to
+  each cell's lowest-selector neighbour, fills empty cell-type cells with 7, and stamps
+  the entry cell + the 5 door-record lists (door codes 0x1A/0x1B).  Verified
+  byte-identical to the real GM.EXE (type + aux) for missions 1/2/3 (`test_pass_26be`).
+
 ## v1.1.161 (2026-08-20)
 
 ### Added
