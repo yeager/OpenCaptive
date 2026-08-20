@@ -1,5 +1,29 @@
 # OpenCaptive Release Notes
 
+## v1.1.174 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: the post-A2A decoration/spawn group (orchestrator
+  0x417..0x43A) — ten passes that scatter items, floor decorations, chests and wall
+  creatures across the finished layout:
+  - `captive_gm_pass_2595` — selector-map word replace (clears the 0xFFC3 nest markers).
+  - `captive_gm_pass_9c3` — type-0x16 items at junctions (0x2675 centre-valid gate).
+  - `captive_gm_pass_967` — type-0x1E markers (0x1BF5 mask scan).
+  - `captive_gm_pass_f61` — wall creatures/items via the 0xFE2 spawn engine.
+  - `captive_gm_pass_2284` / `0x2400` — floor items (types 0x24/0x2A and 0x25/0x2B).
+  - `captive_gm_pass_22ba` / `0x22eb` / `0x2310` — chest placement (0x2346 -> 0x122C).
+  - `captive_gm_pass_242e` — type-0x26 items.
+  Verified byte-identical to the real GM.EXE across the whole work segment for missions
+  1/2/3 (`test_pass_group_242e`).
+
+### Fixed
+
+- **(Captive)** GM 0x2675 gate in pass 0x9C3: the pass branches on 0x2675's ZF (set iff
+  the centre cell's selector is VALID), not on the neighbour count it returns.  A valid
+  cell with zero non-valid neighbours (count 0) is now correctly accepted instead of
+  skipped, fixing one misplaced item on mission 3.
+
 ## v1.1.173 (2026-08-20)
 
 ### Added

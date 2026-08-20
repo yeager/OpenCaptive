@@ -729,6 +729,47 @@ static void test_pass_a2a(void) {
     }
 }
 
+static void test_pass_group_242e(void) {
+    /* type/selector/entity checksums after the post-A2A decoration/spawn group
+     * (0x2595 -> 0x9C3 -> 0x967 -> 0xF61 -> 0x2284 -> 0x22BA -> 0x22EB -> 0x2310 ->
+     * 0x2400 -> 0x242E); verified byte-identical to the real GM.EXE across the whole
+     * work segment for missions 1/2/3. */
+    struct { uint16_t m; int tnz; uint32_t tck; int snz; uint32_t sck; uint32_t eck; } cases[] = {
+        {1u, 768, 0x6F40u, 1001, 0x1C87Bu, 0x2EF72u},
+        {2u, 649, 0x5A70u, 1204, 0x24CC1u, 0x34683u},
+        {3u, 593, 0x511Du, 1194, 0x2218Du, 0x331A9u},
+    };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, cases[c].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws); captive_gm_pass_45f(&ws);
+        captive_gm_pass_526(&ws); captive_gm_pass_5d4(&ws);
+        captive_gm_wset(&ws, 0x3070u, 1u);
+        captive_gm_pass_1cb5(&ws); captive_gm_pass_1617(&ws); captive_gm_pass_d12(&ws);
+        captive_gm_pass_2589(&ws); captive_gm_pass_26be(&ws); captive_gm_pass_28b2(&ws);
+        captive_gm_pass_29f6(&ws); captive_gm_pass_28b2(&ws); captive_gm_pass_2888(&ws);
+        captive_gm_pass_164c(&ws); captive_gm_pass_2940(&ws); captive_gm_pass_e12(&ws);
+        captive_gm_pass_1736(&ws); captive_gm_pass_1806(&ws); captive_gm_pass_2a9d(&ws);
+        captive_gm_pass_2abc(&ws); captive_gm_pass_a2a(&ws);
+        captive_gm_pass_2595(&ws, 0xFFC3u, 0x0000u); captive_gm_pass_9c3(&ws);
+        captive_gm_pass_967(&ws); captive_gm_pass_f61(&ws); captive_gm_pass_2284(&ws);
+        captive_gm_pass_22ba(&ws); captive_gm_pass_22eb(&ws); captive_gm_pass_2310(&ws);
+        captive_gm_pass_2400(&ws); captive_gm_pass_242e(&ws);
+        int tnz = 0, snz = 0; uint32_t tck = 0, sck = 0, eck = 0;
+        for (int i = 0; i < 4096; ++i) {
+            uint8_t t = ws.b[0x1048 + i], s = ws.b[0x38 + i];
+            if (t) ++tnz; tck += t;
+            if (s) ++snz; sck += s;
+        }
+        for (int i = 0x3DE2; i < 0x6288; ++i) eck += ws.b[i];
+        assert(tnz == cases[c].tnz && tck == cases[c].tck);
+        assert(snz == cases[c].snz && sck == cases[c].sck);
+        assert(eck == cases[c].eck);
+    }
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_map_primitives();
@@ -752,6 +793,7 @@ int main(void) {
     test_pass_2a9d();
     test_pass_2abc();
     test_pass_a2a();
+    test_pass_group_242e();
     test_generate_output();
     printf("captive_gm_generator: all tests passed\n");
     return 0;

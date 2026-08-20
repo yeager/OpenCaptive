@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: post-A2A decoration/spawn group byte-exact, v1.1.174)
+
+- Transcribed the 10-pass decoration/spawn group (0x2595, 0x9C3, 0x967, 0xF61, 0x2284,
+  0x22BA, 0x22EB, 0x2310, 0x2400, 0x242E) plus helpers (0x245B, 0x2346 chest placer via
+  0x122C, 0xFD2 spawn wrapper) — items, floor decorations, chests, wall creatures.
+  Verified byte-identical to the real GM.EXE across the whole work segment for missions
+  1/2/3 (`test_pass_group_242e`).
+- Fixed the 0x2675 gate in 0x9C3: the pass tests 0x2675's ZF (centre-cell selector
+  VALID), not the neighbour count it returns.
+
 ## 2026-08-20 (GM.EXE native port: pass 0xA2A item/creature-nest distribution byte-exact, v1.1.173)
 
 - Transcribed pass 0xA2A (`captive_gm_pass_a2a`) and its item placer subsystem

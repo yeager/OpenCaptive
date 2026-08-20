@@ -2341,6 +2341,212 @@ void captive_gm_pass_a2a(CaptiveGmWork *w) {
     }
 }
 
+/* ==== Post-A2A decoration/spawn group (orchestrator 0x417..0x43A) ==== */
+
+/* GM 0x2595: over the 0x800 selector-map words at di, replace every word == bp with ax.
+ * The orchestrator calls it with di=0x38, bp=0xFFC3, ax=0 (clear the nest markers). */
+void captive_gm_pass_2595(CaptiveGmWork *w, uint16_t bpval, uint16_t axval) {
+    uint16_t di = GM_MAP_SEL;
+    for (int cx = 0x800; cx > 0; --cx) {
+        if (captive_gm_wget(w, di) == bpval) captive_gm_wset(w, di, axval);
+        di = (uint16_t)(di + 2u);
+    }
+}
+
+/* GM 0x245B: draw a random cell (0x1C97) into (cl,ch); return 1 (GM ZF=1) when it is a
+ * valid floor (0x2468) or already type 0x28. */
+static int gm_245b(CaptiveGmWork *w, uint8_t *pcl, uint8_t *pch) {
+    uint16_t cx = captive_gm_rng_pos(w);
+    uint8_t cl = (uint8_t)cx, ch = (uint8_t)(cx >> 8);
+    *pcl = cl; *pch = ch;
+    if (gm_2468(w, cl, ch)) return 1;
+    return (w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch))] == 0x28u);
+}
+
+/* GM 0x2346: chest placer.  If 0x245B says the drawn cell is valid, place a chest
+ * (type 0x22, high byte = 2*direction) at a 0x168D-found neighbour; else if the cell
+ * already holds a chest, extend it.  Then insert the chest contents via 0x122C.
+ * Returns 1 on success (GM ZF=1). */
+static int gm_2346(CaptiveGmWork *w) {
+    uint8_t cl, ch;
+    int z = gm_245b(w, &cl, &ch);
+    if (z) {
+        uint8_t dh;
+        if (!gm_168d(w, &cl, &ch, &dh)) return 0;         /* 0x235D jne 0x2377 */
+        dh = (uint8_t)(dh << 1);
+        uint16_t bp = captive_gm_map_index(cl, ch);
+        captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + bp), (uint16_t)(((uint16_t)dh << 8) | 0x22u));
+    } else {
+        uint16_t bp = captive_gm_map_index(cl, ch);
+        if (w->b[(uint16_t)(GM_MAP_TYPE + bp)] != 0x22u) return 0;  /* 0x2352 jne 0x2377 */
+    }
+    uint16_t dx = captive_gm_wget(w, 0x356Au);            /* 0x2366 */
+    uint8_t al = w->b[0x3568u];
+    w->b[0x356Eu] = 0xFFu;
+    gm_1226_body(w, (uint16_t)(((uint16_t)ch << 8) | cl), al, (uint8_t)(dx >> 8), (uint8_t)dx);
+    return 1;
+}
+
+/* GM 0x9C3: place up to word[0x3078] (capped 0x14) type-0x16 items.  Each iteration
+ * seeds a probe walk and steps up to 19 times looking for a type-7 junction cell not
+ * adjacent to a 0x15 item. */
+void captive_gm_pass_9c3(CaptiveGmWork *w) {
+    uint16_t bxo = captive_gm_wget(w, 0x3078u);
+    if (bxo == 0u) return;
+    if (bxo > 0xAu) bxo = 0x14u;
+    for (; (int16_t)bxo >= 0; --bxo) {
+        uint16_t r = gm_ror16(captive_gm_rng_next(w), 4);
+        uint8_t cl = (uint8_t)(r & 0x3Fu), ch = (uint8_t)(((r >> 6) | (r << 10)) & 0x1Fu);
+        gm_2a59(w, &cl, &ch);
+        if ((uint8_t)(cl + ch) & 1u) gm_2a59(w, &cl, &ch);
+        for (int bi = 0x12; bi >= 0; --bi) {
+            uint16_t bp = captive_gm_map_index(cl, ch);
+            /* GM 0x2675 returns ZF=0 (proceed) iff the CENTRE cell's selector is VALID
+             * (the neighbour count it also computes is not what 0x9C3 tests). */
+            if (w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 7u
+                && captive_gm_cell_check(w, GM_MAP_SEL, cl, ch) == CAPTIVE_GM_CELL_VALID) {
+                if (!gm_ad6(w, cl, ch)) {
+                    captive_gm_wset(w, 0x354Eu, (uint16_t)(captive_gm_wget(w, 0x354Eu) + 1u));
+                    w->b[(uint16_t)(GM_MAP_TYPE + bp)] = 0x16u;
+                }
+                break;
+            }
+            gm_2a59(w, &cl, &ch); gm_2a59(w, &cl, &ch);
+        }
+    }
+}
+
+/* GM 0x967: place type-0x1E markers.  For up to (mission<<2, capped 0x50) seeds, scan 5
+ * cells rightward for a cell whose 0x1BF5 mask fits and whose selector/type are clear. */
+void captive_gm_pass_967(CaptiveGmWork *w) {
+    uint16_t bxo = captive_gm_wget(w, 0x3078u);
+    if (bxo >= 0x15u) bxo = 0x50u; else bxo = (uint16_t)(bxo << 2);
+    for (; (int16_t)bxo >= 0; --bxo) {
+        uint16_t r = gm_ror16(captive_gm_rng_next(w), 4);
+        uint8_t cl = (uint8_t)(r & 0x3Fu), ch = (uint8_t)(((r >> 6) | (r << 10)) & 0x1Fu);
+        for (int bi = 4; bi >= 0; --bi) {
+            uint8_t dl = gm_1bf5(w, cl, ch);
+            if ((dl & 4u) && ((dl & 0x11u) == 0u || (dl & 0x0Au) == 0u)) {
+                uint16_t bp = captive_gm_map_index(cl, ch);
+                captive_gm_wset(w, 0x3550u, (uint16_t)(captive_gm_wget(w, 0x3550u) + 1u));
+                if ((int16_t)captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + bp)) >= 0
+                    && w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 0u) {
+                    w->b[(uint16_t)(GM_MAP_TYPE + bp)] = 0x1Eu;
+                    break;
+                }
+            }
+            cl = (uint8_t)((cl + 1u) & 0x3Fu);
+        }
+    }
+}
+
+/* GM 0xF61: for 300 random cells whose type is a wall/feature and whose selector > 0xA,
+ * spawn a wall creature/item via 0xFE2 (0xFD2) and set the type high bit.  A spawn
+ * failure (0xFFFF) ends the pass early. */
+void captive_gm_pass_f61(CaptiveGmWork *w) {
+    for (int bx = 0x12B; bx >= 0; --bx) {
+        uint16_t cx = captive_gm_rng_pos(w);
+        uint16_t bp = captive_gm_map_index((uint8_t)cx, (uint8_t)(cx >> 8));
+        uint8_t dl = w->b[(uint16_t)(GM_MAP_TYPE + bp)];
+        if (dl == 0u) continue;
+        if (captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + bp)) <= 0xAu) continue;
+        uint16_t sbx = 0u;
+        int match = (dl == 7u || dl == 0x0Fu || dl == 0x0Cu || dl == 0x1Fu || dl == 0x33u
+                     || dl == 9u || dl == 0x11u || dl == 0x14u);
+        if (dl == 0x23u) { sbx = 0x40u; match = 1; }
+        if (!match) continue;
+        captive_gm_wset(w, 0x36u, 0u);
+        w->b[0x3564u] &= 0xEFu;
+        captive_gm_wset(w, 0x3566u, 0u);
+        if (gm_fe2(w, cx, sbx, 0u) == 0xFFFFu) return;             /* 0xFD2 -> 0xFE2 */
+        w->b[(uint16_t)(GM_MAP_TYPE + bp)] |= 0x80u;
+    }
+}
+
+/* GM 0x2284: place up to (0x165B(mission)+0xA) floor items, type 0x2A over existing
+ * 0x28 else 0x24; stops after 0xB placed. */
+void captive_gm_pass_2284(CaptiveGmWork *w) {
+    uint16_t bx = captive_gm_wget(w, 0x3078u);
+    if (bx <= 5u) return;
+    bx = (uint16_t)(gm_165b(w, bx) + 0xAu);
+    for (; (int16_t)bx >= 0; --bx) {
+        uint8_t cl, ch;
+        if (!gm_245b(w, &cl, &ch)) continue;
+        uint16_t bp = captive_gm_map_index(cl, ch);
+        w->b[(uint16_t)(GM_MAP_TYPE + bp)] = (w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 0x28u) ? 0x2Au : 0x24u;
+        captive_gm_wset(w, 0x3546u, (uint16_t)(captive_gm_wget(w, 0x3546u) + 1u));
+        if (captive_gm_wget(w, 0x3546u) >= 0xBu) return;
+    }
+}
+
+/* GM 0x22BA: attempt up to 0x8D chest placements (0x2346) at group 0x19; count in
+ * word[0x3532], stop after 0x15. */
+void captive_gm_pass_22ba(CaptiveGmWork *w) {
+    captive_gm_wset(w, 0x3532u, 0u);
+    for (int bx = 0x8C; bx >= 0; --bx) {
+        captive_gm_wset(w, 0x356Au, (uint16_t)(w->b[0x3074u] + 0x40u));
+        captive_gm_wset(w, 0x3568u, 0x19u);
+        if (gm_2346(w)) {
+            captive_gm_wset(w, 0x3532u, (uint16_t)(captive_gm_wget(w, 0x3532u) + 1u));
+            if (captive_gm_wget(w, 0x3532u) >= 0x15u) return;
+        }
+    }
+}
+
+/* GM 0x22EB: place a single chest of group 0x5F (mission != 0), up to 0x65 attempts. */
+void captive_gm_pass_22eb(CaptiveGmWork *w) {
+    if (captive_gm_wget(w, 0x3078u) == 0u) return;
+    for (int bx = 0x64; bx >= 0; --bx) {
+        captive_gm_wset(w, 0x3568u, 0x5Fu);
+        captive_gm_wset(w, 0x356Au, 0u);
+        if (gm_2346(w)) return;
+    }
+}
+
+/* GM 0x2310: place up to 6 chests of group 0x61 (mission != 0), up to 0x15 attempts. */
+void captive_gm_pass_2310(CaptiveGmWork *w) {
+    if (captive_gm_wget(w, 0x3078u) == 0u) return;
+    uint8_t bh = 0u;
+    for (int bl = 0x14; bl >= 0; --bl) {
+        captive_gm_wset(w, 0x3568u, 0x61u);
+        captive_gm_wset(w, 0x356Au, 0u);
+        if (gm_2346(w)) { bh = (uint8_t)(bh + 1u); if (bh >= 6u) return; }
+    }
+}
+
+/* GM 0x2400: place up to ((0x165B(mission)+0xA)<<1) floor items, type 0x2B over 0x28
+ * else 0x25. */
+void captive_gm_pass_2400(CaptiveGmWork *w) {
+    uint16_t bx = captive_gm_wget(w, 0x3078u);
+    if (bx <= 1u) return;
+    bx = (uint16_t)((gm_165b(w, bx) + 0xAu) << 1);
+    for (; (int16_t)bx >= 0; --bx) {
+        uint8_t cl, ch;
+        if (!gm_245b(w, &cl, &ch)) continue;
+        uint16_t bp = captive_gm_map_index(cl, ch);
+        w->b[(uint16_t)(GM_MAP_TYPE + bp)] = (w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 0x28u) ? 0x2Bu : 0x25u;
+        captive_gm_wset(w, 0x3548u, (uint16_t)(captive_gm_wget(w, 0x3548u) + 1u));
+    }
+}
+
+/* GM 0x242E: place up to (mission+0xA) type-0x26 items on valid non-floor cells; stops
+ * after 7 placed. */
+void captive_gm_pass_242e(CaptiveGmWork *w) {
+    uint16_t bx = captive_gm_wget(w, 0x3078u);
+    if (bx <= 2u) return;
+    bx = (uint16_t)(bx + 0xAu);
+    for (; (int16_t)bx >= 0; --bx) {
+        uint16_t cx = captive_gm_rng_pos(w);
+        uint8_t cl = (uint8_t)cx, ch = (uint8_t)(cx >> 8);
+        if (!gm_2468(w, cl, ch)) continue;
+        uint16_t bp = captive_gm_map_index(cl, ch);
+        if (w->b[(uint16_t)(GM_MAP_TYPE + bp)] == 7u) continue;
+        w->b[(uint16_t)(GM_MAP_TYPE + bp)] = 0x26u;
+        captive_gm_wset(w, 0x3544u, (uint16_t)(captive_gm_wget(w, 0x3544u) + 1u));
+        if (captive_gm_wget(w, 0x3544u) > 7u) return;
+    }
+}
+
 void captive_gm_generate_output(CaptiveGmWork *w) {
     /* GM 0xEE: the final translate driver.  For each of the 2048 cells it reads the
      * cell type at word[0x1048+2k], the selector at word[0x38+2k], and the aux at

@@ -185,6 +185,16 @@ void captive_gm_pass_2a9d(CaptiveGmWork *w);
 void captive_gm_pass_2abc(CaptiveGmWork *w);
 void captive_gm_pass_a2a(CaptiveGmWork *w);
 void captive_gm_pass_a2a_firstloop(CaptiveGmWork *w);
+void captive_gm_pass_2595(CaptiveGmWork *w, uint16_t bpval, uint16_t axval);
+void captive_gm_pass_9c3(CaptiveGmWork *w);
+void captive_gm_pass_967(CaptiveGmWork *w);
+void captive_gm_pass_f61(CaptiveGmWork *w);
+void captive_gm_pass_2284(CaptiveGmWork *w);
+void captive_gm_pass_22ba(CaptiveGmWork *w);
+void captive_gm_pass_22eb(CaptiveGmWork *w);
+void captive_gm_pass_2310(CaptiveGmWork *w);
+void captive_gm_pass_2400(CaptiveGmWork *w);
+void captive_gm_pass_242e(CaptiveGmWork *w);
 
 /*
  * The final translate driver (GM 0xEE): converts the cell-type map at work[0x1048]
