@@ -1,5 +1,19 @@
 # OpenCaptive Release Notes
 
+## v1.1.167 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: the creature/item **spawn engine** (0xFCB/0xFE2)
+  and its placement pass 0xE12 (`captive_gm_pass_e12`).  0xFE2 selects a record from the
+  0x6B16 spawn database (matching category/mission/flags) and writes creature/item entity
+  records — position, type, RNG-scaled HP with signed saturation, and stats — into the
+  entity buffers, drawing the secondary RNG.  0xE12 places two RNG-sized waves of
+  creatures/items at surviving dead ends, spawning where the flow neighbour is a valid
+  door/junction cell (helpers 0x2468, 0xE61; also exercises 0x16D7/0x2A59).  Verified
+  byte-identical to the real GM.EXE across the whole 0..0x6A00 work region — maps, entity
+  buffers, and both RNG states — for missions 1/2/3 (`test_pass_e12`).
+
 ## v1.1.165 (2026-08-20)
 
 ### Added

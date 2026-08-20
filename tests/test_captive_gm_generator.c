@@ -496,6 +496,51 @@ static void test_pass_group_164c(void) {
     }
 }
 
+static void test_pass_e12(void) {
+    /* After the geometry chain + 0xE12 creature/item spawn: cell-type (0x1048) and
+     * selector (0x38) checksums plus the entity-buffer (0x3DE2..0x6288) checksum,
+     * verified byte-identical to the real GM.EXE (the full 0..0x6A00 work region and
+     * both RNG states match; 0x1314 is skipped for standard missions). */
+    struct { uint16_t m; int tnz; uint32_t tck; int snz; uint32_t sck; uint32_t eck; } cases[] = {
+        {1u, 703, 0x4C66u, 1000, 0x1BDEEu, 0x280AFu},
+        {2u, 559, 0x314Bu, 1203, 0x248BCu, 0x27D7Eu},
+        {3u, 504, 0x28D2u, 1193, 0x21B57u, 0x279EEu},
+    };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, cases[c].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws);
+        captive_gm_pass_45f(&ws);
+        captive_gm_pass_526(&ws);
+        captive_gm_pass_5d4(&ws);
+        captive_gm_wset(&ws, 0x3070u, 1u);
+        captive_gm_pass_1cb5(&ws);
+        captive_gm_pass_1617(&ws);
+        captive_gm_pass_d12(&ws);
+        captive_gm_pass_2589(&ws);
+        captive_gm_pass_26be(&ws);
+        captive_gm_pass_28b2(&ws);
+        captive_gm_pass_29f6(&ws);
+        captive_gm_pass_28b2(&ws);
+        captive_gm_pass_2888(&ws);
+        captive_gm_pass_164c(&ws);
+        captive_gm_pass_2940(&ws);
+        captive_gm_pass_e12(&ws);
+        int tnz = 0, snz = 0; uint32_t tck = 0, sck = 0, eck = 0;
+        for (int i = 0; i < 4096; ++i) {
+            uint8_t t = ws.b[0x1048 + i], s = ws.b[0x38 + i];
+            if (t) ++tnz; tck += t;
+            if (s) ++snz; sck += s;
+        }
+        for (int i = 0x3DE2; i < 0x6288; ++i) eck += ws.b[i];
+        assert(tnz == cases[c].tnz && tck == cases[c].tck);
+        assert(snz == cases[c].snz && sck == cases[c].sck);
+        assert(eck == cases[c].eck);
+    }
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_map_primitives();
@@ -513,6 +558,7 @@ int main(void) {
     test_pass_2589();
     test_pass_26be();
     test_pass_group_164c();
+    test_pass_e12();
     test_generate_output();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
