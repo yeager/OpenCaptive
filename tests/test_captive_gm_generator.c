@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 /*
  * Verifies the entry-setup + seed transcription against values captured from the
@@ -891,6 +892,21 @@ static void test_planet21_through_1314(void) {
     assert(captive_gm_wget(&ws, 0x352Eu) == 0x001Fu);
 }
 
+static void test_planet21_full_output(void) {
+    /* The complete generator for the real planet-0x15 param set, run through the 0xEE
+     * translate.  The output level map + second map are byte-identical to the real
+     * GM.EXE (oracle 0x128) — a real high-mission dungeon, not just missions 1/2/3.
+     * Guards the gm_2675 ZF-vs-count fix in gm_1a3a and the whole word[0x307C]==1 path. */
+    CaptiveGmWork *ws = (CaptiveGmWork *)malloc(sizeof(*ws));
+    assert(ws != NULL);
+    captive_gm_generate(ws, 0x15u, 0u, 1u, 1u);
+    int onz = 0; uint32_t ock = 0, mck = 0;
+    for (int i = 0x5A68; i < 0x6288; ++i) { if (ws->b[i]) ++onz; ock += ws->b[i]; }
+    for (int i = 0x6288; i < 0x6A00; ++i) mck += ws->b[i];
+    assert(onz == 1412 && ock == 0x11490u && mck == 0x3E0Bu);
+    free(ws);
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_map_primitives();
@@ -919,6 +935,7 @@ int main(void) {
     test_generate_output();
     test_full_pipeline_output();
     test_planet21_through_1314();
+    test_planet21_full_output();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
 }

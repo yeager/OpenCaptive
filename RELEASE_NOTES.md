@@ -1,5 +1,19 @@
 # OpenCaptive Release Notes
 
+## v1.1.180 (2026-08-20)
+
+### Fixed
+
+- **(Captive)** gm_1a3a (spawn placer, pass 0x1806): the `call 0x2675; jne 0x1A59` gate
+  branches on 0x2675's ZF (set iff the CENTRE cell's selector is VALID), not on the
+  neighbour count 0x2675 also returns — the same class of bug already fixed in pass 0x9C3.
+  A centre-valid cell with zero non-valid neighbours made gm_1a3a fail one RNG-draw too
+  early, cascading the entire spawn sequence.  With this fix the COMPLETE generator is
+  byte-identical to the real GM.EXE for the real in-game planet-0x15 param set (output map
+  + second map, `test_planet21_full_output`) — a real high-mission dungeon — in addition
+  to missions 1/2/3.  Only the harmless word[0x351C] spawn scratch (outside every
+  map/entity region) still differs, exactly as for the standard missions.
+
 ## v1.1.179 (2026-08-20)
 
 ### Fixed

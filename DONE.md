@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE port: byte-exact for a real high-mission param set, v1.1.180)
+
+- Fixed the gm_2675 ZF-vs-count bug in gm_1a3a (same class as the 0x9C3 fix): the
+  0x1A51 gate tests centre-cell validity, not the neighbour count.  The complete
+  generator is now byte-identical to the real GM.EXE for the real planet-0x15 param set
+  captured from CAPPO (test_planet21_full_output), proving it works for high missions,
+  not just 1/2/3.  Root cause was localized by tracing pass_1806 to the first divergent
+  spawn iteration (68) and unit-testing gm_1a3a on GM's captured state (mine drew 1
+  main-RNG vs GM's 2 before failing).
+
 ## 2026-08-20 (GM.EXE port: generator -> DungeonLevel bridge, v1.1.177)
 
 - Added `captive_gm_run` (full generator in one call) and `captive_gm_build_level`

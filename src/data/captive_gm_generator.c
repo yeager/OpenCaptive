@@ -1884,7 +1884,9 @@ static int gm_1a3a(CaptiveGmWork *w, uint8_t cl, uint8_t ch, uint8_t *odl, uint8
     w->b[0x33A2u] = cl; w->b[0x33B6u] = ch;
     uint8_t dl = (uint8_t)(captive_gm_rng_next(w) & 0xFu);
     for (int i = dl; i >= 0; --i) gm_2a59(w, &cl, &ch);
-    if (gm_2675(w, cl, ch) == 0u) return 0;
+    /* GM 0x1A51 `call 0x2675; jne 0x1A59`: branch on 0x2675's ZF (set iff the CENTRE
+     * cell's selector is VALID), not on the neighbour count it returns. */
+    if (captive_gm_cell_check(w, GM_MAP_SEL, cl, ch) != CAPTIVE_GM_CELL_VALID) return 0;
     if (w->b[(uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch))] != 7u) return 0;
     uint8_t d2 = gm_1b75(w, cl, ch);
     uint16_t bx;
