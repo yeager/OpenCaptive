@@ -287,6 +287,19 @@ void captive_gm_pass_526(CaptiveGmWork *w) {
     captive_gm_wset(w, 0x0022u, w->b[(uint16_t)(ax >> 4)]);
 }
 
+CaptiveGmCellStatus captive_gm_cell_check(const CaptiveGmWork *w, uint16_t map_off,
+                                          uint8_t cl, uint8_t ch) {
+    /* GM 0x1C1C. */
+    if (cl >= 0x40u || ch >= 0x20u)
+        return CAPTIVE_GM_CELL_BLOCKED;             /* GM 0x1C4D: ax=1, ZF=1 */
+    uint16_t v = captive_gm_wget(w, (uint16_t)(map_off + captive_gm_map_index(cl, ch)));
+    if (v == 0u)
+        return CAPTIVE_GM_CELL_EMPTY;               /* GM 0x1C53: ax=1, ZF=0 */
+    if (v >= 0xFFCFu)
+        return CAPTIVE_GM_CELL_BLOCKED;             /* GM 0x1C48 -> 0x1C4D */
+    return CAPTIVE_GM_CELL_VALID;                   /* GM 0x1C4A: ax=0, ZF=1 */
+}
+
 void captive_gm_generate_output(CaptiveGmWork *w) {
     /* GM 0xEE: the final translate driver.  For each of the 2048 cells it reads the
      * cell type at word[0x1048+2k], the selector at word[0x38+2k], and the aux at

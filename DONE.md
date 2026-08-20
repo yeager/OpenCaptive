@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: shared map-index/validation primitives, v1.1.156)
+
+- Transcribed the map primitives shared by every map-building pass: `captive_gm_map_index`
+  (GM 0x248E, (ch*64+cl)*2), `captive_gm_grid_cell` (GM 0x2831, 4x4 room-grid lookup),
+  and `captive_gm_cell_check` (GM 0x1C1C, EMPTY/VALID/BLOCKED cell classification with
+  the exact sentinel/bounds semantics). Verified in test_captive_gm_generator. These
+  de-risk the remaining map passes (0x1CB5 validator tree + the ~19 map writers) that
+  all reuse them. All 71 tests pass.
+
 ## 2026-08-20 (GM.EXE native port: the 0xEE translate driver, v1.1.155)
 
 - Transcribed GM.EXE's final translate driver (`captive_gm_generate_output`, GM 0xEE):

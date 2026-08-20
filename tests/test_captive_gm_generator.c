@@ -266,8 +266,36 @@ static void test_generate_output(void) {
     assert(ws.b[out2 + 1] == 0x03u);                            /* sel==FFFF: unchanged */
 }
 
+static void test_map_primitives(void) {
+    /* GM 0x248E: (ch*64+cl)*2. */
+    assert(captive_gm_map_index(0, 0) == 0u);
+    assert(captive_gm_map_index(1, 0) == 2u);
+    assert(captive_gm_map_index(0, 1) == 128u);
+    assert(captive_gm_map_index(63, 31) == 4094u);
+
+    CaptiveGmWork ws;
+    captive_gm_init(&ws);
+    /* GM 0x2831: 4x4 room-grid cell covering (cl,ch). */
+    for (int i = 0; i < 16; ++i) ws.b[i] = (uint8_t)(0x10 + i);
+    assert(captive_gm_grid_cell(&ws, 0, 0) == 0x10u);      /* grid (0,0) */
+    assert(captive_gm_grid_cell(&ws, 63, 0) == 0x13u);     /* col 3, row 0 */
+    assert(captive_gm_grid_cell(&ws, 0, 8) == 0x14u);      /* col 0, row 1 (ch&0x18=8) */
+    assert(captive_gm_grid_cell(&ws, 63, 31) == 0x1Fu);    /* col 3, row 3 */
+
+    /* GM 0x1C1C cell classification against a map based at 0x1048. */
+    captive_gm_wset(&ws, (uint16_t)(0x1048u + captive_gm_map_index(5, 5)), 0x0000u);
+    captive_gm_wset(&ws, (uint16_t)(0x1048u + captive_gm_map_index(6, 5)), 0x0020u);
+    captive_gm_wset(&ws, (uint16_t)(0x1048u + captive_gm_map_index(7, 5)), 0xFFFFu);
+    assert(captive_gm_cell_check(&ws, 0x1048u, 5, 5) == CAPTIVE_GM_CELL_EMPTY);
+    assert(captive_gm_cell_check(&ws, 0x1048u, 6, 5) == CAPTIVE_GM_CELL_VALID);
+    assert(captive_gm_cell_check(&ws, 0x1048u, 7, 5) == CAPTIVE_GM_CELL_BLOCKED);
+    assert(captive_gm_cell_check(&ws, 0x1048u, 64, 5) == CAPTIVE_GM_CELL_BLOCKED);
+    assert(captive_gm_cell_check(&ws, 0x1048u, 5, 32) == CAPTIVE_GM_CELL_BLOCKED);
+}
+
 int main(void) {
     test_entry_pointer_table();
+    test_map_primitives();
     test_seed_values();
     test_seed_mission_scaling();
     test_pass_14c9();

@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.156 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: shared map-index/validation primitives
+  (`captive_gm_map_index`, `captive_gm_grid_cell`, `captive_gm_cell_check`), transcribed
+  from GM.EXE and verified — the building blocks the remaining map passes reuse.
+
 ## v1.1.155 (2026-08-20)
 
 ### Added

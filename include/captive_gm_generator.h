@@ -120,6 +120,40 @@ void captive_gm_pass_526(CaptiveGmWork *w);
 void captive_gm_pass_5d4(CaptiveGmWork *w);
 
 /*
+ * Map-indexing / cell-validation primitives shared by the map-building passes,
+ * transcribed from GM.EXE.  cl = x (column), ch = y (row) of a 64x32 map.
+ */
+
+/* GM 0x248E: byte offset of map cell (cl,ch) in a 64-wide word map = (ch*64+cl)*2. */
+static inline uint16_t captive_gm_map_index(uint8_t cl, uint8_t ch) {
+    return (uint16_t)((((uint16_t)ch << 6) + cl) << 1);
+}
+
+/* GM 0x2831: the 4x4 room-grid cell (work[0..0xF]) covering map position (cl,ch):
+ * index = (((ch & 0x18) << 3) + cl) >> 4. */
+static inline uint8_t captive_gm_grid_cell(const CaptiveGmWork *w,
+                                           uint8_t cl, uint8_t ch) {
+    uint16_t bp = (uint16_t)(((((uint16_t)(ch & 0x18u)) << 3) + cl) >> 4);
+    return w->b[bp];
+}
+
+/* Result of captive_gm_cell_check (GM 0x1C1C). */
+typedef enum {
+    CAPTIVE_GM_CELL_VALID = 0,   /* in bounds, non-empty, < 0xFFCF (GM ax=0)      */
+    CAPTIVE_GM_CELL_EMPTY = 1,   /* cell word == 0                (GM ax=1, ZF=0) */
+    CAPTIVE_GM_CELL_BLOCKED = 2  /* out of bounds or word >= 0xFFCF (GM ax=1,ZF=1)*/
+} CaptiveGmCellStatus;
+
+/*
+ * GM 0x1C1C: classify map cell (cl,ch) in the word map based at `map_off` (the
+ * work-segment offset the original passes hold in DI, e.g. 0x1048).  Out-of-range
+ * coordinates and sentinel values (>= 0xFFCF) are BLOCKED; a zero word is EMPTY;
+ * anything else is VALID.
+ */
+CaptiveGmCellStatus captive_gm_cell_check(const CaptiveGmWork *w, uint16_t map_off,
+                                          uint8_t cl, uint8_t ch);
+
+/*
  * The final translate driver (GM 0xEE): converts the cell-type map at work[0x1048]
  * — gated by the selector map at work[0x38] and the aux map at work[0x2058] — into
  * the 64x32 output map at work[0x5A68] (and the second map at 0x6288), using
