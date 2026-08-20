@@ -89,15 +89,35 @@ and must still be transcribed in order because the pipeline is stateful.
   - `captive_gm_pass_526` — region-connection vectors + entry cell.
   - `captive_gm_pass_5d4` — the full 2048-word input map (selector map at 0x38).
 
-## Next
+## Status: generator COMPLETE (byte-exact end-to-end, 2026-08-20)
 
-1. Extract GM's baked constant tables (pre_seed 0x2CF image bytes) into a C blob.
-2. Transcribe `0x2F2` seed; verify `post_seed` SHA.
-3. Transcribe the pass chain routine-by-routine; verify `pre_generate` SHA.
-4. Transcribe the `0xEE` driver over the input map using the existing translator;
-   verify `post_generate` / `output_map@0x5A68` SHA.
-5. Wire the output map -> `captive_dos_map_to_level` -> view_window/compositor,
-   resolving the display-map cell semantics (wall test on GM output codes).
+The entire GM.EXE generator is transcribed and verified byte-identical to the real
+GM.EXE for missions 1/2/3, from seed through the whole pass chain (0x3B1..0x45E) to the
+0xEE translate driver.  `captive_gm_run(w, mission)` runs it all; the finished 64x32
+output map is at `work[CAPTIVE_GM_OUTPUT_MAP]` (0x5A68).  `captive_gm_build_level()`
+converts it into a `DungeonLevel`.  Tests: `test_pass_*`, `test_pass_group_242e`,
+`test_pass_group_1460`, `test_full_pipeline_output`, `test_build_level_from_generator`.
+
+(One scratch byte `work[0x351C]` is left non-zero by the last spawn and cleared by GM
+later; it is outside every map/entity region and does not affect the level.)
+
+## Next: real per-level GM params from CAPPO (for full in-game wiring)
+
+The generator takes four params (ax/bx/cx/dx via `captive_gm_entry_setup`).  The
+verification and `captive_gm_build_level` use **ax=mission, bx=cx=dx=0** — correct
+against the oracle, but the REAL game passes non-zero bx/cx/dx.  Traced CAPPO's exec
+path (CAPPO_CODE.bin, CS=0): per-state setup `0xC9D9` sets, right before
+`call 0x0DBC` (the DOS EXEC param-block builder that writes 0x0000:04F4/6/8/A):
+  - `ax = word[DG:0x5E86]`  (planet / mission number)
+  - `bx = word[DG:0x9320]`  (from the phase var word[DG:0x8CFD]: 2->6, 0->0xE, 3->1,
+                             else 2; forced 1 when word[DG:0x92E4]!=0)
+  - `cx = word[DG:0x92EC]`
+  - `dx = word[DG:0x92E0]`
+`0x0DBC` then does `INT 21 AH=4Bh` on "GM.EXE".  So full in-game wiring needs those four
+DGROUP values at level-gen time — obtain them by tracing CAPPO to the 0xC9D9 setup for a
+real mission start (opencaptive-re emu harness), then call `captive_gm_run` with them and
+replace the synthetic `map_generate_base` (engine.c `game_state_new_mission_seeded`,
+main.c ~2138).
 
 ## 0xD12 — the core placement machine (LANDED, byte-exact 2026-08-20)
 
