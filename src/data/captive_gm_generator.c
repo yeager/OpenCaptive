@@ -300,6 +300,177 @@ CaptiveGmCellStatus captive_gm_cell_check(const CaptiveGmWork *w, uint16_t map_o
     return CAPTIVE_GM_CELL_VALID;                   /* GM 0x1C4A: ax=0, ZF=1 */
 }
 
+/* ---- Pass 0x1CB5: room-outline validator + anchor placement ---- */
+#define GM_MAP_TYPE 0x1048u   /* SI: cell-type map */
+#define GM_MAP_SEL  0x0038u   /* DI: selector map  */
+
+/* GM 0x1DE5: probe one outline step.  1 = continue (ZF=1), 0 = reject (ZF=0). */
+static int gm_h1de5(CaptiveGmWork *w, uint8_t cl, uint8_t ch) {
+    if (cl >= 0x40u || ch >= 0x20u) return 1;               /* 0x1E14 accept */
+    if ((int8_t)ch <= 0) return 0;                           /* 0x1E17 reject */
+    uint16_t bp = captive_gm_map_index(cl, ch);
+    if (captive_gm_wget(w, (uint16_t)(GM_MAP_TYPE + bp)) != 0u) return 0;    /* 0x1DF6 */
+    if (captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + bp)) == 0xFFFFu) return 1;/* 0x1DFC je: continue */
+    if (captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + bp)) != 0u) return 0;     /* 0x1E02 */
+    if (captive_gm_wget(w, 0x3506u) == 0u) return 1;         /* 0x1E08 je: continue */
+    captive_gm_wset(w, (uint16_t)(GM_MAP_SEL + bp), 0xFFFFu);/* 0x1E0F */
+    return 1;
+}
+
+/* GM 0x1E1B: trace the room outline; updates *cl,*ch to the final position.
+ * Returns 1 accept, 0 reject.  Writes markers only when the gate (0x3506) is set. */
+static int gm_h1e1b(CaptiveGmWork *w, uint8_t *pcl, uint8_t *pch) {
+    uint8_t xstep = (uint8_t)(captive_gm_wget(w, 0x350Au) & 0xFFu);
+    uint16_t gate = captive_gm_wget(w, 0x3506u);
+    uint8_t cl = *pcl, ch = *pch;
+    int ret = 0;
+    if (ch == 0u) goto done;
+    uint16_t bp = captive_gm_map_index(cl, ch);
+    if (captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + bp)) != 0u) goto done;
+    if (gate != 0u) {
+        captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + bp), 0x1Cu);
+        captive_gm_wset(w, (uint16_t)(GM_MAP_SEL + bp), 2u);
+    }
+    cl = (uint8_t)(cl - xstep); if (!gm_h1de5(w, cl, ch)) goto done;
+    cl = (uint8_t)(cl + xstep); ch = (uint8_t)(ch - 1u);
+    if (!gm_h1de5(w, cl, ch)) goto done;
+    cl = (uint8_t)(cl + xstep); if (!gm_h1de5(w, cl, ch)) goto done;
+    ch = (uint8_t)(ch + 2u); if (!gm_h1de5(w, cl, ch)) goto done;
+    cl = (uint8_t)(cl - xstep); if (!gm_h1de5(w, cl, ch)) goto done;
+    ch = (uint8_t)(ch - 1u); cl = (uint8_t)(cl + xstep);
+    if (cl >= 0x40u) goto done;
+    bp = captive_gm_map_index(cl, ch);
+    if (captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + bp)) != 0u) goto done;
+    captive_gm_wset(w, 0x33ECu, cl);
+    captive_gm_wset(w, 0x33EEu, ch);
+    if (gate != 0u) {
+        captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + bp), 0x18u);
+        captive_gm_wset(w, (uint16_t)(GM_MAP_SEL + bp), 1u);
+    }
+    cl = (uint8_t)(cl + xstep); if (cl >= 0x40u) goto done;
+    bp = captive_gm_map_index(cl, ch);
+    if (captive_gm_wget(w, (uint16_t)(GM_MAP_SEL + bp)) != 0u) goto done;
+    if (gate != 0u) {
+        captive_gm_wset(w, (uint16_t)(GM_MAP_TYPE + bp), 0x0Fu);
+        captive_gm_wset(w, (uint16_t)(GM_MAP_SEL + bp), 0xFFFFu);
+    }
+    ret = 1;
+done:
+    *pcl = cl; *pch = ch;
+    return ret;
+}
+
+/* GM 0x286E: step (cl,ch) by the region-connection vector and advance dh. */
+static void gm_h286e(CaptiveGmWork *w, uint8_t *cl, uint8_t *ch, uint8_t *dh) {
+    *dh = (uint8_t)(*dh + 1u);
+    uint16_t bp = (uint16_t)((((uint16_t)(*dh) - 2u) & 0xFFFFu) << 1);
+    *cl = (uint8_t)(*cl + w->b[(uint16_t)(0x0010u + bp)]);
+    *ch = (uint8_t)(*ch + w->b[(uint16_t)(0x0018u + bp)]);
+}
+
+/* GM 0x1EC8/0x1EEA: connectivity gate.  Steps (cl,ch,dh) to the connected region
+ * (0x286E) and returns nonzero to keep looping.  cl/ch/dh advance for the caller. */
+static int gm_h1ec8(CaptiveGmWork *w, uint8_t *cl, uint8_t *ch, uint8_t *dh) {
+    if (*dh >= captive_gm_wget(w, 0x002Eu)) return 0;   /* 0x1EEA jge: stop */
+    gm_h286e(w, cl, ch, dh);                             /* steps cl,ch,dh */
+    if (*dh != captive_gm_grid_cell(w, *cl, *ch)) return 0;   /* 0x1BD2: stop */
+    /* matched -> GM 0x1ED0 cell check; EMPTY keeps looping. */
+    if (*dh > captive_gm_wget(w, 0x002Eu) || *cl >= 0x40u || *ch >= 0x20u) return 0;
+    return captive_gm_cell_check(w, GM_MAP_SEL, *cl, *ch) == CAPTIVE_GM_CELL_EMPTY;
+}
+
+/* GM 0x1D1A: build the room-outline records in the 0x34C6 scratch, then pack them
+ * into the anchor array at `abx` (0x3430).  Returns 1 (accept). */
+static int gm_h1d1a(CaptiveGmWork *w, uint16_t abx, uint8_t cl, uint8_t ch, uint8_t dh) {
+    captive_gm_wset(w, 0x33EAu, 0u);
+    captive_gm_wset(w, 0x350Au, 1u);
+    if ((uint8_t)(cl & 0x0Fu) > 7u)
+        captive_gm_wset(w, 0x350Au, (uint16_t)(-1));
+    uint16_t bx = 0x34C6u;                       /* GM 0x1D34: bx -> scratch */
+    for (int k = 0; k < 0x1E; ++k)
+        captive_gm_wset(w, (uint16_t)(bx + k * 2), 0xFFFFu);
+    captive_gm_wset(w, 0x3506u, 0u);
+
+    while (captive_gm_wget(w, 0x33EAu) <= 5u) {   /* GM 0x1D4B */
+        captive_gm_wset(w, bx, cl);
+        captive_gm_wset(w, (uint16_t)(bx + 2), ch);
+        bx = (uint16_t)(bx + 4);
+        uint8_t wcl = cl, wch = ch;
+        if (!gm_h1e1b(w, &wcl, &wch)) break;      /* GM 0x1D63 js -> 0x1D8E */
+        captive_gm_wset(w, 0x33EAu, (uint16_t)(captive_gm_wget(w, 0x33EAu) + 1u));
+        captive_gm_wset(w, bx, wcl);              /* post-walk cl,ch */
+        captive_gm_wset(w, (uint16_t)(bx + 2), wch);
+        captive_gm_wset(w, (uint16_t)(bx + 4), captive_gm_wget(w, 0x33ECu));
+        captive_gm_wset(w, (uint16_t)(bx + 6), captive_gm_wget(w, 0x33EEu));
+        bx = (uint16_t)(bx + 8);
+        cl = (uint8_t)w->b[(uint16_t)(bx - 0x0Cu)];  /* reload cl0,ch0 for 0x1EC8 */
+        ch = (uint8_t)w->b[(uint16_t)(bx - 0x0Au)];
+        if (!gm_h1ec8(w, &cl, &ch, &dh)) break;   /* GM 0x1D8C jne; steps cl,ch,dh */
+    }
+
+    /* GM 0x1D8F..0x1DDC: pack scratch records into the anchor array. */
+    if ((int16_t)captive_gm_wget(w, 0x33EAu) > 1) {
+        uint16_t bp = 0x34C6u;
+        int iters = (int)captive_gm_wget(w, 0x33EAu) - 1;
+        captive_gm_wset(w, 0x33EAu, 0u);
+        w->b[0x3507u] = 0xFFu;                    /* word[0x3506] high byte -> gate on */
+        for (; iters >= 0; --iters) {
+            uint8_t c_lo = w->b[bp];
+            if (c_lo & 0x80u) break;              /* GM 0x1DAA js */
+            uint8_t c_hi = w->b[(uint16_t)(bp + 2)];
+            captive_gm_wset(w, (uint16_t)(abx + 0x32),
+                            (uint16_t)((c_hi << 8) | c_lo));
+            captive_gm_wset(w, (uint16_t)(abx + 0x64),
+                            (uint16_t)((w->b[(uint16_t)(bp + 0xA)] << 8) | w->b[(uint16_t)(bp + 8)]));
+            captive_gm_wset(w, abx,
+                            (uint16_t)((w->b[(uint16_t)(bp + 6)] << 8) | w->b[(uint16_t)(bp + 4)]));
+            abx = (uint16_t)(abx + 2);
+            uint8_t wcl = c_lo, wch = c_hi;
+            gm_h1e1b(w, &wcl, &wch);
+            bp = (uint16_t)(bp + 0xC);
+        }
+    }
+    return 1;
+}
+
+/* GM 0x1CD8: place up to min(mission/2-1,4)+1 anchors into work[0x3430]. */
+static void gm_h1cd8(CaptiveGmWork *w) {
+    uint16_t abx = 0x3430u;
+    uint16_t cx = captive_gm_wget(w, 0x3078u);
+    if (cx <= 1u) return;
+    cx = (uint16_t)((cx >> 1) - 1u);
+    if (cx > 4u) cx = 4u;
+    for (;;) {
+        for (;;) {
+            uint16_t pos = captive_gm_rng_pos(w);
+            uint8_t cl = (uint8_t)(pos & 0xFFu), ch = (uint8_t)(pos >> 8);
+            uint8_t dh = captive_gm_grid_cell(w, cl, ch);
+            if (dh > captive_gm_wget(w, 0x002Eu) || cl >= 0x40u || ch >= 0x20u)
+                continue;
+            if (captive_gm_cell_check(w, GM_MAP_SEL, cl, ch) != CAPTIVE_GM_CELL_EMPTY)
+                continue;
+            if (captive_gm_wget(w, (uint16_t)(GM_MAP_TYPE + captive_gm_map_index(cl, ch))) != 0u)
+                continue;
+            gm_h1d1a(w, abx, cl, ch, dh);
+            if (captive_gm_wget(w, 0x33EAu) == 1u) continue;
+            break;
+        }
+        abx = (uint16_t)(abx + 0x0Au);
+        if (cx == 0u) break;
+        --cx;
+    }
+}
+
+void captive_gm_pass_1cb5(CaptiveGmWork *w) {
+    for (int k = 0; k < 0x4B; ++k)
+        captive_gm_wset(w, (uint16_t)(0x3430u + k * 2), 0xFFFFu);
+    gm_h1cd8(w);
+    uint16_t dst = captive_gm_wget(w, 0x3586u);
+    for (int k = 0; k < 0x19; ++k)
+        captive_gm_wset(w, (uint16_t)(dst + k * 2),
+                        captive_gm_wget(w, (uint16_t)(0x3494u + k * 2)));
+}
+
 void captive_gm_generate_output(CaptiveGmWork *w) {
     /* GM 0xEE: the final translate driver.  For each of the 2048 cells it reads the
      * cell type at word[0x1048+2k], the selector at word[0x38+2k], and the aux at

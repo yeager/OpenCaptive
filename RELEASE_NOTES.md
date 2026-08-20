@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.157 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: the 0x1CB5 room-outline validator + anchor
+  placement subsystem (~15 routines), transcribed and verified byte-for-byte against
+  the real GM.EXE for three missions.
+
 ## v1.1.156 (2026-08-20)
 
 ### Added

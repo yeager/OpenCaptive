@@ -293,6 +293,28 @@ static void test_map_primitives(void) {
     assert(captive_gm_cell_check(&ws, 0x1048u, 5, 32) == CAPTIVE_GM_CELL_BLOCKED);
 }
 
+static void test_pass_1cb5(void) {
+    /* Anchor array work[0x3430..] captured from the real GM.EXE (oracle 0x3D0). */
+    struct { uint16_t m; uint16_t words[3]; } cases[] = {
+        {1u, {0xFFFFu, 0xFFFFu, 0xFFFFu}},       /* mission 1: no anchors */
+        {2u, {0x0414u, 0x0434u, 0x0C24u}},
+        {3u, {0x0B03u, 0x0B33u, 0xFFFFu}},
+    };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, cases[c].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws);
+        captive_gm_pass_45f(&ws);
+        captive_gm_pass_526(&ws);
+        captive_gm_pass_5d4(&ws);
+        captive_gm_pass_1cb5(&ws);
+        for (int i = 0; i < 3; ++i)
+            assert(w(&ws, (uint16_t)(0x3430u + i*2)) == cases[c].words[i]);
+    }
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_map_primitives();
@@ -304,6 +326,7 @@ int main(void) {
     test_pass_45f();
     test_pass_526();
     test_pass_5d4();
+    test_pass_1cb5();
     test_generate_output();
     printf("captive_gm_generator: all tests passed\n");
     return 0;

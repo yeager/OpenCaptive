@@ -1,5 +1,17 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: pass 0x1CB5 validator subsystem, v1.1.157)
+
+- Transcribed GM.EXE's 0x1CB5 room-outline validator + anchor-placement subsystem
+  (~15 routines: 0x1CD8 placement loop, 0x1D1A outline recorder with its 0x34C6
+  scratch + anchor-packing second loop, the 0x1E1B outline walker + 0x1DE5 step
+  probe, and the 0x286E/0x1BD2/0x1EEA/0x1EC8 region-connectivity chain). The key
+  subtleties: 0x1D1A's first loop fills the 0x34C6 scratch (not the anchor array);
+  the connectivity step (0x286E) advances cl/ch/dh for the next iteration; and
+  0x1ED0's cell check reads the SELECTOR map (0x38), not the type map. Verified
+  byte-for-byte against the real GM.EXE anchor array for missions 1/2/3. All 71
+  tests pass.
+
 ## 2026-08-20 (GM.EXE native port: shared map-index/validation primitives, v1.1.156)
 
 - Transcribed the map primitives shared by every map-building pass: `captive_gm_map_index`
