@@ -96,6 +96,15 @@ uint16_t captive_gm_rng_pos(CaptiveGmWork *w);
  */
 void captive_gm_pass_14c9(CaptiveGmWork *w);
 
+/*
+ * Pass 0x45F: builds the 16-cell room grid (work[0..0xF]).  Lays an initial
+ * open/filled pattern from the mission seed word (0x6D20 table), then grows N
+ * regions (N = word[0x3082]) by RNG-driven random walks and fills the remainder
+ * by copying region ids from neighbours.  Writes the region count to word[0x2E]
+ * and word[0x33DA].  Must run after entry_setup + seed.
+ */
+void captive_gm_pass_45f(CaptiveGmWork *w);
+
 /* Offsets of the key work-segment fields (for callers/tests). */
 #define CAPTIVE_GM_OFF_MISSION   0x3078u  /* mission param copy */
 #define CAPTIVE_GM_OFF_OUTMAP    0x5A68u  /* output 64x32 map (ptr at 0x3578) */

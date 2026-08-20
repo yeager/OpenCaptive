@@ -1,5 +1,13 @@
 # OpenCaptive Release Notes
 
+## v1.1.152 (2026-08-20)
+
+### Added
+
+- **(Captive)** GM.EXE native port: pass 0x45F (`captive_gm_pass_45f`), the room-grid
+  region generator, transcribed and verified byte-for-byte against the real GM.EXE
+  across five missions.
+
 ## v1.1.151 (2026-08-20)
 
 ### Added

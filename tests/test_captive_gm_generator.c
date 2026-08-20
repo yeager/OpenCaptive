@@ -140,6 +140,42 @@ static void test_rng_pos(void) {
     }
 }
 
+static void test_pass_45f(void) {
+    /* Room grid + region counts captured from the real GM.EXE (oracle, GM 0x3B7). */
+    static const uint8_t GRID_M1[16] = {
+        0x01,0x02,0x02,0x02,0x06,0x02,0x02,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,
+    };
+    static const uint8_t GRID_M2[16] = {
+        0x01,0x03,0x03,0x04,0x02,0x02,0x05,0x05,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,
+    };
+    static const uint8_t GRID_M0[16] = {
+        0x01,0x01,0x06,0x06,0x01,0x01,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,
+    };
+    static const uint8_t GRID_M3[16] = {
+        0x01,0x03,0x03,0x02,0x01,0x02,0x02,0x02,0x06,0x02,0x04,0x06,0x06,0x06,0x06,0x06,
+    };
+    static const uint8_t GRID_M5[16] = {
+        0x01,0x01,0x01,0x01,0x01,0x03,0x03,0x06,0x03,0x03,0x03,0x06,0x06,0x02,0x02,0x06,
+    };
+    struct { uint16_t m; const uint8_t *grid; uint16_t regions; } cases[] = {
+        {0u, GRID_M0, 1u}, {1u, GRID_M1, 2u}, {2u, GRID_M2, 5u},
+        {3u, GRID_M3, 4u}, {5u, GRID_M5, 3u},
+    };
+    for (size_t c = 0; c < sizeof(cases)/sizeof(cases[0]); ++c) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, cases[c].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws);
+        captive_gm_pass_45f(&ws);
+        for (int i = 0; i < 16; ++i)
+            assert(ws.b[i] == cases[c].grid[i]);
+        assert(w(&ws, 0x002Eu) == cases[c].regions);
+        assert(w(&ws, 0x3082u) == cases[c].regions);
+        assert(w(&ws, 0x33DAu) == cases[c].regions);
+    }
+}
+
 int main(void) {
     test_entry_pointer_table();
     test_seed_values();
@@ -147,6 +183,7 @@ int main(void) {
     test_pass_14c9();
     test_rng();
     test_rng_pos();
+    test_pass_45f();
     printf("captive_gm_generator: all tests passed\n");
     return 0;
 }

@@ -1,5 +1,15 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: pass 0x45F room-grid generator, v1.1.152)
+
+- Transcribed GM.EXE pass 0x45F (`captive_gm_pass_45f`) — the 16-cell room-grid
+  region generator: lays the mission seed pattern (baked table 0x6D20), grows N
+  RNG-driven regions by random walk (helpers 0x641/0x651/0x663 + delta tables
+  0x6D2E/0x6D36), and fills the remainder from neighbours. Byte-for-byte verified
+  against the real GM.EXE for missions 0/1/2/3/5 (region counts 1/2/5/4/3, exact
+  grids), including the mission-0 special case. Added the baked helper tables to
+  captive_gm_init. All 71 tests pass.
+
 ## 2026-08-20 (GM.EXE native port: RNG position generator, v1.1.151)
 
 - Transcribed GM.EXE's RNG position generator (`captive_gm_rng_pos`, GM 0x1C97:

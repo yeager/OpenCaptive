@@ -9,10 +9,27 @@
  */
 /* ws:0x6D16 — mission (0..9) -> initial cell/room selector, read by pass 0x14C9. */
 static const uint8_t GM_TBL_6D16[10] = { 3, 3, 3, 5, 3, 6, 5, 3, 5, 5 };
+/* ws:0x6D20 — mission (0..6) -> 16-bit room seed pattern, read by pass 0x45F. */
+static const uint8_t GM_TBL_6D20[14] = {
+    0x00, 0xCC, 0x00, 0xF6, 0x00, 0xFF, 0x60, 0xFF,
+    0xF0, 0xFF, 0xF6, 0xFF, 0xFF, 0xFF,
+};
+/* ws:0x6D2E / 0x6D36 — random-step delta tables (indexed 0,2,4,6), pass 0x45F. */
+static const uint8_t GM_TBL_6D2E[8] = { 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF };
+static const uint8_t GM_TBL_6D36[8] = { 0x04, 0x00, 0x00, 0x00, 0xFC, 0xFF, 0x00, 0x00 };
+/* ws:0x6D3E — 8-word default cell table copied to work[0..0xF] by pass 0x526. */
+static const uint8_t GM_TBL_6D3E[16] = {
+    0x06, 0x01, 0x06, 0x06, 0x06, 0x01, 0x06, 0x06,
+    0x06, 0x01, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+};
 
 void captive_gm_init(CaptiveGmWork *w) {
     memset(w, 0, sizeof(*w));
     memcpy(&w->b[0x6D16u], GM_TBL_6D16, sizeof(GM_TBL_6D16));
+    memcpy(&w->b[0x6D20u], GM_TBL_6D20, sizeof(GM_TBL_6D20));
+    memcpy(&w->b[0x6D2Eu], GM_TBL_6D2E, sizeof(GM_TBL_6D2E));
+    memcpy(&w->b[0x6D36u], GM_TBL_6D36, sizeof(GM_TBL_6D36));
+    memcpy(&w->b[0x6D3Eu], GM_TBL_6D3E, sizeof(GM_TBL_6D3E));
 }
 
 /* Fill `n` bytes at work offset `off` with `val` (GM's `rep stosb`). */
@@ -116,6 +133,114 @@ uint16_t captive_gm_rng_pos(CaptiveGmWork *w) {
     uint16_t ror6 = (uint16_t)((r >> 6) | (r << 10));
     uint16_t y = (uint16_t)(ror6 & 0x1Fu);
     return (uint16_t)((y << 8) | x);
+}
+
+/* ror/rol of a 16-bit value (rotation result depends only on count mod 16). */
+static uint16_t gm_ror16(uint16_t v, unsigned n) {
+    n &= 15u; return (uint16_t)((v >> n) | (v << (16 - n)));
+}
+static uint16_t gm_rol16(uint16_t v, unsigned n) {
+    n &= 15u; return (uint16_t)((v << n) | (v >> (16 - n)));
+}
+
+/* GM 0x641: read the room-grid cell at index (cl+ch); returns its value.
+ * `*idx` receives cl+ch (the original leaves it in bp for the caller's stamp). */
+static uint8_t gm_h641(CaptiveGmWork *w, uint16_t si, uint8_t cl, uint8_t ch,
+                       uint8_t *idx) {
+    uint8_t bp = (uint8_t)(cl + ch);
+    *idx = bp;
+    return w->b[(uint16_t)(si + bp)];
+}
+
+/* GM 0x651: pick a random room-grid cell -> cl = a&3 (col), ch = a&0xC (row*4),
+ * where a = low byte of ror(rng, rng&0xF). */
+static void gm_h651(CaptiveGmWork *w, uint8_t *cl, uint8_t *ch) {
+    uint16_t r = captive_gm_rng_next(w);
+    uint8_t a = (uint8_t)(gm_ror16(r, r & 0xFFu) & 0xFFu);
+    *cl = (uint8_t)(a & 3u);
+    *ch = (uint8_t)(a & 0xCu);
+}
+
+/* GM 0x663: step (cl,ch) by a random cardinal delta (tables 0x6D2E/0x6D36 indexed
+ * by ror(rng,rng)&6); returns 1 if still in bounds (cl<4 && ch<0xD), else 0. */
+static int gm_h663(CaptiveGmWork *w, uint8_t *cl, uint8_t *ch) {
+    uint16_t r = captive_gm_rng_next(w);
+    uint16_t idx = (uint16_t)(gm_ror16(r, r & 0xFFu) & 6u);
+    *cl = (uint8_t)(*cl + w->b[(uint16_t)(0x6D2Eu + idx)]);
+    *ch = (uint8_t)(*ch + w->b[(uint16_t)(0x6D36u + idx)]);
+    if (*cl >= 4u) return 0;          /* GM 0x67B: cmp cl,4 / jae -> out */
+    return (*ch < 0x0Du) ? 1 : 0;     /* GM 0x680: cmp ch,0xD */
+}
+
+void captive_gm_pass_45f(CaptiveGmWork *w) {
+    const uint16_t si = 0u;
+    uint16_t mission = captive_gm_wget(w, 0x3078u);
+
+    /* GM 0x45F..0x492: lay the initial room grid from the mission seed word:
+     * MSB-first, cell = 0 where the bit is 1 (open), 6 where 0 (filled).
+     * `count` = number of open cells (popcount). */
+    uint16_t m = (mission > 6u) ? 6u : mission;
+    uint16_t ax = captive_gm_wget(w, (uint16_t)(0x6D20u + m * 2u));
+    int count = 0x10;
+    for (int di = 0; di < 0x10; ++di) {
+        ax = gm_rol16(ax, 1);
+        w->b[di] = 0u;
+        if ((ax & 1u) == 0u) { --count; w->b[di] = 6u; }
+    }
+
+    /* GM 0x494..0x4AB: region count = (ror(rng,1)&3)+2, or 1 for mission 0. */
+    uint16_t rr = captive_gm_rng_next(w);
+    uint16_t regions = (uint16_t)((gm_ror16(rr, 1) & 3u) + 2u);
+    if (mission == 0u) regions = 1u;
+    captive_gm_wset(w, 0x3082u, regions);
+
+    uint8_t dl = 1u, ch = 0u, cl = 0u, dh = 0u, idx = 0u;
+
+region_loop:                                   /* GM 0x4AE */
+    do {                                        /* find an empty cell */
+        gm_h651(w, &cl, &ch);
+        dh = gm_h641(w, si, cl, ch, &idx);
+    } while (dh != 0u);
+seed_stamp:                                     /* GM 0x4B6 */
+    --count;
+stamp_only:                                     /* GM 0x4BB */
+    w->b[(uint16_t)(si + idx)] = dl;
+    if (count == 0) goto after_regions;         /* GM 0x4BE */
+    /* GM 0x4C6: grow */
+    if (!gm_h663(w, &cl, &ch)) goto next_region; /* out of bounds */
+    dh = gm_h641(w, si, cl, ch, &idx);
+    if (dh == 0u) goto seed_stamp;              /* empty -> extend region */
+    if (dl == dh) goto stamp_only;              /* same region -> restamp */
+next_region:                                    /* GM 0x4D4 */
+    ++dl;
+    if (dl <= (uint8_t)regions) goto region_loop;
+    dl = (uint8_t)regions;                       /* GM 0x4DC */
+after_regions:                                  /* GM 0x4E0 */
+    captive_gm_wset(w, 0x002Eu, dl);
+    captive_gm_wset(w, 0x33DAu, dl);
+
+    /* GM 0x4EC..0x524: fill any cells still open by copying a region value from a
+     * random in-bounds neighbour (up to 4 tries per empty cell). */
+    unsigned guard = 0u;
+    while (count != 0 && ++guard < 1000000u) {   /* GM 0x4EC: count==0 -> done */
+        do {                                     /* GM 0x4F7: find an empty cell */
+            gm_h651(w, &cl, &ch);
+            dh = gm_h641(w, si, cl, ch, &idx);
+        } while (dh != 0u);
+        uint8_t empty_idx = idx;                  /* cl+ch of the empty cell */
+        for (int dl2 = 3; dl2 >= 0; --dl2) {      /* GM 0x4FF..0x522: 4 tries */
+            uint8_t ncl = cl, nch = ch;           /* push cx (the empty cell) */
+            if (!gm_h663(w, &ncl, &nch)) continue;        /* GM 0x505 jae 0x51F */
+            uint8_t nidx;
+            uint8_t nv = gm_h641(w, si, ncl, nch, &nidx); /* GM 0x507 */
+            if (nv == 0u) continue;               /* GM 0x50A je 0x51F: empty */
+            /* GM 0x50C..0x518: neighbour holds region nv -> copy it into the
+             * empty cell and consume one open cell. */
+            w->b[(uint16_t)(si + empty_idx)] = nv;
+            --count;
+            break;                                /* GM 0x51D jmp 0x4EC */
+        }
+    }
 }
 
 void captive_gm_pass_14c9(CaptiveGmWork *w) {
