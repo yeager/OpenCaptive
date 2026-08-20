@@ -1,5 +1,12 @@
 # OpenCaptive Release Notes
 
+## v1.1.158 (2026-08-20)
+
+### Changed
+
+- **(Captive)** GM.EXE native port: strengthened 0x1CB5 verification to also cover its
+  gate-on map writes (map1048 + map38 checksums vs the real GM.EXE).
+
 ## v1.1.157 (2026-08-20)
 
 ### Added

@@ -313,6 +313,32 @@ static void test_pass_1cb5(void) {
         for (int i = 0; i < 3; ++i)
             assert(w(&ws, (uint16_t)(0x3430u + i*2)) == cases[c].words[i]);
     }
+
+    /* Also verify 0x1CB5's gate-on map writes (second loop) against the real
+     * GM.EXE: map1048 (cell type) and map38 (selector) checksums after 0x1CB5. */
+    struct { uint16_t m; int t_nz; uint32_t t_ck; int s_nz; uint32_t s_ck; } mc[] = {
+        {2u, 9, 0xC9u, 340, 0x14CBBu},
+        {3u, 6, 0x86u, 340, 0x14EB6u},
+    };
+    for (size_t c = 0; c < sizeof(mc)/sizeof(mc[0]); ++c) {
+        CaptiveGmWork ws;
+        captive_gm_init(&ws);
+        captive_gm_entry_setup(&ws, mc[c].m, 0u, 0u, 0u);
+        captive_gm_seed(&ws);
+        captive_gm_pass_14c9(&ws);
+        captive_gm_pass_45f(&ws);
+        captive_gm_pass_526(&ws);
+        captive_gm_pass_5d4(&ws);
+        captive_gm_pass_1cb5(&ws);
+        int tnz = 0, snz = 0; uint32_t tck = 0, sck = 0;
+        for (int i = 0; i < 4096; ++i) {
+            uint8_t t = ws.b[0x1048 + i], s = ws.b[0x38 + i];
+            if (t) ++tnz; tck += t;
+            if (s) ++snz; sck += s;
+        }
+        assert(tnz == mc[c].t_nz && tck == mc[c].t_ck);
+        assert(snz == mc[c].s_nz && sck == mc[c].s_ck);
+    }
 }
 
 int main(void) {

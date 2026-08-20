@@ -1,5 +1,14 @@
 # OpenCaptive — Completed work
 
+## 2026-08-20 (GM.EXE native port: verify 0x1CB5 gate-on map writes, v1.1.158)
+
+- Strengthened the 0x1CB5 verification: besides the anchor array, the test now checks
+  0x1CB5's second-loop gate-on map writes (map1048 cell-type + map38 selector
+  checksums) against the real GM.EXE for missions 2/3 — confirming the whole
+  subsystem including its map output is byte-exact, not just the anchors. Also
+  established (via write-trace) that the next pass 0x1617 contributes nothing to
+  map1048 (its 0x2055 draws target map38/0x2058). All 71 tests pass.
+
 ## 2026-08-20 (GM.EXE native port: pass 0x1CB5 validator subsystem, v1.1.157)
 
 - Transcribed GM.EXE's 0x1CB5 room-outline validator + anchor-placement subsystem
