@@ -98,3 +98,32 @@ and must still be transcribed in order because the pipeline is stateful.
    verify `post_generate` / `output_map@0x5A68` SHA.
 5. Wire the output map -> `captive_dos_map_to_level` -> view_window/compositor,
    resolving the display-map cell semantics (wall test on GM output codes).
+
+## 0xD12 — the core placement machine (reverse-engineered 2026-08-20)
+
+The largest generator subsystem: a drunkard's-walk room/corridor placer.  Fully
+disassembled; transcription pending (verified sub-routine by sub-routine).
+
+Structure (GM_UNP.EXE offsets):
+- `0xD12` driver: sets word[0x3510]=0 (mode 0), reads the entry cell (word[0x20]/
+  [0x22] from pass 0x526), budgets word[0x307E]=0x12C and word[0x3080]=0x384, then
+  loops the dispatcher until word[0x6DE2] >= 0x3001 or a budget is exhausted.  Uses a
+  SECOND RNG (`0x1C57`, state at word[0x355C]) alongside the main RNG (word[0x3074]).
+- `0x1F00` / `0x1F29`: two entries to the same walker/dispatcher (ax&3 vs ax&7).  Both
+  save (cl,ch,dh) to work[0x30]/[0x32]/[0x34], then dispatch by direction to the
+  carve-block entries, or (by RNG thresholds on word[0x308A]) to `0x24A9` / `0x2055`.
+- Carve block `0x1F7E..0x2054`: plain step (0x1F7E), or carve a cell — bounds check,
+  region match (`0x1BD2`), neighbour count == 4 (`0x2681`), stamp selector (`0x26AE`),
+  then write the room code into the cell-type map (codes 4/5, 0x35/0x36, 6, 0x37,
+  +0x31), and post-process (`0x25B5`).
+- `0x24A9`: feature/door placer (code 0x11 or 0x14) using `0x255D` (mark), `0x250D`
+  (place satellites via the `0x1F00` walker), `0x2590` (cleanup 0xFFFE markers).
+- Helpers: `0x2854` (step back by connection vector; bp from the ORIGINAL dh, then
+  dh--), `0x286E` (step forward; dh++ then bp), `0x25A8` (restore cursor from
+  work[0x30/32/34]).
+
+Verification: `opencaptive-re/gm_call.py` invokes any GM sub-routine with a controlled
+work-segment state and registers and reads back the result, so each transcribed
+routine is checked against the real GM code in isolation before assembly (the same
+method used for the 0x129 translator).  Full-pass target: map1048 non-zero/checksum
+after 0xD12 — m1 550/0x42D6, m2 280/0x17FE, m3 191/0x10DE.
